@@ -9,8 +9,6 @@ namespace FleetManager.Business.Database.Entities
 {
     public class Driver:BaseEntity
     {
-        
-        
         public string Address { get; set; }
         public DateTime DateOfBirth { get; set; }
         public string? Gender { get; set; }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FleetManager.Business.Database.Entities
 {
-    public class DriverVehicle
+    public class DriverVehicle:BaseEntity
     {
         public long? DriverId { get; set; }
         public virtual Driver? Driver {  get; set; }

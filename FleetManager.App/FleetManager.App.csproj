@@ -7,7 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hangfire" Version="1.8.18" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.15">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.15">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FleetManager.Business\FleetManager.Business.csproj" />
   </ItemGroup>
 
 </Project>
