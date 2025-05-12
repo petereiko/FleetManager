@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FleetManager.Business.Interfaces
+namespace FleetManager.Business.ViewModels
 {
-    public interface IUserService
+    public class ForgotPasswordViewModel
     {
-        Task SeedRoles();
+        public string Email {  get; set; }
     }
 }

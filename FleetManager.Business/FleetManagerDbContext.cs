@@ -25,6 +25,7 @@ namespace FleetManager.Business
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<DriverVehicle> DriverVehicles { get; set; }
         public DbSet<DriverVehicleLocation> DriverVehicleLocations { get; set; }
+        public DbSet<EmailLog> EmailLogs { get; set; }
         public DbSet<NextOfKin> NextOfKins { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<VehicleDocument> VehicleDocuments { get; set; }
