@@ -20,5 +20,6 @@ namespace FleetManager.Business.ViewModels
         public bool IsActive { get; set; }
         public string Role { get; set; }
         public List<CheckBoxListItemDto> Roles { get; set; }=new List<CheckBoxListItemDto>();
+        public List<string> Errors { get; set; }= new List<string>();
     }
 }

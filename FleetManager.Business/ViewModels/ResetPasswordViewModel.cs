@@ -11,5 +11,7 @@ namespace FleetManager.Business.ViewModels
         public string Id {  get; set; }
         public string ResetToken { get;set; }
         public string Password { get; set; }
+        public List<string> Errors { get; set; } = new List<string>();
+
     }
 }

@@ -69,7 +69,7 @@ namespace FleetManager.Business.Implementations.UserModule
         }
         public async Task SeedSuperAdminUser()
         {
-            string email = "peterayebhere@gmail.com";
+            string email = "edorhsunday@gmail.com";
             ApplicationUser? user = await _userManager.FindByEmailAsync(email);
             if (user != null) return;
             user = new()
@@ -77,11 +77,11 @@ namespace FleetManager.Business.Implementations.UserModule
                 CompanyId = null,
                 CreatedDate = DateTime.UtcNow,
                 Email = email,
-                FirstName = "Peter",
-                LastName = "Eikore",
+                FirstName = "Sunday",
+                LastName = "Edorh",
                 IsActive = true,
                 Id = Guid.NewGuid().ToString(),
-                PhoneNumber = "07068352430",
+                PhoneNumber = "07011169508",
                 UserName = email,
                 EmailConfirmed = true,
                 IsFirstLogin = true

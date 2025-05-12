@@ -10,5 +10,6 @@ namespace FleetManager.Business.ViewModels
     {
         public string CurrentPassword { get; set; }
         public string NewPassword { get; set; }
+        public List<string> Errors { get; set; }= new List<string>();
     }
 }
