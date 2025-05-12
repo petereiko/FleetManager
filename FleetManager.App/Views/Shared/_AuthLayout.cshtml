@@ -57,8 +57,15 @@
 			</div>
 		</div>
 	</div>
-	<!-- /Main Wrapper -->
+
+	@section Scripts {
+		@await Html.PartialAsync("_ValidationScriptsPartial")
+	}
+
 	<!-- jQuery -->
+	<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
 	<script src="~/assets/js/jquery-3.7.1.min.js"></script>
 
 	<!-- Bootstrap Core JS -->
@@ -69,6 +76,7 @@
 
 	<!-- Custom JS -->
 	<script src="~/assets/js/app.js"></script>
+	
 
 </body>
 </html>
