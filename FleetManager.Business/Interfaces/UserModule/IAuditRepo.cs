@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DVLA.Business.UserModule
+namespace FleetManager.Business.Interfaces.UserModule
 {
     public interface IAuditRepo
     {

@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Authentication;
 using FleetManager.Business.Interfaces;
 using FleetManager.Business.DataObjects;
 using FleetManager.Business.Interfaces.UserModule;
+using FleetManager.Business.Interfaces.EmailModule;
 
 namespace FleetManager.Business.Implementations.UserModule
 {
@@ -65,6 +66,30 @@ namespace FleetManager.Business.Implementations.UserModule
                     await _roleManager.CreateAsync(new() { Id = Guid.NewGuid().ToString(), Name = role });
                 }
             }
+        }
+        public async Task SeedSuperAdminUser()
+        {
+            string email = "peterayebhere@gmail.com";
+            ApplicationUser? user = await _userManager.FindByEmailAsync(email);
+            if (user != null) return;
+            user = new()
+            {
+                CompanyId = null,
+                CreatedDate = DateTime.UtcNow,
+                Email = email,
+                FirstName = "Peter",
+                LastName = "Eikore",
+                IsActive = true,
+                Id = Guid.NewGuid().ToString(),
+                PhoneNumber = "07068352430",
+                UserName = email,
+                EmailConfirmed = true,
+                IsFirstLogin = true
+            };
+            IdentityResult result = await _userManager.CreateAsync(user, "Securityr&d1");
+
+            await _userManager.AddToRoleAsync(user, EnumHelper<Role>.GetDescription(Role.SuperAdmin));
+
         }
 
         public UserViewModel GetUserData()

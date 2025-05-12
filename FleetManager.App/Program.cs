@@ -1,11 +1,14 @@
 
 
 using System.Globalization;
+using DVLA.Business.UserModule;
 using FleetManager.Business;
 using FleetManager.Business.Database.IdentityModels;
 using FleetManager.Business.Hubs;
 using FleetManager.Business.Implementations;
+using FleetManager.Business.Implementations.EmailModule;
 using FleetManager.Business.Implementations.UserModule;
+using FleetManager.Business.Interfaces.EmailModule;
 using FleetManager.Business.Interfaces.UserModule;
 using Hangfire;
 using Hangfire.SqlServer;
@@ -86,7 +89,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<IActionContextAccessor, ActionContextAccessor>();
 
-//builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<IUserService, UserService>();
 //builder.Services.AddTransient<IApplicantService, ApplicantService>();
 //builder.Services.AddTransient<IVisualAssessmentResultRepository, VisualAssessmentResultService>();
@@ -97,13 +100,13 @@ builder.Services.AddTransient<IUserService, UserService>();
 //builder.Services.AddTransient<IReportRepository, ReportService>();
 //builder.Services.AddScoped(typeof(IRepositoryQuery<>), typeof(GenericRepository<>));
 //builder.Services.AddTransient<IAuditRepo, AuditRepo>();
-//builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
 //builder.Services.AddTransient<IAnalyticRepository, AnalyticRepository>();
 //builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 //builder.Services.AddTransient<IPaymentService, PaymentService>();
 //builder.Services.AddTransient<ISmsRepository, SmsRepository>();
-//builder.Services.AddTransient<IAuditRepo, AuditRepo>();
-//builder.Services.AddTransient<IAuthUser, AuthUser>();
+builder.Services.AddTransient<IAuditRepo, AuditRepo>();
+builder.Services.AddTransient<IAuthUser, AuthUser>();
 //builder.Services.AddTransient<ITempPasswordService, TempPasswordService>();
 builder.Services.AddTransient<BackgroundJobService>();
 
@@ -181,7 +184,7 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHub<NotificationHub>("/notification");
 
@@ -199,7 +202,8 @@ using (var scope = app.Services.CreateScope())
     var userService = scopedProvider.GetRequiredService<IUserService>();
 
     // Call the method on the scoped service
-    //await userService.SeedRoles();
+    await userService.SeedRoles();
+    await userService.SeedSuperAdminUser();
 }
 
 app.Run();

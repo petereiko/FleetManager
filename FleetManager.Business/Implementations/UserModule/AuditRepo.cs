@@ -13,7 +13,7 @@ using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Database.Entities;
 using FleetManager.Business.DataObjects;
 
-namespace DVLA.Business.UserModule
+namespace FleetManager.Business.Implementations.UserModule
 {
     public class AuditRepo : IAuditRepo
     {

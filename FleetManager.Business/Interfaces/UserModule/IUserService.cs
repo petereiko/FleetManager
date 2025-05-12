@@ -11,6 +11,7 @@ namespace FleetManager.Business.Interfaces.UserModule
     public interface IUserService
     {
         Task SeedRoles();
+        Task SeedSuperAdminUser();
         Task<string> GeneratePasswordResetToken(string id);
         //UserViewModel GetUserData();
         Task<List<UserViewModel>> GetUsersInRole(string roleName);

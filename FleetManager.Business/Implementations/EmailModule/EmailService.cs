@@ -11,8 +11,9 @@ using FleetManager.Business.Interfaces;
 using FleetManager.Business;
 using FleetManager.Business.DataObjects;
 using FleetManager.Business.Database.Entities;
+using FleetManager.Business.Interfaces.EmailModule;
 
-namespace DVLA.Business.EmailModule
+namespace FleetManager.Business.Implementations.EmailModule
 {
     public class EmailService : IEmailService
     {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using FleetManager.Business.DataObjects;
 using FleetManager.Business.Interfaces;
 
-namespace FleetManager.Business.Interfaces
+namespace FleetManager.Business.Interfaces.EmailModule
 {
     public interface IEmailService
     {
