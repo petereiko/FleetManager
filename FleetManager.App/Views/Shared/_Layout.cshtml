@@ -203,9 +203,14 @@
 				</div>
 			</div>
 		</div>
-		<div class="sidebar" id="sidebar">
-			<partial name="_LeftNav"/>
-		</div>
+		@if (User.Identity.IsAuthenticated)
+		{
+			<div class="sidebar" id="sidebar">
+
+				<partial name="_LeftNav" />
+
+			</div>
+		}
 		<div class="page-wrapper">
 			<div class="content">
 				@RenderBody()

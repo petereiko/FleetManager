@@ -4,6 +4,7 @@ using FleetManager.Business;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FleetManager.Business.Migrations
 {
     [DbContext(typeof(FleetManagerDbContext))]
-    partial class FleetManagerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250513132716_CompanyBranchStateLGa2")]
+    partial class CompanyBranchStateLGa2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

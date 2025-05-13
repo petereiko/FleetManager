@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace FleetManager.Business.Database.Entities
 {
-    public class State:BaseEntity
+    public class State
     {
+        public long Id { get; set; }
         public string Name { get; set; }
-        public string Code { get; set; }
-        public List<LGA> LGAs { get; set; }
+        //public string Code { get; set; }
+        public ICollection<LGA> Lgas { get; set; } = new HashSet<LGA>();
     }
 }

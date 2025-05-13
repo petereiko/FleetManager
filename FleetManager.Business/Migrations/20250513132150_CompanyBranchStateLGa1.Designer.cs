@@ -4,6 +4,7 @@ using FleetManager.Business;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FleetManager.Business.Migrations
 {
     [DbContext(typeof(FleetManagerDbContext))]
-    partial class FleetManagerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250513132150_CompanyBranchStateLGa1")]
+    partial class CompanyBranchStateLGa1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -370,10 +373,23 @@ namespace FleetManager.Business.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long?>("StateId")
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("StateId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
@@ -438,6 +454,22 @@ namespace FleetManager.Business.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -847,8 +879,10 @@ namespace FleetManager.Business.Migrations
             modelBuilder.Entity("FleetManager.Business.Database.Entities.LGA", b =>
                 {
                     b.HasOne("FleetManager.Business.Database.Entities.State", "State")
-                        .WithMany("Lgas")
-                        .HasForeignKey("StateId");
+                        .WithMany("LGAs")
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("State");
                 });
@@ -933,7 +967,7 @@ namespace FleetManager.Business.Migrations
 
             modelBuilder.Entity("FleetManager.Business.Database.Entities.State", b =>
                 {
-                    b.Navigation("Lgas");
+                    b.Navigation("LGAs");
                 });
 
             modelBuilder.Entity("FleetManager.Business.Database.Entities.Vehicle", b =>

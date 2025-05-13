@@ -15,6 +15,7 @@ namespace FleetManager.Business.Database.Entities
         public string? ManagerName { get; set; }
         public string? ManagerPhone { get; set; }
         public string? ManagerEmail { get; set; }
+        public long? CompanyId { get; set; }
         public virtual Company? Company { get; set; }
         public bool IsHeadOffice { get; set; }
         public string? Notes { get; set; }

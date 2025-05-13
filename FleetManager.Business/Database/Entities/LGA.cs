@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace FleetManager.Business.Database.Entities
 {
-    public class LGA:BaseEntity
+    public class LGA
     {
-        public string Name { get; set; }
-        public long StateId { get; set; }
-        public virtual State State { get; set; }
+        public long Id { get; set; }
+        public string? Name { get; set; }
+        public long? StateId { get; set; }
+        public virtual State? State { get; set; }
     }
 }

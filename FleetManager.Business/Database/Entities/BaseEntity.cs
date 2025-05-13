@@ -13,7 +13,7 @@ namespace FleetManager.Business.Database.Entities
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
-        public long? CompanyId { get; set; }
+        //public long? CompanyId { get; set; }
         public string? CreatedBy { get; set; }
     }
 }

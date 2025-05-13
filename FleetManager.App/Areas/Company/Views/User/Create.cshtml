@@ -4,40 +4,63 @@
 @{
 	Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
-<div class="login-right">
-	<div class="login-right-wrap">
-		<div class="account-logo">
-			<a href="index.html"><img src="~/assets/img/login-logo.png" alt=""></a>
-		</div>
-		<h2>Login</h2>
-		<!-- Form -->
-		<form asp-action="Create">
-			<div class="input-block">
-				<label asp-for="Name">Name of your Organization <span class="login-danger">*</span></label>
-				<input asp-for="Name" class="form-control" type="text">
-			</div>
-			<div class="input-block">
-				<label asp-for="Email">Organization's Email <span class="login-danger">*</span></label>
-				<input asp-for="Email" class="form-control pass-input" type="text">
-				<span asp-validation-for="Email" class="profile-views"></span>
-			</div>
+<div class="card">
+	<div class="card-header">
+		<h5 class="card-title mb-0">Server Side</h5>
+		<p class="card-text">We recommend using client side validation, but in case you require server side, you can indicate invalid and valid form fields with <code>.is-invalid</code> and <code>.is-valid</code>. Note that <code>.invalid-feedback</code> is also supported with these classes.</p>
+	</div>
+	<div class="card-body">
+		<form>
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label asp-for="Name">Company Name</label>
+					<input type="text" class="form-control" asp-for="Name" placeholder="Company Name" required autocomplete="off" />
+					@Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
 
-			<div class="input-block login-btn">
-				<button class="btn btn-primary btn-block" type="submit">Create</button>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label asp-for="Email">Email</label>
+					<input type="email" class="form-control" asp-for="Email" placeholder="Email" required autocomplete="off">
+					@Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+
+				</div>
+				<div class="col-md-6 mb-3">
+					<label asp-for="PhoneNumber">Phone</label>
+					<input type="text" class="form-control" asp-for="PhoneNumber" placeholder="Phone" required autocomplete="off" />
+					@Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+
+				</div>
+				<div class="col-md-6 mb-3">
+					<label asp-for="Address">Address</label>
+					<textarea asp-for="Address" class="form-control" required autocomplete="off"></textarea>
+					@Html.ValidationMessageFor(model => model.Address, "", new { @class = "text-danger" })
+
+				</div>
 			</div>
+			<div class="input-block mb-3">
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" asp-for="HasAgreed">
+					<label class="form-check-label" asp-for="HasAgreed">
+						Agree to terms and conditions
+					</label>
+					<div class="valid-feedback">
+						You must agree before submitting.
+					</div>
+				</div>
+			</div>
+			<button class="btn btn-primary" id="btn-submit" disabled type="submit">Submit form</button>
 		</form>
-		<!-- /Form -->
-		<div class="next-sign">
-			<p class="account-subtitle">Already Have an account with us?  <a asp-action="Login" asp-controller="Account" asp-area="Company">Sign Up</a></p>
-
-			<!-- Social Login -->
-			<div class="social-login">
-				<a href="javascript:;"><img src="assets/img/icons/login-icon-01.svg" alt=""></a>
-				<a href="javascript:;"><img src="assets/img/icons/login-icon-02.svg" alt=""></a>
-				<a href="javascript:;"><img src="assets/img/icons/login-icon-03.svg" alt=""></a>
-			</div>
-			<!-- /Social Login -->
-
-		</div>
 	</div>
 </div>
+
+
+@section Scripts {
+	<script>
+
+		document.getElementById('HasAgreed').addEventListener('change',function(e){
+			console.log(e.target.checked)
+			$('#btn-submit').prop('disabled',!e.target.checked);
+			
+		});
+	</script>
+}

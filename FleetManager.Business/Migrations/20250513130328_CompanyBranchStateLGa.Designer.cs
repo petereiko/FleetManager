@@ -4,6 +4,7 @@ using FleetManager.Business;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FleetManager.Business.Migrations
 {
     [DbContext(typeof(FleetManagerDbContext))]
-    partial class FleetManagerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250513130328_CompanyBranchStateLGa")]
+    partial class CompanyBranchStateLGa
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,6 +35,9 @@ namespace FleetManager.Business.Migrations
 
                     b.Property<string>("Action")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -63,6 +69,9 @@ namespace FleetManager.Business.Migrations
 
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("ContactPersonEmail")
                         .HasColumnType("nvarchar(max)");
@@ -195,7 +204,7 @@ namespace FleetManager.Business.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long?>("CompanyBranchId")
+                    b.Property<long?>("CompanyId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("CreatedBy")
@@ -248,6 +257,9 @@ namespace FleetManager.Business.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -289,6 +301,9 @@ namespace FleetManager.Business.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -324,6 +339,9 @@ namespace FleetManager.Business.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -370,10 +388,26 @@ namespace FleetManager.Business.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long?>("StateId")
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("StateId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
@@ -393,6 +427,9 @@ namespace FleetManager.Business.Migrations
 
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -439,6 +476,25 @@ namespace FleetManager.Business.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -463,7 +519,7 @@ namespace FleetManager.Business.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long?>("CompanyBranchId")
+                    b.Property<long?>("CompanyId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("CreatedBy")
@@ -532,8 +588,6 @@ namespace FleetManager.Business.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyBranchId");
-
                     b.ToTable("Vehicles");
                 });
 
@@ -544,6 +598,9 @@ namespace FleetManager.Business.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("CompanyId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -847,8 +904,10 @@ namespace FleetManager.Business.Migrations
             modelBuilder.Entity("FleetManager.Business.Database.Entities.LGA", b =>
                 {
                     b.HasOne("FleetManager.Business.Database.Entities.State", "State")
-                        .WithMany("Lgas")
-                        .HasForeignKey("StateId");
+                        .WithMany("LGAs")
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("State");
                 });
@@ -860,15 +919,6 @@ namespace FleetManager.Business.Migrations
                         .HasForeignKey("DriverId");
 
                     b.Navigation("Driver");
-                });
-
-            modelBuilder.Entity("FleetManager.Business.Database.Entities.Vehicle", b =>
-                {
-                    b.HasOne("FleetManager.Business.Database.Entities.CompanyBranch", "CompanyBranch")
-                        .WithMany()
-                        .HasForeignKey("CompanyBranchId");
-
-                    b.Navigation("CompanyBranch");
                 });
 
             modelBuilder.Entity("FleetManager.Business.Database.Entities.VehicleDocument", b =>
@@ -933,7 +983,7 @@ namespace FleetManager.Business.Migrations
 
             modelBuilder.Entity("FleetManager.Business.Database.Entities.State", b =>
                 {
-                    b.Navigation("Lgas");
+                    b.Navigation("LGAs");
                 });
 
             modelBuilder.Entity("FleetManager.Business.Database.Entities.Vehicle", b =>

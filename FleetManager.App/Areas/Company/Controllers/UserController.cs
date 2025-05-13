@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FleetManager.Business.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FleetManager.App.Areas.Company.Controllers
 {
@@ -16,6 +17,11 @@ namespace FleetManager.App.Areas.Company.Controllers
             return View();
         }
 
-       
+
+        [HttpPost]
+        public IActionResult Create(CompanyRegistrationViewModel model)
+        {
+            return View();
+        }
     }
 }
