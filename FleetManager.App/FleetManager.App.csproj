@@ -25,4 +25,9 @@
     <ProjectReference Include="..\FleetManager.Business\FleetManager.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Areas\Company\Data\" />
+    <Folder Include="Areas\Company\Models\" />
+  </ItemGroup>
+
 </Project>

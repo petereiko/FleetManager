@@ -16,6 +16,8 @@ namespace FleetManager.Business.Database.IdentityModels
         public bool IsFirstLogin { get; set; }
         public DateTime? LastLoginDate { get; set; }
         public long? CompanyId { get; set; }
+        public long? CompanyBranchId { get; set; }
+       
 
     }
 }
