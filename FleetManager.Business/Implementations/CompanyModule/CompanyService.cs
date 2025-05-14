@@ -228,7 +228,7 @@ namespace FleetManager.Business.Implementations.CompanyModule
             }
 
             user.EmailConfirmed = true;
-            user.IsFirstLogin = false;
+            //user.IsFirstLogin = false;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
             response.Success = true;

@@ -32,14 +32,29 @@ namespace FleetManager.App.Areas.Company.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return View(new CompanyRegistrationViewModel());
         }
 
 
         [HttpPost]
-        public IActionResult Create(CompanyRegistrationViewModel model)
+        public async Task<IActionResult> Create(CompanyRegistrationViewModel model)
         {
-            return View();
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _companyService.OnboardCompany(model);
+
+            if (result.Success)
+            {
+                
+                TempData["SuccessMessage"] = "Company registered! Please check your email to confirm.";
+                return RedirectToAction(nameof(ConfirmEmailSent));
+            }
+            else
+            {
+                ModelState.AddModelError("", result.Message);
+                return View(model);
+            }
         }
 
         public async Task<IActionResult> ConfirmEmail(string encodedToken, string userId)
@@ -60,6 +75,13 @@ namespace FleetManager.App.Areas.Company.Controllers
                 return View("Error");
             }
             
+        }
+
+        [HttpGet]
+        public IActionResult ConfirmEmailSent()
+        {
+            
+            return View();
         }
 
         [HttpGet]
