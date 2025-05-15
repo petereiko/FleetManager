@@ -1,0 +1,160 @@
+﻿@using FleetManager.Business.ViewModels
+@model EditCompanyViewModel
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row">
+            <div class="col-sm-12">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Profile </a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">Edit Profile</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <div class="card-box">
+            <h3 class="card-title">Basic Informations</h3>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="profile-img-wrap">
+                        <img class="inline-block" src="@Model.LogoUrl ?? " assets /img/user.jpg"" alt="Company Logo">
+                        <div class="fileupload btn">
+                            <span class="btn-text">edit</span>
+                            <input class="upload" type="file" name="LogoFile">
+                        </div>
+                    </div>
+                    <div class="profile-basic">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Name" class="focus-label"></label>
+                                    <input asp-for="Name" class="form-control floating" disabled/>
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="RegistrationNumber" class="focus-label">Company's Registration Number</label>
+                                    <input asp-for="RegistrationNumber" class="form-control floating" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="DateOfIncorporation" class="focus-label">Date of Incorporation</label>
+                                    <div class="cal-icon">
+                                        <input asp-for="DateOfIncorporation" class="form-control flatpickr floating" placeholder="Select Date" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-block local-forms" >
+                                    <label asp-for="StateId" class="focus-label">State</label>
+                                    <select class="form-control select select2-hidden-accessible" id="StateId" name="StateId" asp-items="ViewBag.States"  aria-hidden="true">
+                                        <option value="">-- Select State --</option>
+                                       
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-box">
+            <h3 class="card-title">Contact Informations</h3>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="input-block local-forms">
+                        <label asp-for="Address" class="focus-label">Address</label>
+                        <input asp-for="Address" class="form-control floating" />
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-block local-forms">
+                        <label asp-for="PhoneNumber" class="focus-label">Company's Phone Number</label>
+                        <input asp-for="PhoneNumber" class="form-control floating" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-block local-forms">
+                        <label asp-for="Email" class="focus-label">Company's' Email</label>
+                        <input asp-for="Email" class="form-control floating" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-block local-forms">
+                        <label asp-for="ContactPersonName" class="focus-label">Contact Person's Name</label>
+                        <input asp-for="ContactPersonName" class="form-control floating" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-block local-forms">
+                        <label asp-for="ContactPersonPhone" class="focus-label">Contact Person's Phone</label>
+                        <input asp-for="ContactPersonPhone" class="form-control floating" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-block local-forms">
+                        <label asp-for="ContactPersonEmail" class="focus-label">Contact Person's Email</label>
+                        <input asp-for="ContactPersonEmail" class="form-control floating" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-block local-forms">
+                        <label asp-for="Website" class="focus-label"></label>
+                        <input asp-for="Website" class="form-control floating" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Education/Experience blocks retained visually -->
+        <div class="card-box">
+            <h3 class="card-title">Education Informations</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-block local-forms">
+                        <label class="focus-label">Institution</label>
+                        <input type="text" class="form-control floating" placeholder="Oxford University" />
+                    </div>
+                </div>
+                <!-- Other education fields... -->
+            </div>
+        </div>
+
+        <div class="card-box">
+            <h3 class="card-title">Experience Informations</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-block local-forms">
+                        <label class="focus-label">Company Name</label>
+                        <input type="text" class="form-control floating" placeholder="Digital Devlopment Inc" />
+                    </div>
+                </div>
+                <!-- Other experience fields... -->
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button class="btn btn-primary submit-btn mb-4" type="submit">Save</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr(".flatpickr", {
+            dateFormat: "Y-m-d",
+            allowInput: true
+        });
+    </script>
+}

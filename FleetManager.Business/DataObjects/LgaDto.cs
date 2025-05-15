@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FleetManager.Business.Database.Entities
+namespace FleetManager.Business.DataObjects
 {
-    public class State
+    public class LgaDto
     {
         public long Id { get; set; }
         public string Name { get; set; }
-        public ICollection<LGA> Lgas { get; set; } = new HashSet<LGA>();
+        public long StateId { get; set; }
+        public StateDto State { get; set; }
     }
 }

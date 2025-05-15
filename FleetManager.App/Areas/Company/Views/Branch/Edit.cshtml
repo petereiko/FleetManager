@@ -1,0 +1,173 @@
+﻿@using FleetManager.Business.DataObjects
+@model CompanyBranchDto
+
+<div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row">
+            <div class="col-sm-12">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Branches</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">Edit Branch</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-heading">
+                                    <h4>Edit Branch</h4>
+                                </div>
+                            </div>
+
+                            <!-- Fields -->
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Name">Branch Name <span class="login-danger">*</span></label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter branch name" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Address">Address <span class="login-danger">*</span></label>
+                                    <input asp-for="Address" class="form-control" placeholder="Enter address" />
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Phone">Phone <span class="login-danger">*</span></label>
+                                    <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Email">Email</label>
+                                    <input asp-for="Email" class="form-control" placeholder="Enter email" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="ManagerName">Manager Name</label>
+                                    <input asp-for="ManagerName" class="form-control" placeholder="Enter manager name" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="ManagerPhone">Manager Phone</label>
+                                    <input asp-for="ManagerPhone" class="form-control" placeholder="Enter manager phone" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="ManagerEmail">Manager Email</label>
+                                    <input asp-for="ManagerEmail" class="form-control" placeholder="Enter manager email" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-check mt-4">
+                                    <input asp-for="IsHeadOffice" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsHeadOffice" class="form-check-label">Is Head Office</label>
+                                </div>
+                            </div>
+
+                            <!-- State Dropdown -->
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="StateId">State <span class="login-danger">*</span></label>
+                                    <select asp-for="StateId" id="StateId" class="form-control" asp-items="ViewBag.States">
+                                        <option value="">-- Select State --</option>
+                                    </select>
+                                    <span asp-validation-for="StateId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- LGA Dropdown -->
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="LgaId">LGA <span class="login-danger">*</span></label>
+                                    <select asp-for="LgaId" id="LgaId" class="form-control">
+                                        <option value="">-- Select LGA --</option>
+                                    </select>
+                                    <span asp-validation-for="LgaId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-12">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Notes">Notes</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Leave Additional Notes"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-primary submit-form me-2">Submit</button>
+                                <a asp-action="Index" class="btn btn-secondary cancel-form">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const stateDropdown = document.getElementById("StateId");
+        const lgaDropdown = document.getElementById("LgaId");
+        const selectedLgaId = '@Model.LgaId';
+
+        function loadLgas(stateId, preselectLgaId = null) {
+            lgaDropdown.innerHTML = '<option value="">-- Select LGA --</option>';
+            lgaDropdown.disabled = true;
+
+            if (stateId) {
+                fetch(`/Company/Branch/GetLgasByState?stateId=${stateId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(lga => {
+                            const option = document.createElement("option");
+                            option.value = lga.id;
+                            option.text = lga.name;
+
+                            if (preselectLgaId && parseInt(lga.id) === parseInt(preselectLgaId)) {
+                                option.selected = true;
+                            }
+
+                            lgaDropdown.appendChild(option);
+                        });
+                        lgaDropdown.disabled = false;
+                    })
+                    .catch(error => console.error("Error fetching LGAs:", error));
+            }
+        }
+
+        stateDropdown.addEventListener("change", function () {
+            loadLgas(this.value);
+        });
+
+        // Load LGAs on page load if StateId is preselected
+        document.addEventListener("DOMContentLoaded", function () {
+            const selectedStateId = stateDropdown.value;
+            if (selectedStateId) {
+                loadLgas(selectedStateId, selectedLgaId);
+            }
+        });
+    </script>
+}

@@ -1,0 +1,390 @@
+﻿@using FleetManager.Business.ViewModels
+@model CompanyViewModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Determine completeness
+    int totalFields = 7;
+    int filledFields = 0;
+
+    if (!string.IsNullOrWhiteSpace(Model.Name)) filledFields++;
+    if (!string.IsNullOrWhiteSpace(Model.Email)) filledFields++;
+    if (!string.IsNullOrWhiteSpace(Model.PhoneNumber)) filledFields++;
+    if (!string.IsNullOrWhiteSpace(Model.ContactPersonPhone)) filledFields++;
+    if (!string.IsNullOrWhiteSpace(Model.ContactPersonEmail)) filledFields++;
+    if (!string.IsNullOrWhiteSpace(Model.Address)) filledFields++;
+    if (!string.IsNullOrWhiteSpace(Model.Website)) filledFields++;
+
+    int completionPercentage = (int)Math.Round(((double)filledFields / totalFields) * 100);
+}
+
+
+<div class="content">
+
+    <!-- Profile Completion Section -->
+    <div class="alert alert-info shadow-sm mb-4">
+        <h5 class="mb-1">Profile Completion: @completionPercentage%</h5>
+        <div class="progress" style="height: 20px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: @completionPercentage%" aria-valuenow="@completionPercentage" aria-valuemin="0" aria-valuemax="100">
+                @completionPercentage%
+            </div>
+        </div>
+        @if (completionPercentage < 100)
+        {
+            <small class="text-muted">Complete your company profile to access full platform features.</small>
+        }
+    </div>
+
+    <div class="row">
+        <div class="col-sm-7 col-6">
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Dashboard">Dashboard </a></li>
+                <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                <li class="breadcrumb-item active">My Profile</li>
+            </ul>
+        </div>
+
+        <div class="col-sm-5 col-6 text-end m-b-30">
+            <a asp-action="Edit" class="btn btn-primary btn-rounded"><i class="fa fa-plus"></i> Edit Profile</a>
+        </div>
+    </div>
+
+    <div class="card-box profile-header">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="profile-view">
+                    <div class="profile-img-wrap">
+                        <div class="profile-img">
+
+                            <a href="@Model.LogoUrl">
+                            <img class="avatar" src="@Model.LogoUrl ?? " /assets/img/default-logo.png"" alt="Company's Logo" style="object-fit:cover; width:100%; height:100%; border-radius:50%;">
+
+                            
+                            </a>
+                        </div>
+                    </div>
+                    <div class="profile-basic">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="profile-info-left">
+                                    <h3 class="user-name m-t-0 mb-0">@(!string.IsNullOrWhiteSpace(Model.Name) ? Model.Name : "No company name provided")</h3>
+                                    <div class="staff-id">@(!string.IsNullOrWhiteSpace(Model.Email) ? Model.Email : "No email available")</div>
+                                    <div class="staff-id">Company Phone : @(!string.IsNullOrWhiteSpace(Model.PhoneNumber) ? Model.PhoneNumber : "No phone number added")</div>
+                                    <div class="staff-id">RC Number : @(!string.IsNullOrWhiteSpace(Model.RegistrationNumber) ? Model.RegistrationNumber : "No RC number added")</div>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <ul class="personal-info">
+                                    <li>
+                                        <span class="title">Contact Person's Phone:</span>
+                                        <span class="text"><a href="#">@(!string.IsNullOrWhiteSpace(Model.ContactPersonPhone) ? Model.ContactPersonPhone : "No contact phone provided")</a></span>
+                                    </li>
+                                    <li>
+                                        <span class="title">Contact Person's Email:</span>
+                                        <span class="text"><a href="#">@(!string.IsNullOrWhiteSpace(Model.ContactPersonEmail) ? Model.ContactPersonEmail : "No contact email provided")</a></span>
+                                    </li>
+                                    <li>
+                                        <span class="title">State:</span>
+                                        <span class="text">@(!string.IsNullOrWhiteSpace(Model.State) ? Model.State : "Not state added")</span>
+                                    </li>
+                                    <li>
+                                        <span class="title">Address:</span>
+                                        <span class="text">@(!string.IsNullOrWhiteSpace(Model.Address) ? Model.Address : "No address added")</span>
+                                    </li>
+                                    <li>
+                                        <span class="title">Website:</span>
+                                        <span class="text">@(!string.IsNullOrWhiteSpace(Model.Website) ? Model.Website : "No website available")</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-tabs">
+        <ul class="nav nav-tabs nav-tabs-bottom" role="tablist">
+            <li class="nav-item" role="presentation"><a class="nav-link active" href="#about-cont" data-bs-toggle="tab" aria-selected="true" role="tab">About</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" href="#bottom-tab2" data-bs-toggle="tab" aria-selected="false" role="tab" tabindex="-1">Profile</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" href="#bottom-tab3" data-bs-toggle="tab" aria-selected="false" role="tab" tabindex="-1">Messages</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane active show" id="about-cont" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card-box">
+                            <h3 class="card-title">Education Informations</h3>
+                            <div class="experience-box">
+                                <ul class="experience-list">
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">Academy of Creative Arts</a>
+                                                <div>Bachelor of Entertainment Management</div>
+                                                <span class="time">2010 - 2014</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">Global Film School</a>
+                                                <div>Certificate in Film Production</div>
+                                                <span class="time">2015 - 2016</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-box ">
+                            <h3 class="card-title">Experience</h3>
+                            <div class="experience-box">
+                                <ul class="experience-list">
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">Creative Director, LightHouse Media</a>
+                                                <span class="time">2017 - Present</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">Music Events Coordinator, SoundBlast Africa</a>
+                                                <span class="time">2015 - 2017</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">Assistant Producer, Vision Studios</a>
+                                                <span class="time">2013 - 2015</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="bottom-tab2" role="tabpanel">
+                Tab content 2
+            </div>
+            <div class="tab-pane" id="bottom-tab3" role="tabpanel">
+                Tab content 3
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.ViewModels
+@model CompanyViewModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content">
+
+    <div class="row">
+        <div class="col-sm-7 col-6">
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Dashboard </a></li>
+                <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                <li class="breadcrumb-item active">My Profile</li>
+            </ul>
+        </div>
+
+        <div class="col-sm-5 col-6 text-end m-b-30">
+            <a asp-action="Edit" class="btn btn-primary btn-rounded"><i class="fa fa-plus"></i> Edit Profile</a>
+        </div>
+    </div>
+    <div class="card-box profile-header">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="profile-view">
+                    <div class="profile-img-wrap">
+                        <div class="profile-img">
+                            <a href="#"><img class="avatar" href="@Model.LogoUrl" alt="Company's Logo'"></a>
+                        </div>
+                    </div>
+                    <div class="profile-basic">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="profile-info-left">
+                                    <h3 class="user-name m-t-0 mb-0">@Model.Name</h3>
+                                    <small class="text-muted">@Model.Email</small>
+                                    <div class="staff-id">Company Phone : @Model.PhoneNumber</div>
+                                    <div class="staff-msg"><a href="chat.html" class="btn btn-primary">Send Message</a></div>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <ul class="personal-info">
+                                    <li>
+                                        <span class="title">Phone:</span>
+                                        <span class="text"><a href="">@Model.ContactPersonPhone</a></span>
+                                    </li>
+                                    <li>
+                                        <span class="title">Email:</span>
+                                        <span class="text"><a href="">@Model.ContactPersonEmail</a></span>
+                                    </li>
+                                    <li>
+                                        <span class="title">Registration Number:</span>
+                                        <span class="text">@Model.RegistrationNumber</span>
+                                    </li>
+                                    <li>
+                                        <span class="title">Address:</span>
+                                        <span class="text">@Model.Address</span>
+                                    </li>
+                                    <li>
+                                        <span class="title">Website:</span>
+                                        <span class="text">@Model.Website</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="profile-tabs">
+        <ul class="nav nav-tabs nav-tabs-bottom" role="tablist">
+            <li class="nav-item" role="presentation"><a class="nav-link active" href="#about-cont" data-bs-toggle="tab" aria-selected="true" role="tab">About</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" href="#bottom-tab2" data-bs-toggle="tab" aria-selected="false" role="tab" tabindex="-1">Profile</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" href="#bottom-tab3" data-bs-toggle="tab" aria-selected="false" role="tab" tabindex="-1">Messages</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane active show" id="about-cont" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card-box">
+                            <h3 class="card-title">Education Informations</h3>
+                            <div class="experience-box">
+                                <ul class="experience-list">
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">International College of Medical Science (UG)</a>
+                                                <div>MBBS</div>
+                                                <span class="time">2001 - 2003</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">International College of Medical Science (PG)</a>
+                                                <div>MD - Obstetrics &amp; Gynaecology</div>
+                                                <span class="time">1997 - 2001</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-box ">
+                            <h3 class="card-title">Experience</h3>
+                            <div class="experience-box">
+                                <ul class="experience-list">
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">Consultant Gynecologist</a>
+                                                <span class="time">Jan 2014 - Present (4 years 8 months)</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">Consultant Gynecologist</a>
+                                                <span class="time">Jan 2009 - Present (6 years 1 month)</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="experience-user">
+                                            <div class="before-circle"></div>
+                                        </div>
+                                        <div class="experience-content">
+                                            <div class="timeline-content">
+                                                <a href="#/" class="name">Consultant Gynecologist</a>
+                                                <span class="time">Jan 2004 - Present (5 years 2 months)</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="bottom-tab2" role="tabpanel">
+                Tab content 2
+            </div>
+            <div class="tab-pane" id="bottom-tab3" role="tabpanel">
+                Tab content 3
+            </div>
+        </div>
+    </div>
+</div>
+
+ *@

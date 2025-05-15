@@ -13,12 +13,12 @@ namespace FleetManager.App.Areas.Company.Controllers
     [Area("Company")]
     public class UserController : Controller
     {
-        private readonly ICompanyService _companyService;
+        private readonly ICompanyManagementService _companyService;
         private readonly UserManager<ApplicationUser> _userManager;
 
 
 
-        public UserController(ICompanyService companyService, UserManager<ApplicationUser> userManager)
+        public UserController(ICompanyManagementService companyService, UserManager<ApplicationUser> userManager)
         {
             _companyService = companyService;
             _userManager = userManager;
@@ -67,7 +67,7 @@ namespace FleetManager.App.Areas.Company.Controllers
                 if (user == null)
 
                     return NotFound("User not found");
-                return RedirectToAction("ForcePasswordChange", "Account", new { userId = user.Id });
+                return RedirectToAction("ForcePasswordChange", "User", new { userId = user.Id });
             }
             else
             {
@@ -127,7 +127,9 @@ namespace FleetManager.App.Areas.Company.Controllers
             user.LastLoginDate = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
 
-            return RedirectToAction("Dashboard", "UserPage");
+            TempData["SuccessMessage"] = "Password changed successfully.";
+
+            return RedirectToAction("Login", "Account");
         }
 
 

@@ -1,0 +1,95 @@
+﻿@using FleetManager.Business.ViewModels
+@model CompanyAdminOnboardingViewModel
+
+<div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row">
+            <div class="col-sm-12">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-area="Company" asp-controller="OnboardAdmin" asp-action="Index">Staffs</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">Add Staff</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="RegisterAdmin" method="post">
+                        <div class="row">
+
+                            <div class="col-12">
+                                <div class="form-heading">
+                                    <h4>Admin Details</h4>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="FirstName">First Name <span class="login-danger">*</span></label>
+                                    <input asp-for="FirstName" class="form-control" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="LastName">Last Name <span class="login-danger">*</span></label>
+                                    <input asp-for="LastName" class="form-control" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Email">Email <span class="login-danger">*</span></label>
+                                    <input asp-for="Email" class="form-control" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-xl-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="PhoneNumber">Mobile <span class="login-danger">*</span></label>
+                                    <input asp-for="PhoneNumber" class="form-control" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="CompanyBranchId">Assign Branch <span class="login-danger">*</span></label>
+                                    <select asp-for="CompanyBranchId"
+                                            class="form-control"
+                                            asp-items="@(ViewBag.Branches)">
+                                        <option value="">-- Select Branch --</option>
+                                    </select>
+                                    <span asp-validation-for="CompanyBranchId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 text-end">
+                                <div class="doctor-submit">
+                                    <button type="submit" class="btn btn-primary submit-form me-2">Onboard Staff</button>
+                                    <a asp-action="Index" class="btn btn-secondary cancel-form">Cancel</a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

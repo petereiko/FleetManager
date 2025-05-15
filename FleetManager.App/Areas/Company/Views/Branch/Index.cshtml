@@ -1,0 +1,135 @@
+﻿@using FleetManager.Business.DataObjects
+@model List<CompanyBranchDto>
+
+<div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row">
+            <div class="col-sm-12">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-area="Company" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">Company’s Branches</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="card card-table show-entire">
+                <div class="card-body">
+
+                    <!-- Table Header -->
+                    <div class="page-table-header mb-2">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="doctor-table-blk">
+                                    <h3>Branches List</h3>
+                                    <div class="doctor-search-blk">
+                                        <div class="top-nav-search table-search-blk">
+                                            <input type="text" id="branchSearch" class="form-control" placeholder="Search here">
+                                            <button id="searchBtn" class="btn"><img src="~/assets/img/icons/search-normal.svg" alt="Search"></button>
+                                        </div>
+                                        <div class="add-group">
+                                            <a asp-action="Create" class="btn btn-primary add-pluss ms-2"><img src="~/assets/img/icons/plus.svg" alt="Add Branch"></a>
+                                            <button id="refreshBtn" class="btn btn-primary doctor-refresh ms-2"><img src="~/assets/img/icons/re-fresh.svg" alt="Refresh"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto text-end float-end ms-auto download-grp">
+                                <a href="#"><img src="~/assets/img/icons/pdf-icon-01.svg" alt="PDF"></a>
+                                <a href="#"><img src="~/assets/img/icons/pdf-icon-02.svg" alt="Excel"></a>
+                                <a href="#"><img src="~/assets/img/icons/pdf-icon-03.svg" alt="CSV"></a>
+                                <a href="#"><img src="~/assets/img/icons/pdf-icon-04.svg" alt="Print"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /Table Header -->
+
+                    <div class="table-responsive">
+                        <table id="branchesTable" class="table border-0 custom-table comman-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th><div class="form-check check-tables"><input class="form-check-input" type="checkbox"></div></th>
+                                    <th>Name</th>
+                                    <th>Address</th>
+                                    <th>Manager</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>State</th>
+                                    <th>LGA</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var branch in Model)
+                                {
+                                    <tr>
+                                        <td><div class="form-check check-tables"><input class="form-check-input" type="checkbox" value="@branch.Id"></div></td>
+                                        <td>@branch.Name</td>
+                                        <td>@branch.Address</td>
+                                        <td>@branch.ManagerName</td>
+                                        <td>@branch.ManagerPhone</td>
+                                        <td>@branch.ManagerEmail</td>
+                                        <td>@(string.IsNullOrWhiteSpace(branch.StateName) ? "—" : branch.StateName)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(branch.LgaName) ? "—" : branch.LgaName)</td>
+                                        <td class="text-end">
+                                            <div class="dropdown dropdown-action">
+                                                <a href="#" class="action-icon dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-v"></i></a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a asp-action="Edit" asp-route-id="@branch.Id" class="dropdown-item"><i class="fa-solid fa-pen-to-square m-r-5"></i> Edit</a>
+                                                    <form asp-action="Delete" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@branch.Id" />
+                                                        <button type="submit" class="dropdown-item"><i class="fa fa-trash-alt m-r-5"></i> Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize only if not already
+            if (!$.fn.dataTable.isDataTable('#branchesTable')) {
+        var table = $('#branchesTable').DataTable({
+            paging: true,
+            pageLength: 10,
+            lengthChange: true,
+            searching: false, // Disable built-in search bar
+            ordering: true,
+            info: true,
+            autoWidth: false,
+            dom: 'lrtip' // <-- 'l' = length, 'r' = processing, 't' = table, 'i' = info, 'p' = pagination, omit 'f' (search bar)
+        });
+
+                // Custom search input
+                $('#searchBtn').click(function() {
+                    table.search($('#branchSearch').val()).draw();
+                });
+
+                // Refresh button
+                $('#refreshBtn').click(function() {
+                    table.search('').order([]).page.len(10).draw();
+                });
+            }
+        });
+    </script>
+}

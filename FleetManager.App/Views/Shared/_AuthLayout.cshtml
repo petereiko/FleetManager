@@ -29,6 +29,47 @@
 </head>
 <body>
 
+	@* Success Message *@
+	@if (TempData["SuccessMessage"] != null)
+	{
+		<div id="alert-success" class="alert alert-success alert-dismissible fade show d-flex align-items-center mt-3" role="alert">
+			<i class="fas fa-check-circle me-2"></i>
+			<div>@TempData["SuccessMessage"]</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	}
+
+	@* Error Message *@
+	@if (TempData["ErrorMessage"] != null)
+	{
+		<div id="alert-error" class="alert alert-danger alert-dismissible fade show d-flex align-items-center mt-3" role="alert">
+			<i class="fas fa-times-circle me-2"></i>
+			<div>@TempData["ErrorMessage"]</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	}
+
+	@* Warning Message *@
+	@if (TempData["WarningMessage"] != null)
+	{
+		<div id="alert-warning" class="alert alert-warning alert-dismissible fade show d-flex align-items-center mt-3" role="alert">
+			<i class="fas fa-exclamation-triangle me-2"></i>
+			<div>@TempData["WarningMessage"]</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	}
+
+	@* Info Message *@
+	@if (TempData["InfoMessage"] != null)
+	{
+		<div id="alert-info" class="alert alert-info alert-dismissible fade show d-flex align-items-center mt-3" role="alert">
+			<i class="fas fa-info-circle me-2"></i>
+			<div>@TempData["InfoMessage"]</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	}
+
+
 	<!-- Main Wrapper -->
 	<div class="main-wrapper login-body">
 		<div class="container-fluid px-0">
@@ -78,5 +119,20 @@
 	<script src="~/assets/js/app.js"></script>
 	@await RenderSectionAsync("Scripts", required: false)
 
+
+
+	<script>
+		window.addEventListener('DOMContentLoaded', () => {
+			['success', 'error', 'warning', 'info'].forEach(type => {
+				const alertBox = document.getElementById(`alert-${type}`);
+				if (alertBox) {
+					setTimeout(() => {
+						const bsAlert = bootstrap.Alert.getOrCreateInstance(alertBox);
+						bsAlert.close();
+					}, 5000);
+				}
+			});
+		});
+	</script>
 </body>
 </html>

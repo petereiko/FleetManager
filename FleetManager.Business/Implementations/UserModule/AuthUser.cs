@@ -22,23 +22,31 @@ namespace FleetManager.Business.Implementations.UserModule
             _context = context;
         }
 
+        private ClaimsPrincipal User => _accessor.HttpContext?.User;
+
         public string Email => _accessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value!;
         public string UserId => _accessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
         public string Roles => _accessor.HttpContext?.User?.FindFirst("Roles")?.Value!;
         public string FullName => _accessor.HttpContext?.User?.FindFirst("FullName")?.Value!;
-        public int? OptometristFirmId
+
+        public long? CompanyId
         {
             get
             {
-                int? optoId = null;
-                int optometristFirmId;
-                string claim = _accessor.HttpContext?.User?.FindFirst("OptometristFirmId")?.Value!;
-                bool result = int.TryParse(claim, out optometristFirmId);
-                optoId = result ? optometristFirmId > 0 ? optometristFirmId : null : null;
-
-                return optoId;
+                var companyClaim = User?.FindFirst("CompanyId")?.Value;
+                return long.TryParse(companyClaim, out var id) ? id : null;
             }
         }
+
+        public long? CompanyBranchId
+        {
+            get
+            {
+                var branchClaim = User?.FindFirst("CompanyBranchId")?.Value;
+                return long.TryParse(branchClaim, out var id) ? id : null;
+            }
+        }
+
 
 
         public string BaseUrl

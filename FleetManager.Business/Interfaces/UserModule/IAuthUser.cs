@@ -13,5 +13,9 @@ namespace FleetManager.Business.Interfaces.UserModule
         string Roles { get; }
         string FullName { get; }
         string BaseUrl { get; }
+
+        //Added newly
+        long? CompanyId { get; }
+        long? CompanyBranchId { get; }
     }
 }

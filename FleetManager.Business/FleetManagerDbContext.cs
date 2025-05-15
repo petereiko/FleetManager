@@ -23,6 +23,7 @@ namespace FleetManager.Business
         public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<Company> Companies { get; set; }
         public DbSet<CompanyBranch> CompanyBranches { get; set; }
+        public DbSet<CompanyAdmin> CompanyAdmins { get; set; }
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<DriverVehicle> DriverVehicles { get; set; }
         public DbSet<DriverVehicleLocation> DriverVehicleLocations { get; set; }

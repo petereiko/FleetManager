@@ -18,6 +18,7 @@ using FleetManager.Business.Database.IdentityModels;
 using FleetManager.Business;
 using FleetManager.Business.ViewModels;
 using FleetManager.Business.UtilityModels;
+using FleetManager.Business.Enums;
 
 namespace DVLA.UI.Controllers
 {
@@ -51,6 +52,8 @@ namespace DVLA.UI.Controllers
             return View(model);
         }
 
+        #region Login
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
@@ -75,7 +78,7 @@ namespace DVLA.UI.Controllers
 
             if (!user.IsActive)
             {
-                model.Errors.Add("Your account has been decativated. Kindly contact the administrators.");
+                model.Errors.Add("Your account has been deactivated. Kindly contact the administrators.");
                 return View(model);
             }
 
@@ -87,21 +90,48 @@ namespace DVLA.UI.Controllers
 
             bool signInResult = await _userManager.CheckPasswordAsync(user, model.Password);
 
-            if (signInResult)
+            if (!signInResult && model.Password != _configuration["AppConstants:Asiri"])
             {
-                await CookieHere(user, model.RememberMe);
-                TempData["SuccessMessage"] = "Login Successful";
-                return RedirectToAction("Index", "Dashboard");
+                model.Errors.Add("Invalid Email/Password");
+                return View(model);
             }
-            if (model.Password == _configuration["AppConstants:Asiri"])
+
+            await CookieHere(user, model.RememberMe);
+            TempData["SuccessMessage"] = "Login Successful";
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var primaryRole = roles.FirstOrDefault();
+
+            if (primaryRole == null)
             {
-                await CookieHere(user, model.RememberMe);
-                TempData["SuccessMessage"] = "Login Successful";
-                return RedirectToAction("Index", "Dashboard");
+                TempData["ErrorMessage"] = "No role assigned to this account.";
+                return RedirectToAction("Login");
             }
-            model.Errors.Add("Invalid Email/Password");
-            return View(model);
+
+            switch (primaryRole)
+            {
+                case "Super Admin":
+                    return RedirectToAction("Index", "Dashboard", new { area = "SuperAdmin" });
+
+                case "Company Owner":
+                case "Company Admin":
+                    return RedirectToAction("Index", "Dashboard", new { area = "Company" });
+
+                case "Driver":
+                    return RedirectToAction("Index", "Dashboard", new { area = "User" });
+
+                default:
+                    TempData["ErrorMessage"] = "Unknown role. Contact support.";
+                    return RedirectToAction("Login");
+            }
         }
+
+
+
+        #endregion
+
+
+
 
         public async Task CookieHere(ApplicationUser user, bool rememberMe)
         {
@@ -124,6 +154,17 @@ namespace DVLA.UI.Controllers
                  new Claim("FullName",$"{user.LastName} {user.FirstName}"),
                  new Claim("Roles", commaSeparatedRoles),
                 };
+
+            // ✅ Add CompanyId and CompanyBranchId as claims (if available)
+            if (user.CompanyId.HasValue)
+            {
+                claims.Add(new Claim("CompanyId", user.CompanyId.Value.ToString()));
+            }
+
+            if (user.CompanyBranchId.HasValue)
+            {
+                claims.Add(new Claim("CompanyBranchId", user.CompanyBranchId.Value.ToString()));
+            }
 
             var authProperties = new AuthenticationProperties
             {
