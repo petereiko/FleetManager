@@ -13,6 +13,8 @@ namespace FleetManager.Business.Database.Entities
         public virtual Vehicle? Vehicle { get; set; }
         public VehicleDocumentType DocumentType { get; set; }
         public string? FilePath { get; set; }
+        public string? FileName { get; set; }
+
 
     }
 }

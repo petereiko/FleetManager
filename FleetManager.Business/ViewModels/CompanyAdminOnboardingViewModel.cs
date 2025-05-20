@@ -16,7 +16,6 @@ namespace FleetManager.Business.ViewModels
         [Required] public string LastName { get; set; }
 
         [Required] public long CompanyBranchId { get; set; }
-        public IEnumerable<SelectListItem> Branches { get; set; }
     }
 
 }

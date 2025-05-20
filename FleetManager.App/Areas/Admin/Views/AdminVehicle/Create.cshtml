@@ -1,0 +1,324 @@
+﻿@using FleetManager.Business.DataObjects.VehicleDto
+@model VehicleEditViewModel
+
+@{
+    ViewData["Title"] = Model.Id.HasValue ? "Edit Vehicle" : "Add Vehicle";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@simonwep/pickr/dist/themes/classic.min.css" />
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-sm-6">
+                <h3 class="page-title">@ViewData["Title"]</h3>
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Back to vehicles</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="@(Model.Id.HasValue ? "Edit" : "Create")"
+                          method="post" enctype="multipart/form-data">
+                        <div class="row">
+
+                            <div class="col-12">
+                                <div class="form-heading">
+                                    <h4>Vehicle Details</h4>
+                                </div>
+                            </div>
+
+                            <!-- Make -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Make">Make <span class="login-danger">*</span></label>
+                                    <input asp-for="Make" class="form-control" placeholder="e.g. Toyota" />
+                                    <span asp-validation-for="Make" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Model -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Model">Model <span class="login-danger">*</span></label>
+                                    <input asp-for="Model" class="form-control" placeholder="e.g. Corolla" />
+                                    <span asp-validation-for="Model" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Year -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Year">Year <span class="login-danger">*</span></label>
+                                    <input asp-for="Year" type="number" class="form-control" placeholder="e.g. 2022" />
+                                    <span asp-validation-for="Year" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- VIN -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="VIN">VIN <span class="login-danger">*</span></label>
+                                    <input asp-for="VIN" class="form-control" placeholder="Vehicle Identification Number" />
+                                    <span asp-validation-for="VIN" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- PlateNo -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="PlateNo">Plate No <span class="login-danger">*</span></label>
+                                    <input asp-for="PlateNo" class="form-control" placeholder="e.g. ABC-1234" />
+                                    <span asp-validation-for="PlateNo" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Color -->
+
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Color">Color <span class="login-danger">*</span></label>
+                                    <!-- Visible color‐picker container -->
+                                    <div id="colorPickerContainer" style="width:36px; height:36px; border:1px solid #ccc; cursor:pointer;"></div>
+                                    <!-- Hidden real form field -->
+                                    <input asp-for="Color" type="hidden" id="colorInput" />
+                                    <span asp-validation-for="Color" class="text-danger"></span>
+                                </div>
+                            </div>
+
+
+@*                             <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Color">Color <span class="login-danger">*</span></label>
+                                    <input asp-for="Color" id="colorInput" class="form-control" placeholder="Choose color" />
+                                    <span asp-validation-for="Color" class="text-danger"></span>
+                                </div>
+                            </div>
+ *@
+
+
+                            <!-- EngineNumber -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="EngineNumber">Engine Number</label>
+                                    <input asp-for="EngineNumber" class="form-control" placeholder="Engine number" />
+                                    <span asp-validation-for="EngineNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- ChassisNumber -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="ChassisNumber">Chassis Number</label>
+                                    <input asp-for="ChassisNumber" class="form-control" placeholder="Chassis number" />
+                                    <span asp-validation-for="ChassisNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- RegistrationDate -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms cal-icon">
+                                    <label asp-for="RegistrationDate">Registration Date</label>
+                                    <input asp-for="RegistrationDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                    <span asp-validation-for="RegistrationDate" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- LastServiceDate -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms cal-icon">
+                                    <label asp-for="LastServiceDate">Last Service Date</label>
+                                    <input asp-for="LastServiceDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                    <span asp-validation-for="LastServiceDate" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Mileage -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Mileage">Mileage</label>
+                                    <input asp-for="Mileage" type="number" class="form-control" placeholder="e.g. 35000" />
+                                    <span asp-validation-for="Mileage" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- FuelType -->
+                            <div class="col-md-3">
+                                <div class="input-block local-forms">
+                                    <label asp-for="FuelType">Fuel Type</label>
+                                    <select asp-for="FuelType" class="form-control" asp-items="Model.FuelTypes">
+                                        <option value="">Select Fuel</option>
+                                    </select>
+                                    <span asp-validation-for="FuelType" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- TransmissionType -->
+                            <div class="col-md-3">
+                                <div class="input-block local-forms">
+                                    <label asp-for="TransmissionType">Transmission</label>
+                                    <select asp-for="TransmissionType" class="form-control" asp-items="Model.TransmissionTypes">
+                                        <option value="">Select Transmission</option>
+                                    </select>
+                                    <span asp-validation-for="TransmissionType" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- VehicleStatus -->
+                            <div class="col-md-3">
+                                <div class="input-block local-forms">
+                                    <label asp-for="VehicleStatus">Status</label>
+                                    <select asp-for="VehicleStatus" class="form-control" asp-items="Model.Statuses">
+                                        <option value="">Select Status</option>
+                                    </select>
+                                    <span asp-validation-for="VehicleStatus" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- VehicleType -->
+                            <div class="col-md-3">
+                                <div class="input-block local-forms">
+                                    <label asp-for="VehicleType">Type</label>
+                                    <select asp-for="VehicleType" class="form-control" asp-items="Model.VehicleTypes">
+                                        <option value="">Select Type</option>
+                                    </select>
+                                    <span asp-validation-for="VehicleType" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Branch -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="CompanyBranchId">Branch <span class="login-danger">*</span></label>
+                                    <select asp-for="CompanyBranchId" class="form-control" asp-items="Model.Branches">
+                                        <option value="">Select Branch</option>
+                                    </select>
+                                    <span asp-validation-for="CompanyBranchId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- InsuranceCompany -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="InsuranceCompany">Insurance Company</label>
+                                    <input asp-for="InsuranceCompany" class="form-control" placeholder="Insurance company" />
+                                    <span asp-validation-for="InsuranceCompany" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- InsuranceExpiryDate -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms cal-icon">
+                                    <label asp-for="InsuranceExpiryDate">Insurance Expiry</label>
+                                    <input asp-for="InsuranceExpiryDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                    <span asp-validation-for="InsuranceExpiryDate" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- RoadWorthyExpiryDate -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms cal-icon">
+                                    <label asp-for="RoadWorthyExpiryDate">Road-Worthy Expiry</label>
+                                    <input asp-for="RoadWorthyExpiryDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                    <span asp-validation-for="RoadWorthyExpiryDate" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Photos -->
+                            <div class="col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="PhotoFiles">Upload Photos</label>
+                                    <input asp-for="PhotoFiles" type="file" multiple class="form-control" />
+                                    <span asp-validation-for="PhotoFiles" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Documents -->
+                            <div class="col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="DocumentFiles">Upload Documents</label>
+                                    <input asp-for="DocumentFiles" type="file" multiple class="form-control" />
+                                    <span asp-validation-for="DocumentFiles" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-primary submit-form me-2">
+                                    @ViewData["Title"]
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary cancel-form">Cancel</a>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@simonwep/pickr"></script>
+
+    <script>
+        flatpickr(".datetimepicker", { dateFormat: "Y-m-d" });
+
+           // 1) Grab the hidden input
+        const colorInput = document.getElementById('colorInput');
+        // 2) Create Pickr on our container div
+        const pickr = Pickr.create({
+          el: '#colorPickerContainer',
+          theme: 'classic',
+          default: colorInput.value || '#000000',
+          components: {
+            preview: true, opacity: true, hue: true,
+            interaction: { hex: true, rgba: true, input: true, save: true }
+          }
+        });
+
+        // 3) When they hit “Save” in the picker…
+        pickr.on('save', (color, instance) => {
+          const hex = color.toHEXA().toString();
+          colorInput.value = hex;          // update hidden field
+          instance.hide();
+          // also update the little swatch visually:
+          document
+            .getElementById('colorPickerContainer')
+            .style.background = hex;
+        });
+
+        // 4) Keep it live on change…
+        pickr.on('change', (color) => {
+          const hex = color.toHEXA().toString();
+          colorInput.value = hex;
+          document
+            .getElementById('colorPickerContainer')
+            .style.background = hex;
+        });
+
+        // 5) Just before the form posts, make sure hidden input is current
+        document.querySelector('form').addEventListener('submit', function() {
+          const c = pickr.getColor();
+          if (c) {
+            const hex = c.toHEXA().toString();
+            colorInput.value = hex;
+          }
+        });
+
+        // Initialize the swatch color on page-load
+        document.getElementById('colorPickerContainer').style.background =
+          colorInput.value || '#000000';
+    </script>
+}

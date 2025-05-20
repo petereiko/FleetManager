@@ -1,0 +1,63 @@
+﻿@{
+    ViewData["Title"] = "Confirmation Email Sent";
+    Layout = null;
+}
+
+<head>
+    <!-- Main CSS -->
+    <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" type="text/css" href="~/assets/css/bootstrap.min.css">
+
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="~/assets/plugins/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="~/assets/plugins/fontawesome/css/all.min.css">
+</head>
+
+
+
+
+<div class="d-flex align-items-center justify-content-center vh-100 bg-light">
+    <div class="card shadow-lg" style="max-width: 480px; width: 100%;">
+        <div class="card-body text-center p-5">
+
+            <img src="~/assets/img/logo.png" alt="Fleet Guard" class="mb-4" style="height: 60px;" />
+
+            <div class="mb-3">
+                <i class="fas fa-envelope-open-text" style="font-size: 3rem; color: #28a745;"></i>
+            </div>
+
+            <h2 class="card-title mb-3">Almost There!</h2>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <div>@TempData["SuccessMessage"]</div>
+                    </div>
+            }
+
+            <p class="text-muted mb-4">
+                We’ve sent a confirmation link to your email. Please check your inbox and click the button in that message to complete your registration.
+            </p>
+
+            <form asp-action="ResendConfirmation" method="post" class="mb-3">
+                <input type="hidden" name="email" value="@User?.Identity?.Name ?? """ />
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    Didn’t receive it? Resend Email
+                </button>
+            </form>
+
+            <a href="~/Account/Login" class="btn btn-primary w-100">
+                Go to Login
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<!-- jQuery -->
+<script src="~/assets/js/jquery-3.7.1.min.js"></script>
+
+<!-- Bootstrap Core JS -->
+<script src="~/assets/js/bootstrap.bundle.min.js"></script>

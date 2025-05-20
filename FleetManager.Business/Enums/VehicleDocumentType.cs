@@ -8,9 +8,12 @@ namespace FleetManager.Business.Enums
 {
     public enum VehicleDocumentType
     {
-        Registration = 1,   // Vehicle registration document
-        Insurance,      // Vehicle insurance document
-        Roadworthiness,     // Vehicle inspection certificate
-        CustomsDocument,// Documents for imported or exported vehicles
+        Photo = 1,
+        Document = 2
+
+        //Registration = 1,   // Vehicle registration document
+        //Insurance,      // Vehicle insurance document
+        //Roadworthiness,     // Vehicle inspection certificate
+        //CustomsDocument,// Documents for imported or exported vehicles
     }
 }

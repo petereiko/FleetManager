@@ -129,18 +129,22 @@ namespace FleetManager.Business.Implementations.CompanyOnboardingModule
                 var userResult = await _userManager.CreateAsync(user, tempPassword);
                 if (!userResult.Succeeded)
                 {
+                    await transaction.RollbackAsync();
                     response.Message = userResult.Errors.FirstOrDefault()?.Description ?? "User creation failed.";
                     return response;
                 }
 
-                var roleAssignResult = await _userManager.AddToRoleAsync(user, Role.CompanyAdmin.ToString());
+                // 🎯 Pull the correct role name from the enum’s Description
+                var companyAdminRoleName = EnumHelper<Role>.GetDescription(Role.CompanyAdmin);
+
+                var roleAssignResult = await _userManager.AddToRoleAsync(user, companyAdminRoleName);
                 if (!roleAssignResult.Succeeded)
                 {
-                    response.Message = "Failed to assign CompanyAdmin role.";
+                    response.Message = $"Failed to assign role '{companyAdminRoleName}'.";
                     await transaction.RollbackAsync();
                     return response;
                 }
-
+               
                 var admin = new CompanyAdmin
                 {
                     UserId = user.Id,
@@ -157,23 +161,23 @@ namespace FleetManager.Business.Implementations.CompanyOnboardingModule
                 // Send Email
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = WebUtility.UrlEncode(token);
-                var confirmUrl = $"{_authUser.BaseUrl}Company/User/ConfirmEmail?encodedToken={encodedToken}&userId={user.Id}";
+                var confirmUrl = $"{_authUser.BaseUrl}/Account/ConfirmEmail?encodedToken={encodedToken}&userId={user.Id}";
 
                 string message = $@"
-            <div style='font-family:Segoe UI, sans-serif; font-size:15px; color:#333;'>
-                <p>Dear {dto.FirstName},</p>
-                <p>You’ve been onboarded as a <strong>Company Admin</strong> on Driver's Sight.</p>
-                <ul>
-                    <li><strong>Email:</strong> {dto.Email}</li>
-                    <li><strong>Temporary Password:</strong> <span style='color:#007BFF;'>{tempPassword}</span></li>
-                </ul>
-                <p>Click below to confirm your email:</p>
-                <p style='text-align:center;'>
-                    <a href='{confirmUrl}' style='background:#28a745; padding:10px 20px; color:white; border-radius:4px; text-decoration:none;'>Confirm Email</a>
-                </p>
-                <p>After confirming, log in <a href='{_authUser.BaseUrl}/Account/Login'>here</a> and change your password.</p>
-                <p>Thank you,<br/><strong>Driver's Sight Team</strong></p>
-            </div>";
+                                    <div style='font-family:Segoe UI, sans-serif; font-size:15px; color:#333;'>
+                                        <p>Dear {dto.FirstName},</p>
+                                        <p>You’ve been onboarded as a <strong>Company Admin</strong> on Driver's Sight.</p>
+                                        <ul>
+                                            <li><strong>Email:</strong> {dto.Email}</li>
+                                            <li><strong>Temporary Password:</strong> <span style='color:#007BFF;'>{tempPassword}</span></li>
+                                        </ul>
+                                        <p>Click below to confirm your email:</p>
+                                        <p style='text-align:center;'>
+                                            <a href='{confirmUrl}' style='background:#28a745; padding:10px 20px; color:white; border-radius:4px; text-decoration:none;'>Confirm Email</a>
+                                        </p>
+                                        <p>After confirming, log in <a href='{_authUser.BaseUrl}/Account/Login'>here</a> and change your password.</p>
+                                        <p>Thank you,<br/><strong>Driver's Sight Team</strong></p>
+                                    </div>";
 
                 var emailSuccess = await _emailService.LogEmail(new EmailLogDto
                 {

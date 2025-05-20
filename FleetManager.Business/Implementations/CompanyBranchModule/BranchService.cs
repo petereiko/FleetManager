@@ -43,6 +43,7 @@ namespace FleetManager.Business.Implementations.CompanyBranchModule
                 .Include(b => b.Lga)
                 .Select(b => new CompanyBranchDto
                 {
+                    CompanyId=b.CompanyId,
                     Id = b.Id,
                     Name = b.Name,
                     Address = b.Address,

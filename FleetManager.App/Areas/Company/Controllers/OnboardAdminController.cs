@@ -131,7 +131,6 @@ namespace FleetManager.App.Areas.Company.Controllers
         //[HttpGet]
         //public async Task<IActionResult> RegisterAdmin()
         //{
-        //    // 1) get the current ApplicationUser
         //    var user = await _userManager.FindByEmailAsync(_authUser.Email);
         //    if (user?.CompanyId == null)
         //    {
@@ -139,16 +138,14 @@ namespace FleetManager.App.Areas.Company.Controllers
         //        return RedirectToAction("Login", "Account", new { area = "" });
         //    }
 
-        //    // 2) populate branches for that company
         //    await PopulateBranchesAsync(user.CompanyId.Value);
 
         //    return View(new CompanyAdminOnboardingViewModel());
         //}
 
         //[HttpPost, ValidateAntiForgeryToken]
-        //public async Task<IActionResult> RegisterAdmin(CompanyAdminOnboardingViewModel model)
+        //public async Task<IActionResult> RegisterAdmin(CompanyAdminOnboardingDto model)
         //{
-        //    // re-fetch user to get CompanyId
         //    var user = await _userManager.FindByEmailAsync(_authUser.Email);
         //    if (user?.CompanyId == null)
         //        return RedirectToAction("Login", "Account", new { area = "" });
@@ -158,14 +155,15 @@ namespace FleetManager.App.Areas.Company.Controllers
         //    if (!ModelState.IsValid)
         //        return View(model);
 
+        //    // map the fields you actually have in the VM
         //    var dto = new CompanyAdminOnboardingDto
         //    {
         //        CompanyId = user.CompanyId.Value,
         //        CompanyBranchId = model.CompanyBranchId,
-        //        Email = model.Email,
-        //        PhoneNumber = model.PhoneNumber,
         //        FirstName = model.FirstName,
-        //        LastName = model.LastName
+        //        LastName = model.LastName,
+        //        Email = model.Email,
+        //        PhoneNumber = model.PhoneNumber
         //    };
 
         //    var result = await _adminService.OnboardCompanyAdminAsync(dto, _authUser.UserId);
@@ -178,6 +176,7 @@ namespace FleetManager.App.Areas.Company.Controllers
         //    TempData["SuccessMessage"] = result.Message;
         //    return RedirectToAction(nameof(Index));
         //}
+
 
         private async Task PopulateBranchesAsync(long companyId)
         {

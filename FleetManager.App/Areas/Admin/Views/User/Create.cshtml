@@ -1,0 +1,78 @@
+﻿@using FleetManager.Business.ViewModels
+@model CompanyRegistrationViewModel
+
+@{
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Server Side</h5>
+        <p class="card-text">We recommend using client side validation, but in case you require server side, you can indicate invalid and valid form fields with <code>.is-invalid</code> and <code>.is-valid</code>. Note that <code>.invalid-feedback</code> is also supported with these classes.</p>
+    </div>
+
+    <div class="card-body">
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty] != null)
+        {
+            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <div>
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        }
+
+        <form asp-action="Create" >
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Name">Company Name</label>
+                    <input type="text" class="form-control" asp-for="Name" placeholder="Company Name" required autocomplete="off" />
+                    @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email">Email</label>
+                    <input type="email" class="form-control" asp-for="Email" placeholder="Email" required autocomplete="off">
+                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="PhoneNumber">Phone</label>
+                    <input type="text" class="form-control" asp-for="PhoneNumber" placeholder="Phone" required autocomplete="off" />
+                    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Address">Address</label>
+                    <textarea asp-for="Address" class="form-control" required autocomplete="off"></textarea>
+                    @Html.ValidationMessageFor(model => model.Address, "", new { @class = "text-danger" })
+
+                </div>
+            </div>
+            <div class="input-block mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" asp-for="HasAgreed">
+                    <label class="form-check-label" asp-for="HasAgreed">
+                        Agree to terms and conditions
+                    </label>
+                    <div class="valid-feedback">
+                        You must agree before submitting.
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btn-submit" disabled type="submit">Submit form</button>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+
+        document.getElementById('HasAgreed').addEventListener('change',function(e){
+            console.log(e.target.checked)
+            $('#btn-submit').prop('disabled',!e.target.checked);
+
+        });
+    </script>
+}

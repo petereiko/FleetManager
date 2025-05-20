@@ -9,7 +9,7 @@ namespace FleetManager.Business.Enums
     public enum VehicleStatus
     {
         Active = 1,
-        UnderMaintanance,
+        UnderMaintenance,
         Inactive
     }
 }

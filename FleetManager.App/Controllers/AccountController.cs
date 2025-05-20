@@ -110,11 +110,11 @@ namespace DVLA.UI.Controllers
 
             switch (primaryRole)
             {
+                case "Company Admin":
                 case "Super Admin":
-                    return RedirectToAction("Index", "Dashboard", new { area = "SuperAdmin" });
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
                 case "Company Owner":
-                case "Company Admin":
                     return RedirectToAction("Index", "Dashboard", new { area = "Company" });
 
                 case "Driver":

@@ -1,0 +1,796 @@
+﻿@using FleetManager.Business.DataObjects.VehicleDto
+@using FleetManager.Business;
+@using FleetManager.Business.Enums;
+
+@model VehicleDto
+@{
+    ViewData["Title"] = "Vehicle Details";
+}
+
+<style>
+    /* Enhanced styling for vehicle details page */
+    .vehicle-details-page {
+        padding: 1.5rem 0;
+    }
+
+    /* Improved breadcrumb */
+    .breadcrumb-section {
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 2rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .breadcrumb-item {
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .breadcrumb-item a {
+            color: #4b5563;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+            .breadcrumb-item a:hover {
+                color: #2563eb;
+            }
+
+    .breadcrumb-divider {
+        color: #9ca3af;
+        margin: 0 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .breadcrumb-item.active {
+        color: #111827;
+        font-weight: 500;
+    }
+
+    /* Enhanced carousel */
+    .vehicle-carousel {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .carousel-image {
+        height: 360px;
+        object-fit: cover;
+        width: 100%;
+    }
+
+    .carousel-control-prev, .carousel-control-next {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.9;
+    }
+
+    .carousel-control-prev {
+        left: 1.5rem;
+    }
+
+    .carousel-control-next {
+        right: 1.5rem;
+    }
+
+    .carousel-control-prev-icon, .carousel-control-next-icon {
+        width: 20px;
+        height: 20px;
+        filter: invert(1) grayscale(100);
+    }
+
+    /* Full Image Button */
+    .view-full-images-btn {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.85);
+        color: #1f2937;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+        .view-full-images-btn:hover {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .view-full-images-btn i {
+            font-size: 1rem;
+        }
+
+    /* Image Modal Styling */
+    .fullscreen-modal .modal-dialog {
+        max-width: 90%;
+        margin: 1.75rem auto;
+    }
+
+    .fullscreen-modal .modal-content {
+        background-color: slategrey;
+        /* background-color: rgba(15, 23, 42, 0.95); */
+        border: none;
+        border-radius: 1rem;
+    }
+
+    .fullscreen-modal .modal-header {
+        border-bottom: none;
+        padding: 1.5rem;
+    }
+
+    .fullscreen-modal .modal-title {
+        color: white;
+        font-weight: 600;
+    }
+
+    .fullscreen-modal .btn-close {
+        color: white;
+        background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+        opacity: 0.8;
+    }
+
+    .fullscreen-modal .modal-body {
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .fullscreen-modal .carousel-image-full {
+        max-height: 75vh;
+        max-width: 100%;
+        object-fit: contain;
+    }
+
+    .fullscreen-modal .carousel-control-prev,
+    .fullscreen-modal .carousel-control-next {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .fullscreen-modal .carousel-indicators button {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.5);
+        margin: 0 6px;
+    }
+
+        .fullscreen-modal .carousel-indicators button.active {
+            background-color: white;
+        }
+
+    /* Vehicle information cards */
+    .information-card {
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        height: 100%;
+        transition: box-shadow 0.3s ease;
+    }
+
+        .information-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+    .card-header-custom {
+        background-color: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1.25rem 1.5rem;
+    }
+
+        .card-header-custom h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            color: #111827;
+        }
+
+    .card-body-custom {
+        padding: 1.5rem;
+    }
+
+    /* Quick details styling */
+    .quick-details-list {
+        margin: 0;
+        padding: 0;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        padding-left: 25px !important;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        font-weight: 600;
+        color: #4b5563;
+        width: 40%;
+    }
+
+    .detail-value {
+        color: #111827;
+        width: 60%;
+        display: flex;
+        align-items: center;
+    }
+
+    .color-swatch {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        margin-right: 0.75rem;
+    }
+
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 5px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .status-active {
+        background-color: #e6ffe6;
+        color: #00a300;
+        border: 1px solid #00a300;
+    }
+
+    .status-inactive {
+        background-color: #ffe6e6;
+        color: #cc0000;
+        border: 1px solid #cc0000;
+    }
+
+    .status-maintenance {
+        background-color: #fff7e6;
+        color: #d68d00;
+        border: 1px solid #d68d00;
+    }
+
+    /* Flashing effect */
+    .maintenance-icon {
+        animation: flash 1s infinite;
+    }
+
+    @@keyframes flash {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.2;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+
+
+    /* Enhanced tabs styling */
+    .custom-tabs {
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+        .custom-tabs .nav-item {
+            margin-right: 1rem;
+        }
+
+        .custom-tabs .nav-link {
+            position: relative;
+            border: none;
+            color: #6b7280;
+            font-weight: 500;
+            padding: 0.75rem 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+            .custom-tabs .nav-link:hover {
+                color: #4b5563;
+                border: none;
+            }
+
+            .custom-tabs .nav-link.active {
+                color: #2563eb;
+                border: none;
+                background: none;
+            }
+
+                .custom-tabs .nav-link.active::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -1px;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background-color: #2563eb;
+                    border-radius: 2px 2px 0 0;
+                }
+
+    /* Tab content styling */
+    .specifications-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .spec-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .spec-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .spec-value {
+        font-weight: 500;
+        color: #111827;
+    }
+
+    /* Document list styling */
+    .document-list {
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .document-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+        .document-item:hover {
+            background-color: #f8fafc;
+            border-left-color: #2563eb;
+        }
+
+    .document-icon {
+        color: #6b7280;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+    }
+
+    .document-name {
+        font-weight: 500;
+        color: #111827;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .empty-state-icon {
+        color: #d1d5db;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-text {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+
+    @@media (max-width: 992px) {
+        .specifications-list {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="vehicle-details-page">
+
+    <!-- Enhanced Breadcrumb -->
+    <div class="breadcrumb-section">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-action="Index">Vehicles</a>
+                </li>
+                <li class="breadcrumb-divider">
+                    <i class="feather-chevron-right"></i>
+                </li>
+                <li class="breadcrumb-item active">Vehicle Details</li>
+            </ol>
+        </nav>
+        <h2 class="mt-3 mb-0">@Model.Make @Model.Model (@Model.Year)</h2>
+    </div>
+
+    <!-- Enhanced Image Carousel with View Full Images Button -->
+    <div class="vehicle-carousel">
+        <div id="vehicleCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                @if (Model.Photos?.Any() ?? false)
+                {
+                    var first = true;
+                    foreach (var photo in Model.Photos)
+                    {
+                        <div class="carousel-item @(first ? "active" : "")">
+                            <img src="@photo.FilePath" class="carousel-image" alt="@Model.Make @Model.Model" />
+                        </div>
+                        first = false;
+                    }
+                }
+                else
+                {
+                    <div class="carousel-item active">
+                        <img src="/images/default-car.jpg" class="carousel-image" alt="Default vehicle image" />
+                    </div>
+                }
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#vehicleCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#vehicleCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+
+            <!-- View Full Images Button -->
+            <button type="button" class="view-full-images-btn" data-bs-toggle="modal" data-bs-target="#fullImagesModal">
+                <i class="feather-maximize-2"></i>
+                View Full Images
+            </button>
+        </div>
+    </div>
+
+    <!-- Full Images Modal -->
+    <div class="modal fade fullscreen-modal" id="fullImagesModal" tabindex="-1" aria-labelledby="fullImagesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fullImagesModalLabel">@Model.Make @Model.Model (@Model.Year)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modalCarousel" class="carousel slide" data-bs-interval="false">
+                        <div class="carousel-indicators">
+                            @if (Model.Photos?.Any() ?? false)
+                            {
+                                for (var i = 0; i < Model.Photos.Count; i++)
+                                {
+                                    <button type="button" data-bs-target="#modalCarousel" data-bs-slide-to="@i"
+                                            class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")"></button>
+                                }
+                            }
+                            else
+                            {
+                                <button type="button" data-bs-target="#modalCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+                            }
+                        </div>
+                        <div class="carousel-inner">
+                            @if (Model.Photos?.Any() ?? false)
+                            {
+                                var first = true;
+                                foreach (var photo in Model.Photos)
+                                {
+                                    <div class="carousel-item @(first ? "active" : "")">
+                                        <img src="@photo.FilePath" class="carousel-image-full" alt="@Model.Make @Model.Model" />
+                                    </div>
+                                    first = false;
+                                }
+                            }
+                            else
+                            {
+                                <div class="carousel-item active">
+                                    <img src="/images/default-car.jpg" class="carousel-image-full" alt="Default vehicle image" />
+                                </div>
+                            }
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#modalCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#modalCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quick Details Card -->
+        <div class="col-lg-4">
+            <div class="information-card">
+                <div class="card-header-custom">
+                    <h4>Vehicle Information</h4>
+                </div>
+                <div class="card-body-custom p-0">
+                    <ul class="quick-details-list">
+                        <li class="detail-item">
+                            <div class="detail-label">Make & Model</div>
+                            <div class="detail-value">@Model.Make @Model.Model</div>
+                        </li>
+                        <li class="detail-item">
+                            <div class="detail-label">Year</div>
+                            <div class="detail-value">@Model.Year</div>
+                        </li>
+                        <li class="detail-item">
+                            <div class="detail-label">VIN</div>
+                            <div class="detail-value">@Model.VIN</div>
+                        </li>
+                        <li class="detail-item">
+                            <div class="detail-label">License Plate</div>
+                            <div class="detail-value">@Model.PlateNo</div>
+                        </li>
+                        <li class="detail-item">
+                            <div class="detail-label">Color</div>
+                            <div class="detail-value">
+                                <span class="color-swatch" style="background: @Model.Color"></span>
+                                @Model.Color
+                            </div>
+                        </li>
+
+                        <li class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value d-flex align-items-center justify-content-between gap-2">
+                                <span class="status-badge @(
+                                    Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Active ? "status-active" :
+                                    Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Inactive ? "status-inactive" : "status-maintenance")">
+                                    @if (Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Inactive)
+                                    {
+                                        <i class="fas fa-times-circle text-danger me-1" title="Not Working"></i>
+                                    }
+                                    else if (Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.UnderMaintenance)
+                                    {
+                                        <i class="fas fa-tools text-warning me-1 maintenance-icon" title="Under Maintenance"></i>
+                                    }
+                                    @Model.VehicleStatus
+                                </span>
+
+                                <!-- Inline status update form -->
+@*                                 <form id="statusForm">
+                                    <input type="hidden" name="__RequestVerificationToken" value="@@Antiforgery.GetAndStoreTokens(HttpContext).RequestToken" />
+                                    <input type="hidden" name="vehicleId" value="@Model.Id" />
+                                    <select name="newStatus" class="form-select">
+                                        @foreach (var status in Enum.GetValues(typeof(VehicleStatus)).Cast<VehicleStatus>())
+                                        {
+                                            <option value="@status" @(status == Model.VehicleStatus ? "selected" : "")>
+                                                @status
+                                            </option>
+                                        }
+                                    </select>
+
+
+                                </form>
+ *@                            </div>
+                        </li>
+
+
+
+
+                        @*                         <li class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value">
+                                @{
+                                    var status = Model.VehicleStatus;
+                                    var isActive = status == FleetManager.Business.Enums.VehicleStatus.Active;
+                                    var isInactive = status == FleetManager.Business.Enums.VehicleStatus.Inactive;
+                                    var isMaintenance = status == FleetManager.Business.Enums.VehicleStatus.UnderMaintenance;
+                                    var badgeClass = isActive ? "status-active" :
+                                    isInactive ? "status-inactive" : "status-maintenance";
+                                }
+                                <span class="status-badge @badgeClass">
+                                    @if (isInactive)
+                                    {
+                                        <i class="fas fa-times-circle text-danger me-1" title="Not Working"></i>
+                                    }
+                                    else if (isMaintenance)
+                                    {
+                                        <i class="fas fa-tools text-warning me-1 maintenance-icon" title="Under Maintenance"></i>
+                                    }
+                                    @status
+                                </span>
+                            </div>
+                        </li>
+ *@
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Tabbed Content -->
+        <div class="col-lg-8">
+            <div class="information-card">
+                <div class="card-header-custom">
+                    <ul class="nav custom-tabs" id="detailsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview"
+                                    type="button" role="tab">
+                                Specifications
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="docs-tab" data-bs-toggle="tab" data-bs-target="#docs"
+                                    type="button" role="tab">
+                                Documents
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body-custom">
+                    <div class="tab-content">
+                        <!-- Enhanced Overview Tab -->
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                            <div class="specifications-list">
+                                <div class="spec-item">
+                                    <div class="spec-label">Engine Number</div>
+                                    <div class="spec-value">@(Model.EngineNumber ?? "—")</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Chassis Number</div>
+                                    <div class="spec-value">@(Model.ChassisNumber ?? "—")</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Registration Date</div>
+                                    <div class="spec-value">
+                                        @(Model.RegistrationDate.HasValue
+                                            ? Utility.ToOrdinalDate(Model.RegistrationDate.Value)
+                                            : "No date was assigned")
+                                    </div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Last Service Date</div>
+                                    <div class="spec-value">
+                                        @(Model.LastServiceDate.HasValue
+                                            ? Utility.ToOrdinalDate(Model.LastServiceDate.Value)
+                                            : "No date was assigned")
+                                    </div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Current Mileage</div>
+                                    <div class="spec-value">@(Model.Mileage?.ToString("N0") ?? "—")</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Fuel Type</div>
+                                    <div class="spec-value">@Model.FuelType</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Transmission</div>
+                                    <div class="spec-value">@Model.TransmissionType</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Insurance Provider</div>
+                                    <div class="spec-value">@(Model.InsuranceCompany ?? "—")</div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Insurance Expiry</div>
+                                    <div class="spec-value">
+                                        @(Model.InsuranceExpiryDate.HasValue
+                                            ? Utility.ToOrdinalDate(Model.InsuranceExpiryDate.Value)
+                                            : "No date was assigned")
+                                    </div>
+                                </div>
+                                <div class="spec-item">
+                                    <div class="spec-label">Roadworthy Expiry</div>
+                                    <div class="spec-value">
+                                        @(Model.RoadWorthyExpiryDate.HasValue
+                                            ? Utility.ToOrdinalDate(Model.RoadWorthyExpiryDate.Value)
+                                            : "No date was assigned")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Documents Tab -->
+                        <div class="tab-pane fade" id="docs" role="tabpanel">
+                            @if (Model.Documents?.Any() ?? false)
+                            {
+                                <div class="document-list">
+                                    @foreach (var doc in Model.Documents)
+                                    {
+                                        <a href="@doc.FilePath" target="_blank" class="document-item">
+                                            <i class="feather-file-text document-icon"></i>
+                                            <span class="document-name">@doc.FileName</span>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="feather-file empty-state-icon"></i>
+                                    <p class="empty-state-text">No documents have been uploaded for this vehicle.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @if (TempData["StatusUpdateSuccess"] != null)
+    {
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+            <div class="toast align-items-center text-bg-success border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @TempData["StatusUpdateSuccess"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <script>
+            setTimeout(function () {
+                document.querySelector('.toast')?.classList.remove('show');
+            }, 3000);
+        </script>
+    }
+
+
+</div>
+
+<!-- Script to synchronize modal carousel with main carousel -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Sync main carousel to modal carousel
+        document.getElementById('vehicleCarousel').addEventListener('slid.bs.carousel', function (e) {
+            var index = e.to;
+            var modalCarousel = bootstrap.Carousel.getInstance(document.getElementById('modalCarousel'));
+            modalCarousel.to(index);
+        });
+
+        // Sync modal carousel to main carousel
+        document.getElementById('modalCarousel').addEventListener('slid.bs.carousel', function (e) {
+            var index = e.to;
+            var mainCarousel = bootstrap.Carousel.getInstance(document.getElementById('vehicleCarousel'));
+            mainCarousel.to(index);
+        });
+
+        // Reset carousels when modal is opened
+        document.getElementById('fullImagesModal').addEventListener('show.bs.modal', function (e) {
+            var mainCarouselIndex = document.querySelector('#vehicleCarousel .carousel-item.active').getAttribute('data-bs-slide-to') || 0;
+            var modalCarousel = bootstrap.Carousel.getInstance(document.getElementById('modalCarousel'));
+            modalCarousel.to(parseInt(mainCarouselIndex));
+        });
+    });
+</script>
+
