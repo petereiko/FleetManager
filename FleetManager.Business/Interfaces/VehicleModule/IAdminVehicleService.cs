@@ -16,8 +16,10 @@ namespace FleetManager.Business.Interfaces.VehicleModule
         Task<MessageResponse<VehicleDto>> CreateVehicleAsync(VehicleDto dto, string createdByUserId);
         Task<MessageResponse<VehicleDto>> UpdateVehicleAsync(VehicleDto dto, string modifiedByUserId);
         Task<MessageResponse> DeleteVehicleAsync(long id);
+        //Task<MessageResponse> DeleteVehiclePhotoAsync(long photoId);
+        Task<MessageResponse> DeleteVehicleDocumentAsync(long documentId);
 
-        Task<bool> UpdateVehicleStatusAsync(long vehicleId, VehicleStatus newStatus);
+        Task<MessageResponse> UpdateVehicleStatusAsync(long vehicleId, VehicleStatus newStatus, string modifiedBy);
 
         // Retrieval
         Task<VehicleDto> GetVehicleByIdAsync(long id);

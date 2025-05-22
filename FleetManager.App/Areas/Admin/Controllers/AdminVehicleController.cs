@@ -238,17 +238,33 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Route("Admin/Vehicle/UpdateVehicleStatus")]
-        public async Task<IActionResult> UpdateVehicleStatus(long vehicleId, VehicleStatus newStatus)
+        public async Task<IActionResult> UpdateVehicleStatus([FromBody] StatusUpdateRequest req)
         {
-            var success = await _vehicleService.UpdateVehicleStatusAsync(vehicleId, newStatus);
-            if (!success)
-            {
-                return BadRequest("Failed to update vehicle status.");
-            }
+            if (!Enum.IsDefined(typeof(VehicleStatus), req.NewStatus))
+                return BadRequest(new { success = false, message = "Invalid status." });
 
-            return Ok(new { message = "Vehicle status updated successfully." });
+            try
+            {
+                var result = await _vehicleService.UpdateVehicleStatusAsync(
+                    req.VehicleId,
+                    (VehicleStatus)req.NewStatus,
+                    _authUser.UserId
+                );
+
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UpdateVehicleStatus");
+                return StatusCode(500, new { success = false, message = "Unexpected error." });
+            }
         }
+
+       
 
 
         // ─── DELETE ──────────────────────────────────────────────────────────────────
@@ -268,6 +284,93 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 _logger.LogError(ex, "Error deleting vehicle");
                 TempData["ErrorMessage"] = "An unexpected error occurred.";
                 return RedirectToAction(nameof(Index));
+            }
+        }
+
+
+        // Delete Photo endpoint
+
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> DeletePhoto(long id, long photoId)
+        //{
+        //    try
+        //    {
+        //        var result = await _vehicleService.DeleteVehiclePhotoAsync(photoId);
+
+        //        if (result.Success)
+        //        {
+        //            TempData["SuccessMessage"] = "Photo has been deleted successfully.";
+        //            return RedirectToAction("Details", new { id });
+        //        }
+        //        else
+        //        {
+        //            TempData["ErrorMessage"] = result.Message ?? "Failed to delete photo.";
+        //            return RedirectToAction("Details", new { id });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+        //        return RedirectToAction("Details", new { id });
+        //    }
+        //}
+
+        // Delete Document endpoint
+        [HttpPost]
+        public async Task<IActionResult> DeleteDocument(long id, long documentId)
+        {
+            try
+            {
+                var result = await _vehicleService.DeleteVehicleDocumentAsync(documentId);
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = "Document has been deleted successfully.";
+                    return RedirectToAction("Details", new { id });
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message ?? "Failed to delete document.";
+                    return RedirectToAction("Details", new { id });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction("Details", new { id });
+            }
+        }
+
+        // Ajax endpoints for handling deletions directly from the Edit page
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> DeletePhotoAjax(long photoId)
+        //{
+        //    try
+        //    {
+        //        var result = await _vehicleService.DeleteVehiclePhotoAsync(photoId);
+        //        return Json(new { success = result.Success, message = result.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { success = false, message = ex.Message });
+        //    }
+        //}
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteDocumentAjax(long documentId)
+        {
+            try
+            {
+                var result = await _vehicleService.DeleteVehicleDocumentAsync(documentId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 

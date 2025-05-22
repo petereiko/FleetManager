@@ -1,0 +1,741 @@
+﻿@using FleetManager.Business.ViewModels
+@model DriverOnboardViewModel
+
+@{
+    ViewData["Title"] = "Onboard Driver";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+<style>
+    .section-header {
+        border-left: 4px solid #007bff;
+        padding-left: 15px;
+        margin: 20px 0 15px 0;
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 0 5px 5px 0;
+    }
+
+        .section-header h4 {
+            margin: 0;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .file-upload-label {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border: 2px dashed #dee2e6;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
+
+        .file-upload-label:hover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+
+        .file-upload-label.has-file {
+            border-color: #28a745;
+            background-color: #d4edda;
+            border-style: solid;
+        }
+
+    .file-upload-input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .file-upload-text {
+        margin-left: 8px;
+    }
+
+    .form-progress {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+    }
+
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .progress-step {
+        flex: 1;
+        text-align: center;
+        padding: 5px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+        .progress-step.active {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .progress-step.completed {
+            color: #28a745;
+        }
+
+    .progress-bar-custom {
+        height: 4px;
+        background-color: #dee2e6;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #007bff, #28a745);
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+
+    .validation-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+
+    .tooltip-info {
+        cursor: help;
+        color: #6c757d;
+        margin-left: 5px;
+    }
+
+    .character-count {
+        font-size: 11px;
+        color: #6c757d;
+        text-align: right;
+        margin-top: 2px;
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+
+    @@media (max-width: 768px) {
+        .section-header
+
+    {
+        padding: 8px 12px;
+    }
+
+    .btn-primary {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    }
+</style>
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-sm-6">
+                <h3 class="page-title">@ViewData["Title"]</h3>
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Back to drivers</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Progress Indicator -->
+    <div class="form-progress">
+        <div class="progress-steps">
+            <div class="progress-step active" data-step="personal">Personal Info</div>
+            <div class="progress-step" data-step="license">License</div>
+            <div class="progress-step" data-step="employment">Employment</div>
+            <div class="progress-step" data-step="documents">Documents</div>
+        </div>
+        <div class="progress-bar-custom">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="driverForm">
+                        <div class="row">
+
+                            <!-- Personal Information -->
+                            <div class="col-12">
+                                <div class="section-header" data-section="personal">
+                                    <h4><i class="fas fa-user"></i> Personal Information</h4>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="FirstName" class="required-field">First Name</label>
+                                <div class="input-wrapper">
+                                    <input asp-for="FirstName" class="form-control" data-required="true" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="LastName" class="required-field">Last Name</label>
+                                <div class="input-wrapper">
+                                    <input asp-for="LastName" class="form-control" data-required="true" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="DateOfBirth" class="required-field">
+                                    Date of Birth
+                                    <i class="fas fa-info-circle tooltip-info" title="Driver must be at least 18 years old"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input asp-for="DateOfBirth" class="form-control datetimepicker" data-required="true" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="Gender" class="required-field">Gender</label>
+                                <div class="input-wrapper">
+                                    <select asp-for="Gender" class="form-control" asp-items="Model.Genders" data-required="true">
+                                        <option value="">-- Select Gender --</option>
+                                    </select>
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="PhoneNumber" class="required-field">Phone Number</label>
+                                <div class="input-wrapper">
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="e.g., +1 (555) 123-4567" data-required="true" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="Email" class="required-field">Email Address</label>
+                                <div class="input-wrapper">
+                                    <input asp-for="Email" class="form-control" type="email" placeholder="driver@example.com" data-required="true" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12 form-group">
+                                <label asp-for="Address" class="required-field">Full Address</label>
+                                <div class="input-wrapper">
+                                    <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter complete address including street, city, state, and postal code" data-required="true" maxlength="500"></textarea>
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <div class="character-count">
+                                    <span id="addressCount">0</span>/500 characters
+                                </div>
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+
+                            <!-- License Information -->
+                            <div class="col-12">
+                                <div class="section-header" data-section="license">
+                                    <h4><i class="fas fa-id-card"></i> License Information</h4>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="LicenseNumber" class="required-field">License Number</label>
+                                <div class="input-wrapper">
+                                    <input asp-for="LicenseNumber" class="form-control" placeholder="Enter license number" data-required="true" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="LicenseNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="LicenseCategory" class="required-field">License Category</label>
+                                <div class="input-wrapper">
+                                    <select asp-for="LicenseCategory" class="form-control" asp-items="Model.LicenseCategories" data-required="true">
+                                        <option value="">-- Select Category --</option>
+                                    </select>
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="LicenseCategory" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="LicenseExpiryDate" class="required-field">
+                                    License Expiry Date
+                                    <i class="fas fa-info-circle tooltip-info" title="License must be valid for at least 6 months"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input asp-for="LicenseExpiryDate" class="form-control datetimepicker" data-required="true" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="LicenseExpiryDate" class="text-danger"></span>
+                            </div>
+
+                            <!-- Employment -->
+                            <div class="col-12">
+                                <div class="section-header" data-section="employment">
+                                    <h4><i class="fas fa-briefcase"></i> Employment Details</h4>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="EmploymentStatus" class="required-field">Employment Status</label>
+                                <div class="input-wrapper">
+                                    <select asp-for="EmploymentStatus" class="form-control" asp-items="Model.EmploymentStatuses" data-required="true">
+                                        <option value="">-- Select Status --</option>
+                                    </select>
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="ShiftStatus" class="required-field">Preferred Shift</label>
+                                <div class="input-wrapper">
+                                    <select asp-for="ShiftStatus" class="form-control" asp-items="Model.ShiftStatuses" data-required="false">
+                                        <option value="">-- Select Shift --</option>
+                                    </select>
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="ShiftStatus" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group">
+                                <label asp-for="CompanyBranchId" class="required-field">Assigned Branch</label>
+                                <div class="input-wrapper">
+                                    <select asp-for="CompanyBranchId" class="form-control" asp-items="Model.Branches" data-required="true">
+                                        <option value="">-- Select Branch --</option>
+                                    </select>
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="CompanyBranchId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Document Uploads -->
+                            <div class="col-12">
+                                <div class="section-header" data-section="documents">
+                                    <h4><i class="fas fa-upload"></i> Required Documents</h4>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 form-group">
+                                <label asp-for="LicensePhoto">Driver's License Photo</label>
+                                <div class="file-upload-wrapper">
+                                    <label class="file-upload-label" id="licensePhotoLabel">
+                                        <i class="fas fa-camera"></i>
+                                        <span class="file-upload-text">Choose license photo or drag & drop</span>
+                                        <input asp-for="LicensePhoto" type="file" class="file-upload-input" accept="image/*" id="licensePhotoInput" />
+                                    </label>
+                                </div>
+                                <small class="text-muted">Accepted formats: JPG, PNG, GIF (Max: 5MB)</small>
+                                <span asp-validation-for="LicensePhoto" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 form-group">
+                                <label asp-for="ProfilePhoto">Profile Photo</label>
+                                <div class="file-upload-wrapper">
+                                    <label class="file-upload-label" id="profilePhotoLabel">
+                                        <i class="fas fa-user-circle"></i>
+                                        <span class="file-upload-text">Choose profile photo or drag & drop</span>
+                                        <input asp-for="ProfilePhoto" type="file" class="file-upload-input" accept="image/*" id="profilePhotoInput" />
+                                    </label>
+                                </div>
+                                <small class="text-muted">Accepted formats: JPG, PNG, GIF (Max: 5MB)</small>
+                                <span asp-validation-for="ProfilePhoto" class="text-danger"></span>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="col-12 mt-4 text-end">
+                                <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                                    <i class="fas fa-user-plus"></i> Onboard Driver
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize date pickers
+            flatpickr(".datetimepicker", {
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+                locale: {
+                    firstDayOfWeek: 1
+                }
+            });
+
+            // Progress tracking
+            const sections = ['personal', 'license', 'employment', 'documents'];
+            let currentSection = 0;
+
+            // Form validation and progress
+            const form = document.getElementById('driverForm');
+            const progressFill = document.getElementById('progressFill');
+            const submitBtn = document.getElementById('submitBtn');
+
+            function updateProgress() {
+                const requiredFields = form.querySelectorAll('[data-required="true"]');
+                let completedFields = 0;
+
+                requiredFields.forEach(field => {
+                    const wrapper = field.closest('.input-wrapper');
+                    const icon = wrapper.querySelector('.validation-icon');
+
+                    if (field.value.trim() !== '') {
+                        completedFields++;
+                        icon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+                        field.classList.remove('is-invalid');
+                        field.classList.add('is-valid');
+                    } else {
+                        icon.innerHTML = '<i class="fas fa-exclamation-circle text-warning"></i>';
+                        field.classList.remove('is-valid');
+                    }
+                });
+
+                const progress = (completedFields / requiredFields.length) * 100;
+                progressFill.style.width = progress + '%';
+
+                // Update step indicators
+                document.querySelectorAll('.progress-step').forEach((step, index) => {
+                    if (index < Math.floor(progress / 25)) {
+                        step.classList.add('completed');
+                        step.classList.remove('active');
+                    } else if (index === Math.floor(progress / 25)) {
+                        step.classList.add('active');
+                        step.classList.remove('completed');
+                    } else {
+                        step.classList.remove('active', 'completed');
+                    }
+                });
+
+                // Enable submit button when form is complete
+                submitBtn.disabled = progress < 100;
+            }
+
+            // Add event listeners to all form inputs
+            form.addEventListener('input', updateProgress);
+            form.addEventListener('change', updateProgress);
+
+            // File upload enhancements
+            function setupFileUpload(inputId, labelId) {
+                const input = document.getElementById(inputId);
+                const label = document.getElementById(labelId);
+                const textSpan = label.querySelector('.file-upload-text');
+
+                input.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const fileName = this.files[0].name;
+                        const fileSize = (this.files[0].size / 1024 / 1024).toFixed(2);
+                        textSpan.textContent = `${fileName} (${fileSize} MB)`;
+                        label.classList.add('has-file');
+                    } else {
+                        textSpan.textContent = textSpan.textContent.includes('license') ?
+                            'Choose license photo or drag & drop' :
+                            'Choose profile photo or drag & drop';
+                        label.classList.remove('has-file');
+                    }
+                });
+
+                // Drag and drop functionality
+                label.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#007bff';
+                });
+
+                label.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#dee2e6';
+                });
+
+                label.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#dee2e6';
+
+                    if (e.dataTransfer.files.length) {
+                        input.files = e.dataTransfer.files;
+                        input.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            setupFileUpload('licensePhotoInput', 'licensePhotoLabel');
+            setupFileUpload('profilePhotoInput', 'profilePhotoLabel');
+
+            // Character counter for address
+            const addressField = document.querySelector('textarea[asp-for="Address"]');
+            const addressCount = document.getElementById('addressCount');
+
+            if (addressField && addressCount) {
+                addressField.addEventListener('input', function() {
+                    addressCount.textContent = this.value.length;
+                    if (this.value.length > 450) {
+                        addressCount.style.color = '#dc3545';
+                    } else {
+                        addressCount.style.color = '#6c757d';
+                    }
+                });
+            }
+
+            // Phone number formatting
+            const phoneField = document.querySelector('input[asp-for="PhoneNumber"]');
+            if (phoneField) {
+                phoneField.addEventListener('input', function() {
+                    let value = this.value.replace(/\D/g, '');
+                    if (value.length >= 10) {
+                        value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                    }
+                    this.value = value;
+                });
+            }
+
+            // Initialize tooltips (if using Bootstrap)
+            if (typeof bootstrap !== 'undefined') {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+
+            // Initial progress update
+            updateProgress();
+
+            // Form submission handling
+            form.addEventListener('submit', function(e) {
+                const btn = document.getElementById('submitBtn');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                btn.disabled = true;
+            });
+        });
+    </script>
+}
+
+
+
+
+
+
+@* @using FleetManager.Business.ViewModels
+@model DriverOnboardViewModel
+
+@{
+    ViewData["Title"] = "Onboard Driver";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-sm-6">
+                <h3 class="page-title">@ViewData["Title"]</h3>
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Back to drivers</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div class="row">
+
+                            <!-- Personal Information -->
+                            <div class="col-12"><h4>Personal Information</h4></div>
+                            <div class="col-md-4">
+                                <label asp-for="FirstName">First Name <span class="text-danger">*</span></label>
+                                <input asp-for="FirstName" class="form-control" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="LastName">Last Name <span class="text-danger">*</span></label>
+                                <input asp-for="LastName" class="form-control" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="DateOfBirth">Date of Birth <span class="text-danger">*</span></label>
+                                <input asp-for="DateOfBirth" class="form-control datetimepicker" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Gender">Gender <span class="text-danger">*</span></label>
+                                <select asp-for="Gender" class="form-control" asp-items="Model.Genders">
+                                    <option value="">-- select --</option>
+                                </select>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="PhoneNumber">Phone <span class="text-danger">*</span></label>
+                                <input asp-for="PhoneNumber" class="form-control" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Email">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label asp-for="Address">Address <span class="text-danger">*</span></label>
+                                <textarea asp-for="Address" class="form-control"></textarea>
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+
+                            <!-- License Information -->
+                            <div class="col-12 mt-4"><h4>License Information</h4></div>
+                            <div class="col-md-4">
+                                <label asp-for="LicenseNumber">License No. <span class="text-danger">*</span></label>
+                                <input asp-for="LicenseNumber" class="form-control" />
+                                <span asp-validation-for="LicenseNumber" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="LicenseCategory">Category <span class="text-danger">*</span></label>
+                                <select asp-for="LicenseCategory" class="form-control" asp-items="Model.LicenseCategories">
+                                    <option value="">-- select --</option>
+                                </select>
+                                <span asp-validation-for="LicenseCategory" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="LicenseExpiryDate">Expiry Date <span class="text-danger">*</span></label>
+                                <input asp-for="LicenseExpiryDate" class="form-control datetimepicker" />
+                                <span asp-validation-for="LicenseExpiryDate" class="text-danger"></span>
+                            </div>
+
+                            <!-- Employment -->
+                            <div class="col-12 mt-4"><h4>Employment</h4></div>
+                            <div class="col-md-4">
+                                <label asp-for="EmploymentStatus">Status <span class="text-danger">*</span></label>
+                                <select asp-for="EmploymentStatus" class="form-control" asp-items="Model.EmploymentStatuses">
+                                    <option value="">-- select --</option>
+                                </select>
+                                <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="ShiftStatus">Shift</label>
+                                <select asp-for="ShiftStatus" class="form-control" asp-items="Model.ShiftStatuses">
+                                    <option value="">-- select --</option>
+                                </select>
+                                <span asp-validation-for="ShiftStatus" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="CompanyBranchId">Branch <span class="text-danger">*</span></label>
+                                <select asp-for="CompanyBranchId" class="form-control" asp-items="Model.Branches">
+                                    <option value="">-- select --</option>
+                                </select>
+                                <span asp-validation-for="CompanyBranchId" class="text-danger"></span>
+                            </div>
+
+                            <!-- Document Uploads -->
+                            <div class="col-12 mt-4"><h4>Required Documents</h4></div>
+                            <div class="col-md-6">
+                                <label asp-for="LicensePhoto">License Photo</label>
+                                <input asp-for="LicensePhoto" type="file" class="form-control" accept="image/*" />
+                                <span asp-validation-for="LicensePhoto" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ProfilePhoto">Profile Photo</label>
+                                <input asp-for="ProfilePhoto" type="file" class="form-control" accept="image/*" />
+                                <span asp-validation-for="ProfilePhoto" class="text-danger"></span>
+                            </div>
+                            
+
+                            <!-- Submit -->
+                            <div class="col-12 mt-4 text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    Onboard Driver
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // date‐picker
+        flatpickr(".datetimepicker", { dateFormat: "Y-m-d" });
+    </script>
+}
+ *@

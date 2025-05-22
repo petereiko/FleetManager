@@ -438,15 +438,31 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 });
         }
 
-        public async Task<bool> UpdateVehicleStatusAsync(long vehicleId, VehicleStatus newStatus)
+        public async Task<MessageResponse> UpdateVehicleStatusAsync(long vehicleId, VehicleStatus newStatus, string modifiedBy)
         {
-            var vehicle = await _context.Vehicles.FindAsync(vehicleId);
-            if (vehicle == null)
-                return false;
-
-            vehicle.VehicleStatus = newStatus;
-            await _context.SaveChangesAsync();
-            return true;
+            EnsureAdminOrOwner();
+            var resp = new MessageResponse();
+            try
+            {
+                var v = await _context.Vehicles.FindAsync(vehicleId);
+                if (v == null)
+                {
+                    resp.Message = "Vehicle not found.";
+                    return resp;
+                }
+                v.VehicleStatus = newStatus;
+                v.ModifiedDate = DateTime.UtcNow;
+                v.ModifiedBy = modifiedBy;
+                await _context.SaveChangesAsync();
+                resp.Success = true;
+                resp.Message = "Status updated.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating status");
+                resp.Message = "Could not update status.";
+            }
+            return resp;
         }
 
 
