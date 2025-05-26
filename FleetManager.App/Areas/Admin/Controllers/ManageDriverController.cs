@@ -48,6 +48,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 //    you’ll need to expose IQueryable<DriverListItemDto> in your service
                 var query = _driverService.QueryDriversForBranch(isGlobal ? null : _authUser.CompanyBranchId);
 
+
                 // 3) total count
                 var total = await query.CountAsync();
 
@@ -133,14 +134,11 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     {
                     new SelectListItem(branch?.Name ?? "Unknown", myBranchId.ToString())
                 };
-                    vm.CompanyBranchId = myBranchId;
+                    vm.Input.CompanyBranchId = myBranchId;
                 }
 
                 // Populate all your dropdowns
-                vm.Genders = EnumHelper.ToSelectList<Gender>();
-                vm.EmploymentStatuses = EnumHelper.ToSelectList<EmploymentStatus>();
-                vm.ShiftStatuses = EnumHelper.ToSelectList<ShiftStatus>();
-                vm.LicenseCategories = EnumHelper.ToSelectList<LicenseCategory>();
+                await PopulateSelectsAsync(vm);
 
                 return View(vm);
             }
@@ -158,34 +156,32 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 // repopulate dropdowns on POST
                 var branches = await _branchService.GetBranchesForCompanyAsync();
                 vm.Branches = branches.Select(b => new SelectListItem(b.Name, b.Id.ToString()));
-                vm.Genders = EnumHelper.ToSelectList<Gender>();
-                vm.EmploymentStatuses = EnumHelper.ToSelectList<EmploymentStatus>();
-                vm.ShiftStatuses = EnumHelper.ToSelectList<ShiftStatus>();
-                vm.LicenseCategories = EnumHelper.ToSelectList<LicenseCategory>();
+                await PopulateSelectsAsync(vm);
 
                 if (!ModelState.IsValid)
                     return View(vm);
 
                 // map to onboarding DTO, including the four file uploads
+                var i = vm.Input;
                 var dto = new DriverOnboardingDto
                 {
-                    FirstName = vm.FirstName,
-                    LastName = vm.LastName,
-                    Email = vm.Email,
-                    PhoneNumber = vm.PhoneNumber,
-                    Address = vm.Address,
-                    DateOfBirth = vm.DateOfBirth,
-                    Gender = vm.Gender,
-                    EmploymentStatus = vm.EmploymentStatus,
-                    LicenseNumber = vm.LicenseNumber,
-                    LicenseExpiryDate = vm.LicenseExpiryDate,
-                    CompanyBranchId = vm.CompanyBranchId,
-                    LicenseCategory = vm.LicenseCategory,
-                    ShiftStatus = vm.ShiftStatus,
+                    FirstName = i.FirstName,
+                    LastName = i.LastName,
+                    Email = i.Email,
+                    PhoneNumber = i.PhoneNumber,
+                    Address = i.Address,
+                    DateOfBirth = i.DateOfBirth,
+                    Gender = i.Gender,
+                    EmploymentStatus = i.EmploymentStatus,
+                    LicenseNumber = i.LicenseNumber,
+                    LicenseExpiryDate = i.LicenseExpiryDate,
+                    CompanyBranchId = i.CompanyBranchId,
+                    LicenseCategory = i.LicenseCategory,
+                    ShiftStatus = i.ShiftStatus,
 
                     // New file properties:
-                    LicensePhoto = vm.LicensePhoto,
-                    ProfilePhoto = vm.ProfilePhoto
+                    LicensePhoto = i.LicensePhoto,
+                    ProfilePhoto = i.ProfilePhoto
                 };
 
                 var result = await _driverService.OnboardDriverAsync(dto, _authUser.UserId);
@@ -216,10 +212,20 @@ namespace FleetManager.App.Areas.Admin.Controllers
         {
             try
             {
+                // Determine if global (owner/super) or branch‐admin
+                var roles = (_authUser.Roles ?? "")
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(r => r.Trim());
+                bool isGlobal = roles.Contains("Company Owner") || roles.Contains("Super Admin");
+
+                
+
                 var dto = await _driverService.GetDriverByIdAsync(id);
                 if (dto == null) return NotFound();
 
-                var vm = new DriverEditViewModel
+                var vm = new DriverEditViewModel();
+
+                vm.Input = new DriverEditInputModel
                 {
                     Id = dto.Id,
                     FirstName = dto.FirstName,
@@ -236,6 +242,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     LicenseCategory = dto.LicenseCategory,
                     ShiftStatus = dto.ShiftStatus,
                     IsActive = dto.IsActive,
+                    UploadedDate=dto.CreatedDate,
 
                     // existing photos/documents (for display in the edit view)
                     ExistingLicensePhotos = dto.Documents,
@@ -243,12 +250,34 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 };
 
                 // repopulate dropdowns
-                var branches = await _branchService.GetBranchesForCompanyAsync();
-                vm.Branches = branches.Select(b => new SelectListItem(b.Name, b.Id.ToString(), b.Id == dto.CompanyBranchId));
-                vm.Genders = EnumHelper.ToSelectList<Gender>();
-                vm.EmploymentStatuses = EnumHelper.ToSelectList<EmploymentStatus>();
-                vm.ShiftStatuses = EnumHelper.ToSelectList<ShiftStatus>();
-                vm.LicenseCategories = EnumHelper.ToSelectList<LicenseCategory>();
+
+
+                if (isGlobal)
+                {
+                    var branches = await _branchService.GetBranchesForCompanyAsync();
+                    vm.Branches = branches
+                        .Select(b => new SelectListItem(b.Name, b.Id.ToString()));
+                }
+                else
+                {
+                    // single branch
+                    var myBranchId = _authUser.CompanyBranchId ?? 0;
+                    var branch = (await _branchService.GetBranchesForCompanyAsync())
+                                 .FirstOrDefault(b => b.Id == myBranchId);
+                    vm.Branches = new[]
+                    {
+                    new SelectListItem(branch?.Name ?? "Unknown", myBranchId.ToString())
+                };
+                    vm.Input.CompanyBranchId = myBranchId;
+                }
+
+
+                //var branches = await _branchService.GetBranchesForCompanyAsync();
+                //vm.Branches = branches.Select(b => new SelectListItem(b.Name, b.Id.ToString(), b.Id == dto.CompanyBranchId));
+
+                vm.Genders = _driverService.GetGenderOptions();
+                vm.EmploymentStatuses = _driverService.GetEmploymentStatusOptions();
+                vm.ShiftStatuses = _driverService.GetShiftStatusOptions();
 
                 return View(vm);
             }
@@ -270,37 +299,37 @@ namespace FleetManager.App.Areas.Admin.Controllers
             {
                 // repopulate dropdowns on POST
                 var branches = await _branchService.GetBranchesForCompanyAsync();
-                vm.Branches = branches.Select(b => new SelectListItem(b.Name, b.Id.ToString(), b.Id == vm.CompanyBranchId));
-                vm.Genders = EnumHelper.ToSelectList<Gender>();
-                vm.EmploymentStatuses = EnumHelper.ToSelectList<EmploymentStatus>();
-                vm.ShiftStatuses = EnumHelper.ToSelectList<ShiftStatus>();
-                vm.LicenseCategories = EnumHelper.ToSelectList<LicenseCategory>();
+                vm.Branches = branches.Select(b => new SelectListItem(b.Name, b.Id.ToString(), b.Id == vm.Input.CompanyBranchId));
+                vm.Genders = _driverService.GetGenderOptions();
+                vm.EmploymentStatuses = _driverService.GetEmploymentStatusOptions();
+                vm.ShiftStatuses = _driverService.GetShiftStatusOptions();
 
                 if (!ModelState.IsValid)
                     return View(vm);
 
                 // map back to DTO, including any *new* uploads
+                var i = vm.Input;
                 var dto = new DriverDto
                 {
-                    Id = vm.Id,
-                    FirstName = vm.FirstName,
-                    LastName = vm.LastName,
-                    Email = vm.Email,
-                    PhoneNumber = vm.PhoneNumber,
-                    Address = vm.Address,
-                    DateOfBirth = vm.DateOfBirth,
-                    Gender = vm.Gender,
-                    EmploymentStatus = vm.EmploymentStatus,
-                    LicenseNumber = vm.LicenseNumber,
-                    LicenseExpiryDate = vm.LicenseExpiryDate,
-                    CompanyBranchId = vm.CompanyBranchId,
-                    LicenseCategory = vm.LicenseCategory,
-                    ShiftStatus = vm.ShiftStatus,
-                    IsActive = vm.IsActive,
+                    Id = i.Id,
+                    FirstName = i.FirstName,
+                    LastName = i.LastName,
+                    Email = i.Email,
+                    PhoneNumber = i.PhoneNumber,
+                    Address = i.Address,
+                    DateOfBirth = i.DateOfBirth,
+                    Gender = i.Gender,
+                    EmploymentStatus = i.EmploymentStatus,
+                    LicenseNumber = i.LicenseNumber,
+                    LicenseExpiryDate = i.LicenseExpiryDate,
+                    CompanyBranchId = i.CompanyBranchId,
+                    LicenseCategory = i.LicenseCategory,
+                    ShiftStatus = i.ShiftStatus,
+                    IsActive = i.IsActive,
 
                     // allow replacing or adding new files
-                    NewLicensePhoto = vm.LicensePhoto,
-                    NewProfilePhoto = vm.ProfilePhoto
+                    NewLicensePhoto = i.LicensePhoto,
+                    NewProfilePhoto = i.ProfilePhoto
                 };
 
                 var result = await _driverService.UpdateDriverAsync(dto, _authUser.UserId);
@@ -319,7 +348,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating driver Id {DriverId}", vm.Id);
+                _logger.LogError(ex, "Error updating driver Id {DriverId}", vm.Input.Id);
                 ModelState.AddModelError("", "An unexpected error occurred.");
                 return View(vm);
             }
@@ -349,6 +378,16 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = "An unexpected error occurred.";
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        // ─── HELPERS ─────────────────────────────────────────────────────────────────
+        private async Task PopulateSelectsAsync(DriverOnboardViewModel vm)
+        {
+
+            vm.Genders = _driverService.GetGenderOptions();
+            vm.EmploymentStatuses = _driverService.GetEmploymentStatusOptions();
+            vm.ShiftStatuses = _driverService.GetShiftStatusOptions();
+            vm.LicenseCategories = _driverService.GetLicenseCategoryOptions();
         }
     }
 }

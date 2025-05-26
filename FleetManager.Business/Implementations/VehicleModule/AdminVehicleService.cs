@@ -314,6 +314,47 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 .ToListAsync();
         }
 
+        public IQueryable<VehicleListItemDto> QueryVehicles(VehicleFilterDto filter)
+        {
+            EnsureAdminOrOwner();
+
+            var q = _context.Vehicles
+                .AsNoTracking()
+                .Where(v => v.CompanyBranch.CompanyId == _authUser.CompanyId.Value);
+
+            if (filter.BranchId.HasValue)
+                q = q.Where(v => v.CompanyBranchId == filter.BranchId.Value);
+            if (filter.Status.HasValue)
+                q = q.Where(v => v.VehicleStatus == filter.Status.Value);
+            if (filter.Type.HasValue)
+                q = q.Where(v => v.VehicleType == filter.Type.Value);
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+                q = q.Where(v =>
+                    v.Make.Contains(filter.Search) ||
+                    v.Model.Contains(filter.Search) ||
+                    v.PlateNo.Contains(filter.Search));
+
+            return q
+                .Select(v => new VehicleListItemDto
+                {
+                    Id = v.Id,
+                    Make = v.Make,
+                    Color = v.Color,
+                    TransmissionType = v.TransmissionType,
+                    LastServiceDate = v.LastServiceDate,
+                    Model = v.Model,
+                    Year = v.Year,
+                    PlateNo = v.PlateNo,
+                    Status = v.VehicleStatus.ToString(),
+                    BranchName = v.CompanyBranch.Name,
+                    MainImagePath = v.VehicleDocuments
+                        .Where(d => d.DocumentType == VehicleDocumentType.Photo)
+                        .Select(d => d.FilePath)
+                        .FirstOrDefault()
+                });
+        }
+
+
         private async Task<List<VehicleDocument>> SaveVehicleFilesAsync(
             long vehicleId, List<IFormFile> files, VehicleDocumentType docType)
         {
@@ -397,47 +438,6 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 })
                 .ToListAsync();
         }
-
-        public IQueryable<VehicleListItemDto> QueryVehicles(VehicleFilterDto filter)
-        {
-            EnsureAdminOrOwner();
-
-            var q = _context.Vehicles
-                .AsNoTracking()
-                .Where(v => v.CompanyBranch.CompanyId == _authUser.CompanyId.Value);
-
-            if (filter.BranchId.HasValue)
-                q = q.Where(v => v.CompanyBranchId == filter.BranchId.Value);
-            if (filter.Status.HasValue)
-                q = q.Where(v => v.VehicleStatus == filter.Status.Value);
-            if (filter.Type.HasValue)
-                q = q.Where(v => v.VehicleType == filter.Type.Value);
-            if (!string.IsNullOrWhiteSpace(filter.Search))
-                q = q.Where(v =>
-                    v.Make.Contains(filter.Search) ||
-                    v.Model.Contains(filter.Search) ||
-                    v.PlateNo.Contains(filter.Search));
-
-            return q
-                .Select(v => new VehicleListItemDto
-                {
-                    Id = v.Id,
-                    Make = v.Make,
-                    Color = v.Color,
-                    TransmissionType = v.TransmissionType,
-                    LastServiceDate = v.LastServiceDate,
-                    Model = v.Model,
-                    Year = v.Year,
-                    PlateNo = v.PlateNo,
-                    Status = v.VehicleStatus.ToString(),
-                    BranchName = v.CompanyBranch.Name,
-                    MainImagePath = v.VehicleDocuments
-                        .Where(d => d.DocumentType == VehicleDocumentType.Photo)
-                        .Select(d => d.FilePath)
-                        .FirstOrDefault()
-                });
-        }
-
         public async Task<MessageResponse> UpdateVehicleStatusAsync(long vehicleId, VehicleStatus newStatus, string modifiedBy)
         {
             EnsureAdminOrOwner();

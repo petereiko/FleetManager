@@ -291,7 +291,12 @@ namespace FleetManager.Business.Migrations
                     b.Property<int>("ShiftStatus")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Drivers");
                 });
@@ -966,6 +971,15 @@ namespace FleetManager.Business.Migrations
                     b.Navigation("Lga");
 
                     b.Navigation("State");
+                });
+
+            modelBuilder.Entity("FleetManager.Business.Database.Entities.Driver", b =>
+                {
+                    b.HasOne("FleetManager.Business.Database.IdentityModels.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FleetManager.Business.Database.Entities.DriverDocument", b =>

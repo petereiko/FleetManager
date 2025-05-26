@@ -1,0 +1,550 @@
+﻿@using FleetManager.Business.ViewModels
+@model AssignmentCreateViewModel
+@{
+    ViewData["Title"] = "Assign Vehicle";
+}
+
+
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 25px 25px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            color: #6c757d;
+            font-weight: bold;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+            .step.active {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+
+            .step.completed {
+                background: #28a745;
+                color: white;
+            }
+
+            .step::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 100%;
+                width: 20px;
+                height: 2px;
+                background: #dee2e6;
+                transform: translateY(-50%);
+            }
+
+            .step:last-child::after {
+                display: none;
+            }
+
+        .form-section {
+            padding: 2rem;
+        }
+
+        .driver-card, .vehicle-card {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+            .driver-card:hover, .vehicle-card:hover {
+                border-color: #667eea;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            }
+
+            .driver-card.selected, .vehicle-card.selected {
+                border-color: #667eea;
+                background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+            }
+
+                .driver-card.selected::before, .vehicle-card.selected::before {
+                    content: '\f00c';
+                    font-family: 'Font Awesome 5 Free';
+                    font-weight: 900;
+                    position: absolute;
+                    top: 15px;
+                    right: 15px;
+                    background: #28a745;
+                    color: white;
+                    width: 25px;
+                    height: 25px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                }
+
+        .driver-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 1rem;
+        }
+
+        .vehicle-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 1rem;
+        }
+
+        .date-card {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            color: #333;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+            .btn-gradient:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .btn-outline-gradient {
+            border: 2px solid #667eea;
+            color: #667eea;
+            background: transparent;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+            .btn-outline-gradient:hover {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                transform: translateY(-2px);
+            }
+
+        .floating-labels .form-floating > label {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+    </style>
+
+
+<div class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-plus-circle me-3"></i>Assign Vehicle to Driver
+                </h1>
+                <p class="mb-0 opacity-75">Create a new vehicle assignment</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="@Url.Action("Index")" class="btn btn-light btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="form-card">
+                <div class="form-header">
+                    <h3 class="mb-2">
+                        <i class="fas fa-handshake me-2"></i>Vehicle Assignment
+                    </h3>
+                    <p class="mb-0 opacity-75">Match the right vehicle with the right driver</p>
+                </div>
+
+                <form method="post" id="assignmentForm">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mx-4 mt-3" style="display: none;"></div>
+
+                    <!-- Step Indicator -->
+                    <div class="form-section border-bottom">
+                        <div class="step-indicator">
+                            <div class="step active" data-step="1">1</div>
+                            <div class="step" data-step="2">2</div>
+                            <div class="step" data-step="3">3</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 1: Select Driver -->
+                    <div class="form-section step-content" data-step="1">
+                        <h4 class="mb-4">
+                            <i class="fas fa-user me-2 text-primary"></i>Select Driver
+                        </h4>
+                        <div class="row">
+                            @foreach (var driver in Model.Drivers)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="driver-card" data-driver-id="@driver.Value" onclick="selectDriver(@driver.Value, '@driver.Text')">
+                                        <div class="d-flex align-items-center">
+                                            <div class="driver-avatar">
+                                                @(driver.Text.Substring(0, 1).ToUpper())
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">@driver.Text</h6>
+                                                <small class="text-muted">Available Driver</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" asp-for="Input.DriverId" id="selectedDriverId" />
+                        <span asp-validation-for="Input.DriverId" class="text-danger"></span>
+                    </div>
+
+                    <!-- Step 2: Select Vehicle -->
+                    <div class="form-section step-content d-none" data-step="2">
+                        <h4 class="mb-4">
+                            <i class="fas fa-car me-2 text-success"></i>Select Vehicle
+                        </h4>
+                        <div class="row">
+                            @foreach (var vehicle in Model.Vehicles)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="vehicle-card" data-vehicle-id="@vehicle.Value" onclick="selectVehicle(@vehicle.Value, '@vehicle.Text')">
+                                        <div class="d-flex align-items-center">
+                                            <div class="vehicle-icon">
+                                                <i class="fas fa-car"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">@vehicle.Text</h6>
+                                                <small class="text-muted">Available Vehicle</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" asp-for="Input.VehicleId" id="selectedVehicleId" />
+                        <span asp-validation-for="Input.VehicleId" class="text-danger"></span>
+                    </div>
+
+                    <!-- Step 3: Set Dates -->
+                    <div class="form-section step-content d-none" data-step="3">
+                        <h4 class="mb-4">
+                            <i class="fas fa-calendar-alt me-2 text-warning"></i>Assignment Period
+                        </h4>
+                        <div class="date-card">
+                            <div class="row floating-labels">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="date" class="form-control" asp-for="Input.StartDate" id="startDate" required />
+                                        <label for="startDate">Start Date</label>
+                                    </div>
+                                    <span asp-validation-for="Input.StartDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="date" class="form-control" asp-for="Input.EndDate" id="endDate" />
+                                        <label for="endDate">End Date (Optional)</label>
+                                    </div>
+                                    <span asp-validation-for="Input.EndDate" class="text-danger"></span>
+                                    <small class="form-text text-muted mt-1">Leave empty for ongoing assignment</small>
+                                </div>
+                            </div>
+
+                            <!-- Assignment Summary -->
+                            <div class="mt-4 p-3 bg-white rounded">
+                                <h6 class="fw-bold mb-3">Assignment Summary</h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong class="text-muted">Driver:</strong>
+                                        <div id="summaryDriver" class="fw-bold">Not selected</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong class="text-muted">Vehicle:</strong>
+                                        <div id="summaryVehicle" class="fw-bold">Not selected</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong class="text-muted">Duration:</strong>
+                                        <div id="summaryDuration" class="fw-bold">Not set</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="form-section border-top">
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-gradient" id="prevBtn" onclick="changeStep(-1)" style="display: none;">
+                                <i class="fas fa-arrow-left me-2"></i>Previous
+                            </button>
+                            <div class="ms-auto">
+                                <button type="button" class="btn btn-gradient" id="nextBtn" onclick="changeStep(1)">
+                                    Next<i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                                <button type="submit" class="btn btn-gradient" id="submitBtn" style="display: none;">
+                                    <i class="fas fa-check me-2"></i>Create Assignment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentStep = 1;
+        let selectedDriver = null;
+        let selectedVehicle = null;
+
+        function selectDriver(driverId, driverName) {
+            // Remove previous selection
+            $('.driver-card').removeClass('selected');
+
+            // Select current driver
+            $(`.driver-card[data-driver-id="${driverId}"]`).addClass('selected');
+            $('#selectedDriverId').val(driverId);
+            selectedDriver = driverName;
+
+            // Update summary
+            $('#summaryDriver').text(driverName);
+
+            // Enable next button
+            $('#nextBtn').prop('disabled', false);
+        }
+
+        function selectVehicle(vehicleId, vehicleName) {
+            // Remove previous selection
+            $('.vehicle-card').removeClass('selected');
+
+            // Select current vehicle
+            $(`.vehicle-card[data-vehicle-id="${vehicleId}"]`).addClass('selected');
+            $('#selectedVehicleId').val(vehicleId);
+            selectedVehicle = vehicleName;
+
+            // Update summary
+            $('#summaryVehicle').text(vehicleName);
+
+            // Enable next button
+            $('#nextBtn').prop('disabled', false);
+        }
+
+        function changeStep(direction) {
+            const totalSteps = 3;
+            const newStep = currentStep + direction;
+
+            if (newStep < 1 || newStep > totalSteps) return;
+
+            // Validate current step before proceeding
+            if (direction > 0) {
+                if (currentStep === 1 && !selectedDriver) {
+                    showAlert('Please select a driver first.', 'warning');
+                    return;
+                }
+                if (currentStep === 2 && !selectedVehicle) {
+                    showAlert('Please select a vehicle first.', 'warning');
+                    return;
+                }
+            }
+
+            // Hide current step
+            $(`.step-content[data-step="${currentStep}"]`).addClass('d-none');
+            $('.step').removeClass('active').eq(currentStep - 1).addClass('completed');
+
+            // Show new step
+            currentStep = newStep;
+            $(`.step-content[data-step="${currentStep}"]`).removeClass('d-none');
+            $('.step').eq(currentStep - 1).addClass('active');
+
+            // Update navigation buttons
+            updateNavigationButtons();
+
+            // Update duration summary when on step 3
+            if (currentStep === 3) {
+                updateDurationSummary();
+            }
+        }
+
+        function updateNavigationButtons() {
+            $('#prevBtn').toggle(currentStep > 1);
+            $('#nextBtn').toggle(currentStep < 3);
+            $('#submitBtn').toggle(currentStep === 3);
+
+            // Disable next button until selection is made
+            if (currentStep === 1) {
+                $('#nextBtn').prop('disabled', !selectedDriver);
+            } else if (currentStep === 2) {
+                $('#nextBtn').prop('disabled', !selectedVehicle);
+            }
+        }
+
+        function updateDurationSummary() {
+            const startDate = $('#startDate').val();
+            const endDate = $('#endDate').val();
+
+            if (startDate) {
+                let duration = 'From ' + new Date(startDate).toLocaleDateString();
+                if (endDate) {
+                    duration += ' to ' + new Date(endDate).toLocaleDateString();
+                } else {
+                    duration += ' (Ongoing)';
+                }
+                $('#summaryDuration').text(duration);
+            } else {
+                $('#summaryDuration').text('Not set');
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            // Remove existing alerts
+            $('.container .alert').remove();
+
+            // Add new alert
+            $('.container').prepend(alertHtml);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+
+        // Initialize on page load
+        $(document).ready(function() {
+            updateNavigationButtons();
+
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            $('#startDate').attr('min', today);
+
+            // Update end date minimum when start date changes
+            $('#startDate').change(function() {
+                $('#endDate').attr('min', this.value);
+                updateDurationSummary();
+            });
+
+            $('#endDate').change(function() {
+                updateDurationSummary();
+            });
+
+            // Pre-select if values exist (for validation errors)
+            const preselectedDriverId = $('#selectedDriverId').val();
+            const preselectedVehicleId = $('#selectedVehicleId').val();
+
+            if (preselectedDriverId) {
+                const driverCard = $(`.driver-card[data-driver-id="${preselectedDriverId}"]`);
+                driverCard.addClass('selected');
+                selectedDriver = driverCard.find('h6').text();
+                $('#summaryDriver').text(selectedDriver);
+            }
+
+            if (preselectedVehicleId) {
+                const vehicleCard = $(`.vehicle-card[data-vehicle-id="${preselectedVehicleId}"]`);
+                vehicleCard.addClass('selected');
+                selectedVehicle = vehicleCard.find('h6').text();
+                $('#summaryVehicle').text(selectedVehicle);
+            }
+
+            // Show validation errors if any
+            if ($('.text-danger:visible').length > 0) {
+                showAlert('Please correct the errors below.', 'danger');
+            }
+        });
+
+        // Form validation before submit
+        $('#assignmentForm').submit(function(e) {
+            if (!selectedDriver || !selectedVehicle || !$('#startDate').val()) {
+                e.preventDefault();
+                showAlert('Please complete all required fields.', 'danger');
+                return false;
+            }
+
+            // Show loading state
+            $('#submitBtn').html('<i class="fas fa-spinner fa-spin me-2"></i>Creating Assignment...');
+            $('#submitBtn').prop('disabled', true);
+        });
+
+        // Keyboard navigation
+        $(document).keydown(function(e) {
+            if (e.key === 'ArrowRight' && currentStep < 3) {
+                changeStep(1);
+            } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+                changeStep(-1);
+            }
+        });
+    </script>
+}

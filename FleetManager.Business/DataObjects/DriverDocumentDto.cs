@@ -13,5 +13,6 @@ namespace FleetManager.Business.DataObjects
         public string FileName { get; set; }
         public string FilePath { get; set; }
         public VehicleDocumentType DocumentType { get; set; }
+        public DateTime UploadedDate { get; set; }
     }
 }

@@ -6,20 +6,31 @@
 @{
     string area = "";
     string roleBasedProfileController = "Profile";
+    string fullName = "User";
+    string role = "User";
 
-    if (User.IsInRole("Super Admin"))
+    var user = await UserManager.GetUserAsync(User);
+    if (user != null)
     {
-        area = "SuperAdmin";
-    }
-    else if (User.IsInRole("Company Owner") || User.IsInRole("Company Admin"))
-    {
-        area = "Company";
-    }
-    else if (User.IsInRole("Driver"))
-    {
-        area = "User";
+        fullName = $"{user.FirstName} {user.LastName}";
+        var roles = await UserManager.GetRolesAsync(user);
+        role = roles.FirstOrDefault() ?? "User"; // fallback if no role assigned
+
+        if (roles.Contains("Company Owner"))
+        {
+            area = "Company";
+        }
+        else if (roles.Contains("Super Admin") || roles.Contains("Company Admin"))
+        {
+            area = "Admin";
+        }
+        else if (roles.Contains("Driver"))
+        {
+            area = "User";
+        }
     }
 }
+
 
 
 <!DOCTYPE html>
@@ -29,7 +40,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <link rel="shortcut icon" type="image/x-icon" href="~/assets/img/favicon.png">
-    <title>Preclinic - Medical & Hospital - Bootstrap 5 Admin Template</title>
+    <title>FleetGuard - Your solution to manage your fleet of vehicles</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <!--FlatPickr-->
@@ -67,7 +78,7 @@
         <div class="header">
             <div class="header-left">
                 <a href="index.html" class="logo">
-                    <img src="~/assets/img/logo.png" width="35" height="35" alt=""> <span>Pre Clinic</span>
+                    <img src="~/assets/img/logo.png" width="35" height="35" alt=""> <span>Fleetguard</span>
                 </a>
             </div>
             <a id="toggle_btn" href="javascript:void(0);"><img src="~/assets/img/icons/bar-icon.svg" alt=""></a>
@@ -157,11 +168,11 @@
                 <li class="nav-item dropdown has-arrow user-profile-list">
                     <a href="#" class="dropdown-toggle nav-link user-link" data-bs-toggle="dropdown">
                         <div class="user-names">
-                            <h5>Liam Michael </h5>
-                            <span>Admin</span>
+                            <h5>@fullName</h5>
+                            <span>@role</span>
                         </div>
                         <span class="user-img">
-                            <img src="~/assets/img/user-06.jpg" alt="Admin">
+                            <img src="~/assets/img/user-06.jpg" alt="@role">
                         </span>
                     </a>
                     <div class="dropdown-menu">
@@ -169,7 +180,6 @@
                         <a class="dropdown-item" asp-area="@area" asp-controller="Settings" asp-action="Index">Settings</a>
                         <a class="dropdown-item" asp-action="Logout" asp-controller="Account">Logout</a>
                     </div>
-
                 </li>
                 <li class="nav-item ">
                     <a href="settings.html" class="hasnotifications nav-link"><img src="~/assets/img/icons/setting-icon-01.svg" alt=""> </a>

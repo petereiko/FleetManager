@@ -5,12 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FleetManager.Business.Enums
+namespace FleetManager.Business.ViewModels
 {
-    public enum Gender
+    public class AssignmentEditViewModel : AssignmentCreateViewModel
     {
-        Male = 0,
-        Female,
-        Other
+        [Required] public long Id { get; set; }
     }
 }

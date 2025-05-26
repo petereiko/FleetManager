@@ -1,8 +1,8 @@
 ﻿@using FleetManager.Business.ViewModels
-@model DriverOnboardViewModel
+@model DriverEditViewModel
 
 @{
-    ViewData["Title"] = "Onboard Driver";
+    ViewData["Title"] = "Edit Driver";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
@@ -118,7 +118,7 @@
         height: 100%;
         background: linear-gradient(90deg, #007bff, #28a745);
         transition: width 0.3s ease;
-        width: 0%;
+        width: 100%;
     }
 
     .validation-icon {
@@ -146,6 +146,21 @@
             box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
         }
 
+    .btn-warning {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+        color: #212529;
+    }
+
+        .btn-warning:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+            color: #212529;
+        }
+
     .tooltip-info {
         cursor: help;
         color: #6c757d;
@@ -164,18 +179,119 @@
         color: #dc3545;
     }
 
-    @@media (max-width: 768px) {
-        .section-header
-
-    {
-        padding: 8px 12px;
-    }
-
-    .btn-primary {
-        width: 100%;
+    .existing-file-preview {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 10px;
         margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
 
+    .existing-file-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .file-thumbnail {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 5px;
+        border: 1px solid #dee2e6;
+    }
+
+    .file-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .file-name {
+        font-weight: 500;
+        font-size: 14px;
+        color: #495057;
+    }
+
+    .file-meta {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .file-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .driver-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 15px;
+    }
+
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .edit-mode-indicator {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .replacement-notice {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 5px;
+        padding: 8px 12px;
+        margin-top: 5px;
+        font-size: 12px;
+        color: #856404;
+    }
+
+    @@media (max-width: 768px) {
+        .section-header {
+            padding: 8px 12px;
+        }
+
+        .btn-primary, .btn-warning {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .existing-file-preview {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .file-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
     }
 </style>
 
@@ -184,7 +300,12 @@
     <div class="page-header">
         <div class="row align-items-center">
             <div class="col-sm-6">
-                <h3 class="page-title">@ViewData["Title"]</h3>
+                <h3 class="page-title">
+                    @ViewData["Title"]
+                    <span class="driver-status @(Model.Input.IsActive ? "status-active" : "status-inactive")">
+                        @(Model.Input.IsActive ? "Active" : "Inactive")
+                    </span>
+                </h3>
                 <ul class="breadcrumb">
                     <li class="breadcrumb-item"><a asp-action="Index">Back to drivers</a></li>
                     <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
@@ -194,13 +315,19 @@
         </div>
     </div>
     <!-- /Page Header -->
+    <!-- Edit Mode Indicator -->
+    <div class="edit-mode-indicator">
+        <i class="fas fa-edit"></i>
+        <span>Editing driver: <strong>@Model.Input.FirstName @Model.Input.LastName</strong></span>
+    </div>
+
     <!-- Progress Indicator -->
     <div class="form-progress">
         <div class="progress-steps">
-            <div class="progress-step active" data-step="personal">Personal Info</div>
-            <div class="progress-step" data-step="license">License</div>
-            <div class="progress-step" data-step="employment">Employment</div>
-            <div class="progress-step" data-step="documents">Documents</div>
+            <div class="progress-step completed" data-step="personal">Personal Info</div>
+            <div class="progress-step completed" data-step="license">License</div>
+            <div class="progress-step completed" data-step="employment">Employment</div>
+            <div class="progress-step completed" data-step="documents">Documents</div>
         </div>
         <div class="progress-bar-custom">
             <div class="progress-fill" id="progressFill"></div>
@@ -211,9 +338,10 @@
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-body">
-                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="driverForm">
-                        <div class="row">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data" id="driverEditForm">
+                        <input asp-for="@Model.Input.Id" type="hidden" />
 
+                        <div class="row">
                             <!-- Personal Information -->
                             <div class="col-12">
                                 <div class="section-header" data-section="personal">
@@ -287,7 +415,7 @@
                                     <div class="validation-icon"></div>
                                 </div>
                                 <div class="character-count">
-                                    <span id="addressCount">0</span>/500 characters
+                                    <span id="addressCount">@(Model.Input.Address?.Length ?? 0)</span>/500 characters
                                 </div>
                                 <span asp-validation-for="@Model.Input.Address" class="text-danger"></span>
                             </div>
@@ -325,7 +453,7 @@
                                     <i class="fas fa-info-circle tooltip-info" title="License must be valid for at least 6 months"></i>
                                 </label>
                                 <div class="input-wrapper">
-                                    <input asp-for="@Model.Input.LicenseExpiryDate" class="form-control datetimepicker" data-required="true" />
+                                    <input asp-for="@Model.Input.LicenseExpiryDate" class="form-control datetimepicker-future" data-required="true" />
                                     <div class="validation-icon"></div>
                                 </div>
                                 <span asp-validation-for="@Model.Input.LicenseExpiryDate" class="text-danger"></span>
@@ -338,7 +466,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-4 form-group">
+                            <div class="col-md-3 form-group">
                                 <label asp-for="@Model.Input.EmploymentStatus" class="required-field">Employment Status</label>
                                 <div class="input-wrapper">
                                     <select asp-for="@Model.Input.EmploymentStatus" class="form-control" asp-items="Model.EmploymentStatuses" data-required="true">
@@ -349,7 +477,7 @@
                                 <span asp-validation-for="@Model.Input.EmploymentStatus" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-4 form-group">
+                            <div class="col-md-3 form-group">
                                 <label asp-for="@Model.Input.ShiftStatus" class="required-field">Preferred Shift</label>
                                 <div class="input-wrapper">
                                     <select asp-for="@Model.Input.ShiftStatus" class="form-control" asp-items="Model.ShiftStatuses" data-required="false">
@@ -360,7 +488,7 @@
                                 <span asp-validation-for="@Model.Input.ShiftStatus" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-4 form-group">
+                            <div class="col-md-3 form-group">
                                 <label asp-for="@Model.Input.CompanyBranchId" class="required-field">Assigned Branch</label>
                                 <div class="input-wrapper">
                                     <select asp-for="@Model.Input.CompanyBranchId" class="form-control" asp-items="Model.Branches" data-required="true">
@@ -371,44 +499,120 @@
                                 <span asp-validation-for="@Model.Input.CompanyBranchId" class="text-danger"></span>
                             </div>
 
+                            <div class="col-md-3 form-group">
+                                <label asp-for="@Model.Input.IsActive" class="required-field">Driver Status</label>
+                                <div class="input-wrapper">
+                                    <select asp-for="@Model.Input.IsActive" class="form-control" data-required="true">
+                                        <option value="">-- Select Status --</option>
+                                        <option value="true">Active</option>
+                                        <option value="false">Inactive</option>
+                                    </select>
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="@Model.Input.IsActive" class="text-danger"></span>
+                            </div>
+
                             <!-- Document Uploads -->
                             <div class="col-12">
                                 <div class="section-header" data-section="documents">
-                                    <h4><i class="fas fa-upload"></i> Required Documents</h4>
+                                    <h4><i class="fas fa-upload"></i> Document Management</h4>
                                 </div>
                             </div>
 
                             <div class="col-md-6 form-group">
                                 <label asp-for="@Model.Input.LicensePhoto">Driver's License Photo</label>
+
+                                @if (Model.Input.ExistingLicensePhotos != null && Model.Input.ExistingLicensePhotos.Any())
+                                {
+                                    foreach (var doc in Model.Input.ExistingLicensePhotos)
+                                    {
+                                        <div class="existing-file-preview">
+                                            <div class="existing-file-info">
+                                                <img src="@doc.FilePath" alt="License Photo" class="file-thumbnail" />
+                                                <div class="file-details">
+                                                    <span class="file-name">@doc.FileName</span>
+                                                    <span class="file-meta">Uploaded: @doc.UploadedDate.ToString("MMM dd, yyyy")</span>
+                                                </div>
+                                            </div>
+                                            <div class="file-actions">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewDocument('@doc.FilePath')">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+
                                 <div class="file-upload-wrapper">
                                     <label class="file-upload-label" id="licensePhotoLabel">
                                         <i class="fas fa-camera"></i>
-                                        <span class="file-upload-text">Choose license photo or drag & drop</span>
+                                        <span class="file-upload-text">
+                                            @(Model.Input.ExistingLicensePhotos?.Any() == true ? "Replace license photo or drag & drop" : "Choose license photo or drag & drop")
+                                        </span>
                                         <input asp-for="@Model.Input.LicensePhoto" type="file" class="file-upload-input" accept="image/*" id="licensePhotoInput" />
                                     </label>
                                 </div>
+                                @if (Model.Input.ExistingLicensePhotos?.Any() == true)
+                                {
+                                    <div class="replacement-notice">
+                                        <i class="fas fa-info-circle"></i> Uploading a new file will replace the existing license photo.
+                                    </div>
+                                }
                                 <small class="text-muted">Accepted formats: JPG, PNG, GIF (Max: 5MB)</small>
                                 <span asp-validation-for="@Model.Input.LicensePhoto" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6 form-group">
-                                <label asp-for="@Model.Input.ProfilePhoto">Profile Photo</label>
+                                <label asp-for="@Model.Input.ProfilePhoto">Driver Photo</label>
+
+                                @if (Model.Input.ExistingProfilePhotos != null && Model.Input.ExistingProfilePhotos.Any())
+                                {
+                                    foreach (var photo in Model.Input.ExistingProfilePhotos)
+                                    {
+                                        <div class="existing-file-preview">
+                                            <div class="existing-file-info">
+                                                <img src="@photo.FilePath" alt="Driver Photo" class="file-thumbnail" />
+                                                <div class="file-details">
+                                                    <span class="file-name">@photo.FileName</span>
+                                                    <span class="file-meta">Uploaded: @photo.UploadedDate.ToString("MMM dd, yyyy")</span>
+                                                </div>
+                                            </div>
+                                            <div class="file-actions">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewDocument('@photo.FilePath')">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+
                                 <div class="file-upload-wrapper">
                                     <label class="file-upload-label" id="profilePhotoLabel">
                                         <i class="fas fa-user-circle"></i>
-                                        <span class="file-upload-text">Choose profile photo or drag & drop</span>
+                                        <span class="file-upload-text">
+                                            @(Model.Input.ExistingProfilePhotos?.Any() == true ? "Replace driver photo or drag & drop" : "Choose profile photo or drag & drop")
+                                        </span>
                                         <input asp-for="@Model.Input.ProfilePhoto" type="file" class="file-upload-input" accept="image/*" id="profilePhotoInput" />
                                     </label>
                                 </div>
+                                @if (Model.Input.ExistingProfilePhotos?.Any() == true)
+                                {
+                                    <div class="replacement-notice">
+                                        <i class="fas fa-info-circle"></i> Uploading a new file will replace the existing profile photo.
+                                    </div>
+                                }
                                 <small class="text-muted">Accepted formats: JPG, PNG, GIF (Max: 5MB)</small>
                                 <span asp-validation-for="@Model.Input.ProfilePhoto" class="text-danger"></span>
                             </div>
 
                             <!-- Submit -->
                             <div class="col-12 mt-4 text-end">
-                                <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-                                    <i class="fas fa-user-plus"></i> Onboard Driver
+                                <button type="submit" class="btn btn-warning" id="submitBtn">
+                                    <i class="fas fa-save"></i> Update Driver
                                 </button>
+                                <a asp-action="Details" asp-route-id="@Model.Input.Id" class="btn btn-outline-info">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
                                 <a asp-action="Index" class="btn btn-secondary">
                                     <i class="fas fa-times"></i> Cancel
                                 </a>
@@ -416,6 +620,21 @@
                         </div>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Viewer Modal -->
+<div class="modal fade" id="documentViewerModal" tabindex="-1" aria-labelledby="documentViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentViewerModalLabel">Document Viewer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="documentImage" src="" alt="Document" class="img-fluid" style="max-height: 500px;" />
             </div>
         </div>
     </div>
@@ -434,12 +653,17 @@
                 }
             });
 
-            // Progress tracking
-            const sections = ['personal', 'license', 'employment', 'documents'];
-            let currentSection = 0;
+            // Date picker for future dates (license expiry)
+            flatpickr(".datetimepicker-future", {
+                dateFormat: "Y-m-d",
+                minDate: "today",
+                locale: {
+                    firstDayOfWeek: 1
+                }
+            });
 
             // Form validation and progress
-            const form = document.getElementById('driverForm');
+            const form = document.getElementById('driverEditForm');
             const progressFill = document.getElementById('progressFill');
             const submitBtn = document.getElementById('submitBtn');
 
@@ -467,18 +691,16 @@
 
                 // Update step indicators
                 document.querySelectorAll('.progress-step').forEach((step, index) => {
-                    if (index < Math.floor(progress / 25)) {
+                    if (progress >= 100) {
                         step.classList.add('completed');
                         step.classList.remove('active');
                     } else if (index === Math.floor(progress / 25)) {
                         step.classList.add('active');
                         step.classList.remove('completed');
-                    } else {
-                        step.classList.remove('active', 'completed');
                     }
                 });
 
-                // Enable submit button when form is complete
+                // Enable submit button when form is valid
                 submitBtn.disabled = progress < 100;
             }
 
@@ -491,6 +713,7 @@
                 const input = document.getElementById(inputId);
                 const label = document.getElementById(labelId);
                 const textSpan = label.querySelector('.file-upload-text');
+                const originalText = textSpan.textContent;
 
                 input.addEventListener('change', function() {
                     if (this.files && this.files[0]) {
@@ -499,27 +722,29 @@
                         textSpan.textContent = `${fileName} (${fileSize} MB)`;
                         label.classList.add('has-file');
                     } else {
-                        textSpan.textContent = textSpan.textContent.includes('license') ?
-                            'Choose license photo or drag & drop' :
-                            'Choose profile photo or drag & drop';
+                        textSpan.textContent = originalText;
                         label.classList.remove('has-file');
                     }
+                    updateProgress(); // Update progress when files are selected
                 });
 
                 // Drag and drop functionality
                 label.addEventListener('dragover', function(e) {
                     e.preventDefault();
                     this.style.borderColor = '#007bff';
+                    this.style.backgroundColor = '#e3f2fd';
                 });
 
                 label.addEventListener('dragleave', function(e) {
                     e.preventDefault();
                     this.style.borderColor = '#dee2e6';
+                    this.style.backgroundColor = '#f8f9fa';
                 });
 
                 label.addEventListener('drop', function(e) {
                     e.preventDefault();
                     this.style.borderColor = '#dee2e6';
+                    this.style.backgroundColor = '#f8f9fa';
 
                     if (e.dataTransfer.files.length) {
                         input.files = e.dataTransfer.files;
@@ -532,7 +757,7 @@
             setupFileUpload('profilePhotoInput', 'profilePhotoLabel');
 
             // Character counter for address
-            const addressField = document.querySelector('textarea[asp-for="Address"]');
+            const addressField = document.querySelector('textarea[name="Input.Address"]');
             const addressCount = document.getElementById('addressCount');
 
             if (addressField && addressCount) {
@@ -547,7 +772,7 @@
             }
 
             // Phone number formatting
-            const phoneField = document.querySelector('input[asp-for="PhoneNumber"]');
+            const phoneField = document.querySelector('input[name="Input.PhoneNumber"]');
             if (phoneField) {
                 phoneField.addEventListener('input', function() {
                     let value = this.value.replace(/\D/g, '');
@@ -555,6 +780,21 @@
                         value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
                     }
                     this.value = value;
+                });
+            }
+
+            // Driver status change handler
+            const statusField = document.querySelector('select[name="Input.IsActive"]');
+            if (statusField) {
+                statusField.addEventListener('change', function() {
+                    const statusIndicator = document.querySelector('.driver-status');
+                    if (this.value === 'true') {
+                        statusIndicator.textContent = 'Active';
+                        statusIndicator.className = 'driver-status status-active';
+                    } else if (this.value === 'false') {
+                        statusIndicator.textContent = 'Inactive';
+                        statusIndicator.className = 'driver-status status-inactive';
+                    }
                 });
             }
 
@@ -566,18 +806,98 @@
                 });
             }
 
+            // Form change detection for unsaved changes warning
+            let formChanged = false;
+            const originalFormData = new FormData(form);
+
+            form.addEventListener('input', function() {
+                formChanged = true;
+            });
+
+            form.addEventListener('change', function() {
+                formChanged = true;
+            });
+
+            // Warn user about unsaved changes
+            window.addEventListener('beforeunload', function(e) {
+                if (formChanged && !form.submitted) {
+                    e.preventDefault();
+                    e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                    return e.returnValue;
+                }
+            });
+
             // Initial progress update
             updateProgress();
 
             // Form submission handling
             form.addEventListener('submit', function(e) {
+                form.submitted = true;
+                formChanged = false;
                 const btn = document.getElementById('submitBtn');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
                 btn.disabled = true;
             });
+
+            // Highlight changes made to form fields
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                const originalValue = input.value;
+                input.addEventListener('blur', function() {
+                    if (this.value !== originalValue) {
+                        this.style.borderLeft = '3px solid #ffc107';
+                    } else {
+                        this.style.borderLeft = '';
+                    }
+                });
+            });
+        });
+
+        // Document viewer function
+        function viewDocument(filePath) {
+            document.getElementById('documentImage').src = filePath;
+            if (typeof bootstrap !== 'undefined') {
+                const modal = new bootstrap.Modal(document.getElementById('documentViewerModal'));
+                modal.show();
+            } else {
+                // Fallback if Bootstrap JS is not available
+                window.open(filePath, '_blank');
+            }
+        }
+
+        // Auto-save draft functionality (optional)
+        let autoSaveTimeout;
+        function autoSaveDraft() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                const formData = new FormData(document.getElementById('driverEditForm'));
+                const draftData = {};
+                for (let [key, value] of formData.entries()) {
+                    if (value && typeof value === 'string') {
+                        draftData[key] = value;
+                    }
+                }
+                localStorage.setItem('driverEditDraft_' + '@Model.Input.Id', JSON.stringify(draftData));
+            }, 2000);
+        }
+
+        // Load draft on page load
+        function loadDraft() {
+            const savedDraft = localStorage.getItem('driverEditDraft_' + '@Model.Input.Id');
+            if (savedDraft) {
+                const draftData = JSON.parse(savedDraft);
+                Object.keys(draftData).forEach(key => {
+                    const field = document.querySelector(`[name="${key}"]`);
+                    if (field && field.type !== 'file') {
+                        field.value = draftData[key];
+                    }
+                });
+            }
+        }
+
+        // Clear draft after successful submission
+        document.getElementById('driverEditForm').addEventListener('submit', function() {
+            localStorage.removeItem('driverEditDraft_' + '@Model.Input.Id');
         });
     </script>
 }
-
-
-

@@ -16,9 +16,12 @@ namespace FleetManager.Business.DataObjects
         public ShiftStatus ShiftStatus { get; set; }
         public string PhotoPath { get; set; }    // e.g. “/DriverPhotos/…jpg”
         public bool IsActive { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
         public string BranchName { get; set; }   // for global users
         public EmploymentStatus EmploymentStatus { get; set; }
         public DateTime CreatedDate { get; set; }
+        public string? VehicleAssigned { get; set;}
 
     }
 }

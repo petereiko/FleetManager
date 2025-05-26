@@ -8,6 +8,7 @@ using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.UtilityModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -117,6 +118,7 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                 // 5) persist Driver entity
                 var driver = new Driver
                 {
+                    UserId = user.Id,
                     Address = dto.Address,
                     DateOfBirth = dto.DateOfBirth,
                     Gender = dto.Gender,
@@ -148,7 +150,9 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
 
                 // 7) send email
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var confirmUrl = $"{_authUser.BaseUrl}/Account/ConfirmEmail?userId={user.Id}&token={WebUtility.UrlEncode(token)}";
+                var encodedToken = WebUtility.UrlEncode(token);
+                var confirmUrl = $"{_authUser.BaseUrl}/Account/ConfirmEmail?encodedToken={encodedToken}&userId={user.Id}";
+
                 await _emailService.LogEmail(new EmailLogDto
                 {
                     Email = dto.Email,
@@ -301,7 +305,8 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                   {
                       Id = x.Id,
                       FileName = x.FileName,
-                      FilePath = x.FilePath
+                      FilePath = x.FilePath,
+                      UploadedDate=x.CreatedDate
                   })
                   .ToList(),
 
@@ -311,39 +316,132 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                   {
                       Id = x.Id,
                       FileName = x.FileName,
-                      FilePath = x.FilePath
+                      FilePath = x.FilePath,
+                      UploadedDate = x.CreatedDate
                   })
                   .ToList()
             };
         }
+
+
+
+
+        //public async Task<List<DriverDto>> GetDriversForBranchAsync(long? branchId = null)
+        //{
+        //    EnsureAdminOrOwner();
+
+        //    var companyId = _authUser.CompanyId;
+        //    var query = _context.Drivers.AsNoTracking();
+
+        //    // if owner/super: all company, else branch only
+        //    var roles = (_authUser.Roles ?? "")
+        //        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+        //        .Select(r => r.Trim());
+
+        //    if (!roles.Contains("Company Owner") && !roles.Contains("Super Admin"))
+        //        query = query.Where(d => d.CompanyBranchId == _authUser.CompanyBranchId);
+
+        //    var list = await query
+        //        .Where(d => branchId == null || d.CompanyBranchId == branchId)
+        //        .ToListAsync()
+        //        .ConfigureAwait(false);
+
+        //    // map
+        //    var result = new List<DriverDto>(list.Count);
+        //    foreach (var d in list)
+        //        result.Add(await GetDriverByIdAsync(d.Id).ConfigureAwait(false)!);
+
+        //    return result;
+        //}
+
 
         public async Task<List<DriverDto>> GetDriversForBranchAsync(long? branchId = null)
         {
             EnsureAdminOrOwner();
 
             var companyId = _authUser.CompanyId;
-            var query = _context.Drivers.AsNoTracking();
-
-            // if owner/super: all company, else branch only
-            var roles = (_authUser.Roles ?? "")
+            var isSuperAdmin = (_authUser.Roles ?? "")
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(r => r.Trim());
+                .Select(r => r.Trim())
+                .Any(r => r == "Company Owner" || r == "Super Admin");
 
-            if (!roles.Contains("Company Owner") && !roles.Contains("Super Admin"))
-                query = query.Where(d => d.CompanyBranchId == _authUser.CompanyBranchId);
+            // Step 1: Join Driver and ApplicationUser
+            var query = from d in _context.Drivers.AsNoTracking()
+                        join u in _context.Users.AsNoTracking()
+                            on d.UserId equals u.Id
+                        where u.CompanyId == companyId
+                        select new { Driver = d, User = u };
 
-            var list = await query
-                .Where(d => branchId == null || d.CompanyBranchId == branchId)
+            if (!isSuperAdmin)
+            {
+                query = query.Where(x => x.Driver.CompanyBranchId == _authUser.CompanyBranchId);
+            }
+
+            if (branchId.HasValue)
+            {
+                query = query.Where(x => x.Driver.CompanyBranchId == branchId.Value);
+            }
+
+            // Step 2: Materialize data from DB
+            var driverData = await query.ToListAsync().ConfigureAwait(false);
+            var driverIds = driverData.Select(x => x.Driver.Id).ToList();
+
+            // Step 3: Get all driver documents at once
+            var allDocs = await _context.DriverDocuments
+                .AsNoTracking()
+                .Where(doc => doc.DriverId.HasValue && driverIds.Contains(doc.DriverId.Value))
                 .ToListAsync()
                 .ConfigureAwait(false);
 
-            // map
-            var result = new List<DriverDto>(list.Count);
-            foreach (var d in list)
-                result.Add(await GetDriverByIdAsync(d.Id).ConfigureAwait(false)!);
+            // Step 4: Map everything into DriverDto
+            var result = driverData.Select(x =>
+            {
+                var docs = allDocs.Where(d => d.DriverId == x.Driver.Id).ToList();
+
+                return new DriverDto
+                {
+                    Id = x.Driver.Id,
+                    FirstName = x.User.FirstName ?? "",
+                    LastName = x.User.LastName ?? "",
+                    Email = x.User.Email ?? "",
+                    PhoneNumber = x.User.PhoneNumber ?? "",
+                    Address = x.Driver.Address,
+                    DateOfBirth = x.Driver.DateOfBirth,
+                    Gender = x.Driver.Gender,
+                    EmploymentStatus = x.Driver.EmploymentStatus,
+                    LicenseNumber = x.Driver.LicenseNumber,
+                    LicenseExpiryDate = x.Driver.LicenseExpiryDate,
+                    CompanyBranchId = x.Driver.CompanyBranchId ?? 0,
+                    LicenseCategory = x.Driver.LicenseCategory,
+                    ShiftStatus = x.Driver.ShiftStatus,
+                    IsActive = x.Driver.IsActive,
+                    CreatedDate = x.Driver.CreatedDate,
+
+                    Documents = docs
+                        .Where(d => d.DocumentType == DriverDocumentType.LicensePhoto)
+                        .Select(d => new DriverDocumentDto
+                        {
+                            Id = d.Id,
+                            FileName = d.FileName,
+                            FilePath = d.FilePath,
+                            UploadedDate = d.CreatedDate
+                        }).ToList(),
+
+                    Photos = docs
+                        .Where(d => d.DocumentType == DriverDocumentType.ProfilePhoto)
+                        .Select(d => new DriverDocumentDto
+                        {
+                            Id = d.Id,
+                            FileName = d.FileName,
+                            FilePath = d.FilePath,
+                            UploadedDate = d.CreatedDate
+                        }).ToList()
+                };
+            }).ToList();
 
             return result;
         }
+
 
 
 
@@ -364,6 +462,7 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
             {
                 DriverId = driverId,
                 FileName = file.FileName,
+                CreatedDate = DateTime.UtcNow,
                 FilePath = $"/DriverImages/{subfolder}/{unique}",
                 DocumentType = subfolder == "Profile"
                     ? DriverDocumentType.ProfilePhoto
@@ -379,11 +478,16 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
 
             // Start from Drivers table
             var q = from d in _context.Drivers.AsNoTracking()
-                        // optional branch filter
                     where !branchId.HasValue || d.CompanyBranchId == branchId.Value
-                    // join into AspNetUsers for first/last name
                     join u in _context.Users.AsNoTracking()
-                        on d.Id.ToString() equals u.Id
+                        on d.UserId equals u.Id
+
+                    // Left join to DriverDocuments to get the profile photo
+                    join doc in _context.DriverDocuments.AsNoTracking()
+                        .Where(dd => dd.DocumentType == DriverDocumentType.ProfilePhoto)
+                        on d.Id equals doc.DriverId into docJoin
+                    from profilePhoto in docJoin.DefaultIfEmpty()
+
                     select new DriverListItemDto
                     {
                         Id = d.Id,
@@ -391,11 +495,58 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                         LicenseNumber = d.LicenseNumber,
                         ShiftStatus = d.ShiftStatus,
                         EmploymentStatus = d.EmploymentStatus,
+                        Email = u.Email,
+                        Phone= u.PhoneNumber,
                         IsActive = d.IsActive,
-                        CreatedDate = d.CreatedDate
+                        CreatedDate = d.CreatedDate,
+                        VehicleAssigned="No Vehicle Assigned Yet",
+
+                        // 👇 Attach profile photo path if available
+                        PhotoPath = profilePhoto != null ? profilePhoto.FilePath : null
                     };
+
 
             return q;
         }
+
+        public List<SelectListItem> GetGenderOptions() =>
+        Enum.GetValues<Gender>()
+            .Cast<Gender>()
+            .Select(e => new SelectListItem
+            {
+                Value = ((int)e).ToString(),
+                Text = e.ToString()
+            })
+            .ToList();
+
+        public List<SelectListItem> GetEmploymentStatusOptions() =>
+            Enum.GetValues<EmploymentStatus>()
+                .Cast<EmploymentStatus>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = e.ToString()
+                })
+                .ToList();
+
+        public List<SelectListItem> GetShiftStatusOptions() =>
+            Enum.GetValues<ShiftStatus>()
+                .Cast<ShiftStatus>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = e.ToString()
+                })
+                .ToList();
+
+        public List<SelectListItem> GetLicenseCategoryOptions() =>
+            Enum.GetValues<LicenseCategory>()
+                .Cast<LicenseCategory>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = e.ToString()
+                })
+                .ToList();
     }
 }
