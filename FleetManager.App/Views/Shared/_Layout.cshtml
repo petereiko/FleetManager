@@ -1,33 +1,53 @@
-﻿@using FleetManager.Business.Database.IdentityModels
+﻿@using FleetManager.Business
+@using FleetManager.Business.Database.IdentityModels
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject FleetManagerDbContext _context
 
 @{
     string area = "";
-    string roleBasedProfileController = "Profile";
     string fullName = "User";
-    string role = "User";
+    string companyName = "Company";
+    string branchName = "Branch";
 
     var user = await UserManager.GetUserAsync(User);
     if (user != null)
     {
         fullName = $"{user.FirstName} {user.LastName}";
+
+        // Get company name
+        if (user.CompanyId.HasValue)
+        {
+            var company = await _context.Companies
+                .Where(c => c.Id == user.CompanyId)
+                .Select(c => c.Name)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrEmpty(company))
+                companyName = company.ToUpper();
+        }
+
+        // Get branch name
+        if (user.CompanyBranchId.HasValue)
+        {
+            var branch = await _context.CompanyBranches
+                .Where(b => b.Id == user.CompanyBranchId)
+                .Select(b => b.Name)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrEmpty(branch))
+                branchName = branch;
+        }
+
+        // Determine area by role
         var roles = await UserManager.GetRolesAsync(user);
-        role = roles.FirstOrDefault() ?? "User"; // fallback if no role assigned
 
         if (roles.Contains("Company Owner"))
-        {
             area = "Company";
-        }
         else if (roles.Contains("Super Admin") || roles.Contains("Company Admin"))
-        {
             area = "Admin";
-        }
         else if (roles.Contains("Driver"))
-        {
             area = "User";
-        }
     }
 }
 
@@ -78,7 +98,7 @@
         <div class="header">
             <div class="header-left">
                 <a href="index.html" class="logo">
-                    <img src="~/assets/img/logo.png" width="35" height="35" alt=""> <span>Fleetguard</span>
+                    <img src="~/assets/img/logo.png" width="35" height="35" alt=""> <span>@companyName</span>
                 </a>
             </div>
             <a id="toggle_btn" href="javascript:void(0);"><img src="~/assets/img/icons/bar-icon.svg" alt=""></a>
@@ -169,16 +189,17 @@
                     <a href="#" class="dropdown-toggle nav-link user-link" data-bs-toggle="dropdown">
                         <div class="user-names">
                             <h5>@fullName</h5>
-                            <span>@role</span>
+                            <span style="font-weight: bold; text-transform: uppercase;">@branchName</span><br />
+                            
                         </div>
                         <span class="user-img">
-                            <img src="~/assets/img/user-06.jpg" alt="@role">
+                            <img src="~/assets/img/user-06.jpg" alt="@fullName">
                         </span>
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" asp-area="@area" asp-controller="@roleBasedProfileController" asp-action="Index">My Profile</a>
+                        <a class="dropdown-item" asp-area="@area" asp-controller="Profile" asp-action="Index">My Profile</a>
                         <a class="dropdown-item" asp-area="@area" asp-controller="Settings" asp-action="Index">Settings</a>
-                        <a class="dropdown-item" asp-action="Logout" asp-controller="Account">Logout</a>
+                        <a class="dropdown-item" asp-area="" asp-action="Logout" asp-controller="Account">Logout</a>
                     </div>
                 </li>
                 <li class="nav-item ">
@@ -243,7 +264,32 @@
         {
             <div class="sidebar" id="sidebar">
 
-                <partial name="_LeftNav" />
+                @* Check in the same priority order: Super Admin → Company Owner → Company Admin → Driver *@
+                @if (User.IsInRole("Super Admin"))
+                {
+                    @await Html.PartialAsync("_SidebarAdmin")
+                }
+                else if (User.IsInRole("Company Owner"))
+                {
+                    @await Html.PartialAsync("_SidebarCompany")
+                }
+                else if (User.IsInRole("Company Admin"))
+                {
+                    @await Html.PartialAsync("_SidebarAdmin")
+                }
+                else if (User.IsInRole("Driver"))
+                {
+                    @await Html.PartialAsync("_SidebarDriver")
+                }
+                else
+                {
+                    <div class="sidebar-inner slimscroll">
+                        <div id="sidebar-menu" class="sidebar-menu">
+                            <ul><li>No menu items available.</li></ul>
+                        </div>
+                    </div>
+                }
+                @* <partial name="_LeftNav" /> *@
 
             </div>
         }
@@ -276,186 +322,6 @@
                                         </div>
                                         <div class="list-body">
                                             <span class="message-author">Richard Miles </span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item new-message">
-                                        <div class="list-left">
-                                            <span class="avatar">J</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author">John Doe</span>
-                                            <span class="message-time">1 Aug</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">T</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author"> Tarah Shropshire </span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">M</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author">Mike Litorus</span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">C</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author"> Catherine Manseau </span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">D</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author"> Domenic Houston </span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">B</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author"> Buster Wigton </span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">R</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author"> Rolland Webber </span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">C</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author"> Claire Mapes </span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">M</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author">Melita Faucher</span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">J</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author">Jeffery Lalor</span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">L</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author">Loren Gatlin</span>
-                                            <span class="message-time">12:28 AM</span>
-                                            <div class="clearfix"></div>
-                                            <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="chat.html">
-                                    <div class="list-item">
-                                        <div class="list-left">
-                                            <span class="avatar">T</span>
-                                        </div>
-                                        <div class="list-body">
-                                            <span class="message-author">Tarah Shropshire</span>
                                             <span class="message-time">12:28 AM</span>
                                             <div class="clearfix"></div>
                                             <span class="message-content">Lorem ipsum dolor sit amet, consectetur adipiscing</span>

@@ -3,7 +3,7 @@
         <ul>
             <li class="menu-title">Main</li>
             <li class="submenu">
-                <a asp-action="Index" asp-controller="Dashboard"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-01.svg" alt=""></span> <span> Dashboard </span> <span class="menu-arrow"></span></a>
+                <a asp-area="Admin" asp-action="Index" asp-controller="Dashboard"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-01.svg" alt=""></span> <span> Dashboard </span> <span class="menu-arrow"></span></a>
                 <ul style="display: none;">
                     <li><a href="index.html">Admin Dashboard</a></li>
                     <li><a href="doctor-dashboard.html">Doctor Dashboard</a></li>
@@ -11,7 +11,7 @@
                 </ul>
            </li>
             <li class="submenu">
-                <a asp-action="Index" asp-controller="ManageDriver"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-02.svg" alt=""></span> <span> Drivers </span> <span class="menu-arrow"></span></a>
+                <a asp-area ="Admin" asp-action="Index" asp-controller="ManageDriver"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-02.svg" alt=""></span> <span> Drivers </span> <span class="menu-arrow"></span></a>
                 <ul style="display: none;">
                     <li><a asp-action="Index" asp-controller="ManageDriver">Drivers on Book</a></li>
                     <li><a href="add-doctor.html">Onboard Driver</a></li>
@@ -20,7 +20,7 @@
                 </ul>
             </li>
             <li class="submenu">
-                <a asp-action="Index" asp-controller="ManageTrip"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-03.svg" alt=""></span> <span>Trips </span> <span class="menu-arrow"></span></a>
+                <a asp-area="Admin" asp-action="Index" asp-controller="ManageTrip"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-03.svg" alt=""></span> <span>Trips </span> <span class="menu-arrow"></span></a>
                 <ul style="display: none;">
                     <li><a href="patients.html">Assign trip</a></li>
                     <li><a href="add-patient.html">Check Activity</a></li>
@@ -29,9 +29,9 @@
             </li>
             
             <li class="submenu">
-                <a asp-action="Index" asp-controller="AdminVehicle"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-02.svg" alt=""></span> <span> Vehicles </span> <span class="menu-arrow"></span></a>
+                <a asp-area="Admin" asp-action="Index" asp-controller="AdminVehicle"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-02.svg" alt=""></span> <span> Vehicles </span> <span class="menu-arrow"></span></a>
                 <ul style="display: none;">
-                    <li><a asp-action="Index" asp-controller="AdminVehicles">List Of Vehicles </a></li>
+                    <li><a asp-action="Index" asp-controller="AdminVehicle">List Of Vehicles </a></li>
                     <li><a href="add-doctor.html">Add Vehicle</a></li>
                     <li><a href="edit-doctor.html">Update Driver</a></li>
                     <li><a href="doctor-profile.html">Doctor Profile</a></li>
@@ -40,7 +40,7 @@
             <li class="submenu">
                 <a asp-action="Index" asp-controller="ManageAssignment"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-02.svg" alt=""></span> <span> Assign Vehicles & Drivers </span> <span class="menu-arrow"></span></a>
                 <ul style="display: none;">
-                    <li><a asp-action="Index" asp-controller="ManageAssignment">Assigned Vehicles & Drivers </a></li>
+                    <li><a asp-area="Admin" asp-action="Index" asp-controller="ManageAssignment">Assigned Vehicles & Drivers </a></li>
                     <li><a href="add-doctor.html">Add Vehicle</a></li>
                     <li><a href="edit-doctor.html">Update Driver</a></li>
                     <li><a href="doctor-profile.html">Doctor Profile</a></li>
@@ -48,7 +48,7 @@
             </li>
 
             <li class="submenu">
-                <a asp-action="Index" asp-controller="ManageFuelLog"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-08.svg" alt=""></span> <span> Fuel logs </span> <span class="menu-arrow"></span></a>
+                <a asp-area="Admin" asp-action="Index" asp-controller="ManageFuelLog"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-08.svg" alt=""></span> <span> Fuel logs </span> <span class="menu-arrow"></span></a>
                 <ul style="display: none;">
                     <li><a href="staff-list.html">Staff List</a></li>
                     <li><a href="add-staff.html">Add Staff</a></li>
@@ -59,10 +59,10 @@
                 </ul>
             </li>
             <li class="submenu">
-                <a href="#"><i class="fa fa-flag"></i> <span> Reports </span> <span class="menu-arrow"></span></a>
+                <a href="#"><i class="fa fa-flag"></i> <span> Onboard Admin </span> <span class="menu-arrow"></span></a>
                 <ul style="display: none;">
-                    <li><a href="expense-reports.html"> Expense Report </a></li>
-                    <li><a href="invoice-reports.html"> Invoice Report </a></li>
+                    <li><a asp-area="Company" asp-action="RegisterAdmin" asp-controller="OnboardAdmin"> Add an Admin </a></li>
+                    <li><a asp-area="Company" asp-action="Index" asp-controller="Branch"> Manage Branches </a></li>
                 </ul>
             </li>
 
@@ -75,10 +75,10 @@
                 </ul>
             </li>
             <li class="submenu">
-                <a href="#"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-06.svg" alt=""></span> <span> Departments </span> <span class="menu-arrow"></span></a>
+                <a href="#"><span class="menu-side"><img src="~/assets/img/icons/menu-icon-06.svg" alt=""></span> <span> Duty of care </span> <span class="menu-arrow"></span></a>
                 <ul style="display: none;">
-                    <li><a href="departments.html">Department List</a></li>
-                    <li><a href="add-department.html">Add Department</a></li>
+                    <li><a asp-area="Admin" asp-action="Index" asp-controller="ManageDutyOfCare">Duty of care list</a></li>
+                    <li><a asp-area="Admin" asp-action="Create" asp-controller="ManageDutyOfCare">Add Care Data</a></li>
                     <li><a href="edit-department.html">Edit Department</a></li>
                 </ul>
             </li>
@@ -118,7 +118,7 @@
             </li>
         </ul>
         <div class="logout-btn">
-            <a asp-action="Logout" asp-controller="Account"><span class="menu-side"><img src="~/assets/img/icons/logout.svg" alt=""></span> <span>Logout</span></a>
+            <a asp-action="Logout" asp-controller="Account" asp-area=""><span class="menu-side"><img src="~/assets/img/icons/logout.svg" alt=""></span> <span>Logout</span></a>
         </div>
     </div>
 </div>

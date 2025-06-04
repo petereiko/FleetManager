@@ -54,19 +54,25 @@ namespace FleetManager.App.Areas.Company.Controllers
         {
             try
             {
-                var companyId = _authUser.CompanyId
-                    ?? throw new InvalidOperationException("No CompanyId in user claims");
+                var model = new CompanyAdminOnboardingViewModel();
+                model.CompanyId = _authUser.CompanyId;
+                   // ?? throw new InvalidOperationException("No CompanyId in user claims");
 
                 // fetch all branches, then filter by company
                 var allBranches = await _branchService.GetBranchesForCompanyAsync();
-                var myBranches = allBranches.Where(b => b.CompanyId == companyId);
+                var myBranches = allBranches.Where(b => b.CompanyId == _authUser.CompanyId);
 
                 // NEW: build a real SelectList
-                ViewBag.Branches = new SelectList(myBranches,
-                                                  dataValueField: "Id",
-                                                  dataTextField: "Name");
+                model.Branches = myBranches.Select(x => new SelectListItem
+                {
+                    Text = x.IsHeadOffice ? $"{x.Name} (Head Office)" : x.Name,
+                    Value = x.Id.ToString()
+                });
+                //ViewBag.Branches = new SelectList(myBranches,
+                //                                  dataValueField: "Id",
+                //                                  dataTextField: "Name");
 
-                return View(new CompanyAdminOnboardingViewModel());
+                return View(model);
             }
             catch (InvalidOperationException ex)
             {

@@ -98,38 +98,7 @@ namespace FleetManager.Business.Implementations.CompanyModule
                 await _context.Companies.AddAsync(company);
                 await _context.SaveChangesAsync();
 
-                
 
-                // 3. Create the ApplicationUser (admin)
-                var user = new ApplicationUser
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    UserName = model.Email,
-                    Email = model.Email,
-                    PhoneNumber = model.PhoneNumber,
-                    IsActive = true,
-                    CreatedDate = DateTime.UtcNow,
-                    IsFirstLogin = true,
-                    CompanyId = company.Id,
-                    EmailConfirmed = false 
-                };
-
-                string password = Guid.NewGuid().ToString("N")[..8]; // 8-char password
-                var identityResult = await _userManager.CreateAsync(user, password);
-                if (!identityResult.Succeeded)
-                {
-                    response.Message = identityResult.Errors.FirstOrDefault()?.Description ?? "User creation failed";
-                    await transaction.RollbackAsync();
-                    return response;
-                }
-
-                var roleAssignResult = await _userManager.AddToRoleAsync(user, EnumHelper<Role>.GetDescription(Role.CompanyAdmin));
-                if (!roleAssignResult.Succeeded)
-                {
-                    response.Message = "An error occurred.";
-                    await transaction.RollbackAsync();
-                    return response;
-                }
 
                 var companyBranch = new CompanyBranch
                 {
@@ -137,7 +106,7 @@ namespace FleetManager.Business.Implementations.CompanyModule
                     CompanyId = company.Id,
                     Address = model.Address!,
                     CreatedDate = DateTime.UtcNow,
-                    CreatedBy = user.Id,
+                    CreatedBy = null,
                     Email = model.Email!,
                     IsHeadOffice = true,
                     IsActive = true,
@@ -150,10 +119,49 @@ namespace FleetManager.Business.Implementations.CompanyModule
                 };
                 _context.CompanyBranches.Add(companyBranch);
                 await _context.SaveChangesAsync();
+
+
+                // 3. Create the ApplicationUser (Owner)
+                var user = new ApplicationUser
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserName = model.Email,
+                    Email = model.Email,
+                    PhoneNumber = model.PhoneNumber,
+                    IsActive = true,
+                    CreatedDate = DateTime.UtcNow,
+                    IsFirstLogin = true,
+                    CompanyId = company.Id,
+                    EmailConfirmed = false,
+                    CompanyBranchId = companyBranch.Id
+                };
+
+                string password = Guid.NewGuid().ToString("N")[..8]; // 8-char password
+                var identityResult = await _userManager.CreateAsync(user, password);
+                if (!identityResult.Succeeded)
+                {
+                    response.Message = identityResult.Errors.FirstOrDefault()?.Description ?? "User creation failed";
+                    await transaction.RollbackAsync();
+                    return response;
+                }
+
+                companyBranch.CreatedBy = user.Id;
+                _context.CompanyBranches.Update(companyBranch);
+                await _context.SaveChangesAsync();
+
+                var roleAssignResult = await _userManager.AddToRoleAsync(user, EnumHelper<Role>.GetDescription(Role.CompanyOwner));
+                if (!roleAssignResult.Succeeded)
+                {
+                    response.Message = "An error occurred.";
+                    await transaction.RollbackAsync();
+                    return response;
+                }
+
+               
                 // 5. Email confirmation
                 string confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = WebUtility.UrlEncode(confirmationToken);
-                string url = $"{_authUser.BaseUrl}Company/User/ConfirmEmail?encodedToken={encodedToken}&userId={user.Id}";
+                string url = $"{_authUser.BaseUrl}/Company/User/ConfirmEmail?encodedToken={encodedToken}&userId={user.Id}";
 
 
                 string message = $@"

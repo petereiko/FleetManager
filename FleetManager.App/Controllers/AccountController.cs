@@ -53,13 +53,15 @@ namespace DVLA.UI.Controllers
         }
 
         #region Login
-
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                model.Errors.Add(ModelState.Values.SelectMany(x => x.Errors).FirstOrDefault()?.ErrorMessage);
+                model.Errors.Add(
+                    ModelState.Values.SelectMany(v => v.Errors)
+                                     .FirstOrDefault()?.ErrorMessage
+                );
                 return View(model);
             }
 
@@ -72,57 +74,55 @@ namespace DVLA.UI.Controllers
 
             if (!user.EmailConfirmed)
             {
-                model.Errors.Add("Your email has not been activated. Kindly activate your email and continue with further instructions. Thank you.");
+                model.Errors.Add("Your email has not been activated. Kindly activate your email first.");
                 return View(model);
             }
 
             if (!user.IsActive)
             {
-                model.Errors.Add("Your account has been deactivated. Kindly contact the administrators.");
+                model.Errors.Add("Your account has been deactivated. Contact the administrators.");
                 return View(model);
             }
 
             if (user.IsFirstLogin)
             {
                 string token = await _userService.GeneratePasswordResetToken(user.Id);
-                return RedirectToAction("ResetPassword", new { id = user.Id, token = token });
+                return RedirectToAction("ResetPassword", new { id = user.Id, token });
             }
 
-            bool signInResult = await _userManager.CheckPasswordAsync(user, model.Password);
-
-            if (!signInResult && model.Password != _configuration["AppConstants:Asiri"])
+            bool correctPassword = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (!correctPassword && model.Password != _configuration["AppConstants:Asiri"])
             {
                 model.Errors.Add("Invalid Email/Password");
                 return View(model);
             }
 
             await CookieHere(user, model.RememberMe);
-            TempData["SuccessMessage"] = "Login Successful";
+            TempData["SuccessMessage"] = "Login successful.";
 
+            // **Fetch all roles** and pick in descending priority
             var roles = await _userManager.GetRolesAsync(user);
-            var primaryRole = roles.FirstOrDefault();
-
-            if (primaryRole == null)
+            // You can change the order below if you want a different priority:
+            if (roles.Contains("Super Admin"))
             {
-                TempData["ErrorMessage"] = "No role assigned to this account.";
-                return RedirectToAction("Login");
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
-
-            switch (primaryRole)
+            else if (roles.Contains("Company Owner"))
             {
-                case "Company Admin":
-                case "Super Admin":
-                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-
-                case "Company Owner":
-                    return RedirectToAction("Index", "Dashboard", new { area = "Company" });
-
-                case "Driver":
-                    return RedirectToAction("Index", "Dashboard", new { area = "User" });
-
-                default:
-                    TempData["ErrorMessage"] = "Unknown role. Contact support.";
-                    return RedirectToAction("Login");
+                return RedirectToAction("Index", "Dashboard", new { area = "Company" });
+            }
+            else if (roles.Contains("Company Admin"))
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            }
+            else if (roles.Contains("Driver"))
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "User" });
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No recognized role assigned. Contact support.";
+                return RedirectToAction("Login");
             }
         }
 

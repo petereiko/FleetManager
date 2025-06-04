@@ -1,0 +1,56 @@
+﻿@* /Views/Shared/_SidebarCompany.cshtml *@
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="sidebar-inner slimscroll">
+    <div id="sidebar-menu" class="sidebar-menu">
+        <ul>
+            <li class="menu-title">Manage Your Company</li>
+
+            <li>
+                <a asp-area="Company" asp-controller="Dashboard" asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-company-dashboard.svg" alt="">
+                    </span>
+                    <span> Dashboard </span>
+                </a>
+            </li>
+
+            <li class="submenu">
+                <a href="#">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-onboard-admin.svg" alt="">
+                    </span>
+                    <span> Onboard Admin </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Company"
+                           asp-controller="OnboardAdmin"
+                           asp-action="RegisterAdmin">
+                            Add an Admin
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Company"
+                           asp-controller="Branch"
+                           asp-action="Index">
+                            Manage Branches
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* (You can add other “company‑level” items here, e.g. a Company Settings link, etc.) *@
+
+        </ul>
+        <div class="logout-btn">
+            <a asp-controller="Account" asp-action="Logout" asp-area="">
+                <span class="menu-side">
+                    <img src="~/assets/img/icons/logout.svg" alt="">
+                </span>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+</div>

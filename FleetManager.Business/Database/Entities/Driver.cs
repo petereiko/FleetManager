@@ -13,7 +13,7 @@ namespace FleetManager.Business.Database.Entities
     public class Driver:BaseEntity
     {
         public string UserId { get; set; }
-        public virtual ApplicationUser User { get; set; }
+        public virtual ApplicationUser? User { get; set; }
         public string Address { get; set; }
         public DateTime DateOfBirth { get; set; }
         public Gender Gender { get; set; }
@@ -24,5 +24,8 @@ namespace FleetManager.Business.Database.Entities
         public LicenseCategory LicenseCategory { get; set; }
         public ShiftStatus ShiftStatus { get; set; } // Available,On Duty,Off Duty etc
         public DateTime? LastSeen { get; set; }
+
+        public long? CompanyId { get; set; }
+        public virtual Company Company { get; set; }
     }
 }

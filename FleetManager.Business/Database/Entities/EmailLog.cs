@@ -14,6 +14,10 @@ namespace FleetManager.Business.Database.Entities
         public bool IsDeleted { get; set; }
         public bool IsSent { get; set; }
         public int RetryCount { get; set; }
+        public long? CompanyId { get; set; }
+        public virtual Company Company { get; set; }
+        public long? CompanyBranchId { get; set; }
+        public virtual CompanyBranch? CompanyBranch { get; set; }
 
     }
 }

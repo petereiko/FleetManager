@@ -405,6 +405,7 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                     LastName = x.User.LastName ?? "",
                     Email = x.User.Email ?? "",
                     PhoneNumber = x.User.PhoneNumber ?? "",
+                    FullName = x.User.FirstName + " " + x.User.LastName,
                     Address = x.Driver.Address,
                     DateOfBirth = x.Driver.DateOfBirth,
                     Gender = x.Driver.Gender,

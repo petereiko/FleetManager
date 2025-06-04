@@ -1,4 +1,19 @@
-﻿<div class="content">
+﻿@using FleetManager.Business.Database.IdentityModels
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var fullName = $"{user.FirstName} {user.LastName}";
+}
+
+
+
+
+
+
+<div class="content">
 
 	<!-- Page Header -->
 	<div class="page-header">
@@ -18,7 +33,7 @@
 		<div class="row">
 			<div class="col-md-6">
 				<div class="morning-user">
-					<h2>Good Morning, <span>Admin Smith Wayne</span></h2>
+					<h2>Good Morning, <span>@fullName</span></h2>
 					<p>Have a nice day at work</p>
 				</div>
 			</div>

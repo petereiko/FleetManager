@@ -1,0 +1,55 @@
+﻿@* /Views/Shared/_SidebarDriver.cshtml *@
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="sidebar-inner slimscroll">
+    <div id="sidebar-menu" class="sidebar-menu">
+        <ul>
+            <li class="menu-title">Driver</li>
+
+            <li>
+                <a asp-area="User" asp-controller="Dashboard" asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-driver-dashboard.svg" alt="">
+                    </span>
+                    <span> Dashboard </span>
+                </a>
+            </li>
+
+            <li>
+                <a asp-area="User" asp-controller="Profile" asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-profile.svg" alt="">
+                    </span>
+                    <span> My Profile </span>
+                </a>
+            </li>
+
+            <li>
+                <a asp-area="User" asp-controller="AssignedVehicle" asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-assignment.svg" alt="">
+                    </span>
+                    <span> My Assignment </span>
+                </a>
+            </li>
+
+            <li>
+                <a asp-area="User" asp-controller="FuelLog" asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-fuel.svg" alt="">
+                    </span>
+                    <span> Fuel Logs </span>
+                </a>
+            </li>
+
+            <li>
+                <a asp-area="" asp-controller="Account" asp-action="Logout">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/logout.svg" alt="">
+                    </span>
+                    <span> Logout </span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

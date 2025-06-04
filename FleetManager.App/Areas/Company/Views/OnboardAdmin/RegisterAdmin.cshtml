@@ -68,7 +68,7 @@
                                     <label asp-for="CompanyBranchId">Assign Branch <span class="login-danger">*</span></label>
                                     <select asp-for="CompanyBranchId"
                                             class="form-control"
-                                            asp-items="ViewBag.Branches">
+                                            asp-items="Model.Branches">
                                         <option value="">-- Select Branch --</option>
                                     </select>
                                     <span asp-validation-for="CompanyBranchId" class="text-danger"></span>

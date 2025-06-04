@@ -1,0 +1,168 @@
+﻿@* /Views/Shared/_SidebarAdmin.cshtml *@
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="sidebar-inner slimscroll">
+    <div id="sidebar-menu" class="sidebar-menu">
+        <ul>
+            <li class="menu-title">Admin</li>
+
+            <li>
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-01.svg" alt="">
+                    </span>
+                    <span> Dashboard </span>
+                </a>
+            </li>
+
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageDriver"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-02.svg" alt="">
+                    </span>
+                    <span> Drivers </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageDriver"
+                           asp-action="Index">
+                            Drivers on Book
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageDriver"
+                           asp-action="Create">
+                            Onboard Driver
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="AdminVehicle"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-02.svg" alt="">
+                    </span>
+                    <span> Vehicles </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="AdminVehicle"
+                           asp-action="Index">
+                            List of Vehicles
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="AdminVehicle"
+                           asp-action="Create">
+                            Add Vehicle
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageAssignment"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-02.svg" alt="">
+                    </span>
+                    <span> Assign Vehicles & Drivers </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageAssignment"
+                           asp-action="Index">
+                            View Assignments
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageAssignment"
+                           asp-action="Create">
+                            Assign New
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageFuelLog"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-08.svg" alt="">
+                    </span>
+                    <span> Fuel Logs </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageFuelLog"
+                           asp-action="Index">
+                            View Fuel Logs
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageFuelLog"
+                           asp-action="Create">
+                            Add Fuel Log
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageDutyOfCare"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-06.svg" alt="">
+                    </span>
+                    <span> Duty of Care </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageDutyOfCare"
+                           asp-action="Index">
+                            Duty of Care List
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageDutyOfCare"
+                           asp-action="Create">
+                            Add Care Record
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="logout-btn">
+                <a asp-area="" asp-controller="Account" asp-action="Logout">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/logout.svg" alt="">
+                    </span>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

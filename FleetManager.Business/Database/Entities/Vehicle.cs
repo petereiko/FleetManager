@@ -25,6 +25,8 @@ namespace FleetManager.Business.Database.Entities
         public string? InsuranceCompany { get; set; }
         public DateTime? InsuranceExpiryDate { get; set; }
         public DateTime? RoadWorthyExpiryDate { get; set; }
+        public long? CompanyId { get; set; }
+        public virtual Company Company { get; set; }
         public long? CompanyBranchId { get; set; }
         public virtual CompanyBranch? CompanyBranch { get; set; }
         public VehicleStatus VehicleStatus { get; set; } // Active, Inactive, Under Maintenance
