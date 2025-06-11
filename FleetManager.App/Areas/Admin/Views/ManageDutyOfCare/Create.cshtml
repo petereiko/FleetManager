@@ -1,0 +1,429 @@
+﻿@using FleetManager.Business.ViewModels
+@model DutyOfCareViewModel
+@{
+    ViewData["Title"] = "Create Duty of Care Record";
+}
+
+
+<style>
+    .section-header {
+        margin-top: 2rem;
+    }
+
+    .section-title {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-divider {
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+        border-color: #e3e6f0;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: #dc3545;
+    }
+
+    .form-check-label strong {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .form-check-label small {
+        font-weight: 400;
+        line-height: 1.3;
+    }
+
+    .form-switch .form-check-input {
+        width: 2em;
+        height: 1em;
+    }
+
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .form-control.is-valid, .form-select.is-valid {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+
+    .bg-light {
+        background-color: #f8f9fc !important;
+    }
+
+    .required-field {
+        position: relative;
+    }
+
+        .required-field::before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background-color: #ffc107;
+            border-radius: 2px;
+        }
+</style>
+
+
+
+
+<div class="container-fluid px-4 py-3">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index")" class="text-decoration-none">
+                            <i class="fas fa-shield-alt me-1"></i>Duty of Care
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active">Create Record</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1 text-gray-800 fw-bold">
+                <i class="fas fa-plus-circle text-primary me-2"></i>
+                Create Duty of Care Record
+            </h1>
+            <p class="text-muted mb-0">Complete driver safety and compliance assessment</p>
+        </div>
+        <div>
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-clipboard-check me-2"></i>
+                Driver Duty of Care Assessment
+            </h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" id="dutyOfCareForm" novalidate>
+                @Html.AntiForgeryToken()
+
+                <!-- Basic Information -->
+                <div class="section-header mb-4">
+                    <h6 class="section-title">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Basic Information
+                    </h6>
+                    <hr class="section-divider">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="@Model.Input.DriverId" class="form-label required">Driver</label>
+                            <select asp-for="@Model.Input.DriverId" class="form-select" asp-items="ViewBag.DriverSelect" required>
+                                <option value="">Select a driver...</option>
+                            </select>
+                            <span asp-validation-for="@Model.Input.DriverId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="@Model.Input.VehicleId" class="form-label required">Vehicle</label>
+                            <select asp-for="@Model.Input.VehicleId" class="form-select" asp-items="ViewBag.VehicleSelect" required>
+                                <option value="">Select a vehicle...</option>
+                            </select>
+                            <span asp-validation-for="@Model.Input.VehicleId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="@Model.Input.Date" class="form-label required">Assessment Date</label>
+                            <input asp-for="@Model.Input.Date" type="date" class="form-control" required />
+                            <span asp-validation-for="@Model.Input.Date" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="@Model.Input.DutyOfCareRecordType" class="form-label required">Record Type</label>
+                            <select asp-for="@Model.Input.DutyOfCareRecordType" class="form-select" asp-items="ViewBag.DutyOfCareTypeSelect" required>
+                                <option value="">Select record type...</option>
+                                
+                            </select>
+                            <span asp-validation-for="@Model.Input.DutyOfCareRecordType" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="@Model.Input.DutyOfCareStatus" class="form-label required">Status</label>
+                            <select asp-for="@Model.Input.DutyOfCareStatus" class="form-select" asp-items="ViewBag.DutyOfCareStatusSelect" required>
+                                <option value="">Select status...</option>
+                                
+                            </select>
+                            <span asp-validation-for="@Model.Input.DutyOfCareStatus" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Responsibility -->
+                <div class="section-header mb-4">
+                    <h6 class="section-title">
+                        <i class="fas fa-car text-primary me-2"></i>
+                        Vehicle Responsibility
+                    </h6>
+                    <hr class="section-divider">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="@Model.Input.VehiclePreCheckCompleted" class="form-check-input" type="checkbox" />
+                            <label asp-for="@Model.Input.VehiclePreCheckCompleted" class="form-check-label">
+                                <strong>Valid Driver's License</strong>
+                                <small class="d-block text-muted">I possess a valid driver's license for this vehicle type</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="@Model.Input.IsAwareOfCompanyPolicies" class="form-check-input" type="checkbox" />
+                            <label asp-for="@Model.Input.IsAwareOfCompanyPolicies" class="form-check-label">
+                                <strong>Company Policy Awareness</strong>
+                                <small class="d-block text-muted">I am aware of and understand company driving policies</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="@Model.Input.HasReviewedDrivingHours" class="form-check-input" type="checkbox" />
+                            <label asp-for="@Model.Input.HasReviewedDrivingHours" class="form-check-label">
+                                <strong>Driving Hours Reviewed</strong>
+                                <small class="d-block text-muted">I have reviewed my driving hours and compliance requirements</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fatigue Management -->
+                <div class="section-header mb-4">
+                    <h6 class="section-title">
+                        <i class="fas fa-bed text-primary me-2"></i>
+                        Fatigue Management
+                    </h6>
+                    <hr class="section-divider">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="@Model.Input.LastRestPeriod" class="form-label">Last Rest Period Duration</label>
+                            <div class="input-group">
+                                <input asp-for="@Model.Input.LastRestPeriod" type="text" class="form-control"
+                                       placeholder="HH:MM (e.g., 08:00)" pattern="^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" />
+                                <span class="input-group-text">
+                                    <i class="fas fa-clock"></i>
+                                </span>
+                            </div>
+                            <small class="form-text text-muted">Enter in hours:minutes format (e.g., 08:30)</small>
+                            <span asp-validation-for="@Model.Input.LastRestPeriod" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mb-3 d-flex align-items-center" style="height: 100%;">
+                            <div>
+                                <input asp-for="@Model.Input.ReportsFatigue" class="form-check-input" type="checkbox" />
+                                <label asp-for="@Model.Input.ReportsFatigue" class="form-check-label">
+                                    <strong>Reporting Fatigue</strong>
+                                    <small class="d-block text-muted">I am experiencing fatigue that may affect my driving ability</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Incident / Hazard Awareness -->
+                <div class="section-header mb-4">
+                    <h6 class="section-title">
+                        <i class="fas fa-exclamation-triangle text-primary me-2"></i>
+                        Incident & Hazard Reporting
+                    </h6>
+                    <hr class="section-divider">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="@Model.Input.ReportsVehicleIssues" class="form-check-input" type="checkbox" id="vehicleIssuesToggle" />
+                            <label asp-for="@Model.Input.ReportsVehicleIssues" class="form-check-label">
+                                <strong>Vehicle Issues Reported</strong>
+                                <small class="d-block text-muted">I am aware of vehicle issues that need attention</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="@Model.Input.ReportedIssuesDetails" class="form-label">Issue Details</label>
+                            <textarea asp-for="@Model.Input.ReportedIssuesDetails" class="form-control" rows="3"
+                                      placeholder="Describe any vehicle issues or safety concerns..." id="issueDetails"></textarea>
+                            <span asp-validation-for="@Model.Input.ReportedIssuesDetails" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Declaration & Consent -->
+                <div class="section-header mb-4">
+                    <h6 class="section-title">
+                        <i class="fas fa-signature text-primary me-2"></i>
+                        Declaration & Consent
+                    </h6>
+                    <hr class="section-divider">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="@Model.Input.DeclarationTimestamp" class="form-label">Declaration Timestamp</label>
+                            <input asp-for="@Model.Input.DeclarationTimestamp" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="@Model.Input.DeclarationTimestamp" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mb-3 d-flex align-items-center" style="height: 100%;">
+                            <div>
+                                <input asp-for="@Model.Input.ConfirmsAccuracyOfInfo" class="form-check-input" type="checkbox" required />
+                                <label asp-for="@Model.Input.ConfirmsAccuracyOfInfo" class="form-check-label">
+                                    <strong>I confirm the accuracy of this information</strong>
+                                    <small class="d-block text-muted">All information provided is true and accurate to the best of my knowledge</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Card -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-info-circle text-info me-2"></i>
+                            Assessment Summary
+                        </h6>
+                        <p class="card-text text-muted mb-0">
+                            Please review all information before submitting. This declaration confirms your fitness to drive
+                            and compliance with company safety policies. Any false information may result in disciplinary action.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </a>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary me-2" onclick="saveDraft()">
+                            <i class="fas fa-save me-1"></i>Save Draft
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-1"></i>Create Record
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <script>
+        $(document).ready(function() {
+            // Toggle issue details textarea based on vehicle issues checkbox
+            $('#vehicleIssuesToggle').change(function() {
+                const issueDetails = $('#issueDetails');
+                if (this.checked) {
+                    issueDetails.prop('required', true).focus();
+                    issueDetails.closest('.form-group').addClass('required-field');
+                } else {
+                    issueDetails.prop('required', false).val('');
+                    issueDetails.closest('.form-group').removeClass('required-field');
+                }
+            });
+
+            // Form validation enhancement
+            $('#dutyOfCareForm').on('submit', function(e) {
+                let isValid = true;
+                const requiredFields = $(this).find('[required]');
+
+                requiredFields.each(function() {
+                    const field = $(this);
+                    if (!field.val() || (field.is(':checkbox') && !field.is(':checked'))) {
+                        field.addClass('is-invalid');
+                        isValid = false;
+                    } else {
+                        field.removeClass('is-invalid').addClass('is-valid');
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    $('html, body').animate({
+                        scrollTop: $('.is-invalid').first().offset().top - 100
+                    }, 500);
+
+                    // Show validation summary
+                    showValidationAlert();
+                }
+            });
+
+            // Real-time validation
+            $('input, select, textarea').on('blur change', function() {
+                const field = $(this);
+                if (field.prop('required')) {
+                    if (!field.val() || (field.is(':checkbox') && !field.is(':checked'))) {
+                        field.addClass('is-invalid');
+                    } else {
+                        field.removeClass('is-invalid').addClass('is-valid');
+                    }
+                }
+            });
+
+            // Initialize datetime-local with current time
+            const now = new Date();
+            const dateTimeString = now.toISOString().slice(0, 16);
+            $('input[type="datetime-local"]').val(dateTimeString);
+        });
+
+        function saveDraft() {
+            // You can implement draft saving functionality here
+            alert('Draft save functionality would be implemented here');
+        }
+
+        function showValidationAlert() {
+            const alertHtml = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Validation Error:</strong> Please fill in all required fields before submitting.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            // Remove existing alerts
+            $('.alert').remove();
+
+            // Add new alert at top of form
+            $('.card-body').prepend(alertHtml);
+        }
+    </script>
+
+

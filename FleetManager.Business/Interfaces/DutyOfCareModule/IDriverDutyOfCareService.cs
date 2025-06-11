@@ -1,5 +1,7 @@
 ﻿using FleetManager.Business.DataObjects;
+using FleetManager.Business.Enums;
 using FleetManager.Business.UtilityModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +21,10 @@ namespace FleetManager.Business.Interfaces.DutyOfCareModule
         Task<MessageResponse> DeleteAsync(long id);
         IQueryable<DriverDutyOfCareDto> QueryAll();
         //Task<DriverDutyOfCareDto> GetDutyOfCareByIdAsync(long id);
+
+
+        List<SelectListItem> GetDutyOfCareTypeOptions();
+        List<SelectListItem> GetDutyOfCareStatusOptions();
 
     }
 }

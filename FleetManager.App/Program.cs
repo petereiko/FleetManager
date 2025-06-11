@@ -12,6 +12,7 @@ using FleetManager.Business.Implementations.CompanyOnboardingModule;
 using FleetManager.Business.Implementations.DriverVehicleModule;
 using FleetManager.Business.Implementations.DutyOfCareModule;
 using FleetManager.Business.Implementations.EmailModule;
+using FleetManager.Business.Implementations.FuelLogModule;
 using FleetManager.Business.Implementations.ManageDriverModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
@@ -21,6 +22,7 @@ using FleetManager.Business.Interfaces.CompanyOnboardingModule;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.DutyOfCareModule;
 using FleetManager.Business.Interfaces.EmailModule;
+using FleetManager.Business.Interfaces.FuelLogModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
@@ -78,7 +80,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Account/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.SlidingExpiration = true;
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Use HTTPS
@@ -112,6 +114,8 @@ builder.Services.AddTransient<IAdminVehicleService, AdminVehicleService>();
 builder.Services.AddTransient<IManageDriverService, ManageDriverService>();
 builder.Services.AddTransient<IDriverVehicleService, DriverVehicleService>();
 builder.Services.AddTransient<IDriverDutyOfCareService, DriverDutyOfCareService>();
+builder.Services.AddTransient<IFuelLogService, FuelLogService>();
+builder.Services.AddSignalR();
 
 //builder.Services.AddTransient<IApplicantService, ApplicantService>();
 //builder.Services.AddTransient<IVisualAssessmentResultRepository, VisualAssessmentResultService>();
@@ -208,7 +212,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-app.MapHub<NotificationHub>("/notification");
+app.MapHub<NotificationHub>("hubs/notification");
 
 //RecurringJob.AddOrUpdate<BackgroundJobService>("SendBulkEmail", service => service.SendBulkEmail(), "*/2 * * * *");
 //RecurringJob.AddOrUpdate<BackgroundJobService>("VerifyTransfers", service => service.VerifyPayments(), "*/1 * * * *");

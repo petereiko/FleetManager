@@ -1,0 +1,306 @@
+﻿@using FleetManager.Business.DataObjects
+@model FuelLogDto
+@{
+    Layout = null;
+    ViewData["Title"] = "Fuel Log Details";
+}
+
+<style>
+    .modal-fuel-details {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .modal-header-custom {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        background: white;
+    }
+
+    .modal-title-custom {
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: #111827;
+        margin: 0;
+        letter-spacing: -0.025em;
+    }
+
+    .detail-container-modal {
+        background: white;
+        overflow: hidden;
+    }
+
+    .detail-row {
+        display: flex;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background-color 0.15s ease;
+    }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row:hover {
+            background-color: #f9fafb;
+        }
+
+    .detail-label {
+        flex: 0 0 140px;
+        padding: 1rem 1.5rem;
+        background-color: #f8fafc;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+    }
+
+    .detail-value {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        font-size: 0.95rem;
+        color: #111827;
+        display: flex;
+        align-items: center;
+    }
+
+    .value-primary {
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .value-highlight {
+        font-weight: 500;
+        color: #3b82f6;
+    }
+
+    .receipt-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.15s ease;
+    }
+
+        .receipt-link:hover {
+            color: #1d4ed8;
+            text-decoration: none;
+        }
+
+    .no-data {
+        color: #9ca3af;
+        font-style: italic;
+    }
+
+    .notes-row {
+        flex-direction: column;
+    }
+
+    .notes-label {
+        flex: none;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.75rem 1.5rem;
+    }
+
+    .notes-value {
+        padding: 1rem 1.5rem;
+        line-height: 1.6;
+        background-color: #fffbeb;
+        font-size: 0.9rem;
+    }
+
+    .modal-footer-custom {
+        padding: 1.5rem 2rem;
+        background-color: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-secondary {
+        background-color: white;
+        color: #6b7280;
+        border-color: #d1d5db;
+    }
+
+        .btn-secondary:hover {
+            background-color: #f9fafb;
+            color: #374151;
+            text-decoration: none;
+        }
+
+    .btn-close-modal {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        border-color: #d1d5db;
+    }
+
+        .btn-close-modal:hover {
+            background-color: #e5e7eb;
+            color: #374151;
+            text-decoration: none;
+        }
+
+    .icon {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+
+    @@media (max-width: 576px) {
+        .detail-row
+
+    {
+        flex-direction: column;
+    }
+
+    .detail-label {
+        flex: none;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.75rem 1rem 0.25rem;
+        background: none;
+        font-size: 0.8rem;
+    }
+
+    .detail-value {
+        padding: 0.25rem 1rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .modal-footer-custom {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+
+    .btn {
+        justify-content: center;
+    }
+
+    .modal-header-custom {
+        padding: 1rem;
+    }
+
+    .modal-title-custom {
+        font-size: 1.25rem;
+    }
+
+    }
+</style>
+
+<div class="modal-fuel-details">
+    <div class="modal-header-custom">
+        <h2 class="modal-title-custom">Fuel Log Details</h2>
+    </div>
+
+    <div class="detail-container-modal">
+
+        <div class="detail-row">
+            <div class="detail-label">Date</div>
+            <div class="detail-value value-highlight">@Model.Date.ToString("MMMM dd, yyyy")</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Driver</div>
+            <div class="detail-value">@Model.DriverName</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Vehicle</div>
+            <div class="detail-value">@Model.VehicleDescription</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Odometer</div>
+            <div class="detail-value value-highlight">@Model.Odometer km</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Volume</div>
+            <div class="detail-value">@Model.Volume.ToString("F2") L</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Cost</div>
+            <div class="detail-value value-primary">@Model.Cost.ToString("C")</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Fuel Type</div>
+            <div class="detail-value">@Model.FuelType</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Receipt</div>
+            <div class="detail-value">
+                @if (!string.IsNullOrEmpty(Model.ReceiptPath))
+                {
+                    <a href="@Model.ReceiptPath" target="_blank" class="receipt-link">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                        </svg>
+                        View Receipt
+                    </a>
+                }
+                else
+                {
+                    <span class="no-data">No receipt available</span>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="detail-row notes-row">
+                <div class="detail-label notes-label">Notes</div>
+                <div class="detail-value notes-value">@Model.Notes</div>
+            </div>
+        }
+
+    </div>
+
+    <div class="modal-footer-custom">
+        <button type="button" class="btn btn-close-modal" data-bs-dismiss="modal">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+            Close
+        </button>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+            </svg>
+            Edit
+        </a>
+    </div>
+</div>

@@ -1,0 +1,1217 @@
+﻿@using FleetManager.Business.ViewModels
+@model FuelLogInputViewModel
+@{
+    ViewData["Title"] = "New Fuel Log";
+}
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">Add New Fuel Log</h2>
+                    <p class="text-muted mb-0">Record fuel consumption and expenses for your fleet</p>
+                </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a asp-action="Index" class="text-decoration-none">
+                                <i class="feather-home me-1"></i>Fuel Logs
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">New Log</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+            <div class="d-flex align-items-center">
+                <div class="icon-container bg-primary-subtle rounded-circle p-2 me-3">
+                    <i class="feather-plus text-primary"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-semibold text-dark">Fuel Log Information</h5>
+                    <small class="text-muted">Fill in the details below to record the fuel transaction</small>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post" enctype="multipart/form-data" id="fuelLogForm">
+                
+                <!-- Basic Information Section -->
+                <div class="form-section mb-4">
+                    <h6 class="form-section-title mb-3">
+                        <i class="feather-info text-primary me-2"></i>Basic Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="Date" class="form-label fw-medium">
+                                <i class="feather-calendar me-1 text-muted"></i>Date
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-calendar text-muted"></i>
+                                </span>
+                                <input asp-for="Date" class="form-control border-start-0 datetimepicker" placeholder="Select date" />
+                            </div>
+                            <span asp-validation-for="Date" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="DriverId" class="form-label fw-medium">
+                                <i class="feather-user me-1 text-muted"></i>Driver
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-user text-muted"></i>
+                                </span>
+                                <select asp-for="DriverId" class="form-select border-start-0" asp-items="Model.Drivers">
+                                    <option value="">Choose a driver...</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="DriverId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="VehicleId" class="form-label fw-medium">
+                                <i class="feather-truck me-1 text-muted"></i>Vehicle
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-truck text-muted"></i>
+                                </span>
+                                <select asp-for="VehicleId" class="form-select border-start-0" asp-items="Model.Vehicles">
+                                    <option value="">Choose a vehicle...</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="VehicleId" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fuel & Measurement Details -->
+                <div class="form-section mb-4">
+                    <h6 class="form-section-title mb-3">
+                        <i class="feather-droplet text-primary me-2"></i>Fuel & Measurement Details
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label asp-for="Odometer" class="form-label fw-medium">
+                                <i class="feather-activity me-1 text-muted"></i>Odometer Reading
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-activity text-muted"></i>
+                                </span>
+                                <input asp-for="Odometer" class="form-control border-start-0" placeholder="0" />
+                                <span class="input-group-text bg-light">km</span>
+                            </div>
+                            <span asp-validation-for="Odometer" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Volume" class="form-label fw-medium">
+                                <i class="feather-droplet me-1 text-muted"></i>Volume
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-droplet text-muted"></i>
+                                </span>
+                                <input asp-for="Volume" class="form-control border-start-0" placeholder="0.00" step="0.01" />
+                                <span class="input-group-text bg-light">Liters</span>
+                            </div>
+                            <span asp-validation-for="Volume" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Cost" class="form-label fw-medium">
+                                <i class="feather-dollar-sign me-1 text-muted"></i>Total Cost
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success-subtle text-success border-end-0">₦</span>
+                                <input asp-for="Cost" class="form-control border-start-0" placeholder="0.00" step="0.01" id="costInput" />
+                            </div>
+                            <span asp-validation-for="Cost" class="text-danger small"></span>
+                            <small class="text-muted" id="costPerLiter">Cost per liter will be calculated automatically</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="FuelType" class="form-label fw-medium">
+                                <i class="feather-zap me-1 text-muted"></i>Fuel Type
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-zap text-muted"></i>
+                                </span>
+                                <select asp-for="FuelType" class="form-select border-start-0" asp-items="Model.FuelTypes">
+                                    <option value="">Choose fuel type...</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="FuelType" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="form-section mb-4">
+                    <h6 class="form-section-title mb-3">
+                        <i class="feather-paperclip text-primary me-2"></i>Additional Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ReceiptFile" class="form-label fw-medium">
+                                <i class="feather-upload me-1 text-muted"></i>Receipt Upload
+                            </label>
+                            <div class="file-upload-wrapper">
+                                <input asp-for="ReceiptFile" type="file" class="form-control" accept="image/*,.pdf" id="receiptFile" />
+                                <div class="file-upload-info mt-2">
+                                    <small class="text-muted">
+                                        <i class="feather-info me-1"></i>
+                                        Accepted formats: JPG, PNG, PDF (Max: 5MB)
+                                    </small>
+                                </div>
+                            </div>
+                            <span asp-validation-for="ReceiptFile" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Notes" class="form-label fw-medium">
+                                <i class="feather-message-square me-1 text-muted"></i>Notes
+                            </label>
+                            <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Additional notes or comments about this fuel log..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                            <div class="character-count mt-1">
+                                <small class="text-muted">
+                                    <span id="notesCount">0</span> characters
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Card -->
+                <div class="alert alert-light border-0 bg-primary-subtle">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="alert-heading mb-1">
+                                <i class="feather-check-circle text-primary me-2"></i>Quick Summary
+                            </h6>
+                            <p class="mb-0 text-muted small">
+                                Review your entries before saving. All required fields must be completed.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Cost:</span>
+                                    <span class="stat-value fw-bold text-success" id="summaryTotal">₦0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                        <i class="feather-arrow-left me-2"></i>Back to List
+                    </a>
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-outline-primary btn-lg me-2" id="previewBtn">
+                            <i class="feather-eye me-2"></i>Preview
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                            <i class="feather-save me-2"></i>Save Fuel Log
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white border-0">
+                <div class="d-flex align-items-center">
+                    <div class="icon-container bg-white bg-opacity-20 rounded-circle p-2 me-3">
+                        <i class="feather-eye text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="previewModalLabel">Fuel Log Preview</h5>
+                        <small class="text-white-50">Review your entries before saving</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Basic Information Section -->
+                <div class="preview-section mb-4">
+                    <h6 class="preview-section-title mb-3">
+                        <i class="feather-info text-primary me-2"></i>Basic Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-calendar me-1"></i>Date
+                                </label>
+                                <div class="preview-value" id="previewDate">-</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-user me-1"></i>Driver
+                                </label>
+                                <div class="preview-value" id="previewDriver">-</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-truck me-1"></i>Vehicle
+                                </label>
+                                <div class="preview-value" id="previewVehicle">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fuel & Measurement Details -->
+                <div class="preview-section mb-4">
+                    <h6 class="preview-section-title mb-3">
+                        <i class="feather-droplet text-primary me-2"></i>Fuel & Measurement Details
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-activity me-1"></i>Odometer
+                                </label>
+                                <div class="preview-value" id="previewOdometer">-</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-droplet me-1"></i>Volume
+                                </label>
+                                <div class="preview-value" id="previewVolume">-</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-dollar-sign me-1"></i>Total Cost
+                                </label>
+                                <div class="preview-value text-success fw-bold" id="previewCost">-</div>
+                                <small class="text-muted" id="previewCostPerLiter">-</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-zap me-1"></i>Fuel Type
+                                </label>
+                                <div class="preview-value">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-2" id="previewFuelType">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="preview-section mb-4">
+                    <h6 class="preview-section-title mb-3">
+                        <i class="feather-paperclip text-primary me-2"></i>Additional Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-upload me-1"></i>Receipt
+                                </label>
+                                <div class="preview-value" id="previewReceipt">-</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="preview-item">
+                                <label class="preview-label">
+                                    <i class="feather-message-square me-1"></i>Notes
+                                </label>
+                                <div class="preview-value preview-notes" id="previewNotes">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Card -->
+                <div class="alert alert-light border-0 bg-success-subtle">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="alert-heading mb-1">
+                                <i class="feather-check-circle text-success me-2"></i>Ready to Save
+                            </h6>
+                            <p class="mb-0 text-muted small">
+                                All information looks good! Click "Save Fuel Log" to record this entry.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Cost:</span>
+                                    <span class="stat-value fw-bold text-success" id="previewSummaryTotal">₦0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="feather-edit me-2"></i>Continue Editing
+                </button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('fuelLogForm').submit();">
+                    <i class="feather-save me-2"></i>Save Fuel Log
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Flatpickr
+            flatpickr(".datetimepicker", { 
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "F j, Y",
+                defaultDate: "today",
+            });
+
+            // Cost per liter calculation
+            const volumeInput = document.querySelector('input[name="Volume"]');
+            const costInput = document.querySelector('input[name="Cost"]');
+            const costPerLiterElement = document.getElementById('costPerLiter');
+            const summaryTotal = document.getElementById('summaryTotal');
+
+            function updateCalculations() {
+                const volume = parseFloat(volumeInput.value) || 0;
+                const cost = parseFloat(costInput.value) || 0;
+                
+                if (volume > 0 && cost > 0) {
+                    const costPerLiter = (cost / volume).toFixed(2);
+                    costPerLiterElement.textContent = `₦${costPerLiter} per liter`;
+                    costPerLiterElement.classList.remove('text-muted');
+                    costPerLiterElement.classList.add('text-success', 'fw-medium');
+                } else {
+                    costPerLiterElement.textContent = 'Cost per liter will be calculated automatically';
+                    costPerLiterElement.classList.remove('text-success', 'fw-medium');
+                    costPerLiterElement.classList.add('text-muted');
+                }
+                
+                summaryTotal.textContent = cost > 0 ? `₦${cost.toFixed(2)}` : '₦0.00';
+            }
+
+            volumeInput?.addEventListener('input', updateCalculations);
+            costInput?.addEventListener('input', updateCalculations);
+
+            // Notes character counter
+            const notesTextarea = document.querySelector('textarea[name="Notes"]');
+            const notesCount = document.getElementById('notesCount');
+
+            notesTextarea?.addEventListener('input', function() {
+                notesCount.textContent = this.value.length;
+            });
+
+            // File upload preview
+            const receiptFile = document.getElementById('receiptFile');
+            receiptFile?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const fileInfo = document.querySelector('.file-upload-info small');
+                    fileInfo.innerHTML = `<i class="feather-check me-1"></i>Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                    fileInfo.classList.remove('text-muted');
+                    fileInfo.classList.add('text-success');
+                }
+            });
+
+            // Preview functionality
+            document.getElementById('previewBtn')?.addEventListener('click', function() {
+                const formData = new FormData(document.getElementById('fuelLogForm'));
+                const driverSelect = document.querySelector('select[name="DriverId"]');
+                const vehicleSelect = document.querySelector('select[name="VehicleId"]');
+                const fuelTypeSelect = document.querySelector('select[name="FuelType"]');
+                
+                const preview = {
+                    date: formData.get('Date'),
+                    driver: driverSelect.selectedOptions[0]?.text || 'Not selected',
+                    vehicle: vehicleSelect.selectedOptions[0]?.text || 'Not selected',
+                    odometer: formData.get('Odometer') || '0',
+                    volume: formData.get('Volume') || '0',
+                    cost: formData.get('Cost') || '0',
+                    fuelType: fuelTypeSelect.selectedOptions[0]?.text || 'Not selected',
+                    notes: formData.get('Notes') || 'No notes provided',
+                    receiptFile: document.getElementById('receiptFile').files[0]?.name || 'No receipt uploaded'
+                };
+                
+                // Calculate cost per liter
+                const volume = parseFloat(preview.volume);
+                const cost = parseFloat(preview.cost);
+                const costPerLiter = (volume > 0 && cost > 0) ? (cost / volume).toFixed(2) : '0.00';
+                
+                // Format date
+                const formattedDate = preview.date ? new Date(preview.date).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }) : 'Not selected';
+                
+                // Populate modal
+                document.getElementById('previewDate').textContent = formattedDate;
+                document.getElementById('previewDriver').textContent = preview.driver;
+                document.getElementById('previewVehicle').textContent = preview.vehicle;
+                document.getElementById('previewOdometer').textContent = `${preview.odometer} km`;
+                document.getElementById('previewVolume').textContent = `${preview.volume} Liters`;
+                document.getElementById('previewCost').textContent = `₦${parseFloat(preview.cost).toFixed(2)}`;
+                document.getElementById('previewCostPerLiter').textContent = `₦${costPerLiter} per liter`;
+                document.getElementById('previewFuelType').textContent = preview.fuelType;
+                document.getElementById('previewNotes').textContent = preview.notes;
+                document.getElementById('previewReceipt').textContent = preview.receiptFile;
+                document.getElementById('previewSummaryTotal').textContent = `₦${parseFloat(preview.cost).toFixed(2)}`;
+                
+                // Show modal
+                const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+                previewModal.show();
+            });
+
+            // Form validation enhancement
+            const form = document.getElementById('fuelLogForm');
+            form?.addEventListener('submit', function(e) {
+                const requiredFields = form.querySelectorAll('[required], input[asp-for], select[asp-for]');
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields.');
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    .icon-container {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .form-section {
+        position: relative;
+    }
+    
+    .form-section-title {
+        color: #495057;
+        font-weight: 600;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 1rem;
+    }
+    
+    .form-label {
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-control, .form-select {
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.95rem;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        transform: translateY(-1px);
+    }
+    
+    .input-group-text {
+        border: 1px solid #dee2e6;
+        font-size: 0.9rem;
+    }
+    
+    .file-upload-wrapper {
+        position: relative;
+    }
+    
+    .file-upload-info {
+        transition: all 0.3s ease;
+    }
+    
+    .character-count {
+        text-align: right;
+    }
+    
+    .summary-stats .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .stat-value {
+        font-size: 1.1rem;
+    }
+    
+    .form-actions {
+        background: rgba(248, 249, 250, 0.5);
+        margin: 0 -1.5rem -1.5rem;
+        padding: 1.5rem;
+        border-radius: 0 0 0.375rem 0.375rem;
+    }
+    
+    .btn {
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .alert {
+        border-radius: 8px;
+        border: none;
+    }
+    
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15) !important;
+    }
+    
+    .preview-section {
+        position: relative;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .preview-section-title {
+        color: #495057;
+        font-weight: 600;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 1rem;
+        background: white;
+        margin: -1rem -1rem 1rem -1rem;
+        padding: 1rem 1rem 0.5rem 1rem;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .preview-item {
+        margin-bottom: 1rem;
+    }
+    
+    .preview-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .preview-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #212529;
+        padding: 0.5rem 0.75rem;
+        background: white;
+        border-radius: 4px;
+        border: 1px solid #e9ecef;
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .preview-notes {
+        min-height: 60px;
+        align-items: flex-start;
+        padding-top: 0.75rem;
+    }
+    
+    .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .modal-header {
+        padding: 1.5rem;
+    }
+    
+    .modal-footer {
+        padding: 1rem 1.5rem 1.5rem;
+    }
+    
+    @@media (max-width: 768px) {
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            width: 100%;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-buttons .btn {
+            flex: 1;
+        }
+        
+        .preview-section-title {
+            font-size: 1rem;
+        }
+        
+        .modal-dialog {
+            margin: 0.5rem;
+        }
+    }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.ViewModels
+@model FuelLogInputViewModel
+@{
+    ViewData["Title"] = "New Fuel Log";
+}
+
+<style>
+    .icon-container {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-section {
+        position: relative;
+    }
+
+    .form-section-title {
+        color: #495057;
+        font-weight: 600;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.95rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+            transform: translateY(-1px);
+        }
+
+    .input-group-text {
+        border: 1px solid #dee2e6;
+        font-size: 0.9rem;
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+    }
+
+    .file-upload-info {
+        transition: all 0.3s ease;
+    }
+
+    .character-count {
+        text-align: right;
+    }
+
+    .summary-stats .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+    }
+
+    .form-actions {
+        background: rgba(248, 249, 250, 0.5);
+        margin: 0 -1.5rem -1.5rem;
+        padding: 1.5rem;
+        border-radius: 0 0 0.375rem 0.375rem;
+    }
+
+    .btn {
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .alert {
+        border-radius: 8px;
+        border: none;
+    }
+
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15) !important;
+    }
+
+    @@media (max-width: 768px) {
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .action-buttons {
+            width: 100%;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+            .action-buttons .btn {
+                flex: 1;
+            }
+    }
+</style>
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">Add New Fuel Log</h2>
+                    <p class="text-muted mb-0">Record fuel consumption and expenses for your fleet</p>
+                </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a asp-action="Index" class="text-decoration-none">
+                                <i class="feather-home me-1"></i>Fuel Logs
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active">New Log</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+            <div class="d-flex align-items-center">
+                <div class="icon-container bg-primary-subtle rounded-circle p-2 me-3">
+                    <i class="feather-plus text-primary"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-semibold text-dark">Fuel Log Information</h5>
+                    <small class="text-muted">Fill in the details below to record the fuel transaction</small>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post" enctype="multipart/form-data" id="fuelLogForm">
+
+                <!-- Basic Information Section -->
+                <div class="form-section mb-4">
+                    <h6 class="form-section-title mb-3">
+                        <i class="feather-info text-primary me-2"></i>Basic Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="Date" class="form-label fw-medium">
+                                <i class="feather-calendar me-1 text-muted"></i>Date
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-calendar text-muted"></i>
+                                </span>
+                                <input asp-for="Date" class="form-control border-start-0 datetimepicker" placeholder="Select date" />
+                            </div>
+                            <span asp-validation-for="Date" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="DriverId" class="form-label fw-medium">
+                                <i class="feather-user me-1 text-muted"></i>Driver
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-user text-muted"></i>
+                                </span>
+                                <select asp-for="DriverId" class="form-select border-start-0" asp-items="Model.Drivers">
+                                    <option value="">Choose a driver...</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="DriverId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="VehicleId" class="form-label fw-medium">
+                                <i class="feather-truck me-1 text-muted"></i>Vehicle
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-truck text-muted"></i>
+                                </span>
+                                <select asp-for="VehicleId" class="form-select border-start-0" asp-items="Model.Vehicles">
+                                    <option value="">Choose a vehicle...</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="VehicleId" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fuel & Measurement Details -->
+                <div class="form-section mb-4">
+                    <h6 class="form-section-title mb-3">
+                        <i class="feather-droplet text-primary me-2"></i>Fuel & Measurement Details
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label asp-for="Odometer" class="form-label fw-medium">
+                                <i class="feather-activity me-1 text-muted"></i>Odometer Reading
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-activity text-muted"></i>
+                                </span>
+                                <input asp-for="Odometer" class="form-control border-start-0" placeholder="0" />
+                                <span class="input-group-text bg-light">km</span>
+                            </div>
+                            <span asp-validation-for="Odometer" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Volume" class="form-label fw-medium">
+                                <i class="feather-droplet me-1 text-muted"></i>Volume
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-droplet text-muted"></i>
+                                </span>
+                                <input asp-for="Volume" class="form-control border-start-0" placeholder="0.00" step="0.01" />
+                                <span class="input-group-text bg-light">Liters</span>
+                            </div>
+                            <span asp-validation-for="Volume" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Cost" class="form-label fw-medium">
+                                <i class="feather-dollar-sign me-1 text-muted"></i>Total Cost
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success-subtle text-success border-end-0">₦</span>
+                                <input asp-for="Cost" class="form-control border-start-0" placeholder="0.00" step="0.01" id="costInput" />
+                            </div>
+                            <span asp-validation-for="Cost" class="text-danger small"></span>
+                            <small class="text-muted" id="costPerLiter">Cost per liter will be calculated automatically</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="FuelType" class="form-label fw-medium">
+                                <i class="feather-zap me-1 text-muted"></i>Fuel Type
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="feather-zap text-muted"></i>
+                                </span>
+                                <select asp-for="FuelType" class="form-select border-start-0" asp-items="Model.FuelTypes">
+                                    <option value="">Choose fuel type...</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="FuelType" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="form-section mb-4">
+                    <h6 class="form-section-title mb-3">
+                        <i class="feather-paperclip text-primary me-2"></i>Additional Information
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ReceiptFile" class="form-label fw-medium">
+                                <i class="feather-upload me-1 text-muted"></i>Receipt Upload
+                            </label>
+                            <div class="file-upload-wrapper">
+                                <input asp-for="ReceiptFile" type="file" class="form-control" accept="image/*,.pdf" id="receiptFile" />
+                                <div class="file-upload-info mt-2">
+                                    <small class="text-muted">
+                                        <i class="feather-info me-1"></i>
+                                        Accepted formats: JPG, PNG, PDF (Max: 5MB)
+                                    </small>
+                                </div>
+                            </div>
+                            <span asp-validation-for="ReceiptFile" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Notes" class="form-label fw-medium">
+                                <i class="feather-message-square me-1 text-muted"></i>Notes
+                            </label>
+                            <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Additional notes or comments about this fuel log..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                            <div class="character-count mt-1">
+                                <small class="text-muted">
+                                    <span id="notesCount">0</span> characters
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Card -->
+                <div class="alert alert-light border-0 bg-primary-subtle">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="alert-heading mb-1">
+                                <i class="feather-check-circle text-primary me-2"></i>Quick Summary
+                            </h6>
+                            <p class="mb-0 text-muted small">
+                                Review your entries before saving. All required fields must be completed.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Cost:</span>
+                                    <span class="stat-value fw-bold text-success" id="summaryTotal">₦0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                        <i class="feather-arrow-left me-2"></i>Back to List
+                    </a>
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-outline-primary btn-lg me-2" id="previewBtn">
+                            <i class="feather-eye me-2"></i>Preview
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                            <i class="feather-save me-2"></i>Save Fuel Log
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize Flatpickr
+                flatpickr(".datetimepicker", { 
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "F j, Y",
+                    defaultDate: "today",
+                });
+
+                // Cost per liter calculation
+                const volumeInput = document.querySelector('input[name="Volume"]');
+                const costInput = document.querySelector('input[name="Cost"]');
+                const costPerLiterElement = document.getElementById('costPerLiter');
+                const summaryTotal = document.getElementById('summaryTotal');
+
+                function updateCalculations() {
+                    const volume = parseFloat(volumeInput.value) || 0;
+                    const cost = parseFloat(costInput.value) || 0;
+
+                    if (volume > 0 && cost > 0) {
+                        const costPerLiter = (cost / volume).toFixed(2);
+                        costPerLiterElement.textContent = `₦${costPerLiter} per liter`;
+                        costPerLiterElement.classList.remove('text-muted');
+                        costPerLiterElement.classList.add('text-success', 'fw-medium');
+                    } else {
+                        costPerLiterElement.textContent = 'Cost per liter will be calculated automatically';
+                        costPerLiterElement.classList.remove('text-success', 'fw-medium');
+                        costPerLiterElement.classList.add('text-muted');
+                    }
+
+                    summaryTotal.textContent = cost > 0 ? `₦${cost.toFixed(2)}` : '₦0.00';
+                }
+
+                volumeInput?.addEventListener('input', updateCalculations);
+                costInput?.addEventListener('input', updateCalculations);
+
+                // Notes character counter
+                const notesTextarea = document.querySelector('textarea[name="Notes"]');
+                const notesCount = document.getElementById('notesCount');
+
+                notesTextarea?.addEventListener('input', function() {
+                    notesCount.textContent = this.value.length;
+                });
+
+                // File upload preview
+                const receiptFile = document.getElementById('receiptFile');
+                receiptFile?.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const fileInfo = document.querySelector('.file-upload-info small');
+                        fileInfo.innerHTML = `<i class="feather-check me-1"></i>Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                        fileInfo.classList.remove('text-muted');
+                        fileInfo.classList.add('text-success');
+                    }
+                });
+
+                // Preview functionality
+                document.getElementById('previewBtn')?.addEventListener('click', function() {
+                    const formData = new FormData(document.getElementById('fuelLogForm'));
+                    const preview = {
+                        date: formData.get('Date'),
+                        driver: document.querySelector('select[name="DriverId"] option:checked')?.text,
+                        vehicle: document.querySelector('select[name="VehicleId"] option:checked')?.text,
+                        odometer: formData.get('Odometer'),
+                        volume: formData.get('Volume'),
+                        cost: formData.get('Cost'),
+                        fuelType: formData.get('FuelType'),
+                        notes: formData.get('Notes')
+                    };
+
+                    alert(`Preview:\nDate: ${preview.date}\nDriver: ${preview.driver}\nVehicle: ${preview.vehicle}\nOdometer: ${preview.odometer} km\nVolume: ${preview.volume} L\nCost: ₦${preview.cost}\nFuel Type: ${preview.fuelType}\nNotes: ${preview.notes}`);
+                });
+
+                // Form validation enhancement
+                const form = document.getElementById('fuelLogForm');
+                form?.addEventListener('submit', function(e) {
+                    const requiredFields = form.querySelectorAll('[required], input[asp-for], select[asp-for]');
+                    let isValid = true;
+
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            field.classList.add('is-invalid');
+                            isValid = false;
+                        } else {
+                            field.classList.remove('is-invalid');
+                        }
+                    });
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert('Please fill in all required fields.');
+                    }
+                });
+            });
+        </script>
+}
+ *@

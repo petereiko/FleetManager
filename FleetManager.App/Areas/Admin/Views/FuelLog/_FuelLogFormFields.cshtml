@@ -1,0 +1,56 @@
+﻿@using FleetManager.Business.ViewModels
+@model FuelLogInputViewModel
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="Date" class="form-label">Date</label>
+        <input asp-for="Date" class="form-control datetimepicker" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="DriverId" class="form-label">Driver</label>
+        <select asp-for="DriverId" class="form-select" asp-items="Model.Drivers">
+            <option value="">Select driver</option>
+        </select>
+        <span asp-validation-for="DriverId" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="VehicleId" class="form-label">Vehicle</label>
+        <select asp-for="VehicleId" class="form-select" asp-items="Model.Vehicles">
+            <option value="">Select vehicle</option>
+        </select>
+        <span asp-validation-for="VehicleId" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Odometer" class="form-label">Odometer</label>
+        <input asp-for="Odometer" class="form-control" />
+        <span asp-validation-for="Odometer" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Volume" class="form-label">Volume (L)</label>
+        <input asp-for="Volume" class="form-control" />
+        <span asp-validation-for="Volume" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Cost" class="form-label">Cost</label>
+        <input asp-for="Cost" class="form-control" />
+        <span asp-validation-for="Cost" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="FuelType" class="form-label">Fuel Type</label>
+        <select asp-for="FuelType" class="form-select" asp-items="Model.FuelTypes">
+            <option value="">Select type</option>
+        </select>
+        <span asp-validation-for="FuelType" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ReceiptFile" class="form-label">Receipt</label>
+        <input asp-for="ReceiptFile" type="file" class="form-control" />
+        <span asp-validation-for="ReceiptFile" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Notes" class="form-label">Notes</label>
+        <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Notes" class="text-danger"></span>
+    </div>
+</div>

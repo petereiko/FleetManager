@@ -5,6 +5,7 @@ using FleetManager.Business.Interfaces.DutyOfCareModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
+using FleetManager.Business.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -63,7 +64,8 @@ namespace FleetManager.App.Areas.Admin.Controllers
         public async Task<IActionResult> Create()
         {
             try
-            {
+            {                
+
                 // 1) Load all drivers *in my branch*
                 var drivers = await _driverService.GetDriversForBranchAsync();
                 ViewBag.DriverSelect = drivers
@@ -80,13 +82,28 @@ namespace FleetManager.App.Areas.Admin.Controllers
                         v.Id.ToString()))
                     .ToList();
 
+                var recordType = _dutyService.GetDutyOfCareTypeOptions();
+                ViewBag.DutyOfCareTypeSelect = recordType
+                    .Select(d => new SelectListItem(d.Text, d.Value.ToString()))
+                    .ToList();
+
+                var statusType = _dutyService.GetDutyOfCareStatusOptions();
+                ViewBag.DutyOfCareStatusSelect = statusType
+                    .Select(d => new SelectListItem(d.Text, d.Value.ToString()))
+                    .ToList();
+
                 // 3) Prepare a blank DTO for the form
-                var dto = new DriverDutyOfCareDto
+                var dto = new DutyOfCareViewModel
                 {
-                    Date = DateTime.Today,
-                    DeclarationTimestamp = DateTime.UtcNow,
-                    DutyOfCareRecordType = DutyOfCareRecordType.HealthCheck,
-                    DutyOfCareStatus = DriverDutyOfCareStatus.PendingReview
+                    Input = new DutyOfCareInputModel
+                    {
+                        Date = DateTime.Today,
+                        DeclarationTimestamp = DateTime.UtcNow,
+                        DutyOfCareRecordType = DutyOfCareRecordType.HealthCheck,
+                        DutyOfCareStatus = DriverDutyOfCareStatus.PendingReview
+                    },
+                    DutyOfCareStatus = statusType,
+                    DutyOfCareType = recordType
                 };
 
                 return View(dto);
@@ -104,14 +121,14 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
         // ─── POST: Create a new Duty‑of‑Care record ──────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(DriverDutyOfCareDto dto)
+        public async Task<IActionResult> Create(DutyOfCareViewModel vm)
         {
             try
             {
                 // repopulate dropdowns on POST
                 var drivers = await _driverService.GetDriversForBranchAsync();
                 ViewBag.DriverSelect = drivers
-                    .Select(d => new SelectListItem(d.FullName, d.Id.ToString(), d.Id == dto.DriverId))
+                    .Select(d => new SelectListItem(d.FullName, d.Id.ToString(), d.Id == vm.Input.DriverId))
                     .ToList();
 
                 var vehicles = await _vehicleService.GetVehiclesAsync(
@@ -121,18 +138,66 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     .Select(v => new SelectListItem(
                         $"{v.Make} {v.Model} ({v.PlateNo})",
                         v.Id.ToString(),
-                        v.Id == dto.VehicleId))
+                        v.Id == vm.Input.VehicleId))
+                    .ToList();
+
+                var recordType = _dutyService.GetDutyOfCareTypeOptions();
+                ViewBag.DutyOfCareTypeSelect = recordType
+                    .Select(d => new SelectListItem(d.Text, d.Value.ToString()))
+                    .ToList();
+
+                var statusType = _dutyService.GetDutyOfCareStatusOptions();
+                ViewBag.DutyOfCareStatusSelect = statusType
+                    .Select(d => new SelectListItem(d.Text, d.Value.ToString()))
                     .ToList();
 
                 if (!ModelState.IsValid)
-                    return View(dto);
+                    return View(vm);
+                // map ViewModel → DTO
+                var dto = new DriverDutyOfCareDto
+                {
+                    // basic fields
+                    DriverId = vm.Input.DriverId,
+                    VehicleId = vm.Input.VehicleId,
+                    Date = vm.Input.Date,
+
+                    // Vehicle Responsibility
+                    VehiclePreCheckCompleted = vm.Input.VehiclePreCheckCompleted,
+                    VehicleConditionNotes = vm.Input.VehicleConditionNotes,
+
+                    // Health & Fitness
+                    IsFitToDrive = vm.Input.IsFitToDrive,
+                    HealthDeclarationNotes = vm.Input.HealthDeclarationNotes,
+
+                    // Legal Compliance
+                    HasValidLicense = vm.Input.HasValidLicense,
+                    IsAwareOfCompanyPolicies = vm.Input.IsAwareOfCompanyPolicies,
+                    HasReviewedDrivingHours = vm.Input.HasReviewedDrivingHours,
+
+                    // Fatigue Management
+                    LastRestPeriod = vm.Input.LastRestPeriod,
+                    ReportsFatigue = vm.Input.ReportsFatigue,
+
+                    // Incident / Hazard Awareness
+                    ReportsVehicleIssues = vm.Input.ReportsVehicleIssues,
+                    ReportedIssuesDetails = vm.Input.ReportedIssuesDetails,
+
+                    // Consent & Declaration
+                    ConfirmsAccuracyOfInfo = vm.Input.ConfirmsAccuracyOfInfo,
+                    DeclarationTimestamp = vm.Input.DeclarationTimestamp,
+
+                    // Enums
+                    DutyOfCareRecordType = vm.Input.DutyOfCareRecordType,
+                    DutyOfCareStatus = vm.Input.DutyOfCareStatus
+                };
 
                 var result = await _dutyService.CreateAsync(dto, _authUser.UserId);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.Message);
-                    return View(dto);
+                    ModelState.AddModelError(string.Empty, result.Message);
+                    return View(vm);
                 }
+
 
                 TempData["Success"] = "Duty‑of‑care record created successfully.";
                 return RedirectToAction(nameof(Index));
@@ -145,7 +210,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
             {
                 _logger.LogError(ex, "Error creating duty‑of‑care record");
                 ModelState.AddModelError("", "An unexpected error occurred.");
-                return View(dto);
+                return View(vm);
             }
         }
 

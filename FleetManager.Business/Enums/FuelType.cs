@@ -11,14 +11,14 @@ namespace FleetManager.Business.Enums
         Petrol = 1,       
         Diesel,       
         Electric,     
-        Hybrid,       
-        CNG,          
-        LPG,          
-        Ethanol,      
-        Hydrogen,     
-        Propane,      
-        Biofuel,      
-        E85,          
-        Methanol      
+        Hybrid       
+        //CNG,          
+        //LPG,          
+        //Ethanol,      
+        //Hydrogen,     
+        //Propane,      
+        //Biofuel,      
+        //E85,          
+        //Methanol      
     }
 }

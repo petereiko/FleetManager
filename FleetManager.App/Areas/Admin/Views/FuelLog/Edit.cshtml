@@ -1,0 +1,35 @@
+﻿@using FleetManager.Business.ViewModels
+@model FuelLogInputViewModel
+@{
+    ViewData["Title"] = "Edit Fuel Log";
+}
+
+<div class="content">
+    <div class="page-header">
+        <h3>@ViewData["Title"]</h3>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                <input asp-for="Id" type="hidden" />
+                @* reuse same fields as Create *@
+                @await Html.PartialAsync("_FuelLogFormFields", Model)
+
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="feather-save me-1"></i> Update
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr(".datetimepicker", { dateFormat: "Y-m-d" });
+    </script>
+}

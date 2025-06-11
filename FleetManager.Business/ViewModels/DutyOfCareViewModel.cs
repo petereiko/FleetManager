@@ -6,18 +6,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FleetManager.Business.DataObjects
+namespace FleetManager.Business.ViewModels
 {
-    public class DriverDutyOfCareDto
+    public class DutyOfCareViewModel
+    {
+        public DutyOfCareInputModel Input { get; set; } = new();
+
+        public IEnumerable<SelectListItem> DutyOfCareType { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> DutyOfCareStatus { get; set; } = new List<SelectListItem>();
+    }
+
+
+
+
+    public class  DutyOfCareInputModel
     {
         public long? Id { get; set; }
 
         public long DriverId { get; set; }
-        public string DriverName { get; set; }
+        //public string DriverName { get; set; }
 
-        public string VehicleDescription { get; set; }
+        //public string VehicleDescription { get; set; }
         public long VehicleId { get; set; }
-        public string LicensePlate { get; set; } = string.Empty;
         public DateTime Date { get; set; }
 
         // Vehicle Responsibility

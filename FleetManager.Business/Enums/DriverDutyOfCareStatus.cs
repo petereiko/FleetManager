@@ -18,6 +18,8 @@ namespace FleetManager.Business.Enums
         [Description("Expired")]
         Expired,
         [Description("Upcoming Renewal")]
-        UpcomingRenewal
+        UpcomingRenewal,
+        [Description("Approved")]
+        Approved
     }
 }

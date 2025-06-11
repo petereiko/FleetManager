@@ -10,6 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FleetManager.Business.Interfaces.DutyOfCareModule;
+using FleetManager.Business.Enums;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FleetManager.Business.Implementations.DutyOfCareModule
 {
@@ -78,9 +80,7 @@ namespace FleetManager.Business.Implementations.DutyOfCareModule
             return entity == null ? null : Map(entity);
         }
 
-        public async Task<MessageResponse<DriverDutyOfCareDto>> CreateAsync(
-            DriverDutyOfCareDto dto,
-            string createdBy)
+        public async Task<MessageResponse<DriverDutyOfCareDto>> CreateAsync(DriverDutyOfCareDto dto,string createdBy)
         {
             EnsureAdminOrOwner();
             var resp = new MessageResponse<DriverDutyOfCareDto>();
@@ -288,55 +288,80 @@ namespace FleetManager.Business.Implementations.DutyOfCareModule
                     DutyOfCareRecordType = d.DutyOfCareRecordType,
                     DutyOfCareStatus = d.DutyOfCareStatus,
 
-                    // You probably want to include driver name and vehicle name as well:
-                    //DriverName = _context.Drivers
-                    //               .Where(x => x.Id == d.DriverId)
-                    //               .Select(x => x.Id.ToString()) // placeholder: join to ApplicationUser or use navigation property
-                    //               .FirstOrDefault(),
+                    //You probably want to include driver name and vehicle name as well:
+                    DriverName = _context.Drivers
+                                   .Where(x => x.Id == d.DriverId)
+                                   .Select(x => x.User.FirstName + " " + x.User.LastName)
+                                   .FirstOrDefault(),
 
-                    //VehicleDescription = _context.Vehicles
-                    //                .Where(v => v.Id == d.VehicleId)
-                    //                .Select(v => v.Make + " " + v.Model)
-                    //                .FirstOrDefault()
+                    VehicleDescription = _context.Vehicles
+                                    .Where(v => v.Id == d.VehicleId)
+                                    .Select(v => v.Make + " " + v.Model)
+                                    .FirstOrDefault()
                 });
         }
 
         /// <summary>
         /// Maps the EF entity to our DTO.
         /// </summary>
-        private static DriverDutyOfCareDto Map(DriverDutyOfCare d) => new DriverDutyOfCareDto
+        private static DriverDutyOfCareDto Map(DriverDutyOfCare d)
         {
-            Id = d.Id,
-            DriverId = d.DriverId!.Value,
-            VehicleId = d.VehicleId!.Value,
-            Date = d.Date,
+            return new DriverDutyOfCareDto
+            {
+                Id = d.Id,
+                DriverId = d.DriverId!.Value,
+                VehicleId = d.VehicleId!.Value,
+                //DriverName = d.Driver.User.FirstName + " " + d.Driver.User.LastName,
+                //LicensePlate = d.Vehicle.PlateNo ?? string.Empty,
+                //VehicleDescription = d.Vehicle.Make + " " + d.Vehicle.Model,
+                Date = d.Date,
 
-            VehiclePreCheckCompleted = d.VehiclePreCheckCompleted,
-            VehicleConditionNotes = d.VehicleConditionNotes,
+                VehiclePreCheckCompleted = d.VehiclePreCheckCompleted,
+                VehicleConditionNotes = d.VehicleConditionNotes,
 
-            IsFitToDrive = d.IsFitToDrive,
-            HealthDeclarationNotes = d.HealthDeclarationNotes,
+                IsFitToDrive = d.IsFitToDrive,
+                HealthDeclarationNotes = d.HealthDeclarationNotes,
 
-            HasValidLicense = d.HasValidLicense,
-            IsAwareOfCompanyPolicies = d.IsAwareOfCompanyPolicies,
-            HasReviewedDrivingHours = d.HasReviewedDrivingHours,
+                HasValidLicense = d.HasValidLicense,
+                IsAwareOfCompanyPolicies = d.IsAwareOfCompanyPolicies,
+                HasReviewedDrivingHours = d.HasReviewedDrivingHours,
 
-            LastRestPeriod = d.LastRestPeriod,
-            ReportsFatigue = d.ReportsFatigue,
+                LastRestPeriod = d.LastRestPeriod,
+                ReportsFatigue = d.ReportsFatigue,
 
-            ReportsVehicleIssues = d.ReportsVehicleIssues,
-            ReportedIssuesDetails = d.ReportedIssuesDetails,
+                ReportsVehicleIssues = d.ReportsVehicleIssues,
+                ReportedIssuesDetails = d.ReportedIssuesDetails,
 
-            ConfirmsAccuracyOfInfo = d.ConfirmsAccuracyOfInfo,
-            DeclarationTimestamp = d.DeclarationTimestamp,
+                ConfirmsAccuracyOfInfo = d.ConfirmsAccuracyOfInfo,
+                DeclarationTimestamp = d.DeclarationTimestamp,
 
-            CreatedAt = d.CreatedAt,
-            CreatedBy = d.CreatedBy,
-            ModifiedDate = d.ModifiedDate,
-            ModifiedBy = d.ModifiedBy,
+                CreatedAt = d.CreatedAt,
+                CreatedBy = d.CreatedBy,
+                ModifiedDate = d.ModifiedDate,
+                ModifiedBy = d.ModifiedBy,
 
-            DutyOfCareRecordType = d.DutyOfCareRecordType,
-            DutyOfCareStatus = d.DutyOfCareStatus
-        };
+                DutyOfCareRecordType = d.DutyOfCareRecordType,
+                DutyOfCareStatus = d.DutyOfCareStatus
+            };
+        }
+
+        public List<SelectListItem> GetDutyOfCareTypeOptions() =>
+          Enum.GetValues<DutyOfCareRecordType>()
+              .Select(e => new SelectListItem
+              {
+                  Value = ((int)e).ToString(),
+                  Text = e.ToString()
+              })
+              .ToList();
+
+
+        public List<SelectListItem> GetDutyOfCareStatusOptions() =>
+            Enum.GetValues<DriverDutyOfCareStatus>()
+                .Select(e => new SelectListItem
+                {
+                    Value = ((int)e).ToString(),
+                    Text = e.ToString()
+                })
+                .ToList();
     }
 }
