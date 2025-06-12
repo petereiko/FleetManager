@@ -33,6 +33,7 @@ namespace FleetManager.Business
         public DbSet<EmailLog> EmailLogs { get; set; }
         public DbSet<FuelLog> FuelLogs { get; set; }
         public DbSet<LGA> LGAs {  get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         
         public DbSet<NextOfKin> NextOfKins { get; set; }
         public DbSet<State> States { get; set; }

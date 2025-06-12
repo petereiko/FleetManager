@@ -3,6 +3,7 @@ using FleetManager.Business.DataObjects;
 using FleetManager.Business.Enums;
 using FleetManager.Business.Hubs;
 using FleetManager.Business.Interfaces.FuelLogModule;
+using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.UtilityModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -22,19 +23,19 @@ namespace FleetManager.Business.Implementations.FuelLogModule
     {
         private readonly FleetManagerDbContext _context;
         private readonly IAuthUser _auth;
+        private readonly INotificationService _notification;
         private readonly ILogger<FuelLogService> _logger;
-        private readonly IHubContext<NotificationHub> _hub;
 
         public FuelLogService(
             FleetManagerDbContext context,
             IAuthUser authUser,
             ILogger<FuelLogService> logger,
-            IHubContext<NotificationHub> hub)
+            INotificationService notification)
         {
             _context = context;
             _auth = authUser;
             _logger = logger;
-            _hub = hub;
+            _notification = notification;
         }
 
         private void EnsureAdminOrOwner()
@@ -89,8 +90,8 @@ namespace FleetManager.Business.Implementations.FuelLogModule
         public async Task<MessageResponse<FuelLogDto>> CreateAsync(FuelLogInputDto input, string createdByUserId)
         {
             var resp = new MessageResponse<FuelLogDto>();
-
             using var tx = await _context.Database.BeginTransactionAsync();
+
             try
             {
                 var entity = new FuelLog
@@ -128,6 +129,7 @@ namespace FleetManager.Business.Implementations.FuelLogModule
 
                 await tx.CommitAsync();
 
+                // re‐load into DTO
                 var dto = await GetByIdAsync(entity.Id)
                           ?? throw new InvalidOperationException("Newly created fuel log not found.");
 
@@ -135,55 +137,50 @@ namespace FleetManager.Business.Implementations.FuelLogModule
                 resp.Result = dto;
 
                 // ── NOTIFICATION ────────────────────────────────────────────────
-                // Who should get notified?
-                // If creator is an Admin/Owner, notify the driver.
-                // Otherwise (creator is the driver), notify their branch admin (CreatedByUserId on the branch).
                 var creatorRoles = (_auth.Roles ?? "")
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(r => r.Trim());
-                bool creatorIsAdmin = creatorRoles.Contains("Company Admin")
-                                  || creatorRoles.Contains("Company Owner")
-                                  || creatorRoles.Contains("Super Admin");
+                                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                     .Select(r => r.Trim());
+                bool creatorIsAdmin = creatorRoles.Intersect(new[]
+                {
+                "Company Admin", "Company Owner", "Super Admin"
+            }).Any();
 
                 if (creatorIsAdmin)
                 {
                     // notify the driver
                     var driver = await _context.Drivers.FindAsync(input.DriverId);
-                    if (driver?.UserId != null)
+                    if (!string.IsNullOrEmpty(driver?.UserId))
                     {
-                        var notif = new
-                        {
-                            Title = "New Fuel Log",
-                            Message = $"A new fuel entry on {dto.Date:dd MMM yyyy} for vehicle {dto.LicenseNo}.",
-                            Timestamp = DateTime.UtcNow
-                        };
-                        await _hub.Clients.User(driver.UserId)
-                                  .SendAsync("ReceiveNotification", notif);
+                        await _notification.CreateAsync(
+                            driver.UserId!,
+                            "New Fuel Log",
+                            $"A new fuel entry on {dto.Date:dd MMM yyyy} for vehicle {dto.LicenseNo}.",
+                            NotificationType.Info,
+                            new { fuelLogId = dto.Id }
+                        );
                     }
                 }
                 else
                 {
-                    // creator is the driver—notify their branch admin
+                    // creator is driver → notify all active branch admins
                     var driver = await _context.Drivers.FindAsync(input.DriverId);
                     if (driver?.CompanyBranchId != null)
                     {
-                        // find the admin who onboarded or owns this branch
                         var branchAdmins = await _context.CompanyAdmins
                             .Where(ca => ca.CompanyBranchId == driver.CompanyBranchId && ca.IsActive)
                             .Select(ca => ca.UserId)
+                            .Where(id => !string.IsNullOrEmpty(id))
                             .ToListAsync();
 
-                        var notif = new
+                        foreach (var adminUserId in branchAdmins!)
                         {
-                            Title = "Fuel Log Added",
-                            Message = $"{dto.DriverName} logged fuel on {dto.Date:dd MMM yyyy}.",
-                            Timestamp = DateTime.UtcNow
-                        };
-
-                        foreach (var adminUserId in branchAdmins.Where(id => !string.IsNullOrEmpty(id)))
-                        {
-                            await _hub.Clients.User(adminUserId!)
-                                      .SendAsync("ReceiveNotification", notif);
+                            await _notification.CreateAsync(
+                                adminUserId!,
+                                "Fuel Log Added",
+                                $"{dto.DriverName} logged fuel on {dto.Date:dd MMM yyyy}.",
+                                NotificationType.Info,
+                                new { fuelLogId = dto.Id }
+                            );
                         }
                     }
                 }

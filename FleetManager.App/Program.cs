@@ -14,6 +14,7 @@ using FleetManager.Business.Implementations.DutyOfCareModule;
 using FleetManager.Business.Implementations.EmailModule;
 using FleetManager.Business.Implementations.FuelLogModule;
 using FleetManager.Business.Implementations.ManageDriverModule;
+using FleetManager.Business.Implementations.NotificationModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
 using FleetManager.Business.Interfaces.ComapyBranchModule;
@@ -24,6 +25,7 @@ using FleetManager.Business.Interfaces.DutyOfCareModule;
 using FleetManager.Business.Interfaces.EmailModule;
 using FleetManager.Business.Interfaces.FuelLogModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
+using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using Hangfire;
@@ -115,7 +117,7 @@ builder.Services.AddTransient<IManageDriverService, ManageDriverService>();
 builder.Services.AddTransient<IDriverVehicleService, DriverVehicleService>();
 builder.Services.AddTransient<IDriverDutyOfCareService, DriverDutyOfCareService>();
 builder.Services.AddTransient<IFuelLogService, FuelLogService>();
-builder.Services.AddSignalR();
+builder.Services.AddTransient<INotificationService, NotificationService>();
 
 //builder.Services.AddTransient<IApplicantService, ApplicantService>();
 //builder.Services.AddTransient<IVisualAssessmentResultRepository, VisualAssessmentResultService>();
@@ -212,7 +214,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-app.MapHub<NotificationHub>("hubs/notification");
+app.MapHub<NotificationHub>("/notificationHub");
 
 //RecurringJob.AddOrUpdate<BackgroundJobService>("SendBulkEmail", service => service.SendBulkEmail(), "*/2 * * * *");
 //RecurringJob.AddOrUpdate<BackgroundJobService>("VerifyTransfers", service => service.VerifyPayments(), "*/1 * * * *");
