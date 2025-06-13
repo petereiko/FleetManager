@@ -1,4 +1,20 @@
-﻿<div class="content">
+﻿@using FleetManager.Business.Database.IdentityModels
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var userName = $"{user.FirstName}";
+}
+
+
+
+
+
+
+
+<div class="content">
 
 	<!-- Page Header -->
 	<div class="page-header">
@@ -18,8 +34,8 @@
 		<div class="row">
 			<div class="col-md-6">
 				<div class="morning-user">
-					<h2>Good Morning, <span>Williams Sarah</span></h2>
-					<p>Have a nice day at work</p>
+					@* <h2>Good Morning, <span>Williams Sarah</span></h2>
+					<p>Have a nice day at work</p> *@
 				</div>
 			</div>
 			<div class="col-md-6 position-blk">
@@ -799,3 +815,39 @@
 		</div>
 	</div>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+	(function(){
+	  const name = "@userName";          // injected by Razor
+	  const hour = new Date().getHours();
+	  let greeting, subMessage;
+
+	  if (hour < 12) {
+		greeting   = "Good Morning";
+		subMessage = "Have a productive start and let’s make today count!";
+	  } else if (hour < 17) {
+		greeting   = "Good Afternoon";
+		subMessage = "Keep up the great work this afternoon!";
+	  } else {
+		greeting   = "Good Evening";
+		subMessage = "Time to relax, tomorrow’s challenges await.";
+	  }
+
+	  const container = document.querySelector('.morning-user');
+	  container.innerHTML = `
+		<h2>${greeting}, <span>${name}</span></h2>
+		<p>${subMessage}</p>
+	  `;
+	})();
+</script>

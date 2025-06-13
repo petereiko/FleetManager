@@ -23,5 +23,7 @@ namespace FleetManager.Business.Interfaces.DriverVehicleModule
         /// Query all assignments for a given vehicle.
         /// </summary>
         IQueryable<DriverVehicleListItemDto> QueryAssignmentsByVehicle(long vehicleId);
+
+        Task<long> GetDriverIdByUserAsync(string userId);
     }
 }

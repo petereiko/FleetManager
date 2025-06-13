@@ -1,0 +1,740 @@
+﻿@using FleetManager.Business.DataObjects
+@model IEnumerable<FuelLogDto>
+@{
+    ViewData["Title"] = "My Fuel Logs";
+}
+
+<style>
+    .content {
+        padding: 20px;
+        background: #f8f9fa;
+    }
+
+    .page-header {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        color: #2c3e50;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .stats-row {
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid;
+    }
+
+        .stat-card.total {
+            border-left-color: #3498db;
+        }
+
+        .stat-card.cost {
+            border-left-color: #e74c3c;
+        }
+
+        .stat-card.volume {
+            border-left-color: #2ecc71;
+        }
+
+        .stat-card.avg {
+            border-left-color: #f39c12;
+        }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
+    .filters-panel {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .table {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table thead th {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 15px 12px;
+            font-weight: 600;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+            .table thead th:hover {
+                background: #2c3e50;
+            }
+
+            .table thead th.sortable::after {
+                content: '⇅';
+                position: absolute;
+                right: 8px;
+                opacity: 0.5;
+            }
+
+            .table thead th.sort-asc::after {
+                content: '↑';
+                opacity: 1;
+            }
+
+            .table thead th.sort-desc::after {
+                content: '↓';
+                opacity: 1;
+            }
+
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .table td {
+            padding: 12px;
+            border-top: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge-petrol {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .badge-diesel {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .badge-electric {
+        background: #e8f5e8;
+        color: #388e3c;
+    }
+
+    .btn-action {
+        margin: 0 2px;
+        transition: all 0.2s;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+        }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    .form-control.search-input {
+        padding-left: 40px;
+        border-radius: 25px;
+        border: 2px solid #e9ecef;
+        transition: border-color 0.2s;
+    }
+
+        .form-control.search-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+    .pagination-container {
+        background: white;
+        padding: 20px;
+        border-radius: 0 0 10px 10px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    @@media (max-width: 768px) {
+        .content {
+            padding: 10px;
+        }
+
+        .page-header {
+            padding: 15px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+        }
+
+        .filters-panel .row > div {
+            margin-bottom: 15px;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="page-title">
+                <i class="fas fa-gas-pump me-2 text-primary"></i>
+                My Fuel Logs
+            </h3>
+            <p class="text-muted mb-0">Track and manage your vehicle fuel consumption</p>
+        </div>
+        <div>
+            <a asp-action="Export" class="btn btn-outline-success me-2">
+                <i class="fas fa-download me-1"></i> Export
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Log Fuel
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row stats-row">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card total">
+                <div class="stat-value" id="total-logs">0</div>
+                <div class="stat-label">Total Logs</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card cost">
+                <div class="stat-value" id="total-cost">₦0</div>
+                <div class="stat-label">Total Cost</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card volume">
+                <div class="stat-value" id="total-volume">0L</div>
+                <div class="stat-label">Total Volume</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card avg">
+                <div class="stat-value" id="avg-cost">₦0</div>
+                <div class="stat-label">Avg Cost/Liter</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="filters-panel">
+        <div class="row align-items-end">
+            <div class="col-lg-4 col-md-6 mb-3">
+                <label class="form-label fw-semibold">Search</label>
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="form-control search-input" id="searchInput"
+                           placeholder="Search by vehicle, fuel type...">
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-3">
+                <label class="form-label fw-semibold">Vehicle</label>
+                <select class="form-select" id="vehicleFilter">
+                    <option value="">All Vehicles</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-3">
+                <label class="form-label fw-semibold">Fuel Type</label>
+                <select class="form-select" id="fuelTypeFilter">
+                    <option value="">All Types</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-3">
+                <label class="form-label fw-semibold">Date Range</label>
+                <select class="form-select" id="dateRangeFilter">
+                    <option value="">All Time</option>
+                    <option value="7">Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                    <option value="90">Last 3 Months</option>
+                    <option value="365">Last Year</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-3">
+                <button class="btn btn-outline-secondary w-100" id="clearFilters">
+                    <i class="fas fa-times me-1"></i> Clear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table" id="fuelLogsTable">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="date">Date</th>
+                        <th class="sortable" data-sort="vehicle">Vehicle</th>
+                        <th class="sortable" data-sort="odometer">Odometer</th>
+                        <th class="sortable" data-sort="volume">Volume (L)</th>
+                        <th class="sortable" data-sort="cost">Cost</th>
+                        <th class="sortable" data-sort="fuelType">Fuel Type</th>
+                        <th>Receipt</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    @if (!Model.Any())
+                    {
+                        <tr id="emptyRow">
+                            <td colspan="8" class="empty-state">
+                                <i class="fas fa-gas-pump"></i>
+                                <h5>No fuel logs yet</h5>
+                                <p>Start tracking your fuel consumption by adding your first log.</p>
+                                <a asp-action="Create" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Add First Log
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var log in Model)
+                        {
+                            @* @{
+                                // If FuelType is an enum:
+                                var raw = log.FuelType.ToString();
+
+                                // If FuelType is already a string that could be null, use:
+                                // var raw = log.FuelType ?? "";
+
+                                // Now safely lower-case it:
+                                var fuelTypeLower = raw.ToLower();
+                            } *@
+
+                            <tr data-date="@log.Date.ToString("yyyy-MM-dd")"
+                                data-vehicle="@log.VehicleDescription?.ToLower()"
+                                @* data-fuel-type="@log.FuelType?.ToLower()" *@
+                                data-cost="@log.Cost"
+                                data-volume="@log.Volume"
+                                data-odometer="@log.Odometer">
+                                <td>
+                                    <div class="fw-semibold">@log.Date.ToString("MMM dd, yyyy")</div>
+                                    <small class="text-muted">@log.Date.ToString("dddd")</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@log.VehicleDescription</div>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">@string.Format("{0:N0}", log.Odometer)</span>
+                                    <small class="text-muted">km</small>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">@log.Volume</span>
+                                    <small class="text-muted">liters</small>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-success">@log.Cost.ToString("C")</span>
+                                </td>
+                                <td>
+                                    @{
+                                        // Convert the enum/other type to string, then lowercase
+                                        var fuelTypeText = log.FuelType.ToString().ToLowerInvariant();
+
+                                        // Decide which badge class to use
+                                        string fuelClass;
+                                        if (fuelTypeText == "petrol")
+                                        {
+                                            fuelClass = "petrol";
+                                        }
+                                        else if (fuelTypeText == "diesel")
+                                        {
+                                            fuelClass = "diesel";
+                                        }
+                                        else
+                                        {
+                                            fuelClass = "hybrid";
+
+                                        }
+                                    }
+
+                                    <span class="badge badge-@fuelClass">
+                                        @fuelTypeText @* @log.FuelType *@  @* Or use @fuelTypeText if you want the lowercase version *@
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.ReceiptPath))
+                                    {
+                                        <a href="@log.ReceiptPath" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No receipt</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Edit" asp-route-id="@log.Id"
+                                           class="btn btn-sm btn-outline-primary btn-action"
+                                           title="Edit Log">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@log.Id" method="post" class="d-inline">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger btn-action"
+                                                    title="Delete Log"
+                                                    onclick="return confirm('Are you sure you want to delete this fuel log?');">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted">Showing <span id="showing-count">0</span> of <span id="total-count">0</span> entries</span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('fuelLogsTable');
+        const tbody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+        const vehicleFilter = document.getElementById('vehicleFilter');
+        const fuelTypeFilter = document.getElementById('fuelTypeFilter');
+        const dateRangeFilter = document.getElementById('dateRangeFilter');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+
+        let allRows = Array.from(tbody.querySelectorAll('tr')).filter(row => !row.id);
+        let filteredRows = [...allRows];
+        let currentSort = { column: '', direction: 'asc' };
+        let currentPage = 1;
+        const rowsPerPage = 10;
+
+        // Initialize
+        populateFilters();
+        updateStatistics();
+        updateTable();
+
+        function populateFilters() {
+            const vehicles = new Set();
+            const fuelTypes = new Set();
+
+            allRows.forEach(row => {
+                const vehicle = row.dataset.vehicle;
+                const fuelType = row.dataset.fuelType;
+
+                if (vehicle) vehicles.add(vehicle);
+                if (fuelType) fuelTypes.add(fuelType);
+            });
+
+            // Populate vehicle filter
+            vehicles.forEach(vehicle => {
+                const option = document.createElement('option');
+                option.value = vehicle;
+                option.textContent = vehicle.charAt(0).toUpperCase() + vehicle.slice(1);
+                vehicleFilter.appendChild(option);
+            });
+
+            // Populate fuel type filter
+            fuelTypes.forEach(fuelType => {
+                const option = document.createElement('option');
+                option.value = fuelType;
+                option.textContent = fuelType.charAt(0).toUpperCase() + fuelType.slice(1);
+                fuelTypeFilter.appendChild(option);
+            });
+        }
+
+        function updateStatistics() {
+            const totalLogs = filteredRows.length;
+            let totalCost = 0;
+            let totalVolume = 0;
+
+            filteredRows.forEach(row => {
+                totalCost += parseFloat(row.dataset.cost) || 0;
+                totalVolume += parseFloat(row.dataset.volume) || 0;
+            });
+
+            const avgCost = totalVolume > 0 ? totalCost / totalVolume : 0;
+
+            document.getElementById('total-logs').textContent = totalLogs;
+            document.getElementById('total-cost').textContent = new Intl.NumberFormat('en-NG', {
+                style: 'currency',
+                currency: 'NGN'
+            }).format(totalCost);
+            document.getElementById('total-volume').textContent = totalVolume.toFixed(1) + 'L';
+            document.getElementById('avg-cost').textContent = new Intl.NumberFormat('en-NG', {
+                style: 'currency',
+                currency: 'NGN'
+            }).format(avgCost);
+        }
+
+        function filterRows() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const vehicleValue = vehicleFilter.value.toLowerCase();
+            const fuelTypeValue = fuelTypeFilter.value.toLowerCase();
+            const dateRange = parseInt(dateRangeFilter.value);
+
+            const now = new Date();
+            const cutoffDate = dateRange ? new Date(now.getTime() - (dateRange * 24 * 60 * 60 * 1000)) : null;
+
+            filteredRows = allRows.filter(row => {
+                const rowDate = new Date(row.dataset.date);
+                const vehicle = row.dataset.vehicle || '';
+                const fuelType = row.dataset.fuelType || '';
+                const searchContent = (vehicle + ' ' + fuelType).toLowerCase();
+
+                const matchesSearch = !searchTerm || searchContent.includes(searchTerm);
+                const matchesVehicle = !vehicleValue || vehicle === vehicleValue;
+                const matchesFuelType = !fuelTypeValue || fuelType === fuelTypeValue;
+                const matchesDate = !cutoffDate || rowDate >= cutoffDate;
+
+                return matchesSearch && matchesVehicle && matchesFuelType && matchesDate;
+            });
+
+            currentPage = 1;
+            updateStatistics();
+            updateTable();
+        }
+
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            filteredRows.sort((a, b) => {
+                let aVal, bVal;
+
+                switch (column) {
+                    case 'date':
+                        aVal = new Date(a.dataset.date);
+                        bVal = new Date(b.dataset.date);
+                        break;
+                    case 'vehicle':
+                        aVal = a.dataset.vehicle || '';
+                        bVal = b.dataset.vehicle || '';
+                        break;
+                    case 'odometer':
+                        aVal = parseFloat(a.dataset.odometer) || 0;
+                        bVal = parseFloat(b.dataset.odometer) || 0;
+                        break;
+                    case 'volume':
+                        aVal = parseFloat(a.dataset.volume) || 0;
+                        bVal = parseFloat(b.dataset.volume) || 0;
+                        break;
+                    case 'cost':
+                        aVal = parseFloat(a.dataset.cost) || 0;
+                        bVal = parseFloat(b.dataset.cost) || 0;
+                        break;
+                    case 'fuelType':
+                        aVal = a.dataset.fuelType || '';
+                        bVal = b.dataset.fuelType || '';
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            updateSortHeaders();
+            updateTable();
+        }
+
+        function updateSortHeaders() {
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.dataset.sort === currentSort.column) {
+                    th.classList.add(`sort-${currentSort.direction}`);
+                }
+            });
+        }
+
+        function updateTable() {
+            // Clear tbody
+            tbody.innerHTML = '';
+
+            if (filteredRows.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td colspan="8" class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h5>No matching results</h5>
+                        <p>Try adjusting your filters or search terms.</p>
+                    </td>
+                `;
+                tbody.appendChild(emptyRow);
+            } else {
+                // Pagination
+                const startIndex = (currentPage - 1) * rowsPerPage;
+                const endIndex = Math.min(startIndex + rowsPerPage, filteredRows.length);
+
+                for (let i = startIndex; i < endIndex; i++) {
+                    tbody.appendChild(filteredRows[i]);
+                }
+
+                updatePagination();
+            }
+
+            updateRowCount();
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = '<a class="page-link" href="#" data-page="prev">Previous</a>';
+            pagination.appendChild(prevLi);
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                    pagination.appendChild(li);
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    const li = document.createElement('li');
+                    li.className = 'page-item disabled';
+                    li.innerHTML = '<span class="page-link">...</span>';
+                    pagination.appendChild(li);
+                }
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = '<a class="page-link" href="#" data-page="next">Next</a>';
+            pagination.appendChild(nextLi);
+        }
+
+        function updateRowCount() {
+            const startIndex = filteredRows.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+            const endIndex = Math.min(currentPage * rowsPerPage, filteredRows.length);
+
+            document.getElementById('showing-count').textContent =
+                filteredRows.length === 0 ? '0' : `${startIndex}-${endIndex}`;
+            document.getElementById('total-count').textContent = filteredRows.length;
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', filterRows);
+        vehicleFilter.addEventListener('change', filterRows);
+        fuelTypeFilter.addEventListener('change', filterRows);
+        dateRangeFilter.addEventListener('change', filterRows);
+
+        clearFiltersBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            vehicleFilter.value = '';
+            fuelTypeFilter.value = '';
+            dateRangeFilter.value = '';
+            filterRows();
+        });
+
+        // Sort headers
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', () => sortTable(th.dataset.sort));
+        });
+
+        // Pagination clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('#pagination a[data-page]')) {
+                e.preventDefault();
+                const page = e.target.dataset.page;
+
+                if (page === 'prev' && currentPage > 1) {
+                    currentPage--;
+                } else if (page === 'next' && currentPage < Math.ceil(filteredRows.length / rowsPerPage)) {
+                    currentPage++;
+                } else if (!isNaN(page)) {
+                    currentPage = parseInt(page);
+                }
+
+                updateTable();
+            }
+        });
+    });
+</script>

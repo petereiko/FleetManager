@@ -152,7 +152,7 @@
             background: #007bff;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 1.5px 10px;
             border-radius: 4px;
             font-size: 12px;
             cursor: pointer;
@@ -189,16 +189,16 @@
             <ul class="nav user-menu float-end">
                 <li class="nav-item dropdown d-none d-md-block">
                     <a href="#" class="dropdown-toggle nav-link position-relative" data-bs-toggle="dropdown" id="notificationDropdown">
-                        <img src="~/assets/img/icons/note-icon-02.svg" alt="">
-                        <span class="pulse"></span>
+                        <img src="~/assets/img/icons/note-icon-01.svg" alt="">
+                        <!-- <span class="pulse"></span> -->
                         <span class="notification-badge hidden" id="notificationBadge">0</span>
                     </a>
                     <div class="dropdown-menu notifications" style="width: 350px; max-height: 400px;">
                         <div class="topnav-dropdown-header d-flex justify-content-between align-items-center">
                             <span>Notifications</span>
-                            <button class="mark-all-read" id="markAllRead" style="display: none;">Mark All Read</button>
+                            <button class="mark-all-read" id="markAllRead" style="display: none; margin-bottom: inherit;max-width: inherit;max-height: 30px;">Mark All Read</button>
                         </div>
-                        <div class="drop-scroll" style="max-height: 300px; overflow-y: auto;">
+                        <div class="drop-scroll" style="max-height: 300px; max-width:345px;">
                             <div class="notification-loading" id="notificationLoading">
                                 <i class="fas fa-spinner fa-spin"></i> Loading notifications...
                             </div>
@@ -212,7 +212,7 @@
                     </div>
                 </li>
                 <li class="nav-item dropdown d-none d-md-block">
-                    <a href="javascript:void(0);" id="open_msg_box" class="hasnotifications nav-link"><img src="~/assets/img/icons/note-icon-01.svg" alt=""><span class="pulse"></span> </a>
+                    <a href="javascript:void(0);" id="open_msg_box" class="hasnotifications nav-link"><img src="~/assets/img/icons/note-icon-02.svg" alt=""><span class="pulse"></span> </a>
                 </li>
                 <li class="nav-item dropdown has-arrow user-profile-list">
                     <a href="#" class="dropdown-toggle nav-link user-link" data-bs-toggle="dropdown">

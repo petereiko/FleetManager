@@ -80,6 +80,31 @@ namespace FleetManager.Business.Implementations.FuelLogModule
 
             return q;
         }
+        public IQueryable<FuelLogDto> QueryByDriver(long driverId)
+        {
+            // no EnsureAdminOrOwner: drivers allowed
+            return from fl in _context.FuelLogs.AsNoTracking()
+                   join d in _context.Drivers.AsNoTracking() on fl.DriverId equals d.Id
+                   join u in _context.Users.AsNoTracking() on d.UserId equals u.Id
+                   join v in _context.Vehicles.AsNoTracking() on fl.VehicleId equals v.Id
+                   where d.Id == driverId
+                   select new FuelLogDto
+                   {
+                       Id = fl.Id,
+                       DriverId = d.Id,
+                       DriverName = (u.FirstName! + " " + u.LastName!).Trim(),
+                       VehicleId = v.Id,
+                       VehicleDescription = v.Make + " " + v.Model,
+                       LicenseNo = v.PlateNo,
+                       Date = fl.Date,
+                       Odometer = fl.Odometer,
+                       Volume = fl.Volume,
+                       Cost = fl.Cost,
+                       FuelType = fl.FuelType,
+                       ReceiptPath = fl.ReceiptPath,
+                       Notes = fl.Notes
+                   };
+        }
 
         public async Task<FuelLogDto?> GetByIdAsync(long id)
         {

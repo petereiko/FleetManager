@@ -1,6 +1,8 @@
 ﻿using FleetManager.Business.Database.Entities;
 using FleetManager.Business.DataObjects;
+using FleetManager.Business.Enums;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
+using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.UtilityModels;
 using Microsoft.EntityFrameworkCore;
@@ -19,15 +21,18 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
         private readonly FleetManagerDbContext _context;
         private readonly IAuthUser _authUser;
         private readonly ILogger<DriverVehicleService> _logger;
+        private readonly INotificationService _notification;
 
         public DriverVehicleService(
             FleetManagerDbContext context,
             IAuthUser authUser,
-            ILogger<DriverVehicleService> logger)
+            ILogger<DriverVehicleService> logger,
+            INotificationService notification)
         {
             _context = context;
             _authUser = authUser;
             _logger = logger;
+            _notification = notification;
         }
 
         private void EnsureAdminOrOwner()
@@ -78,6 +83,20 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                 dto.Id = entity.Id;
                 resp.Success = true;
                 resp.Result = dto;
+
+
+                // ── Notify the driver ────────────────────────────────────────
+                if (!string.IsNullOrEmpty(driver.UserId))
+                {
+                    var title = "Vehicle Assigned Update";
+                    var message = $"You have been assigned vehicle {vehicle.Make} {vehicle.Model} with license plate: {vehicle.PlateNo}. Await further Instructions";
+                    await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
+                    {
+                        assignmentId = dto.Id,
+                        vehicleId = dto.VehicleId
+                    });
+                }
+
             }
             catch (Exception ex)
             {
@@ -102,6 +121,14 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                     return resp;
                 }
 
+                var driver = await _context.Drivers.FindAsync(dto.DriverId);
+                var vehicle = await _context.Vehicles.FindAsync(dto.VehicleId);
+                if (driver == null || vehicle == null)
+                {
+                    resp.Message = "Driver or vehicle not found.";
+                    return resp;
+                }
+
                 entity.DriverId = dto.DriverId;
                 entity.VehicleId = dto.VehicleId;
                 entity.StartDate = dto.StartDate;
@@ -114,6 +141,20 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
 
                 resp.Success = true;
                 resp.Result = dto;
+
+                // ── Notify the driver of changes ────────────────────────────
+                if (!string.IsNullOrEmpty(driver.UserId))
+                {
+                    var title = "Vehicle ssignment Update";
+                    var message = $"Your vehicle assignment has been updated to {vehicle.Make} {vehicle.Model} " +
+                                  $"(start {dto.StartDate:dd MMM yy}" +
+                                  (dto.EndDate.HasValue ? $", end {dto.EndDate:dd MMM yy})." : ").");
+                    await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
+                    {
+                        assignmentId = dto.Id,
+                        vehicleId = dto.VehicleId
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -136,9 +177,23 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                     resp.Message = "Assignment not found.";
                     return resp;
                 }
+
+                var driver = await _context.Drivers.FindAsync(entity.DriverId);
+                var vehicle = await _context.Vehicles.FindAsync(entity.VehicleId);
+
                 _context.Remove(entity);
                 await _context.SaveChangesAsync();
                 resp.Success = true;
+
+                if (driver != null && vehicle != null && !string.IsNullOrEmpty(driver.UserId))
+                {
+                    var title = "Vehicle Unassigned";
+                    var message = $"You've been unassigned from operating vehicl: {vehicle.Make} {vehicle.Model} {vehicle.PlateNo}.";
+                    await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
+                    {
+                        vehicleId = entity.VehicleId
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -150,7 +205,7 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
 
         public IQueryable<DriverVehicleListItemDto> QueryAssignmentsByDriver(long driverId)
         {
-            EnsureAdminOrOwner();
+            //EnsureAdminOrOwner();
             return from dv in _context.Set<DriverVehicle>().AsNoTracking()
                    join d in _context.Drivers.AsNoTracking() on dv.DriverId equals d.Id
                    join u in _context.Users.AsNoTracking() on d.UserId equals u.Id
@@ -188,6 +243,24 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                        StartDate = dv.StartDate ?? DateTime.MinValue,
                        EndDate = dv.EndDate
                    };
+        }
+
+
+        public async Task<long> GetDriverIdByUserAsync(string userId)
+        {
+            // no need to call EnsureAdminOrOwner here,
+            // any logged‐in identity can call this; we’ll validate later.
+            var drv = await _context.Drivers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.UserId == userId);
+
+            if (drv == null)
+            {
+                _logger.LogWarning("User {UserId} is not a driver.", userId);
+                throw new UnauthorizedAccessException("You are not registered as a driver.");
+            }
+
+            return drv.Id;
         }
     }
 

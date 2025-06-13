@@ -5,538 +5,505 @@
     ViewData["Title"] = "Duty of Care Records";
 }
 
-<!-- External CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
 <style>
     :root {
-        --primary-color: #4f46e5;
-        --primary-light: #818cf8;
+        --primary-color: #2563eb;
+        --secondary-color: #64748b;
         --success-color: #10b981;
         --warning-color: #f59e0b;
         --danger-color: #ef4444;
-        --info-color: #3b82f6;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-500: #6b7280;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
+        --light-bg: #f8fafc;
+        --border-color: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
         --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
         --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     }
 
     body {
-        background-color: var(--gray-50);
+        background-color: var(--light-bg);
+        color: var(--text-primary);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: var(--gray-800);
+    }
+
+    .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
     }
 
     .page-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 12px;
         padding: 2rem;
         margin-bottom: 2rem;
         color: white;
-        position: relative;
-        overflow: hidden;
+        box-shadow: var(--shadow-lg);
     }
 
-        .page-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transform: translate(50px, -50px);
-        }
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
 
-    .stats-card {
+    .page-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
         background: white;
         border-radius: 12px;
         padding: 1.5rem;
-        box-shadow: var(--shadow-md);
-        border: 1px solid var(--gray-200);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
     }
 
-        .stats-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
 
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            border-radius: 0 4px 4px 0;
-        }
+    .stat-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
 
-        .stats-card.primary::before {
-            background-color: var(--primary-color);
-        }
+    .stat-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        margin: 0;
+    }
 
-        .stats-card.success::before {
-            background-color: var(--success-color);
-        }
+    .stat-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
 
-        .stats-card.warning::before {
-            background-color: var(--warning-color);
-        }
-
-        .stats-card.danger::before {
-            background-color: var(--danger-color);
-        }
-
-    .stats-icon {
+    .stat-icon {
         width: 3rem;
         height: 3rem;
-        border-radius: 12px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.25rem;
     }
 
-        .stats-icon.primary {
-            background-color: rgba(79, 70, 229, 0.1);
-            color: var(--primary-color);
-        }
+    .stat-icon.primary { background: #dbeafe; color: var(--primary-color); }
+    .stat-icon.success { background: #d1fae5; color: var(--success-color); }
+    .stat-icon.warning { background: #fef3c7; color: var(--warning-color); }
+    .stat-icon.danger { background: #fee2e2; color: var(--danger-color); }
 
-        .stats-icon.success {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-        }
-
-        .stats-icon.warning {
-            background-color: rgba(245, 158, 11, 0.1);
-            color: var(--warning-color);
-        }
-
-        .stats-icon.danger {
-            background-color: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-        }
-
-    .filter-card, .records-card {
+    .content-card {
         background: white;
         border-radius: 12px;
-        box-shadow: var(--shadow-md);
-        border: 1px solid var(--gray-200);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
         overflow: hidden;
+        margin-bottom: 2rem;
     }
 
-    .card-header-custom {
-        background: var(--gray-50);
-        border-bottom: 1px solid var(--gray-200);
-        padding: 1rem 1.5rem;
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: #fafafa;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
         font-weight: 600;
-        color: var(--gray-700);
-    }
-
-    .btn-custom {
-        border-radius: 8px;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        transition: all 0.2s ease;
-        border: none;
-        display: inline-flex;
+        margin: 0;
+        display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .btn-primary-custom {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    .filters-section {
+        padding: 1.5rem;
+        background: #fafafa;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .filters-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
         color: white;
     }
 
-        .btn-primary-custom:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-
-    .btn-outline-custom {
-        background: white;
-        color: var(--gray-700);
-        border: 1px solid var(--gray-300);
+    .btn-primary:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
     }
 
-        .btn-outline-custom:hover {
-            background: var(--gray-50);
-            border-color: var(--gray-400);
-        }
+    .btn-secondary {
+        background: var(--secondary-color);
+        color: white;
+    }
 
-    .form-control-custom {
-        border: 1px solid var(--gray-300);
-        border-radius: 8px;
-        padding: 0.75rem;
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .btn-outline:hover {
+        background: var(--light-bg);
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .records-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .records-table th {
+        background: #fafafa;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--border-color);
         font-size: 0.875rem;
-        transition: all 0.2s ease;
     }
 
-        .form-control-custom:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-            outline: none;
-        }
-
-    .table-custom {
-        background: white;
-        border-collapse: separate;
-        border-spacing: 0;
+    .records-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
     }
 
-        .table-custom thead th {
-            background: var(--gray-50);
-            border-bottom: 2px solid var(--gray-200);
-            font-weight: 600;
-            color: var(--gray-700);
-            padding: 1rem;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
+    .records-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
 
-        .table-custom tbody td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--gray-100);
-            vertical-align: middle;
-        }
+    .records-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
 
-        .table-custom tbody tr:hover {
-            background: var(--gray-50);
-        }
+    .records-table tbody tr.has-issues {
+        background-color: #fefce8;
+    }
 
-        .table-custom tbody tr:nth-child(even) {
-            background-color: rgba(249, 250, 251, 0.5);
-        }
-
-            .table-custom tbody tr:nth-child(even):hover {
-                background: var(--gray-50);
-            }
+    .driver-info, .vehicle-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
 
     .avatar {
         width: 2.5rem;
         height: 2.5rem;
-        border-radius: 8px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         display: flex;
         align-items: center;
         justify-content: center;
+        color: white;
         font-weight: 600;
         font-size: 0.875rem;
     }
 
-    .record-type-text {
+    .info-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-primary {
         font-weight: 600;
-        color: var(--info-color);
-        background-color: rgba(59, 130, 246, 0.1);
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .info-secondary {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .badge {
         padding: 0.375rem 0.75rem;
         border-radius: 6px;
         font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        border: 1px solid rgba(59, 130, 246, 0.2);
-    }
-
-    .status-text {
         font-weight: 600;
-        padding: 0.375rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        border: 1px solid;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
     }
 
-        .status-text.compliant {
-            color: #047857;
-            background-color: rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.3);
-        }
+    .badge-primary { background: #dbeafe; color: var(--primary-color); }
+    .badge-success { background: #d1fae5; color: var(--success-color); }
+    .badge-warning { background: #fef3c7; color: var(--warning-color); }
+    .badge-danger { background: #fee2e2; color: var(--danger-color); }
+    .badge-secondary { background: #f1f5f9; color: var(--secondary-color); }
 
-        .status-text.approved {
-            color: #047857;
-            background-color: rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        .status-text.pending {
-            color: #b45309;
-            background-color: rgba(245, 158, 11, 0.1);
-            border-color: rgba(245, 158, 11, 0.3);
-        }
-
-        .status-text.renewal {
-            color: #b45309;
-            background-color: rgba(245, 158, 11, 0.1);
-            border-color: rgba(245, 158, 11, 0.3);
-        }
-
-        .status-text.action-required {
-            color: #dc2626;
-            background-color: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .status-text.expired {
-            color: #dc2626;
-            background-color: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .status-text.unknown {
-            color: var(--gray-500);
-            background-color: rgba(107, 114, 128, 0.1);
-            border-color: rgba(107, 114, 128, 0.3);
-        }
-
-    .status-indicator {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
+    .status-icon {
+        font-size: 1.25rem;
     }
 
-    .status-success {
-        background-color: var(--success-color);
-    }
+    .status-icon.success { color: var(--success-color); }
+    .status-icon.danger { color: var(--danger-color); }
+    .status-icon.warning { color: var(--warning-color); }
 
-    .status-warning {
-        background-color: var(--warning-color);
-    }
-
-    .status-danger {
-        background-color: var(--danger-color);
-    }
-
-    .status-secondary {
-        background-color: var(--gray-500);
-    }
-
-    .action-buttons .btn {
-        width: 2rem;
-        height: 2rem;
-        padding: 0;
-        border-radius: 6px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 0.125rem;
-        font-size: 0.75rem;
+    .actions-group {
+        display: flex;
+        gap: 0.5rem;
     }
 
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
-        color: var(--gray-500);
     }
 
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            color: var(--gray-300);
-        }
-
-    .modal-content {
-        border-radius: 12px;
-        border: none;
-        box-shadow: var(--shadow-xl);
-    }
-
-    .modal-header {
-        border-bottom: 1px solid var(--gray-200);
-        background: var(--gray-50);
-    }
-
-    /* Flatpickr custom styling */
-    .flatpickr-calendar {
-        border-radius: 8px;
-        box-shadow: var(--shadow-lg);
-        border: 1px solid var(--gray-200);
-    }
-
-    .flatpickr-day.selected {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    .flatpickr-day:hover {
-        background: var(--gray-100);
-    }
-
-    /* Responsive improvements */
-    @@media (max-width: 768px) {
-        .page-header
-
-    {
-        padding: 1.5rem;
-    }
-
-    .stats-card {
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--text-secondary);
         margin-bottom: 1rem;
     }
 
-    .table-responsive {
-        font-size: 0.875rem;
+    .empty-state-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
     }
 
-    .action-buttons {
-        flex-direction: column;
+    .empty-state-description {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
     }
 
-    }
-
-    /* Alert animations */
     .alert {
-        border: none;
-        border-radius: 8px;
         padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
     .alert-success {
-        background-color: rgba(16, 185, 129, 0.1);
-        color: var(--success-color);
-        border-left: 4px solid var(--success-color);
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
     }
 
     .alert-danger {
-        background-color: rgba(239, 68, 68, 0.1);
-        color: var(--danger-color);
-        border-left: 4px solid var(--danger-color);
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
     }
 
-    /* Table-specific styles */
-    .sortable-header {
-        cursor: pointer;
-        user-select: none;
+    .alert-dismissible {
         position: relative;
-        transition: background-color 0.2s ease;
+        padding-right: 3rem;
     }
 
-        .sortable-header:hover {
-            background-color: var(--gray-100);
-        }
-
-    .sort-icon {
-        font-size: 0.75rem;
-        margin-left: 0.5rem;
-        opacity: 0.5;
-        transition: opacity 0.2s ease;
-    }
-
-    .sortable-header:hover .sort-icon {
-        opacity: 1;
-    }
-
-    .sortable-header.asc .sort-icon::before {
-        content: "\f0de"; /* fa-sort-up */
-        opacity: 1;
-    }
-
-    .sortable-header.desc .sort-icon::before {
-        content: "\f0dd"; /* fa-sort-down */
-        opacity: 1;
-    }
-
-    .table-compact .table-custom tbody td {
-        padding: 0.5rem;
-        font-size: 0.875rem;
-    }
-
-    .table-compact .avatar {
-        width: 2rem;
-        height: 2rem;
-        font-size: 0.75rem;
-    }
-
-    .hidden-row {
-        display: none;
-    }
-
-    .search-highlight {
-        background-color: yellow;
-        font-weight: bold;
-    }
-
-    /* Loading overlay */
-    .table-loading {
-        position: relative;
-    }
-
-        .table-loading::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 100;
-        }
-
-    .loading-spinner {
+    .alert-close {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 101;
+        right: 1rem;
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        color: inherit;
+        opacity: 0.7;
     }
 
-    /* Search and filter enhancements */
-    .search-container {
-        position: relative;
+    .alert-close:hover {
+        opacity: 1;
     }
 
-        .search-container .fas {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-500);
-            z-index: 5;
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-secondary);
+    }
+
+    .modal-footer {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .pagination-info {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-right: 1rem;
+    }
+
+    @@media (max-width: 768px) {
+        .main-container {
+            padding: 1rem;
         }
 
-        .search-container input {
-            padding-left: 2.5rem;
+        .page-header {
+            padding: 1.5rem;
         }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filters-form {
+            grid-template-columns: 1fr;
+        }
+
+        .records-table {
+            font-size: 0.875rem;
+        }
+
+        .records-table th,
+        .records-table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
 </style>
-<div class="container-fluid px-4 py-3">
-    <!-- Header Section -->
+
+<div class="main-container">
+    <!-- Page Header -->
     <div class="page-header">
-        <div class="d-flex justify-content-between align-items-start position-relative">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h1 class="h2 mb-2 fw-bold">
-                    <i class="fas fa-shield-alt me-3"></i>
-                    Duty of Care Records
+                <h1 class="page-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Duty of Care Management
                 </h1>
-                <p class="mb-0 opacity-90">Comprehensive driver safety and compliance management system</p>
+                <p class="page-subtitle">Monitor driver safety and compliance records across your fleet</p>
             </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-light btn-custom" onclick="exportToExcel()">
+            <div style="display: flex; gap: 1rem;">
+                <a href="@Url.Action("ExportToExcel")" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.3);">
                     <i class="fas fa-download"></i>
                     Export Data
-                </button>
-                <a href="@Url.Action("Create")" class="btn btn-warning btn-custom">
+                </a>
+                <a href="@Url.Action("Create")" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
                     <i class="fas fa-plus"></i>
                     New Record
                 </a>
@@ -547,1040 +514,603 @@
     <!-- Alert Messages -->
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
+        <div class="alert alert-success alert-dismissible">
+            <i class="fas fa-check-circle"></i>
             @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="alert-close" onclick="this.parentElement.remove()">×</button>
         </div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
+        <div class="alert alert-danger alert-dismissible">
+            <i class="fas fa-exclamation-circle"></i>
             @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="alert-close" onclick="this.parentElement.remove()">×</button>
         </div>
     }
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stats-card primary">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-uppercase text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Total Records</div>
-                        <div class="h3 mb-0 fw-bold">@Model.Count</div>
-                        <div class="text-muted mt-1" style="font-size: 0.875rem;">All duty of care entries</div>
-                    </div>
-                    <div class="stats-icon primary">
-                        <i class="fas fa-clipboard-list"></i>
-                    </div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <p class="stat-title">Total Records</p>
+                    <h3 class="stat-value">@Model.Count</h3>
+                </div>
+                <div class="stat-icon primary">
+                    <i class="fas fa-clipboard-list"></i>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stats-card success">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-uppercase text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Compliant</div>
-                        <div class="h3 mb-0 fw-bold">@Model.Count(x => x.DutyOfCareStatus == DriverDutyOfCareStatus.Compliant || x.DutyOfCareStatus == DriverDutyOfCareStatus.Approved)</div>
-                        <div class="text-muted mt-1" style="font-size: 0.875rem;">Records in good standing</div>
-                    </div>
-                    <div class="stats-icon success">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <p class="stat-title">Compliant</p>
+                    <h3 class="stat-value">@Model.Count(x => x.DutyOfCareStatus == DriverDutyOfCareStatus.Compliant)</h3>
+                </div>
+                <div class="stat-icon success">
+                    <i class="fas fa-check-circle"></i>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stats-card warning">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-uppercase text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Pending Review</div>
-                        <div class="h3 mb-0 fw-bold">@Model.Count(x => x.DutyOfCareStatus == DriverDutyOfCareStatus.PendingReview || x.DutyOfCareStatus == DriverDutyOfCareStatus.UpcomingRenewal)</div>
-                        <div class="text-muted mt-1" style="font-size: 0.875rem;">Awaiting action</div>
-                    </div>
-                    <div class="stats-icon warning">
-                        <i class="fas fa-clock"></i>
-                    </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <p class="stat-title">Pending Review</p>
+                    <h3 class="stat-value">@Model.Count(x => x.DutyOfCareStatus == DriverDutyOfCareStatus.PendingReview)</h3>
+                </div>
+                <div class="stat-icon warning">
+                    <i class="fas fa-clock"></i>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stats-card danger">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-uppercase text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Issues Reported</div>
-                        <div class="h3 mb-0 fw-bold">@Model.Count(x => x.ReportsVehicleIssues || x.ReportsFatigue || x.DutyOfCareStatus == DriverDutyOfCareStatus.ActionRequired)</div>
-                        <div class="text-muted mt-1" style="font-size: 0.875rem;">Require attention</div>
-                    </div>
-                    <div class="stats-icon danger">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <p class="stat-title">Issues Reported</p>
+                    <h3 class="stat-value">@Model.Count(x => x.ReportsVehicleIssues || x.ReportsFatigue)</h3>
+                </div>
+                <div class="stat-icon danger">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Advanced Filters -->
-    <div class="filter-card mb-4">
-        <div class="card-header-custom d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-filter me-2 text-primary"></i>
-                <span class="fw-bold">Advanced Filters</span>
-            </div>
-            <button class="btn btn-sm btn-outline-custom" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
-                <i class="fas fa-chevron-down"></i>
-            </button>
+    <!-- Filters -->
+    <div class="content-card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-filter"></i>
+                Search & Filter Records
+            </h3>
         </div>
-        <div class="collapse" id="filtersCollapse">
-            <div class="p-4">
-                <form id="filterForm" class="row g-3">
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label fw-semibold text-gray-700">Date Range</label>
-                        <div class="d-flex gap-2">
-                            <input type="text" class="form-control form-control-custom" id="dateFrom" name="dateFrom" placeholder="From date">
-                            <input type="text" class="form-control form-control-custom" id="dateTo" name="dateTo" placeholder="To date">
-                        </div>
+        <div class="filters-section">
+            <form id="filterForm" method="get" action="@Url.Action("Index")">
+                <div class="filters-form">
+                    <div class="form-group">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="search" class="form-control" placeholder="Search drivers, vehicles..." 
+                               value="@Context.Request.Query["search"]">
                     </div>
-                    <div class="col-lg-2 col-md-6">
-                        <label class="form-label fw-semibold text-gray-700">Status</label>
-                        <select class="form-select form-control-custom" id="statusFilter" name="status">
+                    <div class="form-group">
+                        <label class="form-label">Date From</label>
+                        <input type="date" name="dateFrom" class="form-control" 
+                               value="@Context.Request.Query["dateFrom"]">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date To</label>
+                        <input type="date" name="dateTo" class="form-control" 
+                               value="@Context.Request.Query["dateTo"]">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
                             <option value="">All Statuses</option>
-                            <option value="Compliant">Compliant</option>
-                            <option value="PendingReview">Pending Review</option>
-                            <option value="ActionRequired">Action Required</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Expired">Expired</option>
-                            <option value="UpcomingRenewal">Upcoming Renewal</option>
+                            @* <option value="@DriverDutyOfCareStatus.Compliant" 
+                                    @(Context.Request.Query["status"] == DriverDutyOfCareStatus.Compliant.ToString() ? "selected" : "")>
+                                Compliant
+                            </option>
+                            <option value="@DriverDutyOfCareStatus.PendingReview" 
+                                    @(Context.Request.Query["status"] == DriverDutyOfCareStatus.PendingReview.ToString() ? "selected" : "")>
+                                Pending Review
+                            </option>
+                            <option value="@DriverDutyOfCareStatus.ActionRequired" 
+                                    @(Context.Request.Query["status"] == DriverDutyOfCareStatus.ActionRequired.ToString() ? "selected" : "")>
+                                Action Required
+                            </option> *@
                         </select>
                     </div>
-                    <div class="col-lg-2 col-md-6">
-                        <label class="form-label fw-semibold text-gray-700">Record Type</label>
-                        <select class="form-select form-control-custom" id="typeFilter" name="type">
+                    <div class="form-group">
+                        <label class="form-label">Record Type</label>
+                        <select name="recordType" class="form-select">
                             <option value="">All Types</option>
-                            <option value="HealthCheck">Health Check</option>
-                            <option value="SafetyTraining">Safety Training</option>
-                            <option value="LicenceRenewal">License Renewal</option>
-                            <option value="DrugTest">Drug Test</option>
-                            <option value="VisionTest">Vision Test</option>
-                            <option value="ComplianceAudit">Compliance Audit</option>
-                            <option value="VehicleSafetyBriefing">Vehicle Safety Briefing</option>
-                            <option value="Others">Others</option>
+                            @foreach (var type in Enum.GetValues<DutyOfCareRecordType>())
+                            {
+                               @*  <option value="@type" @(Context.Request.Query["recordType"] == type.ToString() ? "selected" : "")>
+                                    @type.ToString()
+                                </option> *@
+                            }
                         </select>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label fw-semibold text-gray-700">Search</label>
-                        <input type="text" class="form-control form-control-custom" id="searchInput" placeholder="Search driver, vehicle, notes...">
-                    </div>
-                    <div class="col-lg-2 col-md-12 d-flex align-items-end gap-2">
-                        <button type="button" class="btn btn-outline-custom flex-fill" onclick="clearFilters()">
+                    <div class="form-group" style="display: flex; gap: 0.5rem;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                            Apply Filters
+                        </button>
+                        <a href="@Url.Action("Index")" class="btn btn-outline">
                             <i class="fas fa-times"></i>
                             Clear
-                        </button>
-                        <button type="button" class="btn btn-primary-custom flex-fill" onclick="applyFilters()">
-                            <i class="fas fa-search"></i>
-                            Filter
-                        </button>
+                        </a>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Records Table -->
-    <div class="records-card">
-        <div class="card-header-custom d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-table me-2 text-primary"></i>
-                <span class="fw-bold">Duty of Care Records</span>
-                <span class="badge badge-custom badge-secondary ms-2">@Model.Count records</span>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-custom" onclick="sortTable()">
-                    <i class="fas fa-sort"></i>
-                    Sort by Date
-                </button>
-                <button class="btn btn-sm btn-outline-custom" onclick="toggleTableView()">
-                    <i class="fas fa-th-list"></i>
-                    Compact View
-                </button>
-            </div>
+    <div class="content-card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-table"></i>
+                Records (@Model.Count)
+            </h3>
         </div>
-        <div class="p-0">
-            @if (Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-custom mb-0" id="recordsTable">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="sortable-header" data-column="0">
-                                    <i class="fas fa-calendar me-1"></i>Date & Time
-                                    <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th scope="col" class="sortable-header" data-column="1">
-                                    <i class="fas fa-user me-1"></i>Driver Details
-                                    <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th scope="col" class="sortable-header" data-column="2">
-                                    <i class="fas fa-car me-1"></i>Vehicle Info
-                                    <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th scope="col" class="sortable-header" data-column="3">
-                                    <i class="fas fa-clipboard-check me-1"></i>Record Type
-                                    <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th scope="col" class="sortable-header" data-column="4">
-                                    <i class="fas fa-traffic-light me-1"></i>Status
-                                    <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-heartbeat me-1"></i>Fitness
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-tools me-1"></i>Vehicle Check
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>Issues
-                                </th>
-                                <th scope="col" class="text-center">Actions</th>
+        
+        @if (Model.Any())
+        {
+            <div style="overflow-x: auto;">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Driver</th>
+                            <th>Vehicle</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Health Check</th>
+                            <th>Vehicle Check</th>
+                            <th>Issues</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in Model)
+                        {
+                            <tr class="@(record.ReportsVehicleIssues || record.ReportsFatigue ? "has-issues" : "")">
+                                <td>
+                                    <div class="info-text">
+                                        <span class="info-primary">@record.Date.ToString("MMM dd, yyyy")</span>
+                                        <span class="info-secondary">@record.DeclarationTimestamp.ToString("HH:mm")</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="driver-info">
+                                        <div class="avatar">
+                                            @record.DriverName.Substring(0, Math.Min(2, record.DriverName.Length)).ToUpper()
+                                        </div>
+                                        <div class="info-text">
+                                            <span class="info-primary">@record.DriverName</span>
+                                            <span class="info-secondary">ID: @record.DriverId</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="vehicle-info">
+                                        <div class="avatar" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);">
+                                            <i class="fas fa-car"></i>
+                                        </div>
+                                        <div class="info-text">
+                                            <span class="info-primary">@record.VehicleDescription</span>
+                                            <span class="info-secondary">ID: @record.VehicleId</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-primary">
+                                        @record.DutyOfCareRecordType.ToString()
+                                    </span>
+                                </td>
+                                <td>
+                                    @{
+                                        var statusClass = record.DutyOfCareStatus switch
+                                        {
+                                            DriverDutyOfCareStatus.Compliant => "badge-success",
+                                            DriverDutyOfCareStatus.PendingReview => "badge-warning",
+                                            DriverDutyOfCareStatus.ActionRequired => "badge-danger",
+                                            _ => "badge-secondary"
+                                        };
+                                        var statusText = record.DutyOfCareStatus.ToString()
+                                            .Replace("PendingReview", "Pending Review")
+                                            .Replace("ActionRequired", "Action Required");
+                                    }
+                                    <span class="badge @statusClass">@statusText</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (record.IsFitToDrive)
+                                    {
+                                        <i class="fas fa-check-circle status-icon success" title="Fit to Drive"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-times-circle status-icon danger" title="Not Fit to Drive"></i>
+                                    }
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (record.VehiclePreCheckCompleted)
+                                    {
+                                        <i class="fas fa-check-circle status-icon success" title="Pre-check Completed"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-times-circle status-icon danger" title="Pre-check Not Completed"></i>
+                                    }
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (record.ReportsVehicleIssues || record.ReportsFatigue)
+                                    {
+                                        <i class="fas fa-exclamation-triangle status-icon warning" title="Issues Reported"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-check status-icon success" title="No Issues"></i>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="actions-group">
+                                        <a href="@Url.Action("Edit", new { id = record.Id })" 
+                                           class="btn btn-sm btn-outline" title="Edit Record">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline" 
+                                                onclick="viewDetails(@record.Id)" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline" 
+                                                onclick="confirmDelete(@record.Id)" title="Delete Record">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            @foreach (var record in Model)
-                            {
-                                <tr class="@(record.ReportsVehicleIssues || record.ReportsFatigue || record.DutyOfCareStatus == DriverDutyOfCareStatus.ActionRequired ? "table-warning" : "")"
-                                    data-date="@record.Date.ToString("yyyy-MM-dd")"
-                                    data-driver="@record.DriverName.ToLower()"
-                                    data-vehicle="@record.VehicleDescription.ToLower()"
-                                    data-status="@record.DutyOfCareStatus.ToString().ToLower()"
-                                    data-type="@record.DutyOfCareRecordType.ToString().ToLower()">
-                                    <td data-sort="@record.Date.ToString("yyyyMMdd")">
-                                        <div class="fw-bold text-gray-800">@record.Date.ToString("MMM dd, yyyy")</div>
-                                        <small class="text-muted">@record.DeclarationTimestamp.ToString("HH:mm tt")</small>
-                                    </td>
-                                    <td data-sort="@record.DriverName.ToLower()">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar bg-primary text-white me-3">
-                                                @record.DriverName.Substring(0, Math.Min(2, record.DriverName.Length)).ToUpper()
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold text-gray-800">@record.DriverName</div>
-                                                <small class="text-muted">ID: @record.DriverId</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td data-sort="@record.VehicleDescription.ToLower()">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar bg-secondary text-white me-3">
-                                                <i class="fas fa-car"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold text-gray-800">@record.VehicleDescription</div>
-                                                <small class="text-muted">ID: @record.VehicleId</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td data-sort="@record.DutyOfCareRecordType.ToString().ToLower()">
-                                        @{
-                                            var recordTypeDescription = record.DutyOfCareRecordType switch
-                                            {
-                                                DutyOfCareRecordType.HealthCheck => "Health Check",
-                                                DutyOfCareRecordType.SafetyTraining => "Safety Training",
-                                                DutyOfCareRecordType.LicenceRenewal => "License Renewal",
-                                                DutyOfCareRecordType.DrugTest => "Drug Test",
-                                                DutyOfCareRecordType.VisionTest => "Vision Test",
-                                                DutyOfCareRecordType.ComplianceAudit => "Compliance Audit",
-                                                DutyOfCareRecordType.VehicleSafetyBriefing => "Vehicle Safety Briefing",
-                                                _ => "Others"
-                                            };
-                                        }
-                                        <span class="badge badge-custom badge-info">
-                                            @recordTypeDescription
-                                        </span>
-                                    </td>
-                                    <td data-sort="@record.DutyOfCareStatus.ToString().ToLower()">
-                                        @{
-                                            var (statusClass, statusText, statusIcon) = record.DutyOfCareStatus switch
-                                            {
-                                                DriverDutyOfCareStatus.Compliant => ("badge-success", "Compliant", "status-success"),
-                                                DriverDutyOfCareStatus.Approved => ("badge-success", "Approved", "status-success"),
-                                                DriverDutyOfCareStatus.PendingReview => ("badge-warning", "Pending Review", "status-warning"),
-                                                DriverDutyOfCareStatus.UpcomingRenewal => ("badge-warning", "Upcoming Renewal", "status-warning"),
-                                                DriverDutyOfCareStatus.ActionRequired => ("badge-danger", "Action Required", "status-danger"),
-                                                DriverDutyOfCareStatus.Expired => ("badge-danger", "Expired", "status-danger"),
-                                                _ => ("badge-secondary", "Unknown", "status-secondary")
-                                            };
-                                        }
-                                        <span class="badge badge-custom @statusClass">
-                                            <span class="status-indicator @statusIcon"></span>
-                                            @statusText
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        @if (record.IsFitToDrive)
-                                        {
-                                            <i class="fas fa-check-circle text-success fs-5" title="Fit to Drive"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-times-circle text-danger fs-5" title="Not Fit to Drive"></i>
-                                        }
-                                    </td>
-                                    <td class="text-center">
-                                        @if (record.VehiclePreCheckCompleted)
-                                        {
-                                            <i class="fas fa-check-circle text-success fs-5" title="Pre-check Completed"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-times-circle text-danger fs-5" title="Pre-check Not Completed"></i>
-                                        }
-                                    </td>
-                                    <td class="text-center">
-                                        @if (record.ReportsVehicleIssues || record.ReportsFatigue)
-                                        {
-                                            <i class="fas fa-exclamation-triangle text-warning fs-5" title="Issues Reported"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-check text-success fs-5" title="No Issues"></i>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons d-flex justify-content-center">
-                                            <a href="@Url.Action("Edit", new { id = record.Id })"
-                                               class="btn btn-outline-primary btn-sm" title="Edit Record">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-outline-info btn-sm"
-                                                    onclick="viewDetails(@record.Id)" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-outline-danger btn-sm"
-                                                    onclick="confirmDelete(@record.Id)" title="Delete Record">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Table Pagination -->
-                <div class="d-flex justify-content-between align-items-center p-3 border-top">
-                    <div class="text-muted">
-                        Showing <span id="currentStart">1</span> to <span id="currentEnd">@Math.Min(10, Model.Count)</span>
-                        of <span id="totalRecords">@Model.Count</span> records
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-custom" id="prevPage" onclick="changePage(-1)">
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </button>
-                        <span class="align-self-center px-3">
-                            Page <span id="currentPage">1</span> of <span id="totalPages">@((int)Math.Ceiling((double)Model.Count / 10))</span>
-                        </span>
-                        <button class="btn btn-sm btn-outline-custom" id="nextPage" onclick="changePage(1)">
-                            Next <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="empty-state">
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">
                     <i class="fas fa-clipboard-list"></i>
-                    <h4 class="text-muted mb-3">No duty of care records found</h4>
-                    <p class="text-muted mb-4">Start managing driver safety and compliance by creating your first record.</p>
-                    <a href="@Url.Action("Create")" class="btn btn-primary-custom">
-                        <i class="fas fa-plus"></i>
-                        Create First Record
-                    </a>
                 </div>
-            }
-        </div>
+                <h3 class="empty-state-title">No Records Found</h3>
+                <p class="empty-state-description">
+                    @if (Context.Request.Query.Count > 0)
+                    {
+                        <span>No records match your current filters. Try adjusting your search criteria.</span>
+                    }
+                    else
+                    {
+                        <span>Get started by creating your first duty of care record to monitor driver safety and compliance.</span>
+                    }
+                </p>
+                <a href="@Url.Action("Create")" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Create First Record
+                </a>
+            </div>
+        }
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                    Confirm Deletion
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="d-flex align-items-start">
-                    <div class="flex-shrink-0 me-3">
-                        <div class="avatar bg-warning text-white">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-2">Delete Duty of Care Record</h6>
-                        <p class="text-muted mb-3">Are you sure you want to permanently delete this duty of care record? This action cannot be undone and will remove all associated data.</p>
-                        <div class="alert alert-warning py-2 px-3 mb-0">
-                            <small><i class="fas fa-info-circle me-1"></i>This will affect compliance tracking and reporting.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-custom" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>Cancel
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
+                Confirm Deletion
+            </h3>
+            <button type="button" class="modal-close" onclick="closeModal('deleteModal')">×</button>
+        </div>
+        <div>
+            <p>Are you sure you want to delete this duty of care record?</p>
+            <p style="color: var(--text-secondary); margin-bottom: 0;">This action cannot be undone and will permanently remove the record from your system.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('deleteModal')">Cancel</button>
+            <form id="deleteForm" method="post" style="display: inline;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn" style="background: var(--danger-color); color: white;">
+                    <i class="fas fa-trash"></i>
+                    Delete Record
                 </button>
-                <form id="deleteForm" method="post" style="display: inline;">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i>Delete Record
-                    </button>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 
 <!-- View Details Modal -->
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel">
-                    <i class="fas fa-info-circle text-primary me-2"></i>
-                    Duty of Care Record Details
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="detailsContent">
-                <div class="d-flex justify-content-center align-items-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-custom" data-bs-dismiss="modal">Close</button>
-            </div>
+<div class="modal" id="detailsModal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-info-circle" style="color: var(--primary-color);"></i>
+                Record Details
+            </h3>
+            <button type="button" class="modal-close" onclick="closeModal('detailsModal')">×</button>
+        </div>
+        <div id="detailsContent">
+            <!-- Content will be loaded via AJAX -->
         </div>
     </div>
 </div>
 
-<!-- Toast Container -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
-
-<!-- External Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-
 <script>
-    // Initialize date pickers with Flatpickr
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize date pickers
-        flatpickr("#dateFrom", {
-            dateFormat: "Y-m-d",
-            placeholder: "Select start date",
-            allowInput: true,
-            theme: "light"
-        });
+    // Modal Management
+    function showModal(modalId) {
+        document.getElementById(modalId).classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
 
-        flatpickr("#dateTo", {
-            dateFormat: "Y-m-d",
-            placeholder: "Select end date",
-            allowInput: true,
-            theme: "light"
-        });
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('show');
+        document.body.style.overflow = 'auto';
+    }
 
-            // Table-specific JavaScript functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        initializeTable();
+    // Close modal when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            closeModal(e.target.id);
+        }
     });
 
-    // Table state variables
-    let currentSortColumn = 0;
-    let sortDirection = 'asc';
-    let currentPageNum = 1;
-    const rowsPerPage = 10;
-    let filteredRows = [];
-    let isCompactView = false;
-
-    // Initialize table functionality
-    function initializeTable() {
-        setupSortableHeaders();
-        setupPagination();
-        updateTableDisplay();
-
-        // Setup search functionality if search input exists
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', handleTableSearch);
-        }
+    // Delete Record Functionality
+    function confirmDelete(id) {
+        document.getElementById('deleteForm').action = '@Url.Action("Delete")/' + id;
+        showModal('deleteModal');
     }
 
-    // Setup sortable headers
-    function setupSortableHeaders() {
-        const sortableHeaders = document.querySelectorAll('.sortable-header');
-        sortableHeaders.forEach(header => {
-            header.addEventListener('click', function() {
-                const column = parseInt(this.dataset.column);
-                sortTable(column);
-            });
-        });
-    }
-
-    // Sort table by column
-    function sortTable(column = null) {
-        if (column !== null) {
-            if (currentSortColumn === column) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSortColumn = column;
-                sortDirection = 'asc';
+    // View Details Functionality
+    function viewDetails(id) {
+        const detailsContent = document.getElementById('detailsContent');
+        detailsContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+        
+        fetch('@Url.Action("Details")/' + id, {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/html',
+                'X-Requested-With': 'XMLHttpRequest'
             }
-        }
-
-        const tbody = document.getElementById('tableBody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-
-        // Update header indicators
-        updateSortHeaders();
-
-        // Sort rows
-        rows.sort((a, b) => {
-            const aValue = getSortValue(a, currentSortColumn);
-            const bValue = getSortValue(b, currentSortColumn);
-
-            let comparison = 0;
-            if (aValue < bValue) comparison = -1;
-            if (aValue > bValue) comparison = 1;
-
-            return sortDirection === 'asc' ? comparison : -comparison;
-        });
-
-        // Reorder DOM elements
-        rows.forEach(row => tbody.appendChild(row));
-
-        // Reset to first page after sorting
-        currentPageNum = 1;
-        updateTableDisplay();
-
-        showToast(`Table sorted by ${getColumnName(currentSortColumn)} (${sortDirection.toUpperCase()})`, 'info');
-    }
-
-    // Get sort value from row
-    function getSortValue(row, column) {
-        const cell = row.cells[column];
-        const sortAttr = cell.getAttribute('data-sort');
-
-        if (sortAttr) {
-            return sortAttr;
-        }
-
-        return cell.textContent.trim().toLowerCase();
-    }
-
-    // Get column name for display
-    function getColumnName(column) {
-        const headers = ['Date & Time', 'Driver Details', 'Vehicle Info', 'Record Type', 'Status'];
-        return headers[column] || 'Column';
-    }
-
-    // Update sort header indicators
-    function updateSortHeaders() {
-        const headers = document.querySelectorAll('.sortable-header');
-        headers.forEach((header, index) => {
-            header.classList.remove('asc', 'desc');
-            if (index === currentSortColumn) {
-                header.classList.add(sortDirection);
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
-        });
-    }
-
-    // Setup pagination
-    function setupPagination() {
-        const tbody = document.getElementById('tableBody');
-        if (tbody) {
-            filteredRows = Array.from(tbody.querySelectorAll('tr'));
-            updatePaginationInfo();
-        }
-    }
-
-    // Change page
-    function changePage(direction) {
-        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-        const newPage = currentPageNum + direction;
-
-        if (newPage >= 1 && newPage <= totalPages) {
-            currentPageNum = newPage;
-            updateTableDisplay();
-        }
-    }
-
-    // Update table display based on current page
-    function updateTableDisplay() {
-        const startIndex = (currentPageNum - 1) * rowsPerPage;
-        const endIndex = startIndex + rowsPerPage;
-
-        // Hide all rows first
-        const allRows = document.querySelectorAll('#tableBody tr');
-        allRows.forEach(row => row.classList.add('hidden-row'));
-
-        // Show current page rows
-        filteredRows.slice(startIndex, endIndex).forEach(row => {
-            row.classList.remove('hidden-row');
-        });
-
-        updatePaginationInfo();
-    }
-
-    // Update pagination information
-    function updatePaginationInfo() {
-        const totalRecords = filteredRows.length;
-        const totalPages = Math.ceil(totalRecords / rowsPerPage);
-        const startRecord = totalRecords > 0 ? (currentPageNum - 1) * rowsPerPage + 1 : 0;
-        const endRecord = Math.min(currentPageNum * rowsPerPage, totalRecords);
-
-        // Update display elements
-        const currentStartEl = document.getElementById('currentStart');
-        const currentEndEl = document.getElementById('currentEnd');
-        const totalRecordsEl = document.getElementById('totalRecords');
-        const currentPageEl = document.getElementById('currentPage');
-        const totalPagesEl = document.getElementById('totalPages');
-
-        if (currentStartEl) currentStartEl.textContent = startRecord;
-        if (currentEndEl) currentEndEl.textContent = endRecord;
-        if (totalRecordsEl) totalRecordsEl.textContent = totalRecords;
-        if (currentPageEl) currentPageEl.textContent = currentPageNum;
-        if (totalPagesEl) totalPagesEl.textContent = totalPages;
-
-        // Update button states
-        const prevButton = document.getElementById('prevPage');
-        const nextButton = document.getElementById('nextPage');
-
-        if (prevButton) {
-            prevButton.disabled = currentPageNum <= 1;
-            prevButton.classList.toggle('disabled', currentPageNum <= 1);
-        }
-
-        if (nextButton) {
-            nextButton.disabled = currentPageNum >= totalPages;
-            nextButton.classList.toggle('disabled', currentPageNum >= totalPages);
-        }
-    }
-
-    // Toggle compact view
-    function toggleTableView() {
-        isCompactView = !isCompactView;
-        const table = document.getElementById('recordsTable');
-        const button = event.target.closest('button');
-
-        if (isCompactView) {
-            table.classList.add('table-compact');
-            button.innerHTML = '<i class="fas fa-th"></i> Normal View';
-            showToast('Switched to compact view', 'info');
-        } else {
-            table.classList.remove('table-compact');
-            button.innerHTML = '<i class="fas fa-th-list"></i> Compact View';
-            showToast('Switched to normal view', 'info');
-        }
-    }
-
-    // Handle table search
-    function handleTableSearch(event) {
-        const searchTerm = event.target.value.toLowerCase().trim();
-        const tbody = document.getElementById('tableBody');
-        const allRows = Array.from(tbody.querySelectorAll('tr'));
-
-        if (searchTerm === '') {
-            // Show all rows
-            filteredRows = allRows;
-            allRows.forEach(row => {
-                row.classList.remove('hidden-row');
-                removeHighlights(row);
-            });
-        } else {
-            // Filter rows based on search term
-            filteredRows = allRows.filter(row => {
-                const searchableText = [
-                    row.dataset.driver || '',
-                    row.dataset.vehicle || '',
-                    row.dataset.status || '',
-                    row.dataset.type || '',
-                    row.textContent.toLowerCase()
-                ].join(' ');
-
-                const matches = searchableText.includes(searchTerm);
-
-                if (matches) {
-                    highlightSearchTerm(row, searchTerm);
-                } else {
-                    removeHighlights(row);
-                }
-
-                return matches;
-            });
-        }
-
-        // Reset to first page and update display
-        currentPageNum = 1;
-        updateTableDisplay();
-
-        // Show search results count
-        const resultCount = filteredRows.length;
-        const totalCount = allRows.length;
-
-        if (searchTerm !== '') {
-            showToast(`Found ${resultCount} of ${totalCount} records`, 'info');
-        }
-    }
-
-    // Highlight search terms in table row
-    function highlightSearchTerm(row, searchTerm) {
-        removeHighlights(row);
-
-        const cells = row.querySelectorAll('td');
-        cells.forEach(cell => {
-            if (!cell.querySelector('.action-buttons')) {
-                const text = cell.innerHTML;
-                const regex = new RegExp(`(${escapeRegex(searchTerm)})`, 'gi');
-                cell.innerHTML = text.replace(regex, '<span class="search-highlight">$1</span>');
-            }
-        });
-    }
-
-    // Remove search highlights
-    function removeHighlights(row) {
-        const highlights = row.querySelectorAll('.search-highlight');
-        highlights.forEach(highlight => {
-            highlight.outerHTML = highlight.innerHTML;
-        });
-    }
-
-    // Escape special regex characters
-    function escapeRegex(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-
-    // Show loading state for table operations
-    function showTableLoading(show = true) {
-        const table = document.getElementById('recordsTable').parentElement;
-
-        if (show) {
-            table.classList.add('table-loading');
-            const spinner = document.createElement('div');
-            spinner.className = 'loading-spinner';
-            spinner.innerHTML = `
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+            return response.text();
+        })
+        .then(html => {
+            detailsContent.innerHTML = html;
+            showModal('detailsModal');
+        })
+        .catch(error => {
+            console.error('Error loading details:', error);
+            detailsContent.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--danger-color);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error loading record details. Please try again.</p>
                 </div>
             `;
-            table.appendChild(spinner);
-        } else {
-            table.classList.remove('table-loading');
-            const spinner = table.querySelector('.loading-spinner');
-            if (spinner) {
-                spinner.remove();
-            }
-        }
-    }
-
-    // Export visible table data (optional utility)
-    function exportVisibleData() {
-        const visibleRows = filteredRows.slice(
-            (currentPageNum - 1) * rowsPerPage,
-            currentPageNum * rowsPerPage
-        );
-
-        const data = visibleRows.map(row => {
-            return {
-                date: row.cells[0].textContent.trim(),
-                driver: row.cells[1].textContent.trim(),
-                vehicle: row.cells[2].textContent.trim(),
-                type: row.cells[3].textContent.trim(),
-                status: row.cells[4].textContent.trim()
-            };
+            showModal('detailsModal');
         });
-
-        console.log('Visible table data:', data);
-        showToast(`Exported ${data.length} visible records to console`, 'success');
     }
 
-    // Refresh table (reload current view)
-    function refreshTable() {
-        showTableLoading(true);
+    // Export Functionality
+    function exportToExcel() {
+        // Get current filter parameters
+        const form = document.getElementById('filterForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        
+        // Add export parameter
+        params.append('export', 'true');
+        
+        // Create download link
+        const exportUrl = '@Url.Action("ExportToExcel")?' + params.toString();
+        window.location.href = exportUrl;
+    }
 
+    // Enhanced Form Submission with Loading States
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Filtering...';
+        
+        // Re-enable button after a delay (in case of issues)
         setTimeout(() => {
-            // Simulate refresh - in real app, this would reload data
-            setupPagination();
-            updateTableDisplay();
-            showTableLoading(false);
-            showToast('Table refreshed successfully', 'success');
-        }, 1000);
-    }
-
-    // Keyboard navigation for table
-    document.addEventListener('keydown', function(e) {
-        // Only handle table shortcuts when not in input fields
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            return;
-        }
-
-        // Arrow keys for pagination
-        if (e.key === 'ArrowLeft' && e.ctrlKey) {
-            e.preventDefault();
-            changePage(-1);
-        } else if (e.key === 'ArrowRight' && e.ctrlKey) {
-            e.preventDefault();
-            changePage(1);
-        }
-
-        // Home/End for first/last page
-        if (e.key === 'Home' && e.ctrlKey) {
-            e.preventDefault();
-            currentPageNum = 1;
-            updateTableDisplay();
-        } else if (e.key === 'End' && e.ctrlKey) {
-            e.preventDefault();
-            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-            currentPageNum = totalPages;
-            updateTableDisplay();
-        }
-    });
-
-    // Utility function for toast notifications (if not already defined elsewhere)
-    function showToast(message, type = 'info') {
-        // This assumes the toast function exists elsewhere in your code
-        // If not, you can implement a simple alert or console.log
-        if (typeof window.showToast === 'function') {
-            window.showToast(message, type);
-        } else {
-            console.log(`${type.toUpperCase()}: ${message}`);
-        }
-    }
-
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            $('.alert').fadeOut('slow');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
         }, 5000);
     });
 
-    // Delete confirmation function
-    function confirmDelete(id) {
-        const deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = '@Url.Action("Delete")/' + id;
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        deleteModal.show();
-    }
+    // Auto-submit form when select filters change
+    document.querySelectorAll('select[name="status"], select[name="recordType"]').forEach(select => {
+        select.addEventListener('change', function() {
+            // Add a small delay to prevent rapid submissions
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 300);
+        });
+    });
 
-    // View details function with enhanced loading and error handling
-    function viewDetails(id) {
-        const detailsContent = document.getElementById('detailsContent');
-        const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
-
-        // Show loading spinner
-        detailsContent.innerHTML = `
-            <div class="d-flex justify-content-center align-items-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading details...</span>
-                </div>
-                <span class="ms-3 text-muted">Loading record details...</span>
-            </div>
-        `;
-
-        detailsModal.show();
-
-        // Fetch details via AJAX
-        fetch('@Url.Action("Details")/' + id)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text();
-            })
-            .then(html => {
-                detailsContent.innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Error loading details:', error);
-                detailsContent.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                        <h5 class="text-muted">Error Loading Details</h5>
-                        <p class="text-muted">Unable to load record details. Please try again.</p>
-                        <button class="btn btn-outline-primary" onclick="viewDetails(${id})">
-                            <i class="fas fa-redo me-1"></i>Retry
-                        </button>
-                    </div>
-                `;
-                showToast('Error loading record details', 'error');
-            });
-    }
-
-    // Export to Excel function
-    function exportToExcel() {
-        showToast('Preparing export...', 'info');
-        window.location.href = '@Url.Action("ExportToExcel")';
-    }
-
-    // Apply filters function
-    function applyFilters() {
-        const form = document.getElementById('filterForm');
-        const formData = new FormData(form);
-        const params = new URLSearchParams();
-
-        // Only add non-empty values to params
-        for (let [key, value] of formData.entries()) {
-            if (value.trim() !== '') {
-                params.append(key, value);
-            }
+    // Date range validation
+    document.querySelector('input[name="dateFrom"]').addEventListener('change', function() {
+        const dateTo = document.querySelector('input[name="dateTo"]');
+        if (this.value && dateTo.value && new Date(this.value) > new Date(dateTo.value)) {
+            dateTo.value = this.value;
         }
+        dateTo.min = this.value;
+    });
 
-        showToast('Applying filters...', 'info');
-        window.location.href = '@Url.Action("Index")?' + params.toString();
-    }
+    document.querySelector('input[name="dateTo"]').addEventListener('change', function() {
+        const dateFrom = document.querySelector('input[name="dateFrom"]');
+        if (this.value && dateFrom.value && new Date(this.value) < new Date(dateFrom.value)) {
+            dateFrom.value = this.value;
+        }
+        dateFrom.max = this.value;
+    });
 
-    // Clear filters function
-    function clearFilters() {
-        document.getElementById('filterForm').reset();
-        showToast('Filters cleared', 'success');
-        setTimeout(() => {
-            window.location.href = '@Url.Action("Index")';
-        }, 1000);
-    }
-
-    // Toast notification function
-    function showToast(message, type = 'info') {
-        const toastContainer = document.getElementById('toastContainer');
-        const toastId = 'toast-' + Date.now();
-
-        const toastColors = {
-            'success': 'text-bg-success',
-            'error': 'text-bg-danger',
-            'warning': 'text-bg-warning',
-            'info': 'text-bg-primary'
-        };
-
-        const toastIcons = {
-            'success': 'fas fa-check-circle',
-            'error': 'fas fa-exclamation-circle',
-            'warning': 'fas fa-exclamation-triangle',
-            'info': 'fas fa-info-circle'
-        };
-
-        const toastHtml = `
-            <div id="${toastId}" class="toast ${toastColors[type]}" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <i class="${toastIcons[type]} me-2"></i>
-                    <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    ${message}
-                </div>
-            </div>
-        `;
-
-        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-
-        const toastElement = document.getElementById(toastId);
-        const toast = new bootstrap.Toast(toastElement, {
-            autohide: true,
-            delay: 3000
-        });
-
-        toast.show();
-
-        // Clean up toast element after it's hidden
-        toastElement.addEventListener('hidden.bs.toast', function() {
-            toastElement.remove();
-        });
-    }
+    // Search input debouncing
+    let searchTimeout;
+    document.querySelector('input[name="search"]').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const form = document.getElementById('filterForm');
+        
+        // Show loading indicator in search field
+        this.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\'/%3E%3C/svg%3E")';
+        this.style.backgroundRepeat = 'no-repeat';
+        this.style.backgroundPosition = 'right 12px center';
+        this.style.paddingRight = '40px';
+        
+        searchTimeout = setTimeout(() => {
+            if (this.value.length >= 2 || this.value.length === 0) {
+                form.submit();
+            }
+        }, 800);
+    });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
-        // Ctrl+N for new record
-        if (e.ctrlKey && e.key === 'n') {
+        // Ctrl/Cmd + K to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
             e.preventDefault();
-            window.location.href = '@Url.Action("Create")';
+            document.querySelector('input[name="search"]').focus();
         }
-
-        // Ctrl+E for export
-        if (e.ctrlKey && e.key === 'e') {
-            e.preventDefault();
-            exportToExcel();
-        }
-
-        // Ctrl+F for filter toggle
-        if (e.ctrlKey && e.key === 'f') {
-            e.preventDefault();
-            const filtersCollapse = document.getElementById('filtersCollapse');
-            const bsCollapse = new bootstrap.Collapse(filtersCollapse, {
-                toggle: true
+        // Escape to close modals
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal.show').forEach(modal => {
+                closeModal(modal.id);
             });
         }
     });
 
-    // Auto-refresh functionality (optional)
-    let autoRefreshInterval;
-    function startAutoRefresh(intervalMinutes = 5) {
-        autoRefreshInterval = setInterval(() => {
-            const currentUrl = window.location.href;
-            if (!currentUrl.includes('?')) {
-                // Only refresh if no filters are applied
-                showToast('Auto-refreshing data...', 'info');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            }
-        }, intervalMinutes * 60 * 1000);
-    }
+    // Initialize tooltips and enhance UX
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add loading states to action buttons
+        document.querySelectorAll('a[href*="Edit"], a[href*="Create"]').forEach(link => {
+            link.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon) {
+                    icon.className = 'fas fa-spinner fa-spin';
+                }
+            });
+        });
 
-    function stopAutoRefresh() {
-        if (autoRefreshInterval) {
-            clearInterval(autoRefreshInterval);
+        // Auto-focus search field if there are existing filters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('search') && urlParams.get('search')) {
+            document.querySelector('input[name="search"]').focus();
         }
-    }
 
-    // Initialize auto-refresh (uncomment if needed)
-    // startAutoRefresh(5); // Refresh every 5 minutes
+        // Highlight filtered results
+        const searchTerm = urlParams.get('search');
+        if (searchTerm && searchTerm.length > 0) {
+            highlightSearchTerms(searchTerm);
+        }
 
-    // Enhanced search functionality
-    document.getElementById('searchInput')?.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        if (searchTerm.length >= 3 || searchTerm.length === 0) {
-            // Trigger search with DataTables if available
-            if ($.fn.DataTable.isDataTable('#recordsTable')) {
-                $('#recordsTable').DataTable().search(searchTerm).draw();
-            }
+        // Add smooth scrolling to top button if page is long
+        if (document.body.scrollHeight > window.innerHeight * 2) {
+            addScrollToTopButton();
         }
     });
 
-    // Print functionality
-    function printRecords() {
-        window.print();
+    // Highlight search terms in results
+    function highlightSearchTerms(term) {
+        const regex = new RegExp(`(${term})`, 'gi');
+        document.querySelectorAll('.records-table td .info-primary').forEach(element => {
+            if (element.textContent.toLowerCase().includes(term.toLowerCase())) {
+                element.innerHTML = element.textContent.replace(regex, '<mark style="background: #fef3c7; padding: 0.125rem;">$1</mark>');
+            }
+        });
     }
 
-    // Add print styles
-    const printStyles = `
-        <style media="print">
-            .btn, .action-buttons, .modal, .toast-container { display: none !important; }
-            .page-header { background: #4f46e5 !important; -webkit-print-color-adjust: exact; }
-            .stats-card { break-inside: avoid; }
-            .table { font-size: 12px; }
-            .badge { border: 1px solid #000; }
-        </style>
-    `;
-    document.head.insertAdjacentHTML('beforeend', printStyles);
+    // Add scroll to top functionality for long pages
+    function addScrollToTopButton() {
+        const scrollBtn = document.createElement('button');
+        scrollBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        scrollBtn.className = 'scroll-to-top';
+        scrollBtn.style.cssText = `
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        `;
+
+        document.body.appendChild(scrollBtn);
+
+        scrollBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollBtn.style.opacity = '1';
+                scrollBtn.style.transform = 'translateY(0)';
+            } else {
+                scrollBtn.style.opacity = '0';
+                scrollBtn.style.transform = 'translateY(10px)';
+            }
+        });
+    }
+
+    // Performance optimization: Lazy load images/icons if any
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove('lazy');
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+
+    // Error handling for network requests
+    window.addEventListener('online', function() {
+        document.querySelectorAll('.network-error').forEach(el => el.remove());
+    });
+
+    window.addEventListener('offline', function() {
+        const banner = document.createElement('div');
+        banner.className = 'network-error alert alert-warning';
+        banner.innerHTML = '<i class="fas fa-wifi"></i> You are currently offline. Some features may not work properly.';
+        banner.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; z-index: 9999; margin: 0; border-radius: 0;';
+        document.body.insertBefore(banner, document.body.firstChild);
+    });
 </script>
+
+
+
 
 
 
