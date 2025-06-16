@@ -33,4 +33,10 @@
     <Folder Include="wwwroot\VehicleImages\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Mocks\sample.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

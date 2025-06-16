@@ -1,0 +1,293 @@
+﻿@using FleetManager.Business.ViewModels.GoogleViewModels
+@model RouteViewModel
+@{
+    ViewData["Title"] = "Route Planner";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient-primary text-white py-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-route fa-2x me-3"></i>
+                        <div>
+                            <h1 class="mb-0 h3">Route Planner</h1>
+                            <p class="mb-0 opacity-75">Plan your journey with real-time traffic data</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="Index" method="post" id="routeForm">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="OriginAddress"
+                                           class="form-control form-control-lg shadow-sm"
+                                           placeholder="Enter starting location"
+                                           id="originInput" />
+                                    <label asp-for="OriginAddress" class="text-muted">
+                                        <i class="fas fa-map-marker-alt text-success me-2"></i>From
+                                    </label>
+                                    <span asp-validation-for="OriginAddress" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="DestinationAddress"
+                                           class="form-control form-control-lg shadow-sm"
+                                           placeholder="Enter destination"
+                                           id="destinationInput" />
+                                    <label asp-for="DestinationAddress" class="text-muted">
+                                        <i class="fas fa-map-marker-alt text-danger me-2"></i>To
+                                    </label>
+                                    <span asp-validation-for="DestinationAddress" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm" id="calculateBtn">
+                                    <i class="fas fa-calculator me-2"></i>
+                                    Calculate Route
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-lg ms-3" onclick="swapLocations()">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Response?.Routes != null && Model.Response.Routes.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-light py-3">
+                        <h3 class="mb-0 text-dark">
+                            <i class="fas fa-directions text-primary me-2"></i>
+                            Route Options
+                        </h3>
+                    </div>
+                    <div class="card-body p-0">
+                        @foreach (var route in Model.Response.Routes.Select((r, index) => new { Route = r, Index = index }))
+                        {
+                            <div class="route-card border-bottom @(route.Index == 0 ? "bg-light" : "") p-4 hover-shadow">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge bg-primary me-2 fs-6">Route @(route.Index + 1)</span>
+                                            @if (route.Route.RouteLabels != null && route.Route.RouteLabels.Any())
+                                            {
+                                                @foreach (var label in route.Route.RouteLabels)
+                                                {
+                                                    <span class="badge bg-secondary me-1">@label</span>
+                                                }
+                                            }
+                                        </div>
+
+                                        <div class="row g-3">
+                                            <div class="col-sm-4">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-road text-primary me-2"></i>
+                                                    <div>
+                                                        <small class="text-muted d-block">Distance</small>
+                                                        <strong>@GetFormattedDistance(route.Route.DistanceMeters)</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-clock text-warning me-2"></i>
+                                                    <div>
+                                                        <small class="text-muted d-block">Duration</small>
+                                                        <strong>@GetFormattedDuration(route.Route.Duration)</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-tachometer-alt text-info me-2"></i>
+                                                    <div>
+                                                        <small class="text-muted d-block">Avg Speed</small>
+                                                        <strong>@GetAverageSpeed(route.Route.DistanceMeters, route.Route.Duration)</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 text-md-end">
+                                        <a asp-action="Map"
+                                           asp-route-polyline="@route.Route.Polyline.EncodedPolyline"
+                                           class="btn btn-success btn-lg shadow-sm">
+                                            <i class="fas fa-map me-2"></i>
+                                            View on Map
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+
+        .hover-shadow:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+            transform: translateY(-2px);
+        }
+
+    .route-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .route-card:hover {
+            background-color: #f8f9fa !important;
+        }
+
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        opacity: .65;
+        transform: scale(.85) translateY(-0.5rem) translateX(0.15rem);
+    }
+
+    .btn {
+        transition: all 0.3s ease;
+        border-radius: 8px;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .shadow-lg {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+    }
+
+    #routeForm {
+        position: relative;
+    }
+
+        #routeForm.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+</style>
+
+<script>
+    function swapLocations() {
+        const origin = document.getElementById('originInput');
+        const destination = document.getElementById('destinationInput');
+        const temp = origin.value;
+        origin.value = destination.value;
+        destination.value = temp;
+    }
+
+    document.getElementById('routeForm').addEventListener('submit', function() {
+        const btn = document.getElementById('calculateBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Calculating...';
+        this.classList.add('loading');
+    });
+
+    // Auto-focus first empty field
+    document.addEventListener('DOMContentLoaded', function() {
+        const origin = document.getElementById('originInput');
+        const destination = document.getElementById('destinationInput');
+
+        if (!origin.value) {
+            origin.focus();
+        } else if (!destination.value) {
+            destination.focus();
+        }
+    });
+</script>
+
+@functions {
+    private string GetFormattedDistance(int distanceMeters)
+    {
+        if (distanceMeters >= 1000)
+        {
+            return $"{(distanceMeters / 1000.0):F1} km";
+        }
+        return $"{distanceMeters} m";
+    }
+
+    private string GetFormattedDuration(string duration)
+    {
+        if (string.IsNullOrEmpty(duration)) return "N/A";
+
+        // Parse duration string (e.g., "1234s" -> "20m 34s")
+        if (duration.EndsWith("s"))
+        {
+            if (int.TryParse(duration.Substring(0, duration.Length - 1), out int seconds))
+            {
+                var hours = seconds / 3600;
+                var minutes = (seconds % 3600) / 60;
+                var remainingSeconds = seconds % 60;
+
+                if (hours > 0)
+                {
+                    return $"{hours}h {minutes}m";
+                }
+                else if (minutes > 0)
+                {
+                    return $"{minutes}m {remainingSeconds}s";
+                }
+                return $"{remainingSeconds}s";
+            }
+        }
+        return duration;
+    }
+
+    private string GetAverageSpeed(int distanceMeters, string duration)
+    {
+        if (string.IsNullOrEmpty(duration) || !duration.EndsWith("s")) return "N/A";
+
+        if (int.TryParse(duration.Substring(0, duration.Length - 1), out int seconds) && seconds > 0)
+        {
+            var distanceKm = distanceMeters / 1000.0;
+            var timeHours = seconds / 3600.0;
+            var speed = distanceKm / timeHours;
+            return $"{speed:F0} km/h";
+        }
+        return "N/A";
+    }
+}

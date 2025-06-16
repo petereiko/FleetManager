@@ -1,9 +1,13 @@
 
 
+using System.Configuration;
 using System.Globalization;
 using DVLA.Business.UserModule;
 using FleetManager.Business;
 using FleetManager.Business.Database.IdentityModels;
+using FleetManager.Business.GoogleMap.Options;
+using FleetManager.Business.GoogleRoutesApi.Interfaces;
+using FleetManager.Business.GoogleRoutesApi.Services;
 using FleetManager.Business.Hubs;
 using FleetManager.Business.Implementations;
 using FleetManager.Business.Implementations.CompanyBranchModule;
@@ -36,6 +40,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,6 +123,7 @@ builder.Services.AddTransient<IDriverVehicleService, DriverVehicleService>();
 builder.Services.AddTransient<IDriverDutyOfCareService, DriverDutyOfCareService>();
 builder.Services.AddTransient<IFuelLogService, FuelLogService>();
 builder.Services.AddTransient<INotificationService, NotificationService>();
+builder.Services.AddSingleton<IGoogleRoutesService, FakeRoutesService>();
 
 //builder.Services.AddTransient<IApplicantService, ApplicantService>();
 //builder.Services.AddTransient<IVisualAssessmentResultRepository, VisualAssessmentResultService>();
@@ -154,6 +160,23 @@ builder.Services.AddHangfire(configuration => configuration
 
 
 builder.Services.AddHangfireServer();
+
+
+//Google Map
+
+builder.Services.Configure<GoogleRoutesApiOptions>(builder.Configuration.GetSection("GoogleRoutesApi"));
+//builder.Services.AddHttpClient<IGoogleRoutesService, GoogleRoutesService>((sp, client) =>
+//{
+//    var options = sp.GetRequiredService<IOptions<GoogleRoutesApiOptions>>().Value;
+
+//    client.BaseAddress = new Uri($"{options.BaseUrl}/directions/v2:computeRoutes");
+//    client.Timeout = options.Timeout;
+
+//    client.DefaultRequestHeaders.Add("X-Goog-Api-Key", options.ApiKey);
+//    client.DefaultRequestHeaders.Add("X-Goog-FieldMask",
+//        "routes.routeLabels,routes.legs,routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.steps,routes.legs.startLocation,routes.legs.endLocation");
+//});
+
 
 
 
@@ -202,6 +225,7 @@ app.UseAuthentication();
 app.UseSession();
 
 app.UseAuthorization();
+
 
 
 app.UseHangfireDashboard("/hangfire");

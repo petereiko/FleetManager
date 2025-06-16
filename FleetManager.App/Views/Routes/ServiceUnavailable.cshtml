@@ -1,0 +1,407 @@
+﻿@{
+    ViewData["Title"] = "Service Temporarily Unavailable";
+}
+
+<style>
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .service-icon-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .service-icon {
+        position: relative;
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.9);
+        display: inline-block;
+    }
+
+    .status-indicator {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ffc107;
+        color: #212529;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .status-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef !important;
+        text-align: center;
+    }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    .suggestion-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef !important;
+    }
+
+        .suggestion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-color: #dee2e6 !important;
+        }
+
+    .btn {
+        transition: all 0.3s ease;
+        border-radius: 8px;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    .card {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .shadow-lg {
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .alert {
+        border-radius: 12px;
+    }
+
+    /* Loading state for retry button */
+    .btn-loading {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+        .btn-loading .spinner-border {
+            width: 1rem;
+            height: 1rem;
+        }
+
+    /* Responsive adjustments */
+    @@media (max-width: 576px) {
+        .display-6
+
+    {
+        font-size: 1.75rem;
+    }
+
+    .card-body {
+        padding: 2rem !important;
+    }
+
+    .card-header {
+        padding: 3rem 1rem !important;
+    }
+
+    .service-icon {
+        font-size: 3rem;
+    }
+
+    .status-indicator {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
+    }
+
+    /* Fade in animation */
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    .card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+</style>
+
+
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card shadow-lg border-0 text-center">
+                <div class="card-header bg-gradient-warning text-white py-5">
+                    <div class="service-icon-container mb-4">
+                        <div class="service-icon">
+                            <i class="fas fa-route"></i>
+                            <div class="status-indicator">
+                                <i class="fas fa-pause"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="display-6 mb-2 fw-bold">Service Temporarily Unavailable</h1>
+                    <p class="mb-0 opacity-75 fs-5">Our route planning service is currently experiencing issues</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <div class="alert alert-warning border-0 shadow-sm" role="alert">
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <i class="fas fa-exclamation-triangle text-warning me-2 fs-5"></i>
+                                <strong class="fs-6">What's happening?</strong>
+                            </div>
+                            <p class="mb-0">
+                                We're unable to connect to our route calculation service right now. 
+                                This is usually temporary and should be resolved shortly.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Information -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="status-card p-3 bg-light rounded">
+                                <i class="fas fa-server text-primary mb-2 fs-4"></i>
+                                <h6 class="mb-1">Service Status</h6>
+                                <span class="badge bg-warning">Temporarily Down</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="status-card p-3 bg-light rounded">
+                                <i class="fas fa-clock text-info mb-2 fs-4"></i>
+                                <h6 class="mb-1">Estimated Fix</h6>
+                                <small class="text-muted">Usually 5-10 minutes</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="status-card p-3 bg-light rounded">
+                                <i class="fas fa-shield-alt text-success mb-2 fs-4"></i>
+                                <h6 class="mb-1">Your Data</h6>
+                                <small class="text-muted">Safe & Secure</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- What you can do -->
+                    <div class="mb-4">
+                        <h5 class="text-dark mb-3">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            What you can do
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="suggestion-card h-100 p-3 bg-light rounded border">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-redo text-primary me-3 mt-1"></i>
+                                        <div>
+                                            <h6 class="mb-1">Try Again</h6>
+                                            <small class="text-muted">Wait a moment and retry your route calculation</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="suggestion-card h-100 p-3 bg-light rounded border">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-bookmark text-success me-3 mt-1"></i>
+                                        <div>
+                                            <h6 class="mb-1">Save Your Route</h6>
+                                            <small class="text-muted">Bookmark this page to retry later</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mb-4">
+                        <a asp-action="Index" class="btn btn-primary btn-lg px-4 shadow-sm">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to Route Planner
+                        </a>
+                        
+                        <button type="button" class="btn btn-outline-primary btn-lg px-4" onclick="retryInSeconds()" id="retryBtn">
+                            <i class="fas fa-redo me-2"></i>
+                            Retry Now
+                        </button>
+                    </div>
+                    
+                    <!-- Auto-retry notification -->
+                    <div class="alert alert-info border-0 shadow-sm" role="alert" id="autoRetryAlert" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span>Auto-retry in <span id="countdown">30</span> seconds</span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cancelAutoRetry()">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Help Section -->
+                    <div class="pt-4 border-top">
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-question-circle me-1"></i>
+                            Need immediate assistance?
+                        </p>
+                        <div class="d-flex flex-wrap justify-content-center gap-3">
+                            <a href="#" class="text-decoration-none text-primary">
+                                <i class="fas fa-phone me-1"></i>
+                                Contact Support
+                            </a>
+                            <a href="#" class="text-decoration-none text-primary">
+                                <i class="fas fa-globe me-1"></i>
+                                Service Status
+                            </a>
+                            <a href="#" class="text-decoration-none text-primary">
+                                <i class="fas fa-question me-1"></i>
+                                Help Center
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+let countdownInterval;
+let autoRetryTimeout;
+let countdownSeconds = 30;
+
+// Start auto-retry countdown when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    startAutoRetry();
+});
+
+function startAutoRetry() {
+    document.getElementById('autoRetryAlert').style.display = 'block';
+    
+    countdownInterval = setInterval(function() {
+        countdownSeconds--;
+        document.getElementById('countdown').textContent = countdownSeconds;
+        
+        if (countdownSeconds <= 0) {
+            clearInterval(countdownInterval);
+            window.location.href = '@Url.Action("Index")';
+        }
+    }, 1000);
+}
+
+function cancelAutoRetry() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+    }
+    if (autoRetryTimeout) {
+        clearTimeout(autoRetryTimeout);
+    }
+    document.getElementById('autoRetryAlert').style.display = 'none';
+}
+
+function retryInSeconds() {
+    const btn = document.getElementById('retryBtn');
+    const originalText = btn.innerHTML;
+    
+    btn.classList.add('btn-loading');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Retrying...';
+    btn.disabled = true;
+    
+    // Cancel auto-retry since user is manually retrying
+    cancelAutoRetry();
+    
+    // Redirect after a short delay to show loading state
+    setTimeout(function() {
+        window.location.href = '@Url.Action("Index")';
+    }, 1000);
+}
+
+// Add keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.ctrlKey) {
+        // Ctrl+Enter to retry
+        retryInSeconds();
+    } else if (e.key === 'Escape') {
+        // Escape to go back to route planner
+        window.location.href = '@Url.Action("Index")';
+    } else if (e.key === ' ') {
+        // Space to cancel auto-retry
+        e.preventDefault();
+        cancelAutoRetry();
+    }
+});
+
+// Page visibility API to pause countdown when tab is not active
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        // Pause countdown when tab is not visible
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+    } else {
+        // Resume countdown when tab becomes visible
+        if (document.getElementById('autoRetryAlert').style.display !== 'none' && countdownSeconds > 0) {
+            countdownInterval = setInterval(function() {
+                countdownSeconds--;
+                document.getElementById('countdown').textContent = countdownSeconds;
+                
+                if (countdownSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    window.location.href = '@Url.Action("Index")';
+                }
+            }, 1000);
+        }
+    }
+});
+
+// Show connection status
+function updateConnectionStatus() {
+    const statusCard = document.querySelector('.status-card .badge');
+    if (navigator.onLine) {
+        statusCard.className = 'badge bg-success';
+        statusCard.textContent = 'Checking...';
+    } else {
+        statusCard.className = 'badge bg-danger';
+        statusCard.textContent = 'No Internet';
+    }
+}
+
+// Listen for online/offline events
+window.addEventListener('online', updateConnectionStatus);
+window.addEventListener('offline', updateConnectionStatus);
+</script>
