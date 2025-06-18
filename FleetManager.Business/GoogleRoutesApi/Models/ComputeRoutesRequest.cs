@@ -28,7 +28,8 @@ namespace FleetManager.Business.GoogleRoutesApi.Models
         public bool ComputeAlternativeRoutes { get; set; } = false;
 
         [JsonProperty("routeModifiers")]
-        public string RouteModifiers { get; set; } = string.Empty;
+        public RouteModifiers RouteModifiers { get; set; } = new RouteModifiers();
+
 
         [JsonProperty("languageCode")]
         public string LanguageCode { get; set; } = "en-US";

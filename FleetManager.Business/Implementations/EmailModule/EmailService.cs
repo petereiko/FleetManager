@@ -35,6 +35,8 @@ namespace FleetManager.Business.Implementations.EmailModule
             {
                 var log = new EmailLog
                 {
+                    CompanyId = model.CompanyId,
+                    CompanyBranchId = model.CompanyBranchId,
                     Recepient = model.Email,
                     Subject = model.Subject,
                     Message = model.Message,

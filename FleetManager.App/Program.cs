@@ -16,6 +16,7 @@ using FleetManager.Business.Implementations.CompanyOnboardingModule;
 using FleetManager.Business.Implementations.DriverVehicleModule;
 using FleetManager.Business.Implementations.DutyOfCareModule;
 using FleetManager.Business.Implementations.EmailModule;
+using FleetManager.Business.Implementations.FineAndTollModule;
 using FleetManager.Business.Implementations.FuelLogModule;
 using FleetManager.Business.Implementations.ManageDriverModule;
 using FleetManager.Business.Implementations.NotificationModule;
@@ -27,6 +28,7 @@ using FleetManager.Business.Interfaces.CompanyOnboardingModule;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.DutyOfCareModule;
 using FleetManager.Business.Interfaces.EmailModule;
+using FleetManager.Business.Interfaces.FineAndTollModule;
 using FleetManager.Business.Interfaces.FuelLogModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.NotificationModule;
@@ -58,6 +60,7 @@ builder.Services.AddDbContext<FleetManagerDbContext>(options =>
 
 //builder.Services.AddMemoryCache();
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
 
 // Add Identity
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -122,8 +125,10 @@ builder.Services.AddTransient<IManageDriverService, ManageDriverService>();
 builder.Services.AddTransient<IDriverVehicleService, DriverVehicleService>();
 builder.Services.AddTransient<IDriverDutyOfCareService, DriverDutyOfCareService>();
 builder.Services.AddTransient<IFuelLogService, FuelLogService>();
+builder.Services.AddTransient<IFineAndTollService, FineAndTollService>();
 builder.Services.AddTransient<INotificationService, NotificationService>();
-builder.Services.AddSingleton<IGoogleRoutesService, FakeRoutesService>();
+
+//builder.Services.AddSingleton<IGoogleRoutesService, FakeRoutesService>();
 
 //builder.Services.AddTransient<IApplicantService, ApplicantService>();
 //builder.Services.AddTransient<IVisualAssessmentResultRepository, VisualAssessmentResultService>();
@@ -165,17 +170,17 @@ builder.Services.AddHangfireServer();
 //Google Map
 
 builder.Services.Configure<GoogleRoutesApiOptions>(builder.Configuration.GetSection("GoogleRoutesApi"));
-//builder.Services.AddHttpClient<IGoogleRoutesService, GoogleRoutesService>((sp, client) =>
-//{
-//    var options = sp.GetRequiredService<IOptions<GoogleRoutesApiOptions>>().Value;
+builder.Services.AddHttpClient<IGoogleRoutesService, GoogleRoutesService>((sp, client) =>
+{
+    var options = sp.GetRequiredService<IOptions<GoogleRoutesApiOptions>>().Value;
 
-//    client.BaseAddress = new Uri($"{options.BaseUrl}/directions/v2:computeRoutes");
-//    client.Timeout = options.Timeout;
+    client.BaseAddress = new Uri($"{options.BaseUrl}/directions/v2:computeRoutes");
+    client.Timeout = options.Timeout;
 
-//    client.DefaultRequestHeaders.Add("X-Goog-Api-Key", options.ApiKey);
-//    client.DefaultRequestHeaders.Add("X-Goog-FieldMask",
-//        "routes.routeLabels,routes.legs,routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.steps,routes.legs.startLocation,routes.legs.endLocation");
-//});
+    client.DefaultRequestHeaders.Add("X-Goog-Api-Key", options.ServerSideApiKey);
+    client.DefaultRequestHeaders.Add("X-Goog-FieldMask",
+        "routes.routeLabels,routes.legs,routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.steps,routes.legs.startLocation,routes.legs.endLocation");
+});
 
 
 

@@ -129,6 +129,34 @@
 
             <li class="submenu">
                 <a asp-area="Admin"
+                   asp-controller="ManageFineToll"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-08.svg" alt="">
+                    </span>
+                    <span> Fines & Tolls </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageFineToll"
+                           asp-action="Index">
+                            View Fines & Tolls
+                        </a>
+                    </li>
+@*                     <li>
+                        <a asp-area="Admin"
+                           asp-controller="FuelLog"
+                           asp-action="Create">
+                            Add Fuel Log
+                        </a>
+                    </li>
+ *@                </ul>
+            </li>
+
+            <li class="submenu">
+                <a asp-area="Admin"
                    asp-controller="ManageDutyOfCare"
                    asp-action="Index">
                     <span class="menu-side">

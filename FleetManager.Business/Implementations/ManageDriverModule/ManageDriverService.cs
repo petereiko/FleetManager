@@ -155,6 +155,8 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
 
                 await _emailService.LogEmail(new EmailLogDto
                 {
+                    CompanyId = branch.CompanyId,
+                    CompanyBranchId = dto.CompanyBranchId,
                     Email = dto.Email,
                     Subject = "Driver Account Created",
                     Message = $"Dear {dto.FirstName},<br/>Your account is ready. PW: <b>{tempPwd}</b><br/><a href='{confirmUrl}'>Confirm Email</a>",

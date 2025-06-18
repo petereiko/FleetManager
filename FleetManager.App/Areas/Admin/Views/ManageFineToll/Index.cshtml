@@ -1,0 +1,916 @@
+﻿@model IEnumerable<FineTollListItemViewModel>
+@using FleetManager.Business.ViewModels
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Manage Fines & Tolls";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 15px 15px;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+        transition: transform 0.2s;
+    }
+
+        .stats-card:hover {
+            transform: translateY(-2px);
+        }
+
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .custom-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+    }
+
+        .custom-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+            .custom-table thead th {
+                border: none;
+                padding: 1rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.875rem;
+                letter-spacing: 0.5px;
+            }
+
+        .custom-table tbody tr {
+            transition: all 0.2s;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+            .custom-table tbody tr:hover {
+                background-color: #f8f9fa;
+                transform: scale(1.01);
+            }
+
+        .custom-table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border: none;
+        }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-paid {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-overdue {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .type-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .type-fine {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .type-toll {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .btn-modern {
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.2s;
+    }
+
+    .btn-view {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+
+        .btn-view:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .custom-select {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.5rem;
+        transition: all 0.2s;
+    }
+
+        .custom-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+    .search-input {
+        border: 2px solid #e5e7eb;
+        border-radius: 25px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.2s;
+    }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+    .alert-custom {
+        border-radius: 12px;
+        border: none;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .alert-success-custom {
+        background: #d1fae5;
+        color: #065f46;
+        border-left: 4px solid #10b981;
+    }
+
+    .alert-info-custom {
+        background: #dbeafe;
+        color: #1e40af;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .total-amount {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+</style>
+
+<div class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-receipt me-3"></i>
+                    @ViewData["Title"]
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">Monitor and manage all fines and tolls across your fleet</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="stats-summary text-white">
+                    <div class="d-flex justify-content-end">
+                        <div class="me-4">
+                            <div class="h4 mb-0" id="totalCount">@Model.Count()</div>
+                            <small>Total Records</small>
+                        </div>
+                        <div>
+                            <div class="h4 mb-0 total-amount" id="totalAmount">
+                                @String.Format(System.Globalization.CultureInfo.GetCultureInfo("en-NG"), "{0:C0}", Model.Sum(x => x.Amount))
+                            </div>
+                            <small>Total Amount</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success-custom alert-custom">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="alert alert-info-custom alert-custom">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Reminder:</strong> Update the status of any unpaid fee once it has been paid to keep records accurate.
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0" id="pendingCount">@Model.Count(x => x.Status == "Pending")</div>
+                        <small class="text-muted">Pending</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-check-circle text-success" style="font-size: 2rem;"></i>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0" id="paidCount">@Model.Count(x => x.Status == "Paid")</div>
+                        <small class="text-muted">Paid</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-clock text-danger" style="font-size: 2rem;"></i>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0" id="overdueCount">@Model.Count(x => x.Status == "Overdue")</div>
+                        <small class="text-muted">Overdue</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-car text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0" id="uniqueVehicles">@Model.Select(x => x.VehicleDescription).Distinct().Count()</div>
+                        <small class="text-muted">Vehicles</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Filters -->
+    <div class="filter-section">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-search me-1"></i> Search
+                </label>
+                <input type="text" id="searchInput" class="form-control search-input" placeholder="Search driver, vehicle, title..." />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-filter me-1"></i> Type
+                </label>
+                <select id="typeFilter" class="form-select custom-select">
+                    <option value="">All Types</option>
+                    <option value="Fine">Fine</option>
+                    <option value="Toll">Toll</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-flag me-1"></i> Status
+                </label>
+                <select id="statusFilter" class="form-select custom-select">
+                    <option value="">All Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-calendar me-1"></i> From Date
+                </label>
+                <input type="text" id="fromDate" class="form-control custom-select" placeholder="Select date" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-calendar me-1"></i> To Date
+                </label>
+                <input type="text" id="toDate" class="form-control custom-select" placeholder="Select date" />
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100" title="Clear All Filters">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+        <p class="mt-2">Loading...</p>
+    </div>
+
+    <!-- Data Table -->
+    <div class="custom-table">
+        <table class="table table-hover mb-0" id="dataTable">
+            <thead>
+                <tr>
+                    <th>
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Date
+                        <i class="fas fa-sort ms-1 sort-icon" data-column="date"></i>
+                    </th>
+                    <th>
+                        <i class="fas fa-user me-1"></i>
+                        Driver
+                        <i class="fas fa-sort ms-1 sort-icon" data-column="driver"></i>
+                    </th>
+                    <th>
+                        <i class="fas fa-tag me-1"></i>
+                        Type
+                    </th>
+                    <th>
+                        <i class="fas fa-file-alt me-1"></i>
+                        Title
+                    </th>
+                    <th>
+                        <i class="fas fa-car me-1"></i>
+                        Vehicle
+                    </th>
+                    <th>
+                        <i class="fas fa-money-bill me-1"></i>
+                        Amount
+                        <i class="fas fa-sort ms-1 sort-icon" data-column="amount"></i>
+                    </th>
+                    <th>
+                        <i class="fas fa-flag me-1"></i>
+                        Status
+                    </th>
+                    <th>
+                        <i class="fas fa-cogs me-1"></i>
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                @foreach (var item in Model)
+                {
+                    <tr data-id="@item.Id"
+                        data-date="@item.DateLogged.ToString("yyyy-MM-dd")"
+                        data-driver="@item.DriverName.ToLower()"
+                        data-type="@item.Type.ToLower()"
+                        data-title="@item.Title.ToLower()"
+                        data-vehicle="@item.VehicleDescription.ToLower()"
+                        data-amount="@item.Amount"
+                        data-status="@item.Status.ToLower()">
+                        <td>
+                            <div class="fw-bold">@item.DateLogged.ToString("dd MMM")</div>
+                            <small class="text-muted">@item.DateLogged.ToString("yyyy")</small>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">@item.DriverName</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="type-badge @(item.Type.ToLower() == "fine" ? "type-fine" : "type-toll")">
+                                <i class="fas @(item.Type.ToLower() == "fine" ? "fa-exclamation-triangle" : "fa-road") me-1"></i>
+                                @item.Type
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-bold">@item.Title</div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-car text-muted me-2"></i>
+                                <span>@item.VehicleDescription</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-success">
+                                @String.Format(System.Globalization.CultureInfo.GetCultureInfo("en-NG"), "{0:C0}", item.Amount)
+                            </div>
+                        </td>
+                        <td>
+                            <select class="form-select custom-select status-select" style="width: auto; min-width: 120px;">
+                                @foreach (var opt in item.StatusOptions)
+                                {
+                                    if (opt.Text == item.Status)
+                                    {
+                                        <option value="@opt.Value" selected>@opt.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@opt.Value">@opt.Text</option>
+                                    }
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-view btn-modern btn-sm view-details me-1" title="View Details">
+                                <i class="fas fa-eye me-1"></i>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div class="empty-state d-none" id="emptyState">
+            <i class="fas fa-search"></i>
+            <h4>No records found</h4>
+            <p class="text-muted">Try adjusting your search criteria or filters</p>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="mt-3 d-flex justify-content-between align-items-center">
+        <div class="text-muted" id="resultsInfo">
+            Showing <span id="visibleCount">@Model.Count()</span> of <span id="totalRecords">@Model.Count()</span> records
+        </div>
+        <div class="text-muted">
+            Total Amount: <span class="fw-bold text-success" id="filteredTotal">
+                @String.Format(System.Globalization.CultureInfo.GetCultureInfo("en-NG"), "{0:C0}", Model.Sum(x => x.Amount))
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">
+                    <i class="fas fa-receipt me-2"></i>
+                    Fine/Toll Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detailsContainer">
+                <!-- Details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        $(function() {
+            // Initialize Flatpickr for date inputs
+            flatpickr("#fromDate", {
+                dateFormat: "Y-m-d"
+            });
+
+            flatpickr("#toDate", {
+                dateFormat: "Y-m-d"
+            });
+
+            // Search and filter functionality
+            function filterTable() {
+                const searchTerm = $('#searchInput').val().toLowerCase();
+                const typeFilter = $('#typeFilter').val().toLowerCase();
+                const statusFilter = $('#statusFilter').val().toLowerCase();
+                const fromDate = $('#fromDate').val();
+                const toDate = $('#toDate').val();
+
+                let visibleCount = 0;
+                let filteredTotal = 0;
+
+                $('#tableBody tr').each(function() {
+                    const row = $(this);
+                    const rowData = {
+                        date: row.data('date'),
+                        driver: row.data('driver'),
+                        type: row.data('type'),
+                        title: row.data('title'),
+                        vehicle: row.data('vehicle'),
+                        amount: parseFloat(row.data('amount')),
+                        status: row.data('status')
+                    };
+
+                    let visible = true;
+
+                    // Search filter
+                    if (searchTerm) {
+                        const searchableText = ${rowData.driver} ${rowData.title} ${rowData.vehicle};
+                        visible = visible && searchableText.includes(searchTerm);
+                    }
+
+                    // Type filter
+                    if (typeFilter) {
+                        visible = visible && rowData.type === typeFilter;
+                    }
+
+                    // Status filter
+                    if (statusFilter) {
+                        visible = visible && rowData.status === statusFilter;
+                    }
+
+                    // Date range filter
+                    if (fromDate) {
+                        visible = visible && rowData.date >= fromDate;
+                    }
+                    if (toDate) {
+                        visible = visible && rowData.date <= toDate;
+                    }
+
+                    if (visible) {
+                        row.show();
+                        visibleCount++;
+                        filteredTotal += rowData.amount;
+                    } else {
+                        row.hide();
+                    }
+                });
+
+                // Update results info
+                $('#visibleCount').text(visibleCount);
+                $('#filteredTotal').text(new Intl.NumberFormat('en-NG', {
+                    style: 'currency',
+                    currency: 'NGN',
+                    minimumFractionDigits: 0
+                }).format(filteredTotal));
+
+                // Show/hide empty state
+                if (visibleCount === 0) {
+                    $('#emptyState').removeClass('d-none');
+                    $('#dataTable tbody').addClass('d-none');
+                } else {
+                    $('#emptyState').addClass('d-none');
+                    $('#dataTable tbody').removeClass('d-none');
+                }
+            }
+
+            // Bind filter events
+            $('#searchInput, #typeFilter, #statusFilter, #fromDate, #toDate').on('input change', filterTable);
+
+            // Clear filters
+            $('#clearFilters').click(function() {
+                $('#searchInput').val('');
+                $('#typeFilter').val('');
+                $('#statusFilter').val('');
+                $('#fromDate').val('');
+                $('#toDate').val('');
+                filterTable();
+            });
+
+            // Sorting functionality
+            $('.sort-icon').click(function() {
+                const column = $(this).data('column');
+                const isAsc = $(this).hasClass('fa-sort-up');
+
+                // Reset all sort icons
+                $('.sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+
+                // Set current sort icon
+                if (isAsc) {
+                    $(this).removeClass('fa-sort fa-sort-up').addClass('fa-sort-down');
+                } else {
+                    $(this).removeClass('fa-sort fa-sort-down').addClass('fa-sort-up');
+                }
+
+                // Sort table rows
+                const rows = $('#tableBody tr').get();
+                rows.sort(function(a, b) {
+                    let aVal, bVal;
+
+                    switch(column) {
+                        case 'date':
+                            aVal = $(a).data('date');
+                            bVal = $(b).data('date');
+                            break;
+                        case 'driver':
+                            aVal = $(a).data('driver');
+                            bVal = $(b).data('driver');
+                            break;
+                        case 'amount':
+                            aVal = parseFloat($(a).data('amount'));
+                            bVal = parseFloat($(b).data('amount'));
+                            break;
+                        default:
+                            return 0;
+                    }
+
+                    if (aVal < bVal) return isAsc ? 1 : -1;
+                    if (aVal > bVal) return isAsc ? -1 : 1;
+                    return 0;
+                });
+
+                $.each(rows, function(index, row) {
+                    $('#tableBody').append(row);
+                });
+            });
+
+            // View details in modal via AJAX
+            $('.view-details').click(function() {
+                const id = $(this).closest('tr').data('id');
+                $('#loadingSpinner').show();
+
+                $('#detailsContainer').load('@Url.Action("Details", "ManageFineToll")?id=' + id, function(response, status) {
+                    $('#loadingSpinner').hide();
+                    if (status === 'success') {
+                        $('#detailsModal').modal('show');
+                    } else {
+                        alert('Error loading details. Please try again.');
+                    }
+                });
+            });
+
+            // Inline status change via AJAX POST
+            $('.status-select').change(function() {
+                const row = $(this).closest('tr');
+                const id = row.data('id');
+                const newStatus = $(this).val();
+                const originalStatus = $(this).data('original-status') || $(this).find('option:selected').text();
+
+                // Store original status for rollback
+                $(this).data('original-status', originalStatus);
+
+                $.ajax({
+                    url: '@Url.Action("UpdateStatus", "ManageFineToll")',
+                    type: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    data: { id: id, status: newStatus },
+                    success: function() {
+                        // Show success toast
+                        showToast('Status updated successfully', 'success');
+
+                        // Update row data attribute
+                        row.data('status', newStatus.toLowerCase());
+
+                        // Update stats
+                        updateStats();
+                    },
+                    error: function() {
+                        // Rollback to original status
+                        $(this).val(originalStatus);
+                        showToast('Error updating status. Please try again.', 'error');
+                    }
+                });
+            });
+
+            // Toast notification function
+            function showToast(message, type) {
+                const toastClass = type === 'success' ? 'alert-success-custom' : 'alert-danger';
+                const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+                const toast = $(
+                    <div class="alert ${toastClass} alert-custom toast-notification" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                        <i class="fas ${icon} me-2"></i>
+                        ${message}
+                    </div>
+                );
+
+                $('body').append(toast);
+
+                setTimeout(function() {
+                    toast.fadeOut(function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+
+            // Update statistics
+            function updateStats() {
+                const visibleRows = $('#tableBody tr:visible');
+                let pendingCount = 0, paidCount = 0, overdueCount = 0;
+
+                visibleRows.each(function() {
+                    const status = $(this).data('status');
+                    switch(status) {
+                        case 'pending': pendingCount++; break;
+                        case 'paid': paidCount++; break;
+                        case 'overdue': overdueCount++; break;
+                    }
+                });
+
+                $('#pendingCount').text(pendingCount);
+                $('#paidCount').text(paidCount);
+                $('#overdueCount').text(overdueCount);
+            }
+
+            // Initialize tooltips
+            $('[title]').tooltip();
+        });
+    </script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @model IEnumerable<FineTollListItemViewModel>
+@using FleetManager.Business.ViewModels
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Manage Fines & Tolls";
+}
+<h1>@ViewData["Title"]</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+<p class="alert alert-info">
+    Remember to update the status of any unpaid fee once it has been paid.
+</p>
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Driver</th>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Vehicle</th>
+            <th>Amount (₦)</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr data-id="@item.Id">
+                <td>@item.DateLogged.ToString("dd MMM yyyy")</td>
+                <td>@item.DriverName</td>
+                <td>@item.Type</td>
+                <td>@item.Title</td>
+                <td>@item.VehicleDescription</td>
+                <td>@String.Format(System.Globalization.CultureInfo.GetCultureInfo("en-NG"), "{0:C0}", item.Amount)</td>
+                <td>
+                    <select class="form-control status-select" style="width: auto; display: inline-block;">
+                        @foreach (var opt in item.StatusOptions)
+                        {
+                            if (opt.Text == item.Status)
+                            {
+                                <option value="@opt.Value" selected>@opt.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@opt.Value">@opt.Text</option>
+                            }
+                        }
+                    </select>
+                </td>
+
+                <td>
+                    <button class="btn btn-info btn-sm view-details">View</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailsModalLabel">Fine/Toll Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="detailsContainer">
+        <!-- partial loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <script>
+    $(function() {
+        // view details in modal via AJAX
+        $('.view-details').click(function() {
+            var id = $(this).closest('tr').data('id');
+            $('#detailsContainer').load('@Url.Action("Details", "ManageFineToll")?id=' + id, function() {
+                $('#detailsModal').modal('show');
+            });
+        });
+
+        // inline status change via AJAX POST
+        $('.status-select').change(function() {
+            var row = $(this).closest('tr');
+            var id = row.data('id');
+            var newStatus = $(this).val();
+            $.ajax({
+                url: '@Url.Action("UpdateStatus", "ManageFineToll")',
+                type: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                data: { id: id, status: newStatus },
+                success: function() {
+                    // show a quick toast or inline feedback
+                    alert('Status updated successfully');
+                },
+                error: function() {
+                    alert('Error updating status, please try again');
+                }
+            });
+        });
+    });
+    </script>
+}
+ *@

@@ -31,6 +31,7 @@ namespace FleetManager.Business
         public DbSet<DriverDutyOfCare> DriverDutyOfCares { get; set; }
         
         public DbSet<EmailLog> EmailLogs { get; set; }
+        public DbSet<FineAndToll> FineAndTolls { get; set; }
         public DbSet<FuelLog> FuelLogs { get; set; }
         public DbSet<LGA> LGAs {  get; set; }
         public DbSet<Notification> Notifications { get; set; }

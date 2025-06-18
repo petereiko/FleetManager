@@ -1,0 +1,620 @@
+﻿@model IEnumerable<FineTollListItemViewModel>
+@using System.Globalization
+@using FleetManager.Business.ViewModels
+@{
+    ViewData["Title"] = "My Fines & Tolls";
+}
+<style>
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+
+        .sortable:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .sortable.asc i::before {
+            content: "\f0de";
+        }
+
+        .sortable.desc i::before {
+            content: "\f0dd";
+        }
+
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+        .table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+    .card {
+        transition: box-shadow 0.15s ease-in-out;
+    }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+    .badge {
+        font-size: 0.75em;
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+    }
+</style>
+
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">@ViewData["Title"]</h1>
+            <p class="text-muted mb-0">Manage and track your fines and tolls</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Log New Fine/Toll
+            </a>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4" id="statsCards">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-file-invoice text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-muted">Total Items</h6>
+                            <h5 class="mb-0" id="totalCount">0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-exclamation-circle text-danger"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-muted">Unpaid</h6>
+                            <h5 class="mb-0" id="unpaidCount">0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-check-circle text-success"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-muted">Paid</h6>
+                            <h5 class="mb-0" id="paidCount">0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-naira-sign text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-muted">Total Amount</h6>
+                            <h5 class="mb-0" id="totalAmount">₦0</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>Filters
+                </h6>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="clearFilters">
+                    <i class="fas fa-times me-1"></i>Clear All
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search title, vehicle...">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="Unpaid">Unpaid</option>
+                        <option value="Paid">Paid</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" id="typeFilter">
+                        <option value="">All Types</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="fromDate">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="toDate">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">Records</label>
+                    <select class="form-select" id="recordsPerPage">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <span id="showingResults">Showing all records</span>
+                </h6>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-secondary" id="exportBtn">
+                        <i class="fas fa-download me-1"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="finesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 sortable" data-column="dateLogged">
+                                Date Logged
+                                <i class="fas fa-sort ms-1"></i>
+                            </th>
+                            <th class="border-0 sortable" data-column="type">
+                                Type
+                                <i class="fas fa-sort ms-1"></i>
+                            </th>
+                            <th class="border-0 sortable" data-column="title">
+                                Title
+                                <i class="fas fa-sort ms-1"></i>
+                            </th>
+                            <th class="border-0 sortable" data-column="amount">
+                                Amount
+                                <i class="fas fa-sort ms-1"></i>
+                            </th>
+                            <th class="border-0 sortable" data-column="status">
+                                Status
+                                <i class="fas fa-sort ms-1"></i>
+                            </th>
+                            <th class="border-0">Covered by Me?</th>
+                            <th class="border-0">Vehicle</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        @foreach (var item in Model)
+                        {
+                            <tr data-date="@item.DateLogged.ToString("yyyy-MM-dd")"
+                                data-type="@item.Type"
+                                data-status="@item.Status"
+                                data-amount="@item.Amount"
+                                data-title="@item.Title.ToLower()"
+                                data-vehicle="@(item.VehicleDescription?.ToLower() ?? "")">
+                                <td>
+                                    <span class="fw-medium">@item.DateLogged.ToString("dd MMM yyyy")</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@item.Type</span>
+                                </td>
+                                <td>
+                                    <div class="fw-medium">@item.Title</div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">@String.Format(CultureInfo.GetCultureInfo("en-NG"), "{0:C}", item.Amount)</span>
+                                </td>
+                                <td>
+                                    @if (item.Status == "Paid")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Paid
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation me-1"></i>Unpaid
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsMinimal)
+                                    {
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-user me-1"></i>Yes
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-building me-1"></i>No
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <small class="text-muted">@(item.VehicleDescription ?? "N/A")</small>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted" id="paginationInfo">Showing 1 to 25 of 0 entries</small>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Results Message -->
+    <div class="text-center py-5" id="noResults" style="display: none;">
+        <div class="mb-3">
+            <i class="fas fa-search fa-3x text-muted"></i>
+        </div>
+        <h5 class="text-muted">No records found</h5>
+        <p class="text-muted">Try adjusting your filters or search criteria</p>
+    </div>
+</div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let allData = [];
+            let filteredData = [];
+            let currentPage = 1;
+            let recordsPerPage = 25;
+            let sortColumn = 'dateLogged';
+            let sortDirection = 'desc';
+
+            // Initialize data from table
+            function initializeData() {
+                const rows = document.querySelectorAll('#tableBody tr');
+                allData = Array.from(rows).map(row => ({
+                    element: row,
+                    dateLogged: row.dataset.date,
+                    type: row.dataset.type,
+                    status: row.dataset.status,
+                    amount: parseFloat(row.dataset.amount),
+                    title: row.dataset.title,
+                    vehicle: row.dataset.vehicle
+                }));
+
+                // Populate type filter
+                const types = [...new Set(allData.map(item => item.type))];
+                const typeFilter = document.getElementById('typeFilter');
+                types.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    typeFilter.appendChild(option);
+                });
+
+                filteredData = [...allData];
+                updateStats();
+                renderTable();
+            }
+
+            // Update statistics
+            function updateStats() {
+                const total = filteredData.length;
+                const unpaid = filteredData.filter(item => item.status === 'Unpaid').length;
+                const paid = filteredData.filter(item => item.status === 'Paid').length;
+                const totalAmount = filteredData.reduce((sum, item) => sum + item.amount, 0);
+
+                document.getElementById('totalCount').textContent = total;
+                document.getElementById('unpaidCount').textContent = unpaid;
+                document.getElementById('paidCount').textContent = paid;
+                document.getElementById('totalAmount').textContent = new Intl.NumberFormat('en-NG', {
+                    style: 'currency',
+                    currency: 'NGN'
+                }).format(totalAmount);
+            }
+
+            // Filter data
+            function filterData() {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const statusFilter = document.getElementById('statusFilter').value;
+                const typeFilter = document.getElementById('typeFilter').value;
+                const fromDate = document.getElementById('fromDate').value;
+                const toDate = document.getElementById('toDate').value;
+
+                filteredData = allData.filter(item => {
+                    const matchesSearch = !searchTerm ||
+                        item.title.includes(searchTerm) ||
+                        item.vehicle.includes(searchTerm);
+
+                    const matchesStatus = !statusFilter || item.status === statusFilter;
+                    const matchesType = !typeFilter || item.type === typeFilter;
+
+                    const matchesFromDate = !fromDate || item.dateLogged >= fromDate;
+                    const matchesToDate = !toDate || item.dateLogged <= toDate;
+
+                    return matchesSearch && matchesStatus && matchesType &&
+                           matchesFromDate && matchesToDate;
+                });
+
+                currentPage = 1;
+                updateStats();
+                renderTable();
+            }
+
+            // Sort data
+            function sortData(column) {
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+
+                filteredData.sort((a, b) => {
+                    let aVal = a[column];
+                    let bVal = b[column];
+
+                    if (column === 'amount') {
+                        aVal = parseFloat(aVal);
+                        bVal = parseFloat(bVal);
+                    } else if (column === 'dateLogged') {
+                        aVal = new Date(aVal);
+                        bVal = new Date(bVal);
+                    } else {
+                        aVal = aVal.toString().toLowerCase();
+                        bVal = bVal.toString().toLowerCase();
+                    }
+
+                    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                updateSortIcons();
+                renderTable();
+            }
+
+            // Update sort icons
+            function updateSortIcons() {
+                document.querySelectorAll('.sortable').forEach(th => {
+                    th.classList.remove('asc', 'desc');
+                });
+
+                const activeTh = document.querySelector(`[data-column="${sortColumn}"]`);
+                if (activeTh) {
+                    activeTh.classList.add(sortDirection);
+                }
+            }
+
+            // Render table
+            function renderTable() {
+                const tableBody = document.getElementById('tableBody');
+                const noResults = document.getElementById('noResults');
+
+                if (filteredData.length === 0) {
+                    tableBody.style.display = 'none';
+                    noResults.style.display = 'block';
+                    updatePagination();
+                    return;
+                }
+
+                tableBody.style.display = '';
+                noResults.style.display = 'none';
+
+                // Clear current table
+                tableBody.innerHTML = '';
+
+                // Calculate pagination
+                const startIndex = (currentPage - 1) * recordsPerPage;
+                const endIndex = Math.min(startIndex + recordsPerPage, filteredData.length);
+                const pageData = filteredData.slice(startIndex, endIndex);
+
+                // Add filtered rows
+                pageData.forEach(item => {
+                    tableBody.appendChild(item.element.cloneNode(true));
+                });
+
+                updatePagination();
+                updateShowingResults(startIndex + 1, endIndex, filteredData.length);
+            }
+
+            // Update pagination
+            function updatePagination() {
+                const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+
+                if (totalPages <= 1) return;
+
+                // Previous button
+                const prevLi = document.createElement('li');
+                prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+                prevLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>`;
+                pagination.appendChild(prevLi);
+
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                        const li = document.createElement('li');
+                        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                        li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                        pagination.appendChild(li);
+                    } else if (i === currentPage - 3 || i === currentPage + 3) {
+                        const li = document.createElement('li');
+                        li.className = 'page-item disabled';
+                        li.innerHTML = '<span class="page-link">...</span>';
+                        pagination.appendChild(li);
+                    }
+                }
+
+                // Next button
+                const nextLi = document.createElement('li');
+                nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+                nextLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>`;
+                pagination.appendChild(nextLi);
+            }
+
+            // Update showing results text
+            function updateShowingResults(start, end, total) {
+                document.getElementById('showingResults').textContent =
+                    `Showing ${start} to ${end} of ${total} entries`;
+
+                document.getElementById('paginationInfo').textContent =
+                    `Showing ${start} to ${end} of ${total} entries`;
+            }
+
+            // Event listeners
+            document.getElementById('searchInput').addEventListener('input', filterData);
+            document.getElementById('statusFilter').addEventListener('change', filterData);
+            document.getElementById('typeFilter').addEventListener('change', filterData);
+            document.getElementById('fromDate').addEventListener('change', filterData);
+            document.getElementById('toDate').addEventListener('change', filterData);
+
+            document.getElementById('recordsPerPage').addEventListener('change', function() {
+                recordsPerPage = parseInt(this.value);
+                currentPage = 1;
+                renderTable();
+            });
+
+            document.getElementById('clearFilters').addEventListener('click', function() {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('statusFilter').value = '';
+                document.getElementById('typeFilter').value = '';
+                document.getElementById('fromDate').value = '';
+                document.getElementById('toDate').value = '';
+                filterData();
+            });
+
+            // Sort event listeners
+            document.querySelectorAll('.sortable').forEach(th => {
+                th.addEventListener('click', function() {
+                    sortData(this.dataset.column);
+                });
+            });
+
+            // Pagination event listener
+            document.getElementById('pagination').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (e.target.tagName === 'A' && e.target.dataset.page) {
+                    const newPage = parseInt(e.target.dataset.page);
+                    if (newPage >= 1 && newPage <= Math.ceil(filteredData.length / recordsPerPage)) {
+                        currentPage = newPage;
+                        renderTable();
+                    }
+                }
+            });
+
+            // Export functionality
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                const csvContent = generateCSV();
+                downloadCSV(csvContent, 'fines-tolls-export.csv');
+            });
+
+            function generateCSV() {
+                const headers = ['Date Logged', 'Type', 'Title', 'Amount', 'Status', 'Covered by Me', 'Vehicle'];
+                const rows = filteredData.map(item => {
+                    const row = item.element;
+                    const cells = row.querySelectorAll('td');
+                    return [
+                        cells[0].textContent.trim(),
+                        cells[1].textContent.trim(),
+                        cells[2].textContent.trim(),
+                        cells[3].textContent.trim(),
+                        cells[4].textContent.trim(),
+                        cells[5].textContent.trim(),
+                        cells[6].textContent.trim()
+                    ];
+                });
+
+                return [headers, ...rows].map(row =>
+                    row.map(field => `"${field}"`).join(',')
+                ).join('\n');
+            }
+
+            function downloadCSV(content, filename) {
+                const blob = new Blob([content], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            // Initialize
+            initializeData();
+            updateSortIcons();
+        });
+    </script>

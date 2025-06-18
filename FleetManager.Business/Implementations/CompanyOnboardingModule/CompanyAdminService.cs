@@ -181,10 +181,13 @@ namespace FleetManager.Business.Implementations.CompanyOnboardingModule
 
                 var emailSuccess = await _emailService.LogEmail(new EmailLogDto
                 {
+                    CompanyId = dto.CompanyId,
+                    CompanyBranchId = dto.CompanyBranchId,
                     Email = dto.Email,
                     Subject = "Admin Onboarding",
                     Message = message,
-                    Url = confirmUrl
+                    Url = confirmUrl,
+
                 });
 
                 if (!emailSuccess)

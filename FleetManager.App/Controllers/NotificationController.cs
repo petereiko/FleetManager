@@ -3,6 +3,7 @@ using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.UserModule;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FleetManager.App.Controllers
 {
@@ -12,16 +13,19 @@ namespace FleetManager.App.Controllers
     {
         private readonly INotificationService _notificationService;
         private readonly IAuthUser _authUser;
+        private readonly IMemoryCache _cache;
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
         public NotificationsController(
             INotificationService notificationService,
-            IAuthUser authUser)
+            IAuthUser authUser,
+            IMemoryCache cache)
         {
             _notificationService = notificationService;
             _authUser = authUser;
+            _cache = cache;
         }
 
-        
         [HttpGet]
         public async Task<IActionResult> GetRecent()
         {
@@ -30,7 +34,6 @@ namespace FleetManager.App.Controllers
             return Ok(list);
         }
 
-        
         [HttpPost("mark-read")]
         public async Task<IActionResult> MarkRead([FromBody] MarkReadRequest model)
         {
@@ -40,18 +43,17 @@ namespace FleetManager.App.Controllers
             var userId = _authUser.UserId;
             var success = await _notificationService.MarkAsReadAsync(userId, model.NotificationId);
             if (!success) return NotFound();
+            
             return Ok();
         }
 
-        
         [HttpPost("mark-all-read")]
         public async Task<IActionResult> MarkAllRead()
         {
             var userId = _authUser.UserId;
             await _notificationService.MarkAllReadAsync(userId);
+
             return Ok();
         }
-
-        
     }
 }

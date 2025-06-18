@@ -203,6 +203,8 @@ namespace FleetManager.Business.Implementations.CompanyModule
 
                 bool emailLogSuccess = await _emailService.LogEmail(new EmailLogDto
                 {
+                    CompanyId = company.Id,
+                    CompanyBranchId = companyBranch.Id,
                     Email = model.Email,
                     Message = message,
                     Subject = "Company Admin Account Created",

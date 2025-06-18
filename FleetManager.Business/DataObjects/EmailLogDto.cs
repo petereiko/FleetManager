@@ -8,6 +8,8 @@ namespace FleetManager.Business.DataObjects
 {
     public class EmailLogDto
     {
+        public long? CompanyId { get; set; }
+        public long? CompanyBranchId { get; set; }
         public string Message { get; set; }
         public string Email { get; set; }
         public string Url { get; set; }

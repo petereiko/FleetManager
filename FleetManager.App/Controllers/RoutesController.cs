@@ -48,7 +48,12 @@ namespace FleetManager.App.Controllers
                     TravelMode = "DRIVE",
                     RoutingPreference = "TRAFFIC_AWARE",
                     ComputeAlternativeRoutes = false,
-                    RouteModifiers = string.Empty,    // your model has this as string
+                    RouteModifiers = new RouteModifiers
+                    {
+                        AvoidTolls = false,
+                        AvoidFerries = false,
+                        AvoidHighways = false
+                    },   
                     LanguageCode = "en-US",
                     Units = "METRIC"
                 };
