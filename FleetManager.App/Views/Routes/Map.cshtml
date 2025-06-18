@@ -1,366 +1,4 @@
-﻿@* @using FleetManager.Business.ViewModels.GoogleViewModels
-@model MapViewModel
-@{
-    ViewData["Title"] = "Route Map";
-}
-
-<div class="container-fluid p-0">
-    <div class="row g-0">
-        <div class="col-12">
-            <!-- Header Bar -->
-            <div class="bg-dark text-white p-3 shadow-sm">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <a asp-action="Index" class="btn btn-outline-light me-3">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Route Planner
-                        </a>
-                        <h1 class="mb-0 h4">
-                            <i class="fas fa-map-marked-alt me-2"></i>
-                            Interactive Route Map
-                        </h1>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <div class="btn-group me-3" role="group">
-                            <button type="button" class="btn btn-outline-light" onclick="toggleTraffic()">
-                                <i class="fas fa-traffic-light me-1"></i>Traffic
-                            </button>
-                            <button type="button" class="btn btn-outline-light" onclick="toggleSatellite()">
-                                <i class="fas fa-satellite me-1"></i>Satellite
-                            </button>
-                            <button type="button" class="btn btn-outline-light" onclick="fitToRoute()">
-                                <i class="fas fa-expand-arrows-alt me-1"></i>Fit Route
-                            </button>
-                        </div>
-                        <button type="button" class="btn btn-outline-light" onclick="shareRoute()">
-                            <i class="fas fa-share-alt me-1"></i>Share
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Map Container -->
-            <div class="position-relative">
-                <div id="map" style="height: calc(100vh - 80px); width: 100%;"></div>
-
-                <!-- Map Controls Overlay -->
-                <div class="position-absolute top-0 start-0 m-3">
-                    <div class="card shadow-lg border-0" style="max-width: 300px;">
-                        <div class="card-body p-3">
-                            <h6 class="card-title mb-2">
-                                <i class="fas fa-info-circle text-primary me-2"></i>
-                                Route Information
-                            </h6>
-                            <div id="routeInfo" class="small text-muted">
-                                Loading route details...
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Loading Overlay -->
-                <div id="mapLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="text-muted mb-0">Loading interactive map...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* Custom map styles */
-    .gm-style-iw {
-        border-radius: 8px !important;
-    }
-
-    .gm-style-iw-d {
-        overflow: hidden !important;
-    }
-
-    /* Floating card styles */
-    .position-absolute .card {
-        backdrop-filter: blur(10px);
-        background-color: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
-    }
-
-    /* Responsive adjustments */
-    @@media (max-width: 768px) {
-        .d-flex.justify-content-between
-
-    {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .position-absolute.top-0.start-0 {
-        position: relative !important;
-        margin: 0 !important;
-    }
-
-    .position-absolute .card {
-        margin: 1rem;
-        max-width: none;
-    }
-
-    }
-
-    /* Button hover effects */
-    .btn-outline-light:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
-    }
-
-    /* Traffic layer toggle */
-    .traffic-enabled {
-        background-color: #28a745 !important;
-        border-color: #28a745 !important;
-    }
-
-    .satellite-enabled {
-        background-color: #17a2b8 !important;
-        border-color: #17a2b8 !important;
-    }
-</style>
-
-<script src="https://maps.googleapis.com/maps/api/js?key=@Model.ApiKey&libraries=geometry"></script>
-
-<script>
-    let map;
-    let routeLine;
-    let trafficLayer;
-    let isTrafficVisible = false;
-    let isSatelliteView = false;
-    let routeBounds;
-
-    function initMap() {
-        try {
-            // Decode the polyline into an array of LatLng
-            const decodedPath = google.maps.geometry.encoding.decodePath('@Model.EncodedPolyline');
-
-            if (decodedPath.length === 0) {
-                showError('Invalid route data');
-                return;
-            }
-
-            // Create bounds to fit the entire route
-            routeBounds = new google.maps.LatLngBounds();
-            decodedPath.forEach(point => routeBounds.extend(point));
-
-            // Initialize map with modern styling
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: routeBounds.getCenter(),
-                zoom: 12,
-                mapTypeControl: false,
-                streetViewControl: true,
-                fullscreenControl: true,
-                zoomControl: true,
-                gestureHandling: 'greedy',
-                styles: [
-                    {
-                        featureType: 'poi',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'on' }]
-                    },
-                    {
-                        featureType: 'transit',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'on' }]
-                    }
-                ]
-            });
-
-            // Create the route polyline with enhanced styling
-            routeLine = new google.maps.Polyline({
-                path: decodedPath,
-                geodesic: true,
-                strokeColor: '#4285F4',
-                strokeOpacity: 0.8,
-                strokeWeight: 6,
-                map: map,
-                icons: [{
-                    icon: {
-                        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                        scale: 3,
-                        strokeColor: '#4285F4',
-                        strokeWeight: 2,
-                        fillColor: '#4285F4',
-                        fillOpacity: 1
-                    },
-                    offset: '100%',
-                    repeat: '200px'
-                }]
-            });
-
-            // Add start and end markers
-            const startMarker = new google.maps.Marker({
-                position: decodedPath[0],
-                map: map,
-                title: 'Start',
-                icon: {
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="20" cy="20" r="18" fill="#34A853" stroke="white" stroke-width="4"/>
-                            <text x="20" y="26" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">A</text>
-                        </svg>
-                    `),
-                    scaledSize: new google.maps.Size(40, 40),
-                    anchor: new google.maps.Point(20, 20)
-                }
-            });
-
-            const endMarker = new google.maps.Marker({
-                position: decodedPath[decodedPath.length - 1],
-                map: map,
-                title: 'Destination',
-                icon: {
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="20" cy="20" r="18" fill="#EA4335" stroke="white" stroke-width="4"/>
-                            <text x="20" y="26" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">B</text>
-                        </svg>
-                    `),
-                    scaledSize: new google.maps.Size(40, 40),
-                    anchor: new google.maps.Point(20, 20)
-                }
-            });
-
-            // Initialize traffic layer
-            trafficLayer = new google.maps.TrafficLayer();
-
-            // Fit map to route bounds
-            map.fitBounds(routeBounds);
-
-            // Update route info
-            updateRouteInfo(decodedPath);
-
-            // Hide loading overlay
-            document.getElementById('mapLoading').style.display = 'none';
-
-        } catch (error) {
-            console.error('Map initialization error:', error);
-            showError('Failed to load map. Please try again.');
-        }
-    }
-
-    function updateRouteInfo(path) {
-        const distance = google.maps.geometry.spherical.computeLength(path);
-        const distanceKm = (distance / 1000).toFixed(1);
-
-        document.getElementById('routeInfo').innerHTML = `
-            <div class="mb-2">
-                <i class="fas fa-route text-primary me-2"></i>
-                <strong>Distance:</strong> ${distanceKm} km
-            </div>
-            <div class="mb-2">
-                <i class="fas fa-map-pin text-success me-2"></i>
-                <strong>Waypoints:</strong> ${path.length} points
-            </div>
-            <div>
-                <i class="fas fa-compass text-info me-2"></i>
-                <strong>Bearing:</strong> ${getBearing(path[0], path[path.length - 1])}°
-            </div>
-        `;
-    }
-
-    function getBearing(start, end) {
-        const lat1 = start.lat() * Math.PI / 180;
-        const lat2 = end.lat() * Math.PI / 180;
-        const deltaLng = (end.lng() - start.lng()) * Math.PI / 180;
-
-        const y = Math.sin(deltaLng) * Math.cos(lat2);
-        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
-
-        const bearing = Math.atan2(y, x) * 180 / Math.PI;
-        return Math.round((bearing + 360) % 360);
-    }
-
-    function toggleTraffic() {
-        const btn = event.target.closest('button');
-        if (isTrafficVisible) {
-            trafficLayer.setMap(null);
-            btn.classList.remove('traffic-enabled');
-            isTrafficVisible = false;
-        } else {
-            trafficLayer.setMap(map);
-            btn.classList.add('traffic-enabled');
-            isTrafficVisible = true;
-        }
-    }
-
-    function toggleSatellite() {
-        const btn = event.target.closest('button');
-        if (isSatelliteView) {
-            map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-            btn.classList.remove('satellite-enabled');
-            isSatelliteView = false;
-        } else {
-            map.setMapTypeId(google.maps.MapTypeId.HYBRID);
-            btn.classList.add('satellite-enabled');
-            isSatelliteView = true;
-        }
-    }
-
-    function fitToRoute() {
-        if (routeBounds) {
-            map.fitBounds(routeBounds);
-        }
-    }
-
-    function shareRoute() {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Route Map',
-                text: 'Check out this route!',
-                url: window.location.href
-            }).catch(err => console.log('Error sharing:', err));
-        } else {
-            // Fallback: copy URL to clipboard
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                alert('Route URL copied to clipboard!');
-            }).catch(() => {
-                alert('Unable to share. URL: ' + window.location.href);
-            });
-        }
-    }
-
-    function showError(message) {
-        document.getElementById('mapLoading').innerHTML = `
-            <div class="text-center">
-                <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
-                <p class="text-danger mb-3">${message}</p>
-                <button class="btn btn-primary" onclick="location.reload()">
-                    <i class="fas fa-redo me-2"></i>Retry
-                </button>
-            </div>
-        `;
-    }
-
-    // Initialize map when the page loads
-    google.maps.event.addDomListener(window, 'load', initMap);
-
-    // Handle window resize
-    window.addEventListener('resize', () => {
-        if (map && routeBounds) {
-            google.maps.event.trigger(map, 'resize');
-            map.fitBounds(routeBounds);
-        }
-    });
-</script> *@
-
-
-
-
-
-
-
-
-
-
+﻿@* 
 @using FleetManager.Business.ViewModels.GoogleViewModels
 @model MapViewModel
 @{
@@ -532,8 +170,7 @@
 </div>
 
 
-
-<script>
+ <script>
     let map;
     let routeLine;
     let trafficLayer;
@@ -647,6 +284,532 @@
         }
       }
 
+
+    function updateRouteInfo(path) {
+        const distance = google.maps.geometry.spherical.computeLength(path);
+        const distanceKm = (distance / 1000).toFixed(1);
+
+        document.getElementById('routeInfo').innerHTML = `
+            <div class="mb-2">
+                <i class="fas fa-route text-primary me-2"></i>
+                <strong>Distance:</strong> ${distanceKm} km
+            </div>
+            <div class="mb-2">
+                <i class="fas fa-map-pin text-success me-2"></i>
+                <strong>Waypoints:</strong> ${path.length} points
+            </div>
+            <div>
+                <i class="fas fa-compass text-info me-2"></i>
+                <strong>Bearing:</strong> ${getBearing(path[0], path[path.length - 1])}°
+            </div>
+        `;
+    }
+
+    function getBearing(start, end) {
+        const lat1 = start.lat() * Math.PI / 180;
+        const lat2 = end.lat() * Math.PI / 180;
+        const deltaLng = (end.lng() - start.lng()) * Math.PI / 180;
+
+        const y = Math.sin(deltaLng) * Math.cos(lat2);
+        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
+
+        const bearing = Math.atan2(y, x) * 180 / Math.PI;
+        return Math.round((bearing + 360) % 360);
+    }
+
+    function toggleTraffic() {
+        const btn = event.target.closest('button');
+        if (isTrafficVisible) {
+            trafficLayer.setMap(null);
+            btn.classList.remove('traffic-enabled');
+            isTrafficVisible = false;
+        } else {
+            trafficLayer.setMap(map);
+            btn.classList.add('traffic-enabled');
+            isTrafficVisible = true;
+        }
+    }
+
+    function toggleSatellite() {
+        const btn = event.target.closest('button');
+        if (isSatelliteView) {
+            map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+            btn.classList.remove('satellite-enabled');
+            isSatelliteView = false;
+        } else {
+            map.setMapTypeId(google.maps.MapTypeId.HYBRID);
+            btn.classList.add('satellite-enabled');
+            isSatelliteView = true;
+        }
+    }
+
+    function toggleStreetView() {
+        const btn = event.target.closest('button');
+        const container = document.getElementById('streetViewContainer');
+        const instructions = document.getElementById('streetViewInstructions');
+
+        if (isStreetViewVisible) {
+            // Hide street view
+            container.classList.remove('show');
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 300);
+            btn.classList.remove('streetview-enabled');
+            instructions.style.display = 'none';
+            isStreetViewVisible = false;
+        } else {
+            // Show street view
+            container.style.display = 'block';
+            setTimeout(() => {
+                container.classList.add('show');
+            }, 10);
+            btn.classList.add('streetview-enabled');
+            instructions.style.display = 'block';
+            isStreetViewVisible = true;
+
+            // Initialize street view if not already done
+            if (!streetViewPanorama) {
+                streetViewPanorama = new google.maps.StreetViewPanorama(
+                    document.getElementById('streetView'),
+                    {
+                        position: routeBounds.getCenter(),
+                        pov: { heading: 0, pitch: 0 },
+                        zoom: 1,
+                        addressControl: false,
+                        linksControl: true,
+                        panControl: true,
+                        enableCloseButton: false
+                    }
+                );
+            }
+        }
+    }
+
+    function closeStreetView() {
+        const container = document.getElementById('streetViewContainer');
+        const btn = document.querySelector('[onclick="toggleStreetView()"]');
+        const instructions = document.getElementById('streetViewInstructions');
+
+        container.classList.remove('show');
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 300);
+        btn.classList.remove('streetview-enabled');
+        instructions.style.display = 'none';
+        isStreetViewVisible = false;
+    }
+
+    function showStreetViewAtLocation(latLng) {
+        streetViewService.getPanorama({
+            location: latLng,
+            radius: 50
+        }, function(data, status) {
+            if (status === 'OK') {
+                streetViewPanorama.setPano(data.location.pano);
+                streetViewPanorama.setPov({
+                    heading: 270,
+                    pitch: 0
+                });
+                streetViewPanorama.setVisible(true);
+            } else {
+                alert('Street View data not found for this location.');
+            }
+        });
+    }
+
+    function fitToRoute() {
+        if (routeBounds) {
+            map.fitBounds(routeBounds);
+        }
+    }
+
+    function shareRoute() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Route Map',
+                text: 'Check out this route!',
+                url: window.location.href
+            }).catch(err => console.log('Error sharing:', err));
+        } else {
+            // Fallback: copy URL to clipboard
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Route URL copied to clipboard!');
+            }).catch(() => {
+                alert('Unable to share. URL: ' + window.location.href);
+            });
+        }
+    }
+
+    function showError(message) {
+        document.getElementById('mapLoading').innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
+                <p class="text-danger mb-3">${message}</p>
+                <button class="btn btn-primary" onclick="location.reload()">
+                    <i class="fas fa-redo me-2"></i>Retry
+                </button>
+            </div>
+        `;
+    }
+
+    // Initialize map when the page loads
+    google.maps.event.addDomListener(window, 'load', initMap);
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        if (map && routeBounds) {
+            google.maps.event.trigger(map, 'resize');
+            map.fitBounds(routeBounds);
+        }
+        if (streetViewPanorama) {
+            google.maps.event.trigger(streetViewPanorama, 'resize');
+        }
+    });
+</script>  *@
+
+
+
+
+
+
+
+
+        @using FleetManager.Business.ViewModels.GoogleViewModels
+@model MapViewModel
+@{
+    ViewData["Title"] = "Route Map";
+}
+
+<style>
+    /* Custom map styles */
+    .gm-style-iw {
+        border-radius: 8px !important;
+    }
+
+    .gm-style-iw-d {
+        overflow: hidden !important;
+    }
+
+    /* Floating card styles */
+    .position-absolute .card {
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+    }
+
+    /* Street View Container Styles */
+    #streetViewContainer {
+        transition: transform 0.3s ease-in-out;
+        transform: translateX(100%);
+    }
+
+        #streetViewContainer.show {
+            transform: translateX(0);
+            display: block !important;
+        }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .d-flex.justify-content-between
+
+    {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .position-absolute.top-0.start-0 {
+        position: relative !important;
+        margin: 0 !important;
+    }
+
+    .position-absolute .card {
+        margin: 1rem;
+        max-width: none;
+    }
+
+    #streetViewContainer {
+        width: 100% !important;
+        height: 50% !important;
+        top: 50% !important;
+    }
+
+    }
+
+    /* Button hover effects */
+    .btn-outline-light:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Traffic layer toggle */
+    .traffic-enabled {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+
+    .satellite-enabled {
+        background-color: #17a2b8 !important;
+        border-color: #17a2b8 !important;
+    }
+
+    .streetview-enabled {
+        background-color: #fd7e14 !important;
+        border-color: #fd7e14 !important;
+    }
+</style>
+
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <div class="col-12">
+            <!-- Header Bar -->
+            <div class="bg-dark text-white p-3 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <a asp-action="Index" class="btn btn-outline-light me-3">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Route Planner
+                        </a>
+                        <h1 class="mb-0 h4">
+                            <i class="fas fa-map-marked-alt me-2"></i>
+                            Interactive Route Map
+                        </h1>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="btn-group me-3" role="group">
+                            <button type="button" class="btn btn-outline-light" onclick="toggleTraffic()">
+                                <i class="fas fa-traffic-light me-1"></i>Traffic
+                            </button>
+                            <button type="button" class="btn btn-outline-light" onclick="toggleSatellite()">
+                                <i class="fas fa-satellite me-1"></i>Satellite
+                            </button>
+                            <button type="button" class="btn btn-outline-light" onclick="toggleStreetView()">
+                                <i class="fas fa-street-view me-1"></i>Street View
+                            </button>
+                            <button type="button" class="btn btn-outline-light" onclick="fitToRoute()">
+                                <i class="fas fa-expand-arrows-alt me-1"></i>Fit Route
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-outline-light" onclick="shareRoute()">
+                            <i class="fas fa-share-alt me-1"></i>Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="position-relative">
+                <div id="map" style="height: calc(100vh - 80px); width: 100%;"></div>
+
+                <!-- Street View Container -->
+                <div id="streetViewContainer" class="position-absolute top-0 end-0 bg-white border-start shadow-lg"
+                     style="width: 40%; height: 100%; display: none; z-index: 1000;">
+                    <div class="d-flex justify-content-between align-items-center p-2 bg-dark text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-street-view me-2"></i>Street View
+                        </h6>
+                        <button type="button" class="btn btn-outline-light btn-sm" onclick="closeStreetView()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="streetView" style="height: calc(100% - 50px);"></div>
+                </div>
+
+                <!-- Map Controls Overlay -->
+                <div class="position-absolute top-0 start-0 m-3">
+                    <div class="card shadow-lg border-0" style="max-width: 300px;">
+                        <div class="card-body p-3">
+                            <h6 class="card-title mb-2">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                Route Information
+                            </h6>
+                            <div id="routeInfo" class="small text-muted">
+                                Loading route details...
+                            </div>
+                            <div id="streetViewInstructions" class="small text-info mt-2" style="display: none;">
+                                <i class="fas fa-mouse-pointer me-1"></i>
+                                Click on the route to view street view
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Overlay -->
+                @* <div id="mapLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75" style="z-index: 2000;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted mb-0">Loading interactive map...</p>
+                    </div>
+                </div> *@
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let map;
+    let routeLine;
+    let trafficLayer;
+    let streetViewPanorama;
+    let streetViewService;
+    let isTrafficVisible = false;
+    let isSatelliteView = false;
+    let isStreetViewVisible = false;
+    let routeBounds;
+    let originMarker;
+    let destinationMarker;
+
+    function initMap() {
+        try {
+          // 1) Inject the raw polyline safely as a JS string literal
+          //    JsonSerializer.Serialize outputs a quoted string, e.g. "\"AbCdEfg...\""
+          const rawEncoded = @Html.Raw(
+            System.Text.Json.JsonSerializer.Serialize(Model.EncodedPolyline)
+          );
+
+          // 2) If the polyline came via querystring it may be percent‑encoded, so decode it
+          const encoded = decodeURIComponent(rawEncoded);
+
+          // 3) Decode into LatLngLiteral[]
+          const decodedPath = google.maps.geometry.encoding.decodePath(encoded);
+
+          if (!Array.isArray(decodedPath) || decodedPath.length === 0) {
+            showError('Invalid route data');
+            return;
+          }
+
+          // 4) Build bounds
+          routeBounds = new google.maps.LatLngBounds();
+          decodedPath.forEach(pt => routeBounds.extend(pt));
+
+          // 5) Initialize the map centered on origin point
+          const originPoint = decodedPath[0];
+          map = new google.maps.Map(document.getElementById('map'), {
+            center: originPoint,
+            zoom: 15, // Closer zoom for origin focus
+            mapTypeControl: false,
+            streetViewControl: true,
+            fullscreenControl: true,
+            zoomControl: true,
+            gestureHandling: 'greedy',
+            styles: [
+              { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'on' }] },
+              { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'on' }] }
+            ]
+          });
+
+          // 6) Street View service
+          streetViewService = new google.maps.StreetViewService();
+
+          // 7) Draw polyline
+          routeLine = new google.maps.Polyline({
+            path: decodedPath,
+            geodesic: true,
+            strokeColor: '#4285F4',
+            strokeOpacity: 0.8,
+            strokeWeight: 6,
+            map,
+            icons: [{
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                scale: 3,
+                strokeColor: '#4285F4',
+                strokeWeight: 2,
+                fillColor: '#4285F4',
+                fillOpacity: 1
+              },
+              offset: '100%',
+              repeat: '200px'
+            }]
+          });
+          routeLine.addListener('click', e => {
+            if (isStreetViewVisible) showStreetViewAtLocation(e.latLng);
+          });
+
+          // 8) Start & end markers with professional icons
+          const [start, end] = [decodedPath[0], decodedPath[decodedPath.length - 1]];
+
+          // Origin marker (professional location pin)
+          originMarker = new google.maps.Marker({
+            position: start,
+            map,
+            title: 'Origin',
+            icon: {
+              url: 'data:image/svg+xml,' + encodeURIComponent(`
+                <svg width="32" height="40" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="originGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color:#34A853;stop-opacity:1" />
+                      <stop offset="100%" style="stop-color:#2E7D32;stop-opacity:1" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M16 0C7.2 0 0 7.2 0 16c0 11.25 16 24 16 24s16-12.75 16-24C32 7.2 24.8 0 16 0z" fill="url(#originGradient)" stroke="#1B5E20" stroke-width="1"/>
+                  <circle cx="16" cy="16" r="8" fill="white"/>
+                  <circle cx="16" cy="16" r="4" fill="#2E7D32"/>
+                </svg>`),
+              scaledSize: new google.maps.Size(32, 40),
+              anchor: new google.maps.Point(16, 40)
+            }
+          });
+
+          // Destination marker (professional flag)
+          destinationMarker = new google.maps.Marker({
+            position: end,
+            map,
+            title: 'Destination',
+            icon: {
+              url: 'data:image/svg+xml,' + encodeURIComponent(`
+                <svg width="32" height="40" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="destGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color:#EA4335;stop-opacity:1" />
+                      <stop offset="100%" style="stop-color:#C62828;stop-opacity:1" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M16 0C7.2 0 0 7.2 0 16c0 11.25 16 24 16 24s16-12.75 16-24C32 7.2 24.8 0 16 0z" fill="url(#destGradient)" stroke="#B71C1C" stroke-width="1"/>
+                  <path d="M10 8h12l-2 4 2 4H10V8z" fill="white"/>
+                  <path d="M12 10v6h6l-1.5-3L18 10h-6z" fill="#C62828"/>
+                </svg>`),
+              scaledSize: new google.maps.Size(32, 40),
+              anchor: new google.maps.Point(16, 40)
+            }
+          });
+
+          originMarker.addListener('click', () => isStreetViewVisible && showStreetViewAtLocation(originMarker.getPosition()));
+          destinationMarker.addListener('click', () => isStreetViewVisible && showStreetViewAtLocation(destinationMarker.getPosition()));
+
+          // 9) Traffic layer
+          trafficLayer = new google.maps.TrafficLayer();
+
+          // 10) Update route info
+          updateRouteInfo(decodedPath);
+
+          // 11) Wait for map to be fully loaded and tiles rendered
+          google.maps.event.addListenerOnce(map, 'tilesloaded', function() {
+            // Additional timeout to ensure everything is rendered
+            setTimeout(() => {
+              hideMapLoading();
+            }, 500);
+          });
+
+          // 12) Fallback - hide loading after 5 seconds regardless
+          setTimeout(() => {
+            hideMapLoading();
+          }, 5000);
+        }
+        catch (error) {
+          console.error('Map initialization error:', error);
+          showError('Failed to load map. Please try again.');
+        }
+    }
+
+    function hideMapLoading() {
+        const loadingElement = document.getElementById('mapLoading');
+        if (loadingElement && loadingElement.style.display !== 'none') {
+            loadingElement.style.display = 'none';
+        }
+    }
 
     function updateRouteInfo(path) {
         const distance = google.maps.geometry.spherical.computeLength(path);

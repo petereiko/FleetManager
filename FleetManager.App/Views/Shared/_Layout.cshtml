@@ -88,17 +88,7 @@
     <!-- Feathericon CSS -->
     <link rel="stylesheet" href="~/assets/css/feather.css">
 
-    <!--Google Map -->
-    <script async defer
-            src="https://maps.googleapis.com/maps/api/js?key=@GoogleRoutesApiOptions.Value.ApiKey
-        &libraries=places,geometry
-        &callback=initAll">
-    </script>
-
-    <!-- Google Maps Web Components (Required for gmpx-placeautocomplete to work) -->
-    <script defer
-            src="https://unpkg.com/@@googlemaps/places-autocomplete-element@latest">
-    </script>
+    
 
 
 
@@ -126,14 +116,22 @@
             animation: pulse 2s infinite;
         }
 
-        .notification-badge.hidden {
-            display: none;
-        }
+            .notification-badge.hidden {
+                display: none;
+            }
 
         @@keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .notification-item {
@@ -142,14 +140,14 @@
             transition: background-color 0.3s;
         }
 
-        .notification-item:hover {
-            background-color: #f8f9fa;
-        }
+            .notification-item:hover {
+                background-color: #f8f9fa;
+            }
 
-        .notification-item.unread {
-            background-color: #e3f2fd;
-            border-left: 3px solid #2196f3;
-        }
+            .notification-item.unread {
+                background-color: #e3f2fd;
+                border-left: 3px solid #2196f3;
+            }
 
         .notification-time {
             font-size: 11px;
@@ -177,9 +175,9 @@
             cursor: pointer;
         }
 
-        .mark-all-read:hover {
-            background: #0056b3;
-        }
+            .mark-all-read:hover {
+                background: #0056b3;
+            }
 
         .notification-loading {
             text-align: center;
@@ -238,7 +236,7 @@
                         <div class="user-names">
                             <h5>@fullName</h5>
                             <span style="font-weight: bold; text-transform: uppercase;">@branchName</span><br />
-                            
+
                         </div>
                         <span class="user-img">
                             <img src="~/assets/img/user-06.jpg" alt="@fullName">
@@ -412,17 +410,45 @@
     <!-- Bootstrap Core JS -->
     <script src="~/assets/js/bootstrap.bundle.min.js"></script>
 
-    <!--Google Map -->
+  
+
+    <!--Google Map
+    <script
+     async defer src="https://maps.googleapis.com/maps/api/js?key=@GoogleRoutesApiOptions.Value.ApiKey&libraries=places,geometry&callback=initAll&loading=async">
+     </script>
+    
+    -->
 
     <script>
-        // Called once Maps+Places+Geometry are all loaded
-        function initAll() {
-          initAutocomplete(); // wire up your autocomplete fields
-          initMap();          // draw your route on the map
-        }
-    </script>
-    
+        // Called by Google when the API is ready
+        window.initAll = function() {
+          // If we’re on the Route Planner page, originInput exists → wire up autocomplete
+          if (document.getElementById('originInput')) {
+            initAutocomplete();
+          }
 
+          // If we’re on the Map page, map container exists → draw the map
+          if (document.getElementById('map')) {
+            initMap();
+          }
+        };
+    </script>
+
+    <script async
+            defer
+            crossorigin="anonymous"
+            src="https://maps.googleapis.com/maps/api/js?key=@GoogleRoutesApiOptions.Value.ApiKey&libraries=places,geometry&callback=initAll&v=weekly">
+    </script>
+
+
+
+     
+
+
+    <!-- Google Maps Web Components (Required for gmpx-placeautocomplete to work) -->
+    <script defer
+            src="https://unpkg.com/@@googlemaps/places-autocomplete-element@latest">
+    </script>
 
 
     <!-- SignalR -->
@@ -504,7 +530,7 @@
                     userId: n.userId || '',
                     data: n.data || {}
                 }));
-                
+
                 // ① Calculate the new unread count
                 this.unreadCount = this.notifications.filter(n => !n.isRead).length;
 
@@ -525,35 +551,6 @@
                 document.getElementById('notificationLoading').style.display = 'none';
             }
         }
-
-
-
-            // async loadExistingNotifications() {
-            //     try {
-            //         document.getElementById('notificationLoading').style.display = 'none';
-            //         const resp = await fetch('/api/notifications', { credentials: 'same-origin' });
-            //         if (!resp.ok) throw new Error('Could not load');
-            //         const notifications = await resp.json();
-
-            //         notifications.forEach(n => this.notifications.push({
-            //             id: n.id || Date.now(),
-            //             title: n.title || 'New Notification',
-            //             message: n.message || '',
-            //             timestamp: n.timestamp || new Date().toISOString(),
-            //             isRead: n.isRead || false,
-            //             type: n.type || 'info',
-            //             userId: n.userId || '',
-            //             data: n.data || {}
-            //         }));
-            //         this.unreadCount = this.notifications.filter(n => !n.isRead).length;
-            //         this.notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            //         this.updateUI();
-            //     } catch (error) {
-            //         console.error('Failed to load existing notifications:', error);
-            //         document.getElementById('notificationLoading').style.display = 'none';
-            //     }
-            // }
-
             addNotification(notification, isNew = true) {
                 this.notifications.splice(0, 0,{
                     id: notification.id || Date.now(),
