@@ -14,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FleetManager.App.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    //[Authorize(Roles = "Company")]
+    [Authorize]
     public class AdminVehicleController : Controller
     {
         private readonly IAdminVehicleService _vehicleService;
@@ -402,6 +402,31 @@ namespace FleetManager.App.Areas.Admin.Controllers
             vm.TransmissionTypes = _vehicleService.GetTransmissionTypeOptions();
             vm.Statuses = _vehicleService.GetStatusOptions();
             vm.VehicleTypes = _vehicleService.GetVehicleTypeOptions();
+
+            // always load the “Makes” list
+            vm.Makes = _vehicleService.GetVehicleMakes();
+
+            // if the user has already selected a Make (e.g. on edit or after validation fail),
+            // load its models; otherwise, give them an empty list
+            if (vm.VehicleMakeId > 0)
+            {
+                vm.Models = await _vehicleService.GetVehicleModelsByMakeId(vm.VehicleMakeId);
+            }
+            else
+            {
+                vm.Models = Enumerable.Empty<SelectListItem>();
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetVehicleModels(int makeId)
+        {
+            // Service returns IEnumerable<SelectListItem>
+            var models = await _vehicleService.GetVehicleModelsByMakeId(makeId);
+
+            // Return JSON in the form [{ value: "...", text: "..." }, …]
+            return Json(models);
         }
     }
 

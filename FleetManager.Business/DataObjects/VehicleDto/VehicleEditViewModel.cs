@@ -28,5 +28,9 @@ namespace FleetManager.Business.DataObjects.VehicleDto
         public IEnumerable<SelectListItem> TransmissionTypes { get; set; }
         public IEnumerable<SelectListItem> Statuses { get; set; }
         public IEnumerable<SelectListItem> VehicleTypes { get; set; }
+
+        // ── NEW ──
+        public IEnumerable<SelectListItem> Makes { get; set; }
+        public IEnumerable<SelectListItem> Models { get; set; }
     }
 }

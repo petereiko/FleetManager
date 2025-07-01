@@ -1,4 +1,4 @@
-
+﻿
 
 using System.Configuration;
 using System.Globalization;
@@ -22,6 +22,7 @@ using FleetManager.Business.Implementations.ManageDriverModule;
 using FleetManager.Business.Implementations.NotificationModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
+using FleetManager.Business.Implementations.VendorModule;
 using FleetManager.Business.Interfaces.ComapyBranchModule;
 using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.CompanyOnboardingModule;
@@ -34,6 +35,7 @@ using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
+using FleetManager.Business.Interfaces.VendorModule;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -127,6 +129,7 @@ builder.Services.AddTransient<IDriverDutyOfCareService, DriverDutyOfCareService>
 builder.Services.AddTransient<IFuelLogService, FuelLogService>();
 builder.Services.AddTransient<IFineAndTollService, FineAndTollService>();
 builder.Services.AddTransient<INotificationService, NotificationService>();
+builder.Services.AddTransient<IVendorService, VendorService>();
 
 //builder.Services.AddSingleton<IGoogleRoutesService, FakeRoutesService>();
 
@@ -183,16 +186,37 @@ builder.Services.AddHttpClient<IGoogleRoutesService, GoogleRoutesService>((sp, c
 });
 
 
+//builder.Services.AddHttpClient("VehicleModelsApi", client =>
+//{
+//    client.BaseAddress = new Uri("https://vpic.nhtsa.dot.gov/api/vehicles/");
+//    client.Timeout = TimeSpan.FromHours(5); // Set a reasonable timeout
+//});
+
 
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
+
+
 if (!app.Environment.IsDevelopment())
 {
+    // 1) catch *unhandled* exceptions and send to /Home/Error
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+
+    // 2) catch status codes (401, 403, 404, etc.) and re‐execute to a controller
+    app.UseStatusCodePagesWithReExecute("/Home/StatusCode/{0}");
 }
+else
+{
+    app.UseDeveloperExceptionPage();  // only in dev
+}
+
+//if (!app.Environment.IsDevelopment())
+//{
+//    app.UseExceptionHandler("/Home/Error");
+//    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+//    app.UseHsts();
+//}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -258,9 +282,13 @@ using (var scope = app.Services.CreateScope())
     // Resolve the scoped service
     var userService = scopedProvider.GetRequiredService<IUserService>();
 
+    var vehicleService = scopedProvider.GetRequiredService<IAdminVehicleService>();
+
     // Call the method on the scoped service
-    await userService.SeedRoles();
-    await userService.SeedSuperAdminUser();
+    //await userService.SeedRoles();
+    //await userService.SeedSuperAdminUser();
+
+    //await vehicleService.LoadModels();
 }
 
 app.Run();

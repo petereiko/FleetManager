@@ -14,6 +14,10 @@ namespace FleetManager.Business.DataObjects.VehicleDto
         public long? Id { get; set; }
         public string Make { get; set; }
         public string Model { get; set; }
+
+        // ↓ NEW ↓
+        public int VehicleMakeId { get; set; }
+        public int VehicleModelId { get; set; }
         public int Year { get; set; }
         public string VIN { get; set; }
         public string PlateNo { get; set; }

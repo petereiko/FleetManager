@@ -89,7 +89,7 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                 if (!string.IsNullOrEmpty(driver.UserId))
                 {
                     var title = "Vehicle Assigned Update";
-                    var message = $"You have been assigned vehicle {vehicle.Make} {vehicle.Model} with license plate: {vehicle.PlateNo}. Await further Instructions";
+                    var message = $"You have been assigned vehicle {vehicle.VehicleMake.Name} {vehicle.VehicleModel.Name} with license plate: {vehicle.PlateNo}. Await further Instructions";
                     await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
                     {
                         assignmentId = dto.Id,
@@ -146,7 +146,7 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                 if (!string.IsNullOrEmpty(driver.UserId))
                 {
                     var title = "Vehicle ssignment Update";
-                    var message = $"Your vehicle assignment has been updated to {vehicle.Make} {vehicle.Model} " +
+                    var message = $"Your vehicle assignment has been updated to {vehicle.VehicleMake.Name} {vehicle.VehicleModel.Name} " +
                                   $"(start {dto.StartDate:dd MMM yy}" +
                                   (dto.EndDate.HasValue ? $", end {dto.EndDate:dd MMM yy})." : ").");
                     await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
@@ -188,7 +188,7 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                 if (driver != null && vehicle != null && !string.IsNullOrEmpty(driver.UserId))
                 {
                     var title = "Vehicle Unassigned";
-                    var message = $"You've been unassigned from operating vehicl: {vehicle.Make} {vehicle.Model} {vehicle.PlateNo}.";
+                    var message = $"You've been unassigned from operating vehicle: {vehicle.VehicleMake.Name } {vehicle.VehicleModel.Name} {vehicle.PlateNo}.";
                     await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
                     {
                         vehicleId = entity.VehicleId
@@ -217,7 +217,7 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                        DriverId = dv.DriverId!.Value,
                        DriverName = $"{u.FirstName} {u.LastName}",
                        VehicleId = dv.VehicleId!.Value,
-                       VehicleMakeModel = $"{v.Make} {v.Model}",
+                       VehicleMakeModel =  $"{v.VehicleMake.Name} {v.VehicleModel.Name}",
                        PlateNo = v.PlateNo,
                        StartDate = dv.StartDate ?? DateTime.MinValue,
                        EndDate = dv.EndDate
@@ -238,7 +238,7 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                        DriverId = dv.DriverId!.Value,
                        DriverName = $"{u.FirstName} {u.LastName}",
                        VehicleId = dv.VehicleId!.Value,
-                       VehicleMakeModel = $"{v.Make} {v.Model}",
+                       VehicleMakeModel = $"{v.VehicleMake.Name} {v.VehicleModel.Name}",
                        PlateNo = v.PlateNo,
                        StartDate = dv.StartDate ?? DateTime.MinValue,
                        EndDate = dv.EndDate

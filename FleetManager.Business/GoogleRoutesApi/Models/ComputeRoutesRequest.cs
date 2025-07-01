@@ -25,7 +25,7 @@ namespace FleetManager.Business.GoogleRoutesApi.Models
         public string RoutingPreference { get; set; } = "TRAFFIC_AWARE"; // TRAFFIC_UNAWARE, TRAFFIC_AWARE, TRAFFIC_AWARE_OPTIMAL
 
         [JsonProperty("computeAlternativeRoutes")]
-        public bool ComputeAlternativeRoutes { get; set; } = false;
+        public bool ComputeAlternativeRoutes { get; set; }
 
         [JsonProperty("routeModifiers")]
         public RouteModifiers RouteModifiers { get; set; } = new RouteModifiers();
@@ -36,5 +36,6 @@ namespace FleetManager.Business.GoogleRoutesApi.Models
 
         [JsonProperty("units")]
         public string Units { get; set; } = "METRIC"; // METRIC, IMPERIAL
+
     }
 }

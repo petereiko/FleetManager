@@ -43,6 +43,15 @@
 
             @* (You can add other “company‑level” items here, e.g. a Company Settings link, etc.) *@
 
+            <li class="logout-btn">
+                <a asp-area="Vendor" asp-controller="Vendor" asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/logout.svg" alt="">
+                    </span>
+                    <span>Browse Vendors</span>
+                </a>
+            </li>
+
         </ul>
         <div class="logout-btn">
             <a asp-controller="Account" asp-action="Logout" asp-area="">

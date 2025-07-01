@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+using System.Net;
+using FleetManager.Business.DataObjects;
 
 
 namespace FleetManager.Business.Implementations.VehicleModule
@@ -19,15 +22,18 @@ namespace FleetManager.Business.Implementations.VehicleModule
         private readonly FleetManagerDbContext _context;
         private readonly IAuthUser _authUser;
         private readonly ILogger<AdminVehicleService> _logger;
+        private readonly IHttpClientFactory _clientFactory;
 
         public AdminVehicleService(
             FleetManagerDbContext context,
             IAuthUser authUser,
-            ILogger<AdminVehicleService> logger)
+            ILogger<AdminVehicleService> logger,
+            IHttpClientFactory clientFactory)
         {
             _context = context;
             _authUser = authUser;
             _logger = logger;
+            _clientFactory = clientFactory;
         }
 
         private void EnsureAdminOrOwner()
@@ -54,8 +60,8 @@ namespace FleetManager.Business.Implementations.VehicleModule
             {
                 var entity = new Vehicle
                 {
-                    Make = dto.Make,
-                    Model = dto.Model,
+                    VehicleMakeId = dto.VehicleMakeId,
+                    VehicleModelId = dto.VehicleModelId,
                     Year = dto.Year,
                     VIN = dto.VIN,
                     PlateNo = dto.PlateNo,
@@ -123,8 +129,8 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 }
 
                 // map changes
-                vehicle.Make = dto.Make;
-                vehicle.Model = dto.Model;
+                vehicle.VehicleMakeId = dto.VehicleMakeId;
+                vehicle.VehicleModelId = dto.VehicleModelId;
                 vehicle.Year = dto.Year;
                 vehicle.VIN = dto.VIN;
                 vehicle.PlateNo = dto.PlateNo;
@@ -235,8 +241,8 @@ namespace FleetManager.Business.Implementations.VehicleModule
             return new VehicleDto
             {
                 Id = v.Id,
-                Make = v.Make,
-                Model = v.Model,
+                Make = v.VehicleMake.Name,
+                Model = v.VehicleModel.Name,
                 Year = v.Year,
                 VIN = v.VIN,
                 PlateNo = v.PlateNo,
@@ -292,16 +298,16 @@ namespace FleetManager.Business.Implementations.VehicleModule
             if (filter.Type.HasValue)
                 query = query.Where(v => v.VehicleType == filter.Type.Value);
             if (!string.IsNullOrWhiteSpace(filter.Search))
-                query = query.Where(v => v.Make.Contains(filter.Search)
-                                      || v.Model.Contains(filter.Search)
+                query = query.Where(v => v.VehicleMake.Name.Contains(filter.Search)
+                                      || v.VehicleModel.Name.Contains(filter.Search)
                                       || v.PlateNo.Contains(filter.Search));
 
             return await query
                 .Select(v => new VehicleListItemDto
                 {
                     Id = v.Id,
-                    Make = v.Make,
-                    Model = v.Model,
+                    Make = v.VehicleMake.Name,
+                    Model = v.VehicleModel.Name,
                     Year = v.Year,
                     PlateNo = v.PlateNo,
                     Status = v.VehicleStatus.ToString(),
@@ -330,19 +336,19 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 q = q.Where(v => v.VehicleType == filter.Type.Value);
             if (!string.IsNullOrWhiteSpace(filter.Search))
                 q = q.Where(v =>
-                    v.Make.Contains(filter.Search) ||
-                    v.Model.Contains(filter.Search) ||
+                    v.VehicleMake.Name.Contains(filter.Search) ||
+                    v.VehicleModel.Name.Contains(filter.Search) ||
                     v.PlateNo.Contains(filter.Search));
 
             return q
                 .Select(v => new VehicleListItemDto
                 {
                     Id = v.Id,
-                    Make = v.Make,
+                    Make = v.VehicleMake.Name,
                     Color = v.Color,
                     TransmissionType = v.TransmissionType,
                     LastServiceDate = v.LastServiceDate,
-                    Model = v.Model,
+                    Model = v.VehicleModel.Name,
                     Year = v.Year,
                     PlateNo = v.PlateNo,
                     Status = v.VehicleStatus.ToString(),
@@ -466,6 +472,110 @@ namespace FleetManager.Business.Implementations.VehicleModule
         }
 
 
+        public List<SelectListItem> GetVehicleMakes()
+        {
+            return _context.VehicleMakes
+                .AsNoTracking()
+                .Where(vm => vm.IsActive)
+                .OrderBy(vm => vm.Name)
+                .Select(vm => new SelectListItem
+                {
+                    Value = vm.VehicleMakeId.ToString(),
+                    Text = vm.Name
+                })
+                .ToList();
+        }
+
+        public async Task<List<SelectListItem>> GetVehicleModelsByMakeId(int makeId)
+        {
+            return await _context.VehicleModels
+                .Where(m => m.VehicleMakeId == makeId)
+                .OrderBy(m => m.Name)
+                .Select(m => new SelectListItem
+                {
+                    Value = m.VehicleModelId.ToString(),
+                    Text = m.Name
+
+                })
+                .ToListAsync();
+        }
+
+
+        //public async Task LoadMakes()
+        //{
+        //    VehicleMakeResponseDto vehicleMakeResponse = new();
+        //    using (var client = new HttpClient())
+        //    {
+        //        var request = new HttpRequestMessage(HttpMethod.Get, "https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json");
+        //        var response = await client.SendAsync(request);
+        //        response.EnsureSuccessStatusCode();
+        //        var json = await response.Content.ReadAsStringAsync();
+        //        vehicleMakeResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<VehicleMakeResponseDto>(json)!;
+        //    }
+        //    if (vehicleMakeResponse.Results.Count > 0)
+        //    {
+        //        List<VehicleMake> vehicleMakes = vehicleMakeResponse.Results.Select(v => new VehicleMake
+        //        {
+        //            IsActive = true,
+        //            Name = v.MakeName,
+        //            VehicleMakeId = v.MakeID
+        //        }).ToList();
+        //        await _context.VehicleMakes.AddRangeAsync(vehicleMakes);
+        //        await _context.SaveChangesAsync();
+        //    }
+        //}
+
+        //public async Task LoadModels()
+        //{
+        //    List<VehicleModel> models = new();
+
+        //    VehicleMakeResponseDto vehicleMakeResponse = new();
+        //    var scope = await _context.Database.BeginTransactionAsync();
+        //    using (scope)
+        //    {
+        //        try
+        //        {
+        //            var makeQuery = _context.VehicleMakes.AsNoTracking().AsEnumerable();
+        //            string makeName;
+
+        //            var client = _clientFactory.CreateClient("VehicleModelsApi");
+
+        //            HttpRequestMessage request = null;
+        //            HttpResponseMessage response = null;
+        //            string json = string.Empty;
+        //            foreach (var make in makeQuery)
+
+        //            {
+        //                request = new HttpRequestMessage(HttpMethod.Get, $"{client.BaseAddress}GetModelsForMakeId/{make.VehicleMakeId}?format=json");
+        //                response = await client.SendAsync(request);
+        //                response.EnsureSuccessStatusCode();
+        //                json = await response.Content.ReadAsStringAsync();
+        //                vehicleMakeResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<VehicleMakeResponseDto>(json)!;
+        //                if (vehicleMakeResponse.Results.Count > 0)
+        //                {
+        //                    models.AddRange(vehicleMakeResponse.Results.Select(x => new VehicleModel
+        //                    {
+        //                        Name = x.ModelName,
+        //                        VehicleMakeId = make.VehicleMakeId,
+        //                        VehicleModelId = x.ModelID
+        //                    }));
+        //                }
+        //            }
+
+        //            await _context.VehicleModels.AddRangeAsync(models);
+        //            await _context.SaveChangesAsync();
+        //            await scope.CommitAsync();
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logger.LogError(ex, "Error loading vehicle models");
+        //            await scope.RollbackAsync();
+        //        }
+        //     }
+
+
+        //}
+
     }
 
 }
@@ -474,340 +584,3 @@ namespace FleetManager.Business.Implementations.VehicleModule
 
 
 
-//public class AdminVehicleService : IAdminVehicleService
-//{
-//    private readonly FleetManagerDbContext _context;
-//    private readonly IAuthUser _authUser;
-//    private readonly ILogger<AdminVehicleService> _logger;
-
-//    public AdminVehicleService(
-//        FleetManagerDbContext context,
-//        IAuthUser authUser,
-//        ILogger<AdminVehicleService> logger)
-//    {
-//        _context = context;
-//        _authUser = authUser;
-//        _logger = logger;
-//    }
-
-//    private void EnsureAdminOrOwner()
-//    {
-//        var roles = (_authUser.Roles ?? "")
-//            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-//            .Select(r => r.Trim());
-
-//        if (!roles.Contains("Company Admin") && !roles.Contains("Company Owner") && !roles.Contains("Super Admin"))
-//        {
-//            throw new UnauthorizedAccessException("You do not have permission to manage vehicles.");
-//        }
-//    }
-
-
-//    public async Task<MessageResponse<VehicleDto>> CreateVehicleAsync(VehicleDto dto, string createdByUserId)
-//    {
-//        EnsureAdminOrOwner();
-//        var resp = new MessageResponse<VehicleDto>();
-
-//        using var tx = await _context.Database.BeginTransactionAsync();
-//        try
-//        {
-//            var entity = new Vehicle
-//            {
-//                Make = dto.Make,
-//                Model = dto.Model,
-//                Year = dto.Year,
-//                VIN = dto.VIN,
-//                PlateNo = dto.PlateNo,
-//                Color = dto.Color,
-//                EngineNumber = dto.EngineNumber,
-//                ChassisNumber = dto.ChassisNumber,
-//                RegistrationDate = dto.RegistrationDate,
-//                LastServiceDate = dto.LastServiceDate,
-//                Mileage = dto.Mileage,
-//                FuelType = dto.FuelType,
-//                TransmissionType = dto.TransmissionType,
-//                InsuranceCompany = dto.InsuranceCompany,
-//                InsuranceExpiryDate = dto.InsuranceExpiryDate,
-//                RoadWorthyExpiryDate = dto.RoadWorthyExpiryDate,
-//                CompanyBranchId = dto.CompanyBranchId,
-//                VehicleStatus = dto.VehicleStatus,
-//                VehicleType = dto.VehicleType,
-//                CreatedDate = DateTime.UtcNow,
-//                CreatedBy = createdByUserId,
-//                IsActive = true
-//            };
-
-//            _context.Vehicles.Add(entity);
-//            await _context.SaveChangesAsync();
-
-//            string basePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "VehicleImages");
-
-//            // Save images
-//            if (dto.UploadedImages != null)
-//            {
-//                foreach (var file in dto.UploadedImages)
-//                {
-//                    var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-//                    var filePath = Path.Combine(basePath, "Images", fileName);
-
-//                    Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-
-//                    using (var stream = new FileStream(filePath, FileMode.Create))
-//                    {
-//                        await file.CopyToAsync(stream);
-//                    }
-
-//                    _context.VehicleDocuments.Add(new VehicleDocument
-//                    {
-//                        VehicleId = entity.Id,
-//                        FileName = fileName,
-//                        FilePath = Path.Combine("VehicleImages", "Images", fileName).Replace("\\", "/"),
-//                        DocumentType = VehicleDocumentType.Image
-//                    });
-//                }
-//            }
-
-//            // Save documents
-//            if (dto.UploadedDocuments != null)
-//            {
-//                foreach (var file in dto.UploadedDocuments)
-//                {
-//                    var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-//                    var filePath = Path.Combine(basePath, "Documents", fileName);
-
-//                    Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-
-//                    using (var stream = new FileStream(filePath, FileMode.Create))
-//                    {
-//                        await file.CopyToAsync(stream);
-//                    }
-
-//                    _context.VehicleDocuments.Add(new VehicleDocument
-//                    {
-//                        VehicleId = entity.Id,
-//                        FileName = fileName,
-//                        FilePath = Path.Combine("VehicleImages", "Documents", fileName).Replace("\\", "/"),
-//                        DocumentType = VehicleDocumentType.Document
-//                    });
-//                }
-//            }
-
-//            await _context.SaveChangesAsync();
-//            await tx.CommitAsync();
-
-//            dto.Id = entity.Id;
-//            resp.Success = true;
-//            resp.Result = dto;
-//        }
-//        catch (Exception ex)
-//        {
-//            _logger.LogError(ex, "Failed to create vehicle");
-//            await tx.RollbackAsync();
-//            resp.Message = "An error occurred creating the vehicle.";
-//        }
-
-//        return resp;
-//    }
-
-
-
-//    public async Task<MessageResponse<VehicleDto>> UpdateVehicleAsync(VehicleDto dto, string modifiedByUserId)
-//    {
-//        EnsureAdminOrOwner();
-
-//        var resp = new MessageResponse<VehicleDto>();
-//        using var tx = await _context.Database.BeginTransactionAsync();
-//        try
-//        {
-//            var vehicle = await _context.Vehicles.FindAsync(dto.Id);
-//            if (vehicle == null)
-//            {
-//                resp.Message = "Vehicle not found.";
-//                return resp;
-//            }
-
-//            // map changes
-//            vehicle.Make = dto.Make;
-//            vehicle.Model = dto.Model;
-//            vehicle.Year = dto.Year;
-//            vehicle.VIN = dto.VIN;
-//            vehicle.PlateNo = dto.PlateNo;
-//            vehicle.Color = dto.Color;
-//            vehicle.EngineNumber = dto.EngineNumber;
-//            vehicle.ChassisNumber = dto.ChassisNumber;
-//            vehicle.RegistrationDate = dto.RegistrationDate;
-//            vehicle.LastServiceDate = dto.LastServiceDate;
-//            vehicle.Mileage = dto.Mileage;
-//            vehicle.FuelType = dto.FuelType;
-//            vehicle.TransmissionType = dto.TransmissionType;
-//            vehicle.InsuranceCompany = dto.InsuranceCompany;
-//            vehicle.InsuranceExpiryDate = dto.InsuranceExpiryDate;
-//            vehicle.RoadWorthyExpiryDate = dto.RoadWorthyExpiryDate;
-//            vehicle.CompanyBranchId = dto.CompanyBranchId;
-//            vehicle.VehicleStatus = dto.VehicleStatus;
-//            vehicle.VehicleType = dto.VehicleType;
-
-//            vehicle.ModifiedDate = DateTime.UtcNow;
-//            vehicle.ModifiedBy = modifiedByUserId;
-
-//            await _context.SaveChangesAsync();
-//            await tx.CommitAsync();
-
-//            resp.Success = true;
-//            resp.Result = dto;
-//        }
-//        catch (Exception ex)
-//        {
-//            _logger.LogError(ex, "Failed to update vehicle");
-//            await tx.RollbackAsync();
-//            resp.Message = "An error occurred updating the vehicle.";
-//        }
-//        return resp;
-//    }
-
-//    public async Task<MessageResponse> DeleteVehicleAsync(long id)
-//    {
-//        EnsureAdminOrOwner();
-
-//        var resp = new MessageResponse();
-//        try
-//        {
-//            var entity = await _context.Vehicles.FindAsync(id);
-//            if (entity == null)
-//            {
-//                resp.Message = "Vehicle not found.";
-//                return resp;
-//            }
-//            _context.Vehicles.Remove(entity);
-//            await _context.SaveChangesAsync();
-
-//            resp.Success = true;
-//        }
-//        catch (Exception ex)
-//        {
-//            _logger.LogError(ex, "Failed to delete vehicle");
-//            resp.Message = "An error occurred deleting the vehicle.";
-//        }
-//        return resp;
-//    }
-
-//    public async Task<VehicleDto> GetVehicleByIdAsync(long id)
-//    {
-//        EnsureAdminOrOwner();
-
-//        var v = await _context.Vehicles
-//            .AsNoTracking()
-//            .FirstOrDefaultAsync(x => x.Id == id);
-
-//        return v == null ? null : new VehicleDto
-//        {
-//            Id = v.Id,
-//            Make = v.Make,
-//            Model = v.Model,
-//            Year = v.Year,
-//            VIN = v.VIN,
-//            PlateNo = v.PlateNo,
-//            Color = v.Color,
-//            EngineNumber = v.EngineNumber,
-//            ChassisNumber = v.ChassisNumber,
-//            RegistrationDate = v.RegistrationDate,
-//            LastServiceDate = v.LastServiceDate,
-//            Mileage = v.Mileage,
-//            FuelType = v.FuelType,
-//            TransmissionType = v.TransmissionType,
-//            InsuranceCompany = v.InsuranceCompany,
-//            InsuranceExpiryDate = v.InsuranceExpiryDate,
-//            RoadWorthyExpiryDate = v.RoadWorthyExpiryDate,
-//            CompanyBranchId = v.CompanyBranchId ?? 0,
-//            VehicleStatus = v.VehicleStatus,
-//            VehicleType = v.VehicleType
-//        };
-//    }
-
-//    public async Task<List<VehicleListItemDto>> GetVehiclesAsync(VehicleFilterDto filter)
-//    {
-//        var query = _context.Vehicles
-//            .AsNoTracking()
-//            .Where(v => v.CompanyBranch.CompanyId == _authUser.CompanyId.Value);
-
-//        if (filter.BranchId.HasValue)
-//            query = query.Where(v => v.CompanyBranchId == filter.BranchId.Value);
-
-//        if (filter.Status.HasValue)
-//            query = query.Where(v => v.VehicleStatus == filter.Status.Value);
-
-//        if (filter.Type.HasValue)
-//            query = query.Where(v => v.VehicleType == filter.Type.Value);
-
-//        if (!string.IsNullOrWhiteSpace(filter.Search))
-//            query = query.Where(v =>
-//                v.Make.Contains(filter.Search) ||
-//                v.Model.Contains(filter.Search) ||
-//                v.PlateNo.Contains(filter.Search));
-
-//        return await query
-//            .Select(v => new VehicleListItemDto
-//            {
-//                Id = v.Id,
-//                Make = v.Make,
-//                Model = v.Model,
-//                Year = v.Year,
-//                PlateNo = v.PlateNo,
-//                Status = v.VehicleStatus.ToString(),
-//                BranchName = v.CompanyBranch.Name
-//            })
-//            .ToListAsync();
-//    }
-
-//    public List<SelectListItem> GetFuelTypeOptions()
-//    {
-//        return Enum.GetValues<FuelType>()
-//            .Select(e => new SelectListItem
-//            {
-//                Value = ((int)e).ToString(),
-//                Text = e.ToString()
-//            })
-//            .ToList();
-//    }
-
-//    // Repeat for the other enums...
-//    public List<SelectListItem> GetTransmissionTypeOptions() =>
-//        Enum.GetValues<TransmissionType>()
-//            .Select(e => new SelectListItem
-//            {
-//                Value = ((int)e).ToString(),
-//                Text = e.ToString()
-//            })
-//            .ToList();
-
-//    public List<SelectListItem> GetStatusOptions() =>
-//        Enum.GetValues<VehicleStatus>()
-//            .Select(e => new SelectListItem
-//            {
-//                Value = ((int)e).ToString(),
-//                Text = e.ToString()
-//            })
-//            .ToList();
-
-//    public List<SelectListItem> GetVehicleTypeOptions() =>
-//        Enum.GetValues<VehicleType>()
-//            .Select(e => new SelectListItem
-//            {
-//                Value = ((int)e).ToString(),
-//                Text = e.ToString()
-//            })
-//            .ToList();
-
-//    public async Task<List<SelectListItem>> GetBranchOptionsAsync(long companyId)
-//    {
-//        return await _context.CompanyBranches
-//            .AsNoTracking()
-//            .Where(b => b.CompanyId == companyId)
-//            .Select(b => new SelectListItem
-//            {
-//                Value = b.Id.ToString(),
-//                Text = b.Name
-//            })
-//            .ToListAsync();
-//    }
-//}

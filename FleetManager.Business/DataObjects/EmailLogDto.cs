@@ -10,6 +10,7 @@ namespace FleetManager.Business.DataObjects
     {
         public long? CompanyId { get; set; }
         public long? CompanyBranchId { get; set; }
+        public long? VendorId { get; set; }
         public string Message { get; set; }
         public string Email { get; set; }
         public string Url { get; set; }

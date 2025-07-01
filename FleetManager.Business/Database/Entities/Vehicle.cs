@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using FleetManager.Business.Enums;
@@ -9,8 +10,13 @@ namespace FleetManager.Business.Database.Entities
 {
     public class Vehicle : BaseEntity
     {
-        public string Make { get; set; }
-        public string Model { get; set; }
+        public int? VehicleMakeId { get; set; }
+        public virtual VehicleMake VehicleMake { get; set; }
+        public int? VehicleModelId { get; set; }
+        public virtual VehicleModel VehicleModel { get; set; }
+
+        //public string Make { get; set; }
+        //public string Model { get; set; }
         public int Year { get; set; }
         public string VIN { get; set; } // Vehicle Identification Number
         public string PlateNo { get; set; }
@@ -32,5 +38,13 @@ namespace FleetManager.Business.Database.Entities
         public VehicleStatus VehicleStatus { get; set; } // Active, Inactive, Under Maintenance
         public VehicleType VehicleType { get; set; }
         public List<VehicleDocument> VehicleDocuments { get; set; } = new List<VehicleDocument>();
+
+
+        public long? VendorId { get; set; }
+        public virtual Vendor? Vendor { get; set; }
     }
 }
+
+
+
+

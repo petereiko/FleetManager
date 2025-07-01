@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace FleetManager.App.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    //[Authorize(Roles = "CompanyAdmin,CompanyOwner")]
+    [Authorize]
     public class OnboardDriverController : Controller
     {
         private readonly ICompanyAdminService _adminService;

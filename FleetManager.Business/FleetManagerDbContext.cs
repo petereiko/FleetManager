@@ -39,7 +39,12 @@ namespace FleetManager.Business
         public DbSet<NextOfKin> NextOfKins { get; set; }
         public DbSet<State> States { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<VehicleModel> VehicleModels { get; set; }
+        public DbSet<VehicleMake> VehicleMakes { get; set; }
         public DbSet<VehicleDocument> VehicleDocuments { get; set; }
+        public DbSet<VehicleToCompanyRental> VehicleToCompanyRentals { get; set; }
+        public DbSet<Vendor> Vendors { get; set; }
+        public DbSet<VendorCategory> VendorCategories { get; set; }
 
         #endregion
     }

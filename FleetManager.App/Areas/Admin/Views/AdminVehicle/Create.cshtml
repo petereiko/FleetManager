@@ -41,18 +41,38 @@
                             <!-- Make -->
                             <div class="col-md-4">
                                 <div class="input-block local-forms">
-                                    <label asp-for="Make">Make <span class="login-danger">*</span></label>
+                                    @* <label asp-for="Make">Make <span class="login-danger">*</span></label>
                                     <input asp-for="Make" class="form-control" placeholder="e.g. Toyota" />
                                     <span asp-validation-for="Make" class="text-danger"></span>
+ *@
+                                    <label asp-for="VehicleMakeId">Make <span class="login-danger">*</span></label>
+                                    <select asp-for="VehicleMakeId"
+                                            asp-items="Model.Makes"
+                                            class="form-control select2"
+                                            id="vehicleMake">
+                                      <option value="">Search Your Vehicle Make</option> 
+                                    </select>
+                                    <span asp-validation-for="VehicleMakeId" class="text-danger"></span>
+
                                 </div>
                             </div>
 
                             <!-- Model -->
                             <div class="col-md-4">
                                 <div class="input-block local-forms">
-                                    <label asp-for="Model">Model <span class="login-danger">*</span></label>
+                                    @* <label asp-for="Model">Model <span class="login-danger">*</span></label>
                                     <input asp-for="Model" class="form-control" placeholder="e.g. Corolla" />
-                                    <span asp-validation-for="Model" class="text-danger"></span>
+                                    <span asp-validation-for="Model" class="text-danger"></span> *@
+
+                                    <label asp-for="VehicleModelId">Model <span class="login-danger">*</span></label>
+                                    <select asp-for="VehicleModelId"
+                                            asp-items="Model.Models"
+                                            class="form-control select2"
+                                            id="vehicleModel">
+                                      <option value="">Select Model</option>
+                                    </select>
+                                    <span asp-validation-for="VehicleModelId" class="text-danger"></span>
+
                                 </div>
                             </div>
 
@@ -262,6 +282,64 @@
     <script src="https://cdn.jsdelivr.net/npm/@@simonwep/pickr"></script>
 
     <script>
+
+        $(document).ready(function () {
+    // initialize both selects as Select2
+    $('#vehicleMake, #vehicleModel').select2({
+      width: '100%',
+      placeholder: 'Search…',
+      allowClear: true
+    });
+
+    // when the Make changes, load its Models
+    $('#vehicleMake').on('change', function () {
+      var makeId = $(this).val();
+      var $model = $('#vehicleModel');
+
+      // show a loading placeholder
+      $model
+        .empty()
+        .append('<option value=\"\">Loading models…</option>')
+        .trigger('change');
+
+      if (!makeId) {
+        // no make selected ⇒ reset models
+        $model
+          .empty()
+          .append('<option value=\"\">Select Model</option>')
+          .trigger('change');
+        return;
+      }
+
+      // fetch from your AdminVehicleController
+      $.ajax({
+        url: '@Url.Action("GetVehicleModels", "AdminVehicle")',
+        data: { makeId: makeId },
+        success: function (data) {
+          $model
+            .empty()
+            .append('<option value=\"\">Select Model</option>');
+          $.each(data, function (i, item) {
+            $model.append(
+              $('<option>', { value: item.value, text: item.text })
+            );
+          });
+        },
+        error: function () {
+          console.error('Could not load vehicle models.');
+        },
+        complete: function () {
+          // re-activate Select2 so the dropdown updates
+          $model.trigger('change');
+        }
+      });
+    });
+  });
+
+
+
+
+
         flatpickr(".datetimepicker", { dateFormat: "Y-m-d" });
 
            // 1) Grab the hidden input

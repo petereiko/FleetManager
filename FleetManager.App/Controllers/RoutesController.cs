@@ -47,7 +47,7 @@ namespace FleetManager.App.Controllers
                     Intermediates = new List<Waypoint>(),
                     TravelMode = "DRIVE",
                     RoutingPreference = "TRAFFIC_AWARE",
-                    ComputeAlternativeRoutes = false,
+                    ComputeAlternativeRoutes = true,
                     RouteModifiers = new RouteModifiers
                     {
                         AvoidTolls = false,

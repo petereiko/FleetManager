@@ -18,6 +18,8 @@ namespace FleetManager.Business.Database.Entities
         public virtual Company Company { get; set; }
         public long? CompanyBranchId { get; set; }
         public virtual CompanyBranch? CompanyBranch { get; set; }
+        public long? VendorId { get; set; }
+        public virtual Vendor Vendor { get; set; }
 
     }
 }

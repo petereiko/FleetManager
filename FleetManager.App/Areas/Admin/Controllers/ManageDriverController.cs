@@ -6,6 +6,7 @@ using FleetManager.Business.Interfaces.ComapyBranchModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
 {
 
     [Area("Admin")]
+    [Authorize]
     public class ManageDriverController : Controller
     {
         private readonly IManageDriverService _driverService;
@@ -38,6 +40,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
         {
             try
             {
+                
                 // 1) determine roles
                 var roles = (_authUser.Roles ?? "")
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)

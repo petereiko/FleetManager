@@ -1,5 +1,4 @@
-﻿@* 
-@using FleetManager.Business.ViewModels.GoogleViewModels
+﻿@using FleetManager.Business.ViewModels.GoogleViewModels
 @model MapViewModel
 @{
     ViewData["Title"] = "Route Map";
@@ -33,6 +32,68 @@
             display: block !important;
         }
 
+    /* Alternative Routes Panel */
+    #alternativeRoutesPanel {
+        transition: transform 0.3s ease-in-out;
+        transform: translateX(-100%);
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+        #alternativeRoutesPanel.show {
+            transform: translateX(0);
+        }
+
+    .route-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+
+        .route-card:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+        }
+
+        .route-card.selected {
+            border-color: #28a745;
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+    .route-preview {
+        height: 80px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #6c757d;
+        margin-bottom: 8px;
+    }
+
+    /* Rerouting notification */
+    .rerouting-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 2000;
+        min-width: 300px;
+        animation: slideInRight 0.3s ease;
+    }
+
+    @@keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Traffic-aware polyline styles */
+    .route-line-light {
+        stroke-opacity: 0.4;
+        stroke-weight: 4;
+    }
+
     /* Responsive adjustments */
     @@media (max-width: 768px) {
         .d-flex.justify-content-between {
@@ -54,6 +115,18 @@
             width: 100% !important;
             height: 50% !important;
             top: 50% !important;
+        }
+
+        #alternativeRoutesPanel {
+            width: 100% !important;
+            height: 40% !important;
+            bottom: 0 !important;
+            top: auto !important;
+            transform: translateY(100%);
+        }
+
+        #alternativeRoutesPanel.show {
+            transform: translateY(0);
         }
     }
 
@@ -78,8 +151,17 @@
         background-color: #fd7e14 !important;
         border-color: #fd7e14 !important;
     }
-</style>
 
+    .routes-enabled {
+        background-color: #6f42c1 !important;
+        border-color: #6f42c1 !important;
+    }
+
+    .reroute-enabled {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+    }
+</style>
 
 <div class="container-fluid p-0">
     <div class="row g-0">
@@ -107,6 +189,12 @@
                             <button type="button" class="btn btn-outline-light" onclick="toggleStreetView()">
                                 <i class="fas fa-street-view me-1"></i>Street View
                             </button>
+                            <button type="button" class="btn btn-outline-light" onclick="toggleAlternativeRoutes()">
+                                <i class="fas fa-route me-1"></i>Routes
+                            </button>
+                            <button type="button" class="btn btn-outline-light" onclick="toggleRerouting()">
+                                <i class="fas fa-sync-alt me-1"></i>Auto-Reroute
+                            </button>
                             <button type="button" class="btn btn-outline-light" onclick="fitToRoute()">
                                 <i class="fas fa-expand-arrows-alt me-1"></i>Fit Route
                             </button>
@@ -121,6 +209,29 @@
             <!-- Map Container -->
             <div class="position-relative">
                 <div id="map" style="height: calc(100vh - 80px); width: 100%;"></div>
+
+                <!-- Alternative Routes Panel -->
+                <div id="alternativeRoutesPanel" class="position-absolute top-0 start-0 bg-white border-end shadow-lg"
+                     style="width: 350px; height: 100%; display: none; z-index: 1000;">
+                    <div class="d-flex justify-content-between align-items-center p-3 bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-route me-2"></i>Alternative Routes
+                        </h6>
+                        <button type="button" class="btn btn-outline-light btn-sm" onclick="closeAlternativeRoutes()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-3">
+                        <div id="routesList">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary mb-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="text-muted mb-0">Finding alternative routes...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Street View Container -->
                 <div id="streetViewContainer" class="position-absolute top-0 end-0 bg-white border-start shadow-lg"
@@ -155,31 +266,54 @@
                     </div>
                 </div>
 
+                <!-- Rerouting Notification -->
+                <div id="reroutingNotification" class="rerouting-notification" style="display: none;">
+                    <div class="alert alert-info shadow-lg mb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm text-info me-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div>
+                                <strong>Rerouting in progress...</strong><br>
+                                <small>Finding a better route based on current traffic</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Loading Overlay -->
-                <div id="mapLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75">
+                @* <div id="mapLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75" style="z-index: 2000;">
                     <div class="text-center">
                         <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <p class="text-muted mb-0">Loading interactive map...</p>
                     </div>
-                </div>
+                </div> *@
             </div>
         </div>
     </div>
 </div>
 
-
- <script>
+<script>
     let map;
     let routeLine;
     let trafficLayer;
     let streetViewPanorama;
     let streetViewService;
+    let directionsService;
     let isTrafficVisible = false;
     let isSatelliteView = false;
     let isStreetViewVisible = false;
+    let isAlternativeRoutesVisible = false;
+    let isReroutingEnabled = false;
     let routeBounds;
+    let originMarker;
+    let destinationMarker;
+    let alternativeRoutes = [];
+    let currentRouteIndex = 0;
+    let reroutingInterval;
+    let origin, destination;
 
     function initMap() {
         try {
@@ -200,14 +334,18 @@
             return;
           }
 
+          // Store origin and destination for rerouting
+          origin = decodedPath[0];
+          destination = decodedPath[decodedPath.length - 1];
+
           // 4) Build bounds
           routeBounds = new google.maps.LatLngBounds();
           decodedPath.forEach(pt => routeBounds.extend(pt));
 
-          // 5) Initialize the map
+          // 5) Initialize the map centered on origin point
           map = new google.maps.Map(document.getElementById('map'), {
-            center: routeBounds.getCenter(),
-            zoom: 12,
+            center: origin,
+            zoom: 15, // Closer zoom for origin focus
             mapTypeControl: false,
             streetViewControl: true,
             fullscreenControl: true,
@@ -219,71 +357,381 @@
             ]
           });
 
-          // 6) Street View service
+          // 6) Initialize services
           streetViewService = new google.maps.StreetViewService();
+          directionsService = new google.maps.DirectionsService();
 
-          // 7) Draw polyline
-          routeLine = new google.maps.Polyline({
-            path: decodedPath,
-            geodesic: true,
-            strokeColor: '#4285F4',
-            strokeOpacity: 0.8,
-            strokeWeight: 6,
-            map,
-            icons: [{
-              icon: {
-                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                scale: 3,
-                strokeColor: '#4285F4',
-                strokeWeight: 2,
-                fillColor: '#4285F4',
-                fillOpacity: 1
-              },
-              offset: '100%',
-              repeat: '200px'
-            }]
-          });
-          routeLine.addListener('click', e => {
-            if (isStreetViewVisible) showStreetViewAtLocation(e.latLng);
-          });
+          // 7) Draw initial polyline with traffic-aware styling
+          drawRoute(decodedPath, true);
 
-          // 8) Start & end markers
-          const [start, end] = [decodedPath[0], decodedPath[decodedPath.length - 1]];
-          const createMarker = (pos, label, color) => new google.maps.Marker({
-            position: pos,
-            map,
-            title: label,
-            icon: {
-              url: 'data:image/svg+xml,' + encodeURIComponent(`
-                <svg width="40" height="40" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="20" cy="20" r="18" fill="${color}" stroke="white" stroke-width="4"/>
-                  <text x="20" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">${label}</text>
-                </svg>`),
-              scaledSize: new google.maps.Size(40, 40),
-              anchor: new google.maps.Point(20, 20)
-            }
-          });
-          const mA = createMarker(start, 'A', '#34A853');
-          const mB = createMarker(end,   'B', '#EA4335');
-          mA.addListener('click', () => isStreetViewVisible && showStreetViewAtLocation(mA.getPosition()));
-          mB.addListener('click', () => isStreetViewVisible && showStreetViewAtLocation(mB.getPosition()));
+          // 8) Start & end markers with professional icons
+          createMarkers(origin, destination);
 
           // 9) Traffic layer
           trafficLayer = new google.maps.TrafficLayer();
 
-          // 10) Fit & info
-          map.fitBounds(routeBounds);
+          // 10) Update route info
           updateRouteInfo(decodedPath);
 
-          // 11) Hide loader
-          document.getElementById('mapLoading').style.display = 'none';
+          // 11) Load alternative routes
+          loadAlternativeRoutes();
+
+          // 12) Wait for map to be fully loaded and tiles rendered
+          google.maps.event.addListenerOnce(map, 'tilesloaded', function() {
+            // Additional timeout to ensure everything is rendered
+            setTimeout(() => {
+              hideMapLoading();
+            }, 500);
+          });
+
+          // 13) Fallback - hide loading after 5 seconds regardless
+          setTimeout(() => {
+            hideMapLoading();
+          }, 5000);
         }
         catch (error) {
           console.error('Map initialization error:', error);
           showError('Failed to load map. Please try again.');
         }
-      }
+    }
 
+    function drawRoute(path, isSelected = false) {
+        // Remove existing route line if any
+        if (routeLine) {
+            routeLine.setMap(null);
+        }
+
+        // Create new route line with traffic-aware styling
+        const strokeWeight = isSelected ? 6 : 4;
+        const strokeOpacity = isTrafficVisible ? 0.6 : 0.8;
+        const zIndex = isSelected ? 100 : 50;
+
+        routeLine = new google.maps.Polyline({
+            path: path,
+            geodesic: true,
+            strokeColor: isSelected ? '#4285F4' : '#8BB5F8',
+            strokeOpacity: strokeOpacity,
+            strokeWeight: strokeWeight,
+            map: map,
+            zIndex: zIndex,
+            icons: isSelected ? [{
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: 3,
+                    strokeColor: '#4285F4',
+                    strokeWeight: 2,
+                    fillColor: '#4285F4',
+                    fillOpacity: 1
+                },
+                offset: '100%',
+                repeat: '200px'
+            }] : []
+        });
+
+        // Add click listener for street view
+        routeLine.addListener('click', e => {
+            if (isStreetViewVisible) showStreetViewAtLocation(e.latLng);
+        });
+
+        // Update bounds
+        routeBounds = new google.maps.LatLngBounds();
+        path.forEach(pt => routeBounds.extend(pt));
+    }
+
+    function createMarkers(start, end) {
+        // Remove existing markers
+        if (originMarker) originMarker.setMap(null);
+        if (destinationMarker) destinationMarker.setMap(null);
+
+        // Origin marker (professional location pin)
+        originMarker = new google.maps.Marker({
+            position: start,
+            map: map,
+            title: 'Origin',
+            icon: {
+                url: 'data:image/svg+xml,' + encodeURIComponent(`
+                    <svg width="32" height="40" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="originGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" style="stop-color:#34A853;stop-opacity:1" />
+                          <stop offset="100%" style="stop-color:#2E7D32;stop-opacity:1" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M16 0C7.2 0 0 7.2 0 16c0 11.25 16 24 16 24s16-12.75 16-24C32 7.2 24.8 0 16 0z" fill="url(#originGradient)" stroke="#1B5E20" stroke-width="1"/>
+                      <circle cx="16" cy="16" r="8" fill="white"/>
+                      <circle cx="16" cy="16" r="4" fill="#2E7D32"/>
+                    </svg>`),
+                scaledSize: new google.maps.Size(32, 40),
+                anchor: new google.maps.Point(16, 40)
+            }
+        });
+
+        // Destination marker (professional flag)
+        destinationMarker = new google.maps.Marker({
+            position: end,
+            map: map,
+            title: 'Destination',
+            icon: {
+                url: 'data:image/svg+xml,' + encodeURIComponent(`
+                    <svg width="32" height="40" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="destGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" style="stop-color:#EA4335;stop-opacity:1" />
+                          <stop offset="100%" style="stop-color:#C62828;stop-opacity:1" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M16 0C7.2 0 0 7.2 0 16c0 11.25 16 24 16 24s16-12.75 16-24C32 7.2 24.8 0 16 0z" fill="url(#destGradient)" stroke="#B71C1C" stroke-width="1"/>
+                      <path d="M10 8h12l-2 4 2 4H10V8z" fill="white"/>
+                      <path d="M12 10v6h6l-1.5-3L18 10h-6z" fill="#C62828"/>
+                    </svg>`),
+                scaledSize: new google.maps.Size(32, 40),
+                anchor: new google.maps.Point(16, 40)
+            }
+        });
+
+        originMarker.addListener('click', () => isStreetViewVisible && showStreetViewAtLocation(originMarker.getPosition()));
+        destinationMarker.addListener('click', () => isStreetViewVisible && showStreetViewAtLocation(destinationMarker.getPosition()));
+    }
+
+    function loadAlternativeRoutes() {
+        if (!directionsService || !origin || !destination) return;
+
+        directionsService.route({
+            origin: origin,
+            destination: destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+            provideRouteAlternatives: true,
+            avoidHighways: false,
+            avoidTolls: false
+        }, (response, status) => {
+            if (status === 'OK') {
+                alternativeRoutes = response.routes;
+                displayAlternativeRoutes();
+            } else {
+                console.warn('Could not load alternative routes:', status);
+            }
+        });
+    }
+
+    function displayAlternativeRoutes() {
+        const routesList = document.getElementById('routesList');
+        if (!routesList || alternativeRoutes.length === 0) {
+            routesList.innerHTML = '<p class="text-muted text-center">No alternative routes available</p>';
+            return;
+        }
+
+        let html = '';
+        alternativeRoutes.forEach((route, index) => {
+            const leg = route.legs[0];
+            const isSelected = index === currentRouteIndex;
+            const duration = leg.duration.text;
+            const distance = leg.distance.text;
+            const trafficInfo = leg.duration_in_traffic ? leg.duration_in_traffic.text : duration;
+
+            html += `
+                <div class="route-card card mb-3 ${isSelected ? 'selected' : ''}" onclick="selectRoute(${index})">
+                    <div class="card-body p-3">
+                        <div class="route-preview">Route ${index + 1}</div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1 ${isSelected ? 'text-success' : ''}">
+                                    <i class="fas fa-route me-2"></i>Route ${index + 1}
+                                    ${isSelected ? '<i class="fas fa-check-circle text-success ms-2"></i>' : ''}
+                                </h6>
+                                <small class="text-muted">${route.summary || 'Main route'}</small>
+                            </div>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="small text-muted">Distance</div>
+                                <div class="fw-bold">${distance}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Duration</div>
+                                <div class="fw-bold">${trafficInfo}</div>
+                            </div>
+                        </div>
+                        ${leg.duration_in_traffic && leg.duration_in_traffic.value > leg.duration.value ? 
+                            '<div class="text-warning small mt-2"><i class="fas fa-exclamation-triangle me-1"></i>Heavy traffic</div>' : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        routesList.innerHTML = html;
+    }
+
+    function selectRoute(index) {
+        if (index < 0 || index >= alternativeRoutes.length) return;
+
+        currentRouteIndex = index;
+        const selectedRoute = alternativeRoutes[index];
+        const path = selectedRoute.overview_path;
+
+        // Update the route display
+        drawRoute(path, true);
+        updateRouteInfo(path);
+        displayAlternativeRoutes(); // Refresh the UI to show selection
+
+        // Update markers positions if route has different start/end
+        const leg = selectedRoute.legs[0];
+        origin = leg.start_location;
+        destination = leg.end_location;
+        createMarkers(origin, destination);
+
+        // Fit map to new route
+        map.fitBounds(selectedRoute.bounds);
+    }
+
+    function toggleAlternativeRoutes() {
+        const btn = event.target.closest('button');
+        const panel = document.getElementById('alternativeRoutesPanel');
+
+        if (isAlternativeRoutesVisible) {
+            // Hide alternative routes
+            panel.classList.remove('show');
+            setTimeout(() => {
+                panel.style.display = 'none';
+            }, 300);
+            btn.classList.remove('routes-enabled');
+            isAlternativeRoutesVisible = false;
+        } else {
+            // Show alternative routes
+            panel.style.display = 'block';
+            setTimeout(() => {
+                panel.classList.add('show');
+            }, 10);
+            btn.classList.add('routes-enabled');
+            isAlternativeRoutesVisible = true;
+
+            // Load routes if not already loaded
+            if (alternativeRoutes.length === 0) {
+                loadAlternativeRoutes();
+            }
+        }
+    }
+
+    function closeAlternativeRoutes() {
+        const panel = document.getElementById('alternativeRoutesPanel');
+        const btn = document.querySelector('[onclick="toggleAlternativeRoutes()"]');
+
+        panel.classList.remove('show');
+        setTimeout(() => {
+            panel.style.display = 'none';
+        }, 300);
+        btn.classList.remove('routes-enabled');
+        isAlternativeRoutesVisible = false;
+    }
+
+    function toggleRerouting() {
+        const btn = event.target.closest('button');
+        
+        if (isReroutingEnabled) {
+            // Disable rerouting
+            clearInterval(reroutingInterval);
+            btn.classList.remove('reroute-enabled');
+            isReroutingEnabled = false;
+            hideReroutingNotification();
+        } else {
+            // Enable rerouting
+            btn.classList.add('reroute-enabled');
+            isReroutingEnabled = true;
+            startRerouting();
+        }
+    }
+
+    function startRerouting() {
+        // Check for better routes every 2 minutes
+        reroutingInterval = setInterval(() => {
+            if (isReroutingEnabled) {
+                checkForBetterRoute();
+            }
+        }, 120000);
+    }
+
+    function checkForBetterRoute() {
+        if (!directionsService || !origin || !destination) return;
+
+        showReroutingNotification();
+
+        directionsService.route({
+            origin: origin,
+            destination: destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+            provideRouteAlternatives: true,
+            avoidHighways: false,
+            avoidTolls: false,
+            drivingOptions: {
+                departureTime: new Date(),
+                trafficModel: google.maps.TrafficModel.BEST_GUESS
+            }
+        }, (response, status) => {
+            if (status === 'OK') {
+                const currentRoute = alternativeRoutes[currentRouteIndex];
+                const newBestRoute = response.routes[0];
+
+                // Compare routes based on duration with traffic
+                if (newBestRoute.legs[0].duration_in_traffic && 
+                    currentRoute.legs[0].duration_in_traffic &&
+                    newBestRoute.legs[0].duration_in_traffic.value < currentRoute.legs[0].duration_in_traffic.value * 0.9) {
+                    
+                    // Found a significantly better route (10% faster)
+                    alternativeRoutes = response.routes;
+                    selectRoute(0);
+                    showRerouteSuccess();
+                } else {
+                    hideReroutingNotification();
+                }
+            } else {
+                hideReroutingNotification();
+            }
+        });
+    }
+
+    function showReroutingNotification() {
+        const notification = document.getElementById('reroutingNotification');
+        notification.style.display = 'block';
+    }
+
+    function hideReroutingNotification() {
+        const notification = document.getElementById('reroutingNotification');
+        notification.style.display = 'none';
+    }
+
+    function showRerouteSuccess() {
+        const notification = document.getElementById('reroutingNotification');
+        notification.innerHTML = `
+            <div class="alert alert-success shadow-lg mb-0">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle text-success me-3"></i>
+                    <div>
+                        <strong>Route updated!</strong><br>
+                        <small>Found a faster route avoiding traffic</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            hideReroutingNotification();
+        }, 4000);
+    }
+
+    function updateTrafficAwarePolyline() {
+        if (routeLine) {
+            const currentOpacity = isTrafficVisible ? 0.6 : 0.8;
+            routeLine.setOptions({
+                strokeOpacity: currentOpacity
+            });
+        }
+    }
+
+    function hideMapLoading() {
+        const loadingElement = document.getElementById('mapLoading');
+        if (loadingElement && loadingElement.style.display !== 'none') {
+            loadingElement.style.display = 'none';
+        }
+    }
 
     function updateRouteInfo(path) {
         const distance = google.maps.geometry.spherical.computeLength(path);
@@ -328,6 +776,8 @@
             btn.classList.add('traffic-enabled');
             isTrafficVisible = true;
         }
+        // Update polyline opacity for better traffic visibility
+        updateTrafficAwarePolyline();
     }
 
     function toggleSatellite() {
@@ -465,7 +915,14 @@
             google.maps.event.trigger(streetViewPanorama, 'resize');
         }
     });
-</script>  *@
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (reroutingInterval) {
+            clearInterval(reroutingInterval);
+        }
+    });
+</script>
 
 
 
@@ -474,7 +931,16 @@
 
 
 
-        @using FleetManager.Business.ViewModels.GoogleViewModels
+
+
+
+
+
+
+
+
+
+@*  @using FleetManager.Business.ViewModels.GoogleViewModels
 @model MapViewModel
 @{
     ViewData["Title"] = "Route Map";
@@ -634,14 +1100,14 @@
                 </div>
 
                 <!-- Loading Overlay -->
-                @* <div id="mapLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75" style="z-index: 2000;">
+                 <div id="mapLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-75" style="z-index: 2000;">
                     <div class="text-center">
                         <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <p class="text-muted mb-0">Loading interactive map...</p>
                     </div>
-                </div> *@
+                </div> 
             </div>
         </div>
     </div>
@@ -991,4 +1457,4 @@
             google.maps.event.trigger(streetViewPanorama, 'resize');
         }
     });
-</script>
+</script> *@

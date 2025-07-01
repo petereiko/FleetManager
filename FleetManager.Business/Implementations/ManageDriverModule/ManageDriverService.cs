@@ -325,38 +325,6 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
             };
         }
 
-
-
-
-        //public async Task<List<DriverDto>> GetDriversForBranchAsync(long? branchId = null)
-        //{
-        //    EnsureAdminOrOwner();
-
-        //    var companyId = _authUser.CompanyId;
-        //    var query = _context.Drivers.AsNoTracking();
-
-        //    // if owner/super: all company, else branch only
-        //    var roles = (_authUser.Roles ?? "")
-        //        .Split(',', StringSplitOptions.RemoveEmptyEntries)
-        //        .Select(r => r.Trim());
-
-        //    if (!roles.Contains("Company Owner") && !roles.Contains("Super Admin"))
-        //        query = query.Where(d => d.CompanyBranchId == _authUser.CompanyBranchId);
-
-        //    var list = await query
-        //        .Where(d => branchId == null || d.CompanyBranchId == branchId)
-        //        .ToListAsync()
-        //        .ConfigureAwait(false);
-
-        //    // map
-        //    var result = new List<DriverDto>(list.Count);
-        //    foreach (var d in list)
-        //        result.Add(await GetDriverByIdAsync(d.Id).ConfigureAwait(false)!);
-
-        //    return result;
-        //}
-
-
         public async Task<List<DriverDto>> GetDriversForBranchAsync(long? branchId = null)
         {
             EnsureAdminOrOwner();
@@ -445,9 +413,6 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
             return result;
         }
 
-
-
-
         // helper to save file
         private async Task<DriverDocument> SaveDriverFileAsync(
             long driverId, IFormFile file, string subfolder)
@@ -473,8 +438,6 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
             };
         }
 
-
-
         public IQueryable<DriverListItemDto> QueryDriversForBranch(long? branchId)
         {
             EnsureAdminOrOwner();
@@ -499,10 +462,10 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                         ShiftStatus = d.ShiftStatus,
                         EmploymentStatus = d.EmploymentStatus,
                         Email = u.Email,
-                        Phone= u.PhoneNumber,
+                        Phone = u.PhoneNumber,
                         IsActive = d.IsActive,
                         CreatedDate = d.CreatedDate,
-                        VehicleAssigned="No Vehicle Assigned Yet",
+                        VehicleAssigned = "No Vehicle Assigned Yet",
 
                         // 👇 Attach profile photo path if available
                         PhotoPath = profilePhoto != null ? profilePhoto.FilePath : null
@@ -511,6 +474,40 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
 
             return q;
         }
+
+
+
+        //public async Task<List<DriverDto>> GetDriversForBranchAsync(long? branchId = null)
+        //{
+        //    EnsureAdminOrOwner();
+
+        //    var companyId = _authUser.CompanyId;
+        //    var query = _context.Drivers.AsNoTracking();
+
+        //    // if owner/super: all company, else branch only
+        //    var roles = (_authUser.Roles ?? "")
+        //        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+        //        .Select(r => r.Trim());
+
+        //    if (!roles.Contains("Company Owner") && !roles.Contains("Super Admin"))
+        //        query = query.Where(d => d.CompanyBranchId == _authUser.CompanyBranchId);
+
+        //    var list = await query
+        //        .Where(d => branchId == null || d.CompanyBranchId == branchId)
+        //        .ToListAsync()
+        //        .ConfigureAwait(false);
+
+        //    // map
+        //    var result = new List<DriverDto>(list.Count);
+        //    foreach (var d in list)
+        //        result.Add(await GetDriverByIdAsync(d.Id).ConfigureAwait(false)!);
+
+        //    return result;
+        //}
+
+
+
+
 
         public List<SelectListItem> GetGenderOptions() =>
         Enum.GetValues<Gender>()

@@ -6,6 +6,7 @@ using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FleetManager.App.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize]
     public class FuelLogController : Controller
     {
         private readonly IFuelLogService _fuelLogService;

@@ -1,12 +1,14 @@
 ﻿using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FleetManager.App.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize]
     public class ProfileController : Controller
     {
         private readonly ICompanyManagementService _companyService;

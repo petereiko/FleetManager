@@ -119,6 +119,10 @@ namespace DVLA.UI.Controllers
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "User" });
             }
+            else if (roles.Contains("Company Admin"))
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Vendor" });
+            }
             else
             {
                 TempData["ErrorMessage"] = "No recognized role assigned. Contact support.";

@@ -19,6 +19,9 @@ namespace FleetManager.Business.Enums
         CompanyOwner,
 
         [Description("Super Admin")]
-        SuperAdmin
+        SuperAdmin,
+
+        [Description("Vendor")]
+        Vendor
     }
 }

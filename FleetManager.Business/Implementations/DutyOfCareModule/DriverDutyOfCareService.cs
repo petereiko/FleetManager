@@ -296,7 +296,7 @@ namespace FleetManager.Business.Implementations.DutyOfCareModule
 
                     VehicleDescription = _context.Vehicles
                                     .Where(v => v.Id == d.VehicleId)
-                                    .Select(v => v.Make + " " + v.Model)
+                                    .Select(v => v.VehicleMake.Name + " " + v.VehicleModel.Name)
                                     .FirstOrDefault()
                 });
         }

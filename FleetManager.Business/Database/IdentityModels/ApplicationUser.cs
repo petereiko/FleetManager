@@ -17,7 +17,9 @@ namespace FleetManager.Business.Database.IdentityModels
         public DateTime? LastLoginDate { get; set; }
         public long? CompanyId { get; set; }
         public long? CompanyBranchId { get; set; }
-       
+        public long? VendorId { get; set; }
+
+
 
     }
 }

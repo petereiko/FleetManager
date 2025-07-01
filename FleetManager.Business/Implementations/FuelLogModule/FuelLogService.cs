@@ -67,7 +67,7 @@ namespace FleetManager.Business.Implementations.FuelLogModule
                         DriverId = d.Id,
                         DriverName = (u.FirstName! + " " + u.LastName!).Trim(),
                         VehicleId = v.Id,
-                        VehicleDescription = v.Make + " " + v.Model,
+                        VehicleDescription = v.VehicleMake.Name + " " + v.VehicleModel.Name,
                         LicenseNo = v.PlateNo,
                         Date = fl.Date,
                         Odometer = fl.Odometer,
@@ -94,7 +94,7 @@ namespace FleetManager.Business.Implementations.FuelLogModule
                        DriverId = d.Id,
                        DriverName = (u.FirstName! + " " + u.LastName!).Trim(),
                        VehicleId = v.Id,
-                       VehicleDescription = v.Make + " " + v.Model,
+                       VehicleDescription = v.VehicleMake.Name + " " + v.VehicleModel.Name,
                        LicenseNo = v.PlateNo,
                        Date = fl.Date,
                        Odometer = fl.Odometer,
@@ -121,6 +121,7 @@ namespace FleetManager.Business.Implementations.FuelLogModule
             {
                 var entity = new FuelLog
                 {
+                    
                     DriverId = input.DriverId,
                     VehicleId = input.VehicleId,
                     Date = input.Date,

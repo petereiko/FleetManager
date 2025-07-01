@@ -21,6 +21,9 @@ namespace FleetManager.Business.Interfaces.VehicleModule
 
         Task<MessageResponse> UpdateVehicleStatusAsync(long vehicleId, VehicleStatus newStatus, string modifiedBy);
 
+        //Task LoadMakes();
+        //Task LoadModels();
+
         // Retrieval
         Task<VehicleDto> GetVehicleByIdAsync(long id);
         Task<List<VehicleListItemDto>> GetVehiclesAsync(VehicleFilterDto filter);
@@ -31,6 +34,10 @@ namespace FleetManager.Business.Interfaces.VehicleModule
         List<SelectListItem> GetStatusOptions();
         List<SelectListItem> GetVehicleTypeOptions();
         Task<List<SelectListItem>> GetBranchOptionsAsync(long companyId);
+
+        List<SelectListItem> GetVehicleMakes();
+        Task<List<SelectListItem>> GetVehicleModelsByMakeId(int makeId);
+
 
 
 

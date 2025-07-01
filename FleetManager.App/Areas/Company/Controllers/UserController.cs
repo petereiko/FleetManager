@@ -3,6 +3,7 @@ using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.UtilityModels;
 using FleetManager.Business.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ using System.Net;
 
 namespace FleetManager.App.Areas.Company.Controllers
 {
-    [Area("Company")]
+    [Authorize]
     public class UserController : Controller
     {
         private readonly ICompanyManagementService _companyService;
