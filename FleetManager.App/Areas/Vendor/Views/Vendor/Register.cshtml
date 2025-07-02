@@ -1,8 +1,8 @@
-﻿@using FleetManager.Business.DataObjects.VendorDto;
+﻿@* @using FleetManager.Business.DataObjects.VendorDto;
 @model VendorOnboardingDto
 @{
     ViewData["Title"] = "Vendor Registration - Fleet Manager";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null /* "~/Views/Shared/_Layout.cshtml" */;
 }
 
     <style>
@@ -395,18 +395,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label asp-for="VendorCategoryId" class="form-label required-field">Service Category</label>
-                                    <select asp-for="VendorCategoryId" class="form-select">
-                                        <option value="">Select a category</option>
-                                        <option value="1">Transportation Services</option>
-                                        <option value="2">Maintenance & Repair</option>
-                                        <option value="3">Fleet Management</option>
-                                        <option value="4">Insurance Services</option>
-                                        <option value="5">Fuel Services</option>
-                                        <option value="6">Technology Solutions</option>
-                                        <option value="7">Consulting Services</option>
-                                        <option value="8">Parts & Supplies</option>
-                                        <option value="9">Training & Education</option>
-                                        <option value="10">Other Services</option>
+                                    <select asp-for="VendorCategoryId" asp-items="ViewBag.VendorCategories" class="form-select">
                                     </select>
                                     <span asp-validation-for="VendorCategoryId" class="invalid-feedback"></span>
                                 </div>
@@ -667,3 +656,1002 @@
         $('input, select, textarea').on('input change', updateProgress);
     </script>
 
+ *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+                @using FleetManager.Business.DataObjects.VendorDto;
+@model VendorOnboardingDto
+@{
+    ViewData["Title"] = "Vendor Registration - Fleet Manager";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: #f8fafc;
+            overflow-x: hidden;
+        }
+        
+        /* Hero Section with Benefits */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 80px 0;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .benefit-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .benefit-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+        }
+        
+        .benefit-description {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+            margin-top: 2rem;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+            color: white;
+        }
+        
+        /* Form Section */
+        .form-section {
+            padding: 100px 0;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+        
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .form-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 3rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .form-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        
+        .form-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .form-description {
+            font-size: 1.2rem;
+            color: #6c757d;
+            margin-bottom: 2rem;
+        }
+        
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .progress-step {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #6c757d;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .progress-step.completed {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .progress-step::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 40px;
+            height: 3px;
+            background: #e9ecef;
+            transform: translateY(-50%);
+        }
+        
+        .progress-step:last-child::after {
+            display: none;
+        }
+        
+        .form-body {
+            padding: 3rem;
+        }
+        
+        .section {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .section:last-of-type {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.95rem;
+        }
+        
+        .required-field::after {
+            content: '*';
+            color: #ef4444;
+            margin-left: 4px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+            width: 100%;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            background-color: white;
+            outline: none;
+        }
+        
+        .form-control.is-invalid {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+        
+        .form-control.is-valid {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+        
+        .invalid-feedback {
+            display: block;
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-text {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+        
+        .textarea-container {
+            position: relative;
+        }
+        
+        .textarea-counter {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #6b7280;
+            background: rgba(255,255,255,0.95);
+            padding: 4px 8px;
+            border-radius: 6px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .submit-button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 1.25rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        
+        .submit-button:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(239, 68, 68, 0.4);
+        }
+        
+        .submit-button:disabled {
+            background: #9ca3af;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        .security-note {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border: 1px solid #e0f2fe;
+        }
+        
+        .security-note small {
+            color: #0369a1;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .benefits-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .benefit-card {
+                padding: 1.5rem;
+            }
+            
+            .form-header,
+            .form-body {
+                padding: 2rem 1.5rem;
+            }
+            
+            .form-title {
+                font-size: 2rem;
+            }
+            
+            .progress-step {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .progress-step::after {
+                width: 20px;
+            }
+        }
+        
+        /* Animation Classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+        
+        @@keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stagger-animation > * {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+        .stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+        .stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+        .stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <!-- Hero Section with Benefits -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content fade-in">
+                        <h1 class="hero-title">Join Our Vendor Network</h1>
+                        <p class="hero-subtitle">Connect with clients and grow your business through our trusted platform</p>
+                        <a href="#registration-form" class="cta-button">
+                            <i class="fas fa-rocket"></i>
+                            Start Registration
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="benefits-grid stagger-animation">
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="benefit-title">Quality Leads</h3>
+                            <p class="benefit-description">Connect with serious clients actively seeking your services</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-shield-check"></i>
+                            </div>
+                            <h3 class="benefit-title">Verified Status</h3>
+                            <p class="benefit-description">Get a verified badge that builds trust with potential clients</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="benefit-title">Business Growth</h3>
+                            <p class="benefit-description">Expand your reach and grow your client base effectively</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h3 class="benefit-title">24/7 Support</h3>
+                            <p class="benefit-description">Get help from our team to optimize your vendor profile</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Form Section -->
+    <section class="form-section" id="registration-form">
+        <div class="container">
+            <div class="form-container">
+                <div class="form-card fade-in">
+                    <div class="form-header">
+                        <h2 class="form-title">Vendor Registration</h2>
+                        <p class="form-description">Fill out the form below to become a verified vendor partner</p>
+                        
+                        <!-- Progress Indicator -->
+                        <div class="progress-indicator">
+                            <div class="progress-step active">1</div>
+                            <div class="progress-step">2</div>
+                            <div class="progress-step">3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-body">
+                        <form asp-action="Register" method="post" id="vendorRegistrationForm" novalidate>
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                            
+                            <!-- Personal Information Section -->
+                            <div class="section">
+                                <h3 class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    Personal Information
+                                </h3>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="FirstName" class="form-label required-field">First Name</label>
+                                            <input asp-for="FirstName" class="form-control" placeholder="Enter your first name" />
+                                            <span asp-validation-for="FirstName" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="LastName" class="form-label required-field">Last Name</label>
+                                            <input asp-for="LastName" class="form-control" placeholder="Enter your last name" />
+                                            <span asp-validation-for="LastName" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="Email" class="form-label required-field">Email Address</label>
+                                            <input asp-for="Email" type="email" class="form-control" placeholder="your.email@example.com" />
+                                            <span asp-validation-for="Email" class="invalid-feedback"></span>
+                                            <div class="form-text">We'll use this for account notifications and client communications</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="PhoneNumber" class="form-label required-field">Phone Number</label>
+                                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="+234 xxx xxx xxxx" />
+                                            <span asp-validation-for="PhoneNumber" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Business Information Section -->
+                            <div class="section">
+                                <h3 class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    Business Information
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <label asp-for="VendorName" class="form-label required-field">Business/Vendor Name</label>
+                                    <input asp-for="VendorName" class="form-control" placeholder="Enter your business name" />
+                                    <span asp-validation-for="VendorName" class="invalid-feedback"></span>
+                                    <div class="form-text">This will be displayed as your business name to clients</div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="VendorCategoryId" class="form-label required-field">Service Category</label>
+                                            <select asp-for="VendorCategoryId" asp-items="ViewBag.Categories" class="form-select">
+                                            </select>
+                                            <span asp-validation-for="VendorCategoryId" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="ContactPerson" class="form-label required-field">Primary Contact Person</label>
+                                            <input asp-for="ContactPerson" class="form-control" placeholder="Contact person name" />
+                                            <span asp-validation-for="ContactPerson" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label asp-for="ContactPersonPhone" class="form-label required-field">Contact Person Phone</label>
+                                    <input asp-for="ContactPersonPhone" type="tel" class="form-control" placeholder="+234 xxx xxx xxxx" />
+                                    <span asp-validation-for="ContactPersonPhone" class="invalid-feedback"></span>
+                                    <div class="form-text">Direct phone number for the primary contact person</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label asp-for="Address" class="form-label">Business Address</label>
+                                    <input asp-for="Address" class="form-control" placeholder="Enter your business address" />
+                                    <span asp-validation-for="Address" class="invalid-feedback"></span>
+                                    <div class="form-text">Optional: Helps clients find local vendors</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Services Information Section -->
+                            <div class="section">
+                                <h3 class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-briefcase"></i>
+                                    </div>
+                                    Services & Expertise
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <label asp-for="VendorServiceOffered" class="form-label required-field">Services Offered</label>
+                                    <div class="textarea-container">
+                                        <textarea asp-for="VendorServiceOffered" class="form-control" rows="6" 
+                                                 placeholder="Describe the services you offer in detail. Include your specialties, experience, and what makes your business unique. This information will be displayed to potential clients." 
+                                                 maxlength="1000" id="servicesTextarea"></textarea>
+                                        <div class="textarea-counter">
+                                            <span id="charCount">0</span>/1000
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="VendorServiceOffered" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <strong>Tips:</strong> Mention your key services, years of experience, certifications, coverage areas, and unique value propositions.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Registration Information Section -->
+                            <div class="section">
+                                <h3 class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-certificate"></i>
+                                    </div>
+                                    Registration Details
+                                </h3>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="CACRegistrationNo" class="form-label">CAC Registration Number</label>
+                                            <input asp-for="CACRegistrationNo" class="form-control" placeholder="e.g. RC123456" />
+                                            <span asp-validation-for="CACRegistrationNo" class="invalid-feedback"></span>
+                                            <div class="form-text">Optional: Corporate Affairs Commission registration number</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="TaxIdNumber" class="form-label">Tax ID Number</label>
+                                            <input asp-for="TaxIdNumber" class="form-control" placeholder="Enter your tax ID" />
+                                            <span asp-validation-for="TaxIdNumber" class="invalid-feedback"></span>
+                                            <div class="form-text">Optional: Helps with business verification</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="text-center">
+                                <button type="submit" class="submit-button" id="submitBtn">
+                                    <span class="loading-spinner">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                    <i class="fas fa-rocket"></i>
+                                    Complete Registration
+                                </button>
+                                
+                                <div class="security-note">
+                                    <small>
+                                        <i class="fas fa-shield-alt"></i>
+                                        Your information is secure and will be reviewed before activation
+                                    </small>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Smooth scrolling for CTA button
+            $('a[href^="#"]').on('click', function(e) {
+                e.preventDefault();
+                const target = $($(this).attr('href'));
+                if (target.length) {
+                    $('html, body').animate({
+                        scrollTop: target.offset().top - 50
+                    }, 800);
+                }
+            });
+            
+            // Character counter for services textarea
+            const textarea = $('#servicesTextarea');
+            const charCount = $('#charCount');
+            
+            textarea.on('input', function() {
+                const currentLength = $(this).val().length;
+                charCount.text(currentLength);
+                
+                if (currentLength > 900) {
+                    charCount.parent().addClass('text-warning');
+                } else {
+                    charCount.parent().removeClass('text-warning');
+                }
+            });
+            
+            // Enhanced form validation
+            $('input, select, textarea').on('blur', function() {
+                const $this = $(this);
+                const value = $this.val().trim();
+                
+                if ($this.prop('required') && !value) {
+                    $this.addClass('is-invalid').removeClass('is-valid');
+                } else if (value) {
+                    $this.removeClass('is-invalid').addClass('is-valid');
+                }
+            });
+            
+            // Email validation
+            $('#Email').on('blur', function() {
+                const email = $(this).val();
+                const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+                
+                if (email && !emailRegex.test(email)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (email) {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                }
+            });
+            
+            // Phone number formatting
+            $('input[type="tel"]').on('input', function() {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.startsWith('234')) {
+                    value = '+' + value;
+                } else if (value.startsWith('0')) {
+                    value = '+234' + value.substring(1);
+                } else if (value.length > 0 && !value.startsWith('+')) {
+                    value = '+234' + value;
+                }
+                $(this).val(value);
+            });
+            
+            // Form submission handling
+            $('#vendorRegistrationForm').on('submit', function(e) {
+                const $submitBtn = $('#submitBtn');
+                const $spinner = $('.loading-spinner');
+                
+                // Show loading state
+                $submitBtn.prop('disabled', true);
+                $spinner.show();
+                
+                // Simulate form processing (remove in production)
+                setTimeout(function() {
+                    if (!$(e.target)[0].checkValidity()) {
+                        $submitBtn.prop('disabled', false);
+                        $spinner.hide();
+                    }
+                }, 500);
+            });
+            
+            // Auto-resize textarea
+            textarea.on('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            // Progress indicator animation
+            setTimeout(function() {
+                $('.progress-step').first().addClass('active');
+            }, 500);
+            
+            // Smooth scrolling to validation errors
+            if ($('.invalid-feedback:visible').length > 0) {
+                $('html, body').animate({
+                    scrollTop: $('.invalid-feedback:visible').first().offset().top - 100
+                }, 500);
+            }
+            
+            // Real-time form progress tracking
+            function updateProgress() {
+                const totalFields = $('input[required], select[required], textarea[required]').length;
+                const filledFields = $('input[required], select[required], textarea[required]').filter(function() {
+                    return $(this).val().trim() !== '';
+                }).length;
+                
+                const progress = Math.round((filledFields / totalFields) * 100);
+                const steps = $('.progress-step');
+                
+                // Reset all steps
+                steps.removeClass('active completed');
+                
+                if (progress > 0) {
+                    steps.eq(0).addClass('active');
+                }
+                if (progress > 33) {
+                    steps.eq(0).removeClass('active').addClass('completed');
+                    steps.eq(1).addClass('active');
+                }
+                if (progress > 66) {
+                    steps.eq(1).removeClass('active').addClass('completed');
+                    steps.eq(2).addClass('active');
+                }
+                if (progress === 100) {
+                    steps.eq(2).removeClass('active').addClass('completed');
+                }
+            }
+            
+            // Trigger progress update on input changes
+            $('input, select, textarea').on('input change', updateProgress);
+            
+            // Initialize progress
+            updateProgress();
+            
+            // Enhanced visual feedback for form interactions
+            $('input, select, textarea').on('focus', function() {
+                $(this).parent().addClass('focused');
+            }).on('blur', function() {
+                $(this).parent().removeClass('focused');
+            });
+            
+            // Add floating labels effect
+            $('input, textarea').on('input', function() {
+                if ($(this).val().length > 0) {
+                    $(this).addClass('has-content');
+                } else {
+                    $(this).removeClass('has-content');
+                }
+            });
+            
+            // Animate elements on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe elements for animation
+            document.querySelectorAll('.section').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Add pulse animation to required fields that are empty
+            function highlightEmptyRequired() {
+                $('input[required], select[required], textarea[required]').each(function() {
+                    if (!$(this).val().trim()) {
+                        $(this).addClass('pulse-required');
+                        setTimeout(() => {
+                            $(this).removeClass('pulse-required');
+                        }, 1000);
+                    }
+                });
+            }
+            
+            // Trigger highlight on form submit attempt
+            $('#vendorRegistrationForm').on('invalid', function() {
+                highlightEmptyRequired();
+            });
+            
+            // Auto-save form data to prevent data loss (using sessionStorage)
+            function saveFormData() {
+                const formData = {};
+                $('#vendorRegistrationForm').find('input, select, textarea').each(function() {
+                    const name = $(this).attr('name');
+                    const value = $(this).val();
+                    if (name && value) {
+                        formData[name] = value;
+                    }
+                });
+                sessionStorage.setItem('vendorFormData', JSON.stringify(formData));
+            }
+            
+            function loadFormData() {
+                const savedData = sessionStorage.getItem('vendorFormData');
+                if (savedData) {
+                    const formData = JSON.parse(savedData);
+                    Object.keys(formData).forEach(name => {
+                        const field = $(`[name="${name}"]`);
+                        if (field.length) {
+                            field.val(formData[name]).trigger('input');
+                        }
+                    });
+                }
+            }
+            
+            // Auto-save every 30 seconds
+            setInterval(saveFormData, 30000);
+            
+            // Save on form changes
+            $('#vendorRegistrationForm').on('change input', 'input, select, textarea', function() {
+                clearTimeout(window.autoSaveTimer);
+                window.autoSaveTimer = setTimeout(saveFormData, 2000);
+            });
+            
+            // Load saved data on page load
+            loadFormData();
+            
+            // Clear saved data on successful form submission
+            $('#vendorRegistrationForm').on('submit', function() {
+                if (this.checkValidity()) {
+                    sessionStorage.removeItem('vendorFormData');
+                }
+            });
+        });
+        
+        // Add CSS for pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            .pulse-required {
+                animation: pulseRed 0.5s ease-in-out;
+            }
+            
+            @@keyframes pulseRed {
+                0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+                70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            }
+            
+            .focused {
+                transform: scale(1.02);
+                transition: transform 0.2s ease;
+            }
+            
+            .has-content + .form-label {
+                color: #667eea;
+                font-weight: 600;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

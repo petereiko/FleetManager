@@ -1,4 +1,4 @@
-﻿@using FleetManager.Business.DataObjects.VendorDto;
+﻿@* @using FleetManager.Business.DataObjects.VendorDto;
 @model IEnumerable<VendorDto>
 @{
     ViewData["Title"] = "Professional Services Directory";
@@ -526,7 +526,7 @@
 
 
 
-
+ *@
 
 
 
@@ -570,3 +570,1020 @@
     }
 </div>
  *@
+
+
+
+                    @using FleetManager.Business.DataObjects.VendorDto;
+@model IEnumerable<VendorDto>
+@{
+    ViewData["Title"] = "Professional Services Directory";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fafbfc;
+        }
+        
+        .hero-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 100px 0 80px 0;
+            margin-bottom: 0;
+            position: relative;
+            overflow: hidden;
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @@keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            animation: slideInUp 1s ease-out;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: slideInUp 1s ease-out 0.2s both;
+        }
+        
+        .hero-description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            animation: slideInUp 1s ease-out 0.4s both;
+        }
+        
+        @@keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stats-section {
+            background: white;
+            padding: 60px 0;
+            margin-bottom: 60px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            position: relative;
+            z-index: 2;
+            margin-top: -40px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 30px 20px;
+            position: relative;
+        }
+        
+        .stat-item::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 60px;
+            background: #e9ecef;
+        }
+        
+        .stat-item:last-child::after {
+            display: none;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .search-filter-bar {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+            margin-bottom: 60px;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .section-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        
+        .vendor-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            height: 100%;
+            overflow: hidden;
+            background: white;
+            position: relative;
+        }
+        
+        .vendor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .vendor-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .vendor-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .vendor-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px 25px;
+            border-bottom: 1px solid #dee2e6;
+            position: relative;
+        }
+        
+        .vendor-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        
+        .vendor-category {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .vendor-body {
+            padding: 30px 25px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:last-of-type {
+            border-bottom: none;
+        }
+        
+        .info-item:hover {
+            background: #f8f9fa;
+            margin-left: -25px;
+            margin-right: -25px;
+            padding-left: 25px;
+            padding-right: 25px;
+            border-radius: 8px;
+        }
+        
+        .info-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 16px;
+            color: #667eea;
+            flex-shrink: 0;
+            margin-top: 2px;
+            font-size: 1.1rem;
+        }
+        
+        .info-content {
+            flex: 1;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .info-value {
+            color: #6c757d;
+            font-size: 1rem;
+            word-break: break-word;
+        }
+        
+        .info-value a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .info-value a:hover {
+            color: #764ba2;
+        }
+        
+        .btn-view-details {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-view-details:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .vendor-cta-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+            color: white;
+            padding: 80px 0;
+            margin: 80px 0 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .vendor-cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+        }
+        
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-register-vendor {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 50px;
+            padding: 18px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-register-vendor:hover {
+            background: linear-gradient(45deg, #c0392b, #a93226);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4);
+        }
+        
+        .no-vendors {
+            text-align: center;
+            padding: 100px 20px;
+            color: #6c757d;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+        }
+        
+        .no-vendors i {
+            font-size: 5rem;
+            color: #dee2e6;
+            margin-bottom: 30px;
+        }
+        
+        .additional-info-section {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .info-card h4 {
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 60px 0 30px 0;
+        }
+        
+        .footer-section h5 {
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #ecf0f1;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 8px;
+        }
+        
+        .footer-section ul li a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-section ul li a:hover {
+            color: #ecf0f1;
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid #34495e;
+            margin-top: 40px;
+            padding-top: 30px;
+            text-align: center;
+            color: #bdc3c7;
+        }
+        
+        @@media (max-width: 768px) {
+            .hero-banner {
+                padding: 60px 0 40px 0;
+                min-height: 50vh;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .vendor-cta-section {
+                padding: 60px 0;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+            }
+            
+            .stat-item::after {
+                display: none;
+            }
+            
+            .stats-section {
+                margin-top: -20px;
+            }
+        }
+        
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="container">
+            <div class="hero-content text-center">
+                <h1 class="hero-title">Professional Services Directory</h1>
+                <p class="hero-subtitle">Connect with trusted vendors and service providers for all your business needs</p>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <p class="hero-description">Discover verified professionals, compare services, and build lasting business relationships with our curated network of industry-leading vendors.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section animate-on-scroll">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-6">
+                    <div class="stat-item">
+                        <span class="stat-number">@(Model?.Count() ?? 0)+</span>
+                        <div class="stat-label">Verified Vendors</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-6">
+                    <div class="stat-item">
+                        <span class="stat-number">@(Model?.Select(v => v.VendorCategoryName).Distinct().Count() ?? 0)+</span>
+                        <div class="stat-label">Service Categories</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-6">
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <div class="stat-label">Support Available</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-6">
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <div class="stat-label">Satisfaction Goal</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-bar animate-on-scroll">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-3 mb-md-0">
+                        <i class="fas fa-search me-2 text-primary"></i>
+                        Find the perfect vendor for your needs
+                    </h5>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <button class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-filter me-2"></i>Filter & Search
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Title -->
+        <h2 class="section-title animate-on-scroll">Featured Vendors & Services</h2>
+
+        <!-- Vendors Grid -->
+        @if (Model != null && Model.Any())
+        {
+            <div class="row">
+                @foreach (var vendor in Model)
+                {
+                    <div class="col-xl-4 col-lg-6 col-md-6 mb-5">
+                        <div class="card vendor-card animate-on-scroll">
+                            <div class="vendor-header">
+                                <h3 class="vendor-name">@vendor.VendorName</h3>
+                                <span class="vendor-category">@vendor.VendorCategoryName</span>
+                            </div>
+                            <div class="vendor-body">
+                                <div class="info-item">
+                                    <i class="fas fa-briefcase info-icon"></i>
+                                    <div class="info-content">
+                                        <div class="info-label">Services</div>
+                                        <div class="info-value">@vendor.VendorServiceOffered</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <i class="fas fa-user info-icon"></i>
+                                    <div class="info-content">
+                                        <div class="info-label">Contact Person</div>
+                                        <div class="info-value">@vendor.ContactPerson</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <i class="fas fa-phone info-icon"></i>
+                                    <div class="info-content">
+                                        <div class="info-label">Phone</div>
+                                        <div class="info-value">
+                                            <a href="tel:@vendor.ContactPersonPhone">
+                                                @vendor.ContactPersonPhone
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(vendor.Email))
+                                {
+                                    <div class="info-item">
+                                        <i class="fas fa-envelope info-icon"></i>
+                                        <div class="info-content">
+                                            <div class="info-label">Email</div>
+                                            <div class="info-value">
+                                                <a href="mailto:@vendor.Email">
+                                                    @vendor.Email
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(vendor.Address))
+                                {
+                                    <div class="info-item">
+                                        <i class="fas fa-map-marker-alt info-icon"></i>
+                                        <div class="info-content">
+                                            <div class="info-label">Location</div>
+                                            <div class="info-value">@vendor.Address</div>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                <div class="mt-4">
+                                    <a asp-action="Details" asp-route-id="@vendor.Id" class="btn btn-view-details">
+                                        <i class="fas fa-eye me-2"></i>View Full Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="no-vendors animate-on-scroll">
+                <i class="fas fa-store"></i>
+                <h3 class="mb-3">No Vendors Available</h3>
+                <p class="mb-4 fs-5">We're currently building our network of professional service providers.</p>
+                <a asp-controller="Vendor" asp-action="Register" asp-area="Vendor" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Be Our First Vendor Partner
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Vendor CTA Section -->
+    <div class="vendor-cta-section" id="vendor-registration">
+        <div class="container">
+            <div class="cta-content text-center">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <h2 class="display-5 fw-bold mb-4">Are You a Service Provider?</h2>
+                        <p class="lead mb-5 fs-4">
+                            Join our network of trusted vendors and connect with clients who need your expertise. 
+                            Expand your business reach and build lasting professional relationships.
+                        </p>
+                        <div class="row text-start mb-5">
+                            <div class="col-md-4 mb-4">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle fa-3x text-success me-4"></i>
+                                    <div>
+                                        <h5 class="mb-2 text-white">Verified Listings</h5>
+                                        <small class="text-light">Get your business verified and trusted by clients</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-users fa-3x text-info me-4"></i>
+                                    <div>
+                                        <h5 class="mb-2 text-white">Quality Leads</h5>
+                                        <small class="text-light">Connect with serious, qualified clients</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-chart-line fa-3x text-warning me-4"></i>
+                                    <div>
+                                        <h5 class="mb-2 text-white">Grow Your Business</h5>
+                                        <small class="text-light">Expand your client base and revenue</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <a asp-controller="Vendor" asp-action="Register" asp-area="Vendor" class="btn btn-register-vendor btn-lg me-3 mb-3">
+                                <i class="fas fa-rocket me-2"></i>Register as Vendor
+                            </a>
+                            <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-light btn-lg mb-3">
+                                <i class="fas fa-phone me-2"></i>Contact Us
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Information Section -->
+    <div class="additional-info-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 mb-5">
+                    <div class="info-card animate-on-scroll">
+                        <h4 class="mb-4">
+                            <i class="fas fa-handshake text-primary me-3"></i>
+                            For Clients
+                        </h4>
+                        <p class="mb-4 fs-5">
+                            Browse our directory of professional service providers, compare offerings, and connect directly with vendors that match your business needs.
+                        </p>
+                        <ul class="list-unstyled">
+                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Verified vendor profiles</strong> - All vendors go through our verification process</li>
+                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Direct contact information</strong> - Connect instantly with service providers</li>
+                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Service category filtering</strong> - Find exactly what you're looking for</li>
+                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Free to browse and connect</strong> - No hidden fees or charges</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-5">
+                    <div class="info-card animate-on-scroll">
+                        <h4 class="mb-4">
+                            <i class="fas fa-store text-success me-3"></i>
+                            For Vendors
+                        </h4>
+                        <p class="mb-4 fs-5">
+                            Showcase your services to potential clients, build your professional network, and grow your business through our platform.
+                        </p>
+                        <ul class="list-unstyled">
+                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Professional profile page</strong> - Showcase your expertise and services</li>
+                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Lead generation opportunities</strong> - Get connected with potential clients</li>
+                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Business verification badges</strong> - Build trust with verification status</li>
+                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Direct client communication</strong> - Handle inquiries efficiently</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5><i class="fas fa-building me-2"></i>Professional Services Directory</h5>
+                        <p class="mb-4">Connecting businesses with trusted service providers. Your gateway to reliable professional services and quality vendors.</p>
+                        <div class="social-links">
+                            <a href="#" class="text-light me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                            <a href="#" class="text-light me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#" class="text-light me-3"><i class="fab fa-linkedin-in fa-lg"></i></a>
+                            <a href="#" class="text-light"><i class="fab fa-instagram fa-lg"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5>Quick Links</h5>
+                        <ul>
+                            <li><a href="#">Home</a></li>
+                            <li><a href="#">Browse Vendors</a></li>
+                            <li><a href="#">Categories</a></li>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5>For Vendors</h5>
+                        <ul>
+                            <li><a href="#">Register</a></li>
+                            <li><a href="#">Vendor Login</a></li>
+                            <li><a href="#">Pricing</a></li>
+                            <li><a href="#">Resources</a></li>
+                            <li><a href="#">Support</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5>Support</h5>
+                        <ul>
+                            <li><a href="#">Help Center</a></li>
+                            <li><a href="#">FAQs</a></li>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Report Issue</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5>Contact Info</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                Lagos, Nigeria
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-phone me-2"></i>
+                                <a href="tel:+234-XXX-XXXX">+234-XXX-XXXX</a>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-envelope me-2"></i>
+                                <a href="mailto:info@directory.com">info@directory.com</a>
+                            </li>
+                            <li>
+                                <i class="fas fa-clock me-2"></i>
+                                24/7 Support
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p>&copy; 2025 Professional Services Directory. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p>Powered by FleetManager Business Solutions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animated');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all elements with animate-on-scroll class
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Loading animation for vendor cards
+        window.addEventListener('load', function() {
+            const cards = document.querySelectorAll('.vendor-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+
+        // Counter animation for stats
+        function animateCounter(element, target) {
+            let current = 0;
+            const increment = target / 100;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current) + (element.textContent.includes('+') ? '+' : '');
+            }, 20);
+        }
+
+        // Animate stats when they come into view
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const statNumbers = entry.target.querySelectorAll('.stat-number');
+                    statNumbers.forEach(stat => {
+                        const target = parseInt(stat.textContent.replace(/\D/g, ''));
+                        if (target && !isNaN(target)) {
+                            animateCounter(stat, target);
+                        }
+                    });
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            statsObserver.observe(statsSection);
+        }
+
+        // Add loading states and error handling for images
+        document.querySelectorAll('img').forEach(img => {
+            img.addEventListener('error', function() {
+                this.style.display = 'none';
+            });
+        });
+
+        // Enhanced hover effects for cards
+        document.querySelectorAll('.vendor-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add click tracking for analytics (placeholder)
+        document.querySelectorAll('[data-track]').forEach(element => {
+            element.addEventListener('click', function() {
+                const action = this.getAttribute('data-track');
+                // Analytics tracking code would go here
+                console.log('Tracked action:', action);
+            });
+        });
+
+        // Lazy loading for better performance
+        if ('IntersectionObserver' in window) {
+            const lazyImages = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            lazyImages.forEach(img => imageObserver.observe(img));
+        }
+
+        // Add search functionality placeholder
+        function initializeSearch() {
+            const searchButton = document.querySelector('.search-filter-bar button');
+            if (searchButton) {
+                searchButton.addEventListener('click', function() {
+                    // Search modal or functionality would be implemented here
+                    console.log('Search functionality to be implemented');
+                });
+            }
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSearch();
+            
+            // Add smooth reveal animation to hero content
+            setTimeout(() => {
+                document.querySelector('.hero-content').style.opacity = '1';
+            }, 100);
+        });
+
+        // Performance optimization: Debounce scroll events
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Optimize scroll performance
+        const handleScroll = debounce(() => {
+            const scrolled = window.pageYOffset;
+            const heroSection = document.querySelector('.hero-banner');
+            if (heroSection) {
+                heroSection.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        }, 10);
+
+        window.addEventListener('scroll', handleScroll);
+    </script>
+</body>
+</html>
