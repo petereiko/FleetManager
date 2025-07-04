@@ -19,6 +19,9 @@ namespace FleetManager.Business.DataObjects.VendorDto
         public string ContactPerson { get; set; } = null!;
         public string ContactPersonPhone { get; set; } = null!;
         public string? Address { get; set; }
+        public string? City { get; set; }
+        public long? StateId { get; set; }
+        public string? StateName { get; set; }
         [EmailAddress]
         public string? Email { get; set; }
         [Phone]

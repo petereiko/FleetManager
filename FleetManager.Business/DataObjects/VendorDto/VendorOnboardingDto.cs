@@ -37,6 +37,8 @@ namespace FleetManager.Business.DataObjects.VendorDto
         public string ContactPersonPhone { get; set; } = null!;
 
         public string? Address { get; set; }
+        public string? City {  get; set; }
+        public long? StateId { get; set; }
         public string? CACRegistrationNo { get; set; }
         public string? TaxIdNumber { get; set; }
     }

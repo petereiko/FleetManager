@@ -2,678 +2,6 @@
 @model VendorOnboardingDto
 @{
     ViewData["Title"] = "Vendor Registration - Fleet Manager";
-    Layout = null /* "~/Views/Shared/_Layout.cshtml" */;
-}
-
-    <style>
-        .registration-hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .registration-hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
-        }
-        
-        .hero-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .registration-container {
-            max-width: 800px;
-            margin: -50px auto 0;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .registration-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-            overflow: hidden;
-            border: none;
-        }
-        
-        .registration-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 40px;
-            text-align: center;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .registration-header h2 {
-            color: #2c3e50;
-            font-weight: 700;
-            margin-bottom: 10px;
-            font-size: 2rem;
-        }
-        
-        .registration-header p {
-            color: #6c757d;
-            font-size: 1.1rem;
-            margin: 0;
-        }
-        
-        .registration-body {
-            padding: 40px;
-        }
-        
-        .form-section {
-            margin-bottom: 40px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid #f1f3f4;
-        }
-        
-        .form-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-        
-        .section-title {
-            color: #2c3e50;
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .section-title i {
-            margin-right: 10px;
-            color: #667eea;
-            width: 24px;
-            text-align: center;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 8px;
-            display: block;
-        }
-        
-        .required-field::after {
-            content: '*';
-            color: #e74c3c;
-            margin-left: 4px;
-        }
-        
-        .form-control, .form-select {
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background-color: #fafbfc;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background-color: white;
-        }
-        
-        .form-control.is-invalid {
-            border-color: #e74c3c;
-            background-color: #fdf2f2;
-        }
-        
-        .form-control.is-valid {
-            border-color: #27ae60;
-            background-color: #f2fdf5;
-        }
-        
-        .invalid-feedback {
-            display: block;
-            color: #e74c3c;
-            font-size: 0.875rem;
-            margin-top: 5px;
-        }
-        
-        .form-text {
-            color: #6c757d;
-            font-size: 0.875rem;
-            margin-top: 5px;
-        }
-        
-        .textarea-container {
-            position: relative;
-        }
-        
-        .textarea-counter {
-            position: absolute;
-            bottom: 10px;
-            right: 15px;
-            font-size: 0.75rem;
-            color: #6c757d;
-            background: rgba(255,255,255,0.9);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        
-        .btn-register {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            border: none;
-            border-radius: 8px;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: white;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
-            width: 100%;
-        }
-        
-        .btn-register:hover {
-            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
-            color: white;
-        }
-        
-        .btn-register:disabled {
-            background: #95a5a6;
-            transform: none;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        
-        .benefits-sidebar {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 12px;
-            padding: 30px;
-            margin-top: 40px;
-        }
-        
-        .benefit-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-        
-        .benefit-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .benefit-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        
-        .benefit-icon i {
-            color: white;
-            font-size: 1.2rem;
-        }
-        
-        .benefit-content h5 {
-            color: #2c3e50;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        .benefit-content p {
-            color: #6c757d;
-            font-size: 0.9rem;
-            margin: 0;
-        }
-        
-        .progress-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-        
-        .progress-step {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 10px;
-            font-weight: 600;
-            color: #6c757d;
-            position: relative;
-        }
-        
-        .progress-step.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        
-        .progress-step::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 100%;
-            width: 20px;
-            height: 2px;
-            background: #e9ecef;
-            transform: translateY(-50%);
-        }
-        
-        .progress-step:last-child::after {
-            display: none;
-        }
-        
-        .loading-spinner {
-            display: none;
-            margin-right: 10px;
-        }
-        
-        @@media (max-width: 768px) {
-            .registration-hero {
-                padding: 40px 0;
-            }
-            
-            .registration-container {
-                margin: -30px 15px 0;
-            }
-            
-            .registration-header,
-            .registration-body {
-                padding: 30px 20px;
-            }
-            
-            .benefits-sidebar {
-                margin-top: 30px;
-                padding: 20px;
-            }
-        }
-    </style>
-
-
-<!-- Registration Hero -->
-<div class="registration-hero">
-    <div class="container">
-        <div class="hero-content text-center">
-            <h1 class="display-5 fw-bold mb-3">Join Our Vendor Network</h1>
-            <p class="lead">Connect with clients and grow your business through our trusted platform</p>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-    <div class="registration-container">
-        <div class="card registration-card">
-            <div class="registration-header">
-                <h2>Vendor Registration</h2>
-                <p>Fill out the form below to become a verified vendor partner</p>
-                
-                <!-- Progress Indicator -->
-                <div class="progress-indicator mt-4">
-                    <div class="progress-step active">1</div>
-                    <div class="progress-step">2</div>
-                    <div class="progress-step">3</div>
-                </div>
-            </div>
-            
-            <div class="registration-body">
-                <form asp-action="Register" method="post" id="vendorRegistrationForm" novalidate>
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-                    
-                    <!-- Personal Information Section -->
-                    <div class="form-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-user"></i>
-                            Personal Information
-                        </h3>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="FirstName" class="form-label required-field">First Name</label>
-                                    <input asp-for="FirstName" class="form-control" placeholder="Enter your first name" />
-                                    <span asp-validation-for="FirstName" class="invalid-feedback"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="LastName" class="form-label required-field">Last Name</label>
-                                    <input asp-for="LastName" class="form-control" placeholder="Enter your last name" />
-                                    <span asp-validation-for="LastName" class="invalid-feedback"></span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Email" class="form-label required-field">Email Address</label>
-                                    <input asp-for="Email" type="email" class="form-control" placeholder="your.email@example.com" />
-                                    <span asp-validation-for="Email" class="invalid-feedback"></span>
-                                    <div class="form-text">We'll use this for account notifications and client communications</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="PhoneNumber" class="form-label required-field">Phone Number</label>
-                                    <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="+234 xxx xxx xxxx" />
-                                    <span asp-validation-for="PhoneNumber" class="invalid-feedback"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Business Information Section -->
-                    <div class="form-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-building"></i>
-                            Business Information
-                        </h3>
-                        
-                        <div class="form-group">
-                            <label asp-for="VendorName" class="form-label required-field">Business/Vendor Name</label>
-                            <input asp-for="VendorName" class="form-control" placeholder="Enter your business name" />
-                            <span asp-validation-for="VendorName" class="invalid-feedback"></span>
-                            <div class="form-text">This will be displayed as your business name to clients</div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="VendorCategoryId" class="form-label required-field">Service Category</label>
-                                    <select asp-for="VendorCategoryId" asp-items="ViewBag.VendorCategories" class="form-select">
-                                    </select>
-                                    <span asp-validation-for="VendorCategoryId" class="invalid-feedback"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="ContactPerson" class="form-label required-field">Primary Contact Person</label>
-                                    <input asp-for="ContactPerson" class="form-control" placeholder="Contact person name" />
-                                    <span asp-validation-for="ContactPerson" class="invalid-feedback"></span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label asp-for="ContactPersonPhone" class="form-label required-field">Contact Person Phone</label>
-                            <input asp-for="ContactPersonPhone" type="tel" class="form-control" placeholder="+234 xxx xxx xxxx" />
-                            <span asp-validation-for="ContactPersonPhone" class="invalid-feedback"></span>
-                            <div class="form-text">Direct phone number for the primary contact person</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label asp-for="Address" class="form-label">Business Address</label>
-                            <input asp-for="Address" class="form-control" placeholder="Enter your business address" />
-                            <span asp-validation-for="Address" class="invalid-feedback"></span>
-                            <div class="form-text">Optional: Helps clients find local vendors</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Services Information Section -->
-                    <div class="form-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-briefcase"></i>
-                            Services & Expertise
-                        </h3>
-                        
-                        <div class="form-group">
-                            <label asp-for="VendorServiceOffered" class="form-label required-field">Services Offered</label>
-                            <div class="textarea-container">
-                                <textarea asp-for="VendorServiceOffered" class="form-control" rows="6" 
-                                         placeholder="Describe the services you offer in detail. Include your specialties, experience, and what makes your business unique. This information will be displayed to potential clients." 
-                                         maxlength="1000" id="servicesTextarea"></textarea>
-                                <div class="textarea-counter">
-                                    <span id="charCount">0</span>/1000
-                                </div>
-                            </div>
-                            <span asp-validation-for="VendorServiceOffered" class="invalid-feedback"></span>
-                            <div class="form-text">
-                                <strong>Tips:</strong> Mention your key services, years of experience, certifications, coverage areas, and unique value propositions.
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Registration Information Section -->
-                    <div class="form-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-certificate"></i>
-                            Registration Details
-                        </h3>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="CACRegistrationNo" class="form-label">CAC Registration Number</label>
-                                    <input asp-for="CACRegistrationNo" class="form-control" placeholder="e.g. RC123456" />
-                                    <span asp-validation-for="CACRegistrationNo" class="invalid-feedback"></span>
-                                    <div class="form-text">Optional: Corporate Affairs Commission registration number</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="TaxIdNumber" class="form-label">Tax ID Number</label>
-                                    <input asp-for="TaxIdNumber" class="form-control" placeholder="Enter your tax ID" />
-                                    <span asp-validation-for="TaxIdNumber" class="invalid-feedback"></span>
-                                    <div class="form-text">Optional: Helps with business verification</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Submit Button -->
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-register" id="submitBtn">
-                            <span class="loading-spinner">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </span>
-                            <i class="fas fa-rocket me-2"></i>
-                            Complete Registration
-                        </button>
-                        <p class="mt-3 text-muted">
-                            <small>
-                                <i class="fas fa-shield-alt me-1"></i>
-                                Your information is secure and will be reviewed before activation
-                            </small>
-                        </p>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Benefits Sidebar -->
-        <div class="benefits-sidebar">
-            <h4 class="mb-4 text-center">
-                <i class="fas fa-star text-warning me-2"></i>
-                Why Join Our Network?
-            </h4>
-            
-            <div class="benefit-item">
-                <div class="benefit-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="benefit-content">
-                    <h5>Quality Leads</h5>
-                    <p>Connect with serious clients actively seeking your services</p>
-                </div>
-            </div>
-            
-            <div class="benefit-item">
-                <div class="benefit-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="benefit-content">
-                    <h5>Verified Status</h5>
-                    <p>Get a verified badge that builds trust with potential clients</p>
-                </div>
-            </div>
-            
-            <div class="benefit-item">
-                <div class="benefit-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="benefit-content">
-                    <h5>Business Growth</h5>
-                    <p>Expand your reach and grow your client base effectively</p>
-                </div>
-            </div>
-            
-            <div class="benefit-item">
-                <div class="benefit-icon">
-                    <i class="fas fa-headset"></i>
-                </div>
-                <div class="benefit-content">
-                    <h5>Dedicated Support</h5>
-                    <p>Get help from our team to optimize your vendor profile</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <script>
-        $(document).ready(function() {
-            // Character counter for services textarea
-            const textarea = $('#servicesTextarea');
-            const charCount = $('#charCount');
-            
-            textarea.on('input', function() {
-                const currentLength = $(this).val().length;
-                charCount.text(currentLength);
-                
-                if (currentLength > 900) {
-                    charCount.parent().addClass('text-warning');
-                } else {
-                    charCount.parent().removeClass('text-warning');
-                }
-            });
-            
-            // Form validation enhancement
-            $('input, select, textarea').on('blur', function() {
-                const $this = $(this);
-                const value = $this.val().trim();
-                
-                if ($this.prop('required') && !value) {
-                    $this.addClass('is-invalid');
-                } else if (value) {
-                    $this.removeClass('is-invalid').addClass('is-valid');
-                }
-            });
-            
-            // Email validation
-            $('#Email').on('blur', function() {
-                const email = $(this).val();
-                const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
-                
-                if (email && !emailRegex.test(email)) {
-                    $(this).addClass('is-invalid');
-                } else if (email) {
-                    $(this).removeClass('is-invalid').addClass('is-valid');
-                }
-            });
-            
-            // Phone validation
-            $('input[type="tel"]').on('input', function() {
-                let value = $(this).val().replace(/\D/g, '');
-                if (value.startsWith('234')) {
-                    value = '+' + value;
-                } else if (value.startsWith('0')) {
-                    value = '+234' + value.substring(1);
-                } else if (value.length > 0 && !value.startsWith('+')) {
-                    value = '+234' + value;
-                }
-                $(this).val(value);
-            });
-            
-            // Form submission handling
-            $('#vendorRegistrationForm').on('submit', function(e) {
-                const $submitBtn = $('#submitBtn');
-                const $spinner = $('.loading-spinner');
-                
-                // Show loading state
-                $submitBtn.prop('disabled', true);
-                $spinner.show();
-                
-                // Simulate form processing (remove in production)
-                setTimeout(function() {
-                    if (!$(e.target)[0].checkValidity()) {
-                        $submitBtn.prop('disabled', false);
-                        $spinner.hide();
-                    }
-                }, 500);
-            });
-            
-            // Auto-resize textarea
-            textarea.on('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
-            
-            // Progress indicator animation
-            setTimeout(function() {
-                $('.progress-step').first().addClass('active');
-            }, 500);
-            
-            // Smooth scrolling to validation errors
-            if ($('.invalid-feedback:visible').length > 0) {
-                $('html, body').animate({
-                    scrollTop: $('.invalid-feedback:visible').first().offset().top - 100
-                }, 500);
-            }
-        });
-        
-        // Real-time form progress
-        function updateProgress() {
-            const totalFields = $('input[required], select[required], textarea[required]').length;
-            const filledFields = $('input[required], select[required], textarea[required]').filter(function() {
-                return $(this).val().trim() !== '';
-            }).length;
-            
-            const progress = Math.round((filledFields / totalFields) * 100);
-            
-            if (progress > 33) {
-                $('.progress-step').eq(1).addClass('active');
-            }
-            if (progress > 66) {
-                $('.progress-step').eq(2).addClass('active');
-            }
-        }
-        
-        $('input, select, textarea').on('input change', updateProgress);
-    </script>
-
- *@
-
-
-
-
-
-
-
-
-
-
-
-
-
-                @using FleetManager.Business.DataObjects.VendorDto;
-@model VendorOnboardingDto
-@{
-    ViewData["Title"] = "Vendor Registration - Fleet Manager";
     Layout = null;
 }
 
@@ -1307,6 +635,28 @@
                                     <span asp-validation-for="Address" class="invalid-feedback"></span>
                                     <div class="form-text">Optional: Helps clients find local vendors</div>
                                 </div>
+
+
+                                 <div class="row">
+                                     <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="City" class="form-label required-field">City</label>
+                                            <input asp-for="City" class="form-control" placeholder="Enter City" />
+                                            <span asp-validation-for="City" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="StateId" class="form-label required-field">State</label>
+                                            <select asp-for="StateId" asp-items="ViewBag.States" class="form-select">
+                                            </select>
+                                            <span asp-validation-for="StateId" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+
                             </div>
                             
                             <!-- Services Information Section -->
@@ -1652,6 +1002,996 @@
             }
         `;
         document.head.appendChild(style);
+    </script>
+</body>
+</html> *@
+
+
+
+
+
+
+
+
+ @using FleetManager.Business.DataObjects.VendorDto;
+@model VendorOnboardingDto
+@{
+    ViewData["Title"] = "Vendor Registration - Fleet Manager";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Registration - FleetManager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 1rem 0;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-light {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,100 1000,0 1000,100"/></svg>');
+            background-size: cover;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .cta-button:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Benefits Grid */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .benefit-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .benefit-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .benefit-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Form Section */
+        .form-section {
+            padding: 4rem 0;
+        }
+
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .form-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-description {
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        /* Form Body */
+        .form-body {
+            padding: 3rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--bg-light);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: var(--error-color);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+            outline: none;
+        }
+
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: var(--error-color);
+        }
+
+        .form-control.is-valid, .form-select.is-valid {
+            border-color: var(--success-color);
+        }
+
+        .form-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .invalid-feedback {
+            display: block;
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Textarea Container */
+        .textarea-container {
+            position: relative;
+        }
+
+        .textarea-counter {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Submit Button */
+        .submit-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 3rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: none;
+            margin-right: 0.5rem;
+        }
+
+        .submit-button.loading .loading-spinner {
+            display: inline-block;
+        }
+
+        .security-note {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Alert Styles */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border-left: 4px solid var(--error-color);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-primary);
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h5 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-body {
+                padding: 2rem;
+            }
+            
+            .section {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Animations */
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes staggerAnimation {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .stagger-animation .benefit-card {
+            animation: staggerAnimation 0.6s ease-out;
+        }
+
+        .stagger-animation .benefit-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .stagger-animation .benefit-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .stagger-animation .benefit-card:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-truck me-2"></i>FleetManager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-store me-1"></i>Vendors</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-handshake me-1"></i>Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-phone me-1"></i>Contact</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-outline-light" asp-area="" asp-action="Login" asp-controller="Account">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Benefits -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content fade-in">
+                        <h1 class="hero-title">Join Our Vendor Network</h1>
+                        <p class="hero-subtitle">Connect with clients and grow your business through our trusted platform</p>
+                        <a href="#registration-form" class="cta-button">
+                            <i class="fas fa-rocket"></i>
+                            Start Registration
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="benefits-grid stagger-animation">
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="benefit-title">Quality Leads</h3>
+                            <p class="benefit-description">Connect with serious clients actively seeking your services</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-shield-check"></i>
+                            </div>
+                            <h3 class="benefit-title">Verified Status</h3>
+                            <p class="benefit-description">Get a verified badge that builds trust with potential clients</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="benefit-title">Business Growth</h3>
+                            <p class="benefit-description">Expand your reach and grow your client base effectively</p>
+                        </div>
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h3 class="benefit-title">24/7 Support</h3>
+                            <p class="benefit-description">Get help from our team to optimize your vendor profile</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="container">
+
+    <!-- Registration Form Section -->
+    <section class="form-section" id="registration-form">
+        <div class="container">
+            <div class="form-container">
+                <div class="form-card fade-in">
+                    <div class="form-header">
+                        <h2 class="form-title">Vendor Registration</h2>
+                        <p class="form-description">Fill out the form below to become a verified vendor partner</p>
+                        
+                        <!-- Progress Indicator -->
+                        <div class="progress-indicator">
+                            <div class="progress-step active">1</div>
+                            <div class="progress-step">2</div>
+                            <div class="progress-step">3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-body">
+                        <form asp-action="Register" method="post" id="vendorRegistrationForm" novalidate>
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                            
+                            <!-- Personal Information Section -->
+                            <div class="section">
+                                <h3 class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    Personal Information
+                                </h3>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="FirstName" class="form-label required-field">First Name</label>
+                                            <input asp-for="FirstName" class="form-control" placeholder="Enter your first name" />
+                                            <span asp-validation-for="FirstName" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="LastName" class="form-label required-field">Last Name</label>
+                                            <input asp-for="LastName" class="form-control" placeholder="Enter your last name" />
+                                            <span asp-validation-for="LastName" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="Email" class="form-label required-field">Email Address</label>
+                                            <input asp-for="Email" type="email" class="form-control" placeholder="your.email@example.com" />
+                                            <span asp-validation-for="Email" class="invalid-feedback"></span>
+                                            <div class="form-text">We'll use this for account notifications and client communications</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="PhoneNumber" class="form-label required-field">Phone Number</label>
+                                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="+234 xxx xxx xxxx" />
+                                            <span asp-validation-for="PhoneNumber" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Business Information Section -->
+                            <div class="section">
+                                <h3 class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    Business Information
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <label asp-for="VendorName" class="form-label required-field">Business/Vendor Name</label>
+                                    <input asp-for="VendorName" class="form-control" placeholder="Enter your business name" />
+                                    <span asp-validation-for="VendorName" class="invalid-feedback"></span>
+                                    <div class="form-text">This will be displayed as your business name to clients</div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="VendorCategoryId" class="form-label required-field">Service Category</label>
+                                            <select asp-for="VendorCategoryId" asp-items="ViewBag.Categories" class="form-select">
+                                            </select>
+                                            <span asp-validation-for="VendorCategoryId" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="ContactPerson" class="form-label required-field">Primary Contact Person</label>
+                                            <input asp-for="ContactPerson" class="form-control" placeholder="Contact person name" />
+                                            <span asp-validation-for="ContactPerson" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label asp-for="ContactPersonPhone" class="form-label required-field">Contact Person Phone</label>
+                                    <input asp-for="ContactPersonPhone" type="tel" class="form-control" placeholder="+234 xxx xxx xxxx" />
+                                    <span asp-validation-for="ContactPersonPhone" class="invalid-feedback"></span>
+                                    <div class="form-text">Direct phone number for the primary contact person</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label asp-for="Address" class="form-label">Business Address</label>
+                                    <input asp-for="Address" class="form-control" placeholder="Enter your business address" />
+                                    <span asp-validation-for="Address" class="invalid-feedback"></span>
+                                    <div class="form-text">Optional: Helps clients find local vendors</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="City" class="form-label required-field">City</label>
+                                            <input asp-for="City" class="form-control" placeholder="Enter City" />
+                                            <span asp-validation-for="City" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="StateId" class="form-label required-field">State</label>
+                                            <select asp-for="StateId" asp-items="ViewBag.States" class="form-select">
+                                            </select>
+                                            <span asp-validation-for="StateId" class="invalid-feedback"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Services Information Section -->
+                            <div class="section">
+                                <h3 class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-briefcase"></i>
+                                    </div>
+                                    Services & Expertise
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <label asp-for="VendorServiceOffered" class="form-label required-field">Services Offered</label>
+                                    <div class="textarea-container">
+                                        <textarea asp-for="VendorServiceOffered" class="form-control" rows="6" 
+                                                 placeholder="Describe the services you offer in detail. Include your specialties, experience, and what makes your business unique. This information will be displayed to potential clients." 
+                                                 maxlength="1000" id="servicesTextarea"></textarea>
+                                        <div class="textarea-counter">
+                                            <span id="charCount">0</span>/1000
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="VendorServiceOffered" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <strong>Tips:</strong> Mention your key services, years of experience, certifications, coverage areas, and unique value propositions.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Registration Information Section -->
+                            <div class="section">
+                                <h3 class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-certificate"></i>
+                                    </div>
+                                    Registration Details
+                                </h3>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="CACRegistrationNo" class="form-label">CAC Registration Number</label>
+                                            <input asp-for="CACRegistrationNo" class="form-control" placeholder="e.g. RC123456" />
+                                            <span asp-validation-for="CACRegistrationNo" class="invalid-feedback"></span>
+                                            <div class="form-text">Optional: Corporate Affairs Commission registration number</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="TaxIdNumber" class="form-label">Tax ID Number</label>
+                                            <input asp-for="TaxIdNumber" class="form-control" placeholder="Enter your tax ID" />
+                                            <span asp-validation-for="TaxIdNumber" class="invalid-feedback"></span>
+                                            <div class="form-text">Optional: Helps with business verification</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="text-center">
+                                                                <button type="submit" class="submit-button">
+                                    <span class="loading-spinner spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    Submit Application
+                                </button>
+                                <p class="security-note">
+                                    <i class="fas fa-lock me-1"></i>
+                                    Your information is secure and will not be shared with third parties.
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    </main>
+
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h5><i class="fas fa-truck me-2"></i>FleetManager</h5>
+                    <p>Your trusted partner in fleet management solutions. Connecting you with verified service providers nationwide.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="d-block py-1">Home</a></li>
+                        <li><a href="#" class="d-block py-1">About Us</a></li>
+                        <li><a href="#" class="d-block py-1">Services</a></li>
+                        <li><a href="#" class="d-block py-1">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h5>For Vendors</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="d-block py-1">Join Network</a></li>
+                        <li><a href="#" class="d-block py-1">Vendor Portal</a></li>
+                        <li><a href="#" class="d-block py-1">Resources</a></li>
+                        <li><a href="#" class="d-block py-1">Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h5>Support</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-phone me-2"></i>+234 (0) 123 456 7890</li>
+                        <li><i class="fas fa-envelope me-2"></i>support@fleetmanager.com</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i>Lagos, Nigeria</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FleetManager. All rights reserved. | Privacy Policy | Terms of Service</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // Character counter for services textarea
+            $('#servicesTextarea').on('input', function() {
+                const currentLength = $(this).val().length;
+                $('#charCount').text(currentLength);
+                
+                if (currentLength >= 950) {
+                    $(this).addClass('is-warning');
+                } else {
+                    $(this).removeClass('is-warning');
+                }
+            });
+
+            // Form submission handling
+            $('#vendorRegistrationForm').on('submit', function(e) {
+                const submitButton = $(this).find('.submit-button');
+                submitButton.addClass('loading').prop('disabled', true);
+                
+                // Simulate form processing (remove this in production)
+                setTimeout(function() {
+                    submitButton.removeClass('loading').prop('disabled', false);
+                }, 3000);
+            });
+
+            // State and City handling
+            $('#StateId').on('change', function() {
+                const stateId = $(this).val();
+                // In a real application, you would fetch cities for the selected state
+                // This is just a placeholder for the functionality
+                console.log('Selected state:', stateId);
+            });
+
+            // Progress indicator functionality for multi-step forms
+            // Currently just visual, would need to be connected to actual steps
+            $('.progress-step').on('click', function() {
+                $('.progress-step').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Input validation styling
+            $('.form-control, .form-select').on('blur', function() {
+                if ($(this).val().trim() === '') {
+                    $(this).removeClass('is-valid');
+                } else {
+                    $(this).addClass('is-valid');
+                }
+            });
+
+            // Phone number formatting
+            $('input[type="tel"]').on('input', function() {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.length > 0) {
+                    value = '+' + value;
+                }
+                $(this).val(value);
+            });
+
+            // Smooth scrolling for anchor links
+            $('a[href^="#"]').on('click', function(e) {
+                e.preventDefault();
+                $('html, body').animate({
+                    scrollTop: $($(this).attr('href')).offset().top - 80
+                }, 500);
+            });
+
+            // Initialize character count
+            $('#servicesTextarea').trigger('input');
+        });
+
+        // Form validation (would be enhanced with actual validation logic)
+        function validateForm() {
+            let isValid = true;
+            
+            $('.required-field').each(function() {
+                const inputId = $(this).attr('for');
+                const input = $('#' + inputId);
+                
+                if (input.val().trim() === '') {
+                    input.addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    input.removeClass('is-invalid');
+                }
+            });
+            
+            return isValid;
+        }
     </script>
 </body>
 </html>

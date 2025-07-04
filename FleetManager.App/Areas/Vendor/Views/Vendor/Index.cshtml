@@ -1,551 +1,6 @@
 ﻿@* @using FleetManager.Business.DataObjects.VendorDto;
 @model IEnumerable<VendorDto>
 @{
-    ViewData["Title"] = "Professional Services Directory";
-    Layout = "_Layout";
-}
-
-    <style>
-        .hero-banner {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 80px 0;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
-        }
-        
-        .hero-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .vendor-card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .vendor-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-        }
-        
-        .vendor-header {
-            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
-            padding: 20px;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .vendor-name {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        
-        .vendor-category {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        
-        .vendor-body {
-            padding: 20px;
-        }
-        
-        .info-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 12px;
-            padding: 8px 0;
-        }
-        
-        .info-icon {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
-            color: #667eea;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        
-        .info-content {
-            flex: 1;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.9rem;
-        }
-        
-        .info-value {
-            color: #6c757d;
-            margin-top: 2px;
-        }
-        
-        .btn-view-details {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 6px;
-            padding: 8px 20px;
-            color: white;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        .btn-view-details:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-        
-        .vendor-cta-section {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 60px 0;
-            margin: 60px 0 40px 0;
-            position: relative;
-        }
-        
-        .vendor-cta-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="0,0 100,0 80,100 0,100" fill="rgba(255,255,255,0.05)"/></svg>');
-        }
-        
-        .cta-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .btn-register-vendor {
-            background: #e74c3c;
-            border: none;
-            border-radius: 50px;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
-        }
-        
-        .btn-register-vendor:hover {
-            background: #c0392b;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
-        }
-        
-        .stats-section {
-            background: #f8f9fa;
-            padding: 40px 0;
-            margin-bottom: 40px;
-        }
-        
-        .stat-item {
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #667eea;
-            display: block;
-        }
-        
-        .stat-label {
-            color: #6c757d;
-            font-weight: 500;
-            margin-top: 5px;
-        }
-        
-        .section-title {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 50px;
-            position: relative;
-        }
-        
-        .section-title::after {
-            content: '';
-            width: 80px;
-            height: 3px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .search-filter-bar {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            margin-bottom: 40px;
-        }
-        
-        .no-vendors {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-        }
-        
-        .no-vendors i {
-            font-size: 4rem;
-            color: #dee2e6;
-            margin-bottom: 20px;
-        }
-        
-        @@media (max-width: 768px) {
-            .hero-banner {
-                padding: 50px 0;
-            }
-            
-            .vendor-cta-section {
-                padding: 40px 0;
-            }
-            
-            .section-title {
-                font-size: 1.8rem;
-            }
-        }
-    </style>
-
-<!-- Hero Banner -->
-<div class="hero-banner">
-    <div class="container">
-        <div class="hero-content text-center">
-            <h1 class="display-4 fw-bold mb-3">Professional Services Directory</h1>
-            <p class="lead mb-4">Connect with trusted vendors and service providers for all your business needs</p>
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <p class="fs-5">Discover verified professionals, compare services, and build lasting business relationships with our curated network of vendors.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Stats Section -->
-<div class="stats-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <span class="stat-number">@(Model?.Count() ?? 0)+</span>
-                    <div class="stat-label">Verified Vendors</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <span class="stat-number">@(Model?.Select(v => v.VendorCategoryName).Distinct().Count() ?? 0)+</span>
-                    <div class="stat-label">Service Categories</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <span class="stat-number">24/7</span>
-                    <div class="stat-label">Support Available</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <span class="stat-number">100%</span>
-                    <div class="stat-label">Satisfaction Goal</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Main Content -->
-<div class="container">
-    <!-- Search and Filter Bar -->
-    <div class="search-filter-bar">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h5 class="mb-3 mb-md-0">
-                    <i class="fas fa-search me-2"></i>
-                    Find the perfect vendor for your needs
-                </h5>
-            </div>
-            <div class="col-md-4 text-md-end">
-                <button class="btn btn-outline-primary">
-                    <i class="fas fa-filter me-2"></i>Filter & Search
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Section Title -->
-    <h2 class="section-title">Featured Vendors & Services</h2>
-
-    <!-- Vendors Grid -->
-    @if (Model != null && Model.Any())
-    {
-        <div class="row">
-            @foreach (var vendor in Model)
-            {
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card vendor-card">
-                        <div class="vendor-header">
-                            <h3 class="vendor-name">@vendor.VendorName</h3>
-                            <span class="vendor-category">@vendor.VendorCategoryName</span>
-                        </div>
-                        <div class="vendor-body">
-                            <div class="info-item">
-                                <i class="fas fa-briefcase info-icon"></i>
-                                <div class="info-content">
-                                    <div class="info-label">Services</div>
-                                    <div class="info-value">@vendor.VendorServiceOffered</div>
-                                </div>
-                            </div>
-                            
-                            <div class="info-item">
-                                <i class="fas fa-user info-icon"></i>
-                                <div class="info-content">
-                                    <div class="info-label">Contact Person</div>
-                                    <div class="info-value">@vendor.ContactPerson</div>
-                                </div>
-                            </div>
-                            
-                            <div class="info-item">
-                                <i class="fas fa-phone info-icon"></i>
-                                <div class="info-content">
-                                    <div class="info-label">Phone</div>
-                                    <div class="info-value">
-                                        <a href="tel:@vendor.ContactPersonPhone" class="text-decoration-none">
-                                            @vendor.ContactPersonPhone
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            @if (!string.IsNullOrEmpty(vendor.Email))
-                            {
-                                <div class="info-item">
-                                    <i class="fas fa-envelope info-icon"></i>
-                                    <div class="info-content">
-                                        <div class="info-label">Email</div>
-                                        <div class="info-value">
-                                            <a href="mailto:@vendor.Email" class="text-decoration-none">
-                                                @vendor.Email
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                            
-                            @if (!string.IsNullOrEmpty(vendor.Address))
-                            {
-                                <div class="info-item">
-                                    <i class="fas fa-map-marker-alt info-icon"></i>
-                                    <div class="info-content">
-                                        <div class="info-label">Location</div>
-                                        <div class="info-value">@vendor.Address</div>
-                                    </div>
-                                </div>
-                            }
-                            
-                            <div class="mt-4">
-                                <a asp-action="Details" asp-route-id="@vendor.Id" class="btn btn-view-details">
-                                    <i class="fas fa-eye me-2"></i>View Full Profile
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="no-vendors">
-            <i class="fas fa-store"></i>
-            <h3>No Vendors Available</h3>
-            <p class="mb-4">We're currently building our network of professional service providers.</p>
-            <a asp-controller="Vendor" asp-action="Register" asp-area="Vendor" class="btn btn-primary btn-lg">Be Our First Vendor Partner</a>
-        </div>
-    }
-</div>
-
-<!-- Vendor CTA Section -->
-<div class="vendor-cta-section" id="vendor-registration">
-    <div class="container">
-        <div class="cta-content text-center">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <h2 class="display-5 fw-bold mb-4">Are You a Service Provider?</h2>
-                    <p class="lead mb-4">
-                        Join our network of trusted vendors and connect with clients who need your expertise. 
-                        Expand your business reach and build lasting professional relationships.
-                    </p>
-                    <div class="row text-start mb-5">
-                        <div class="col-md-4 mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-check-circle fa-2x text-success me-3"></i>
-                                <div>
-                                    <h5 class="mb-1">Verified Listings</h5>
-                                    <small>Get your business verified and trusted</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-users fa-2x text-info me-3"></i>
-                                <div>
-                                    <h5 class="mb-1">Quality Leads</h5>
-                                    <small>Connect with serious clients</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-chart-line fa-2x text-warning me-3"></i>
-                                <div>
-                                    <h5 class="mb-1">Grow Your Business</h5>
-                                    <small>Expand your client base</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <a asp-controller="Vendor" asp-action="Register" asp-area="Vendor" class="btn btn-register-vendor btn-lg me-3">
-                        <i class="fas fa-rocket me-2"></i>Register as Vendor
-                    </a>
-                    <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-phone me-2"></i>Contact Us
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Additional Information Section -->
-<div class="container my-5">
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="p-4 bg-light rounded-3">
-                <h4 class="mb-3">
-                    <i class="fas fa-handshake text-primary me-2"></i>
-                    For Clients
-                </h4>
-                <p class="mb-3">
-                    Browse our directory of professional service providers, compare offerings, and connect directly with vendors that match your business needs.
-                </p>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Verified vendor profiles</li>
-                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Direct contact information</li>
-                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Service category filtering</li>
-                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Free to browse and connect</li>
-                </ul>
-            </div>
-        </div>
-        <div class="col-lg-6 mb-4">
-            <div class="p-4 bg-light rounded-3">
-                <h4 class="mb-3">
-                    <i class="fas fa-store text-success me-2"></i>
-                    For Vendors
-                </h4>
-                <p class="mb-3">
-                    Showcase your services to potential clients, build your professional network, and grow your business through our platform.
-                </p>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Professional profile page</li>
-                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Lead generation opportunities</li>
-                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Business verification badges</li>
-                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Direct client communication</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <script>
-        // Add smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Add loading animation for vendor cards
-        window.addEventListener('load', function() {
-            const cards = document.querySelectorAll('.vendor-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    card.style.transition = 'all 0.6s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
-        });
-    </script>
-
-
-
-
-
-
-
-
- *@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@* @using FleetManager.Business.DataObjects.VendorDto;
-@model IEnumerable<VendorDto>
-@{
     ViewData["Title"] = "Vendors";
 }
 
@@ -561,6 +16,7 @@
                     <p class="card-text mb-1"><strong>Category:</strong> @vendor.VendorCategoryName</p>
                     <p class="card-text mb-1"><strong>Service:</strong> @vendor.VendorServiceName</p>
                     <p class="card-text mb-1"><strong>Contact:</strong> @vendor.ContactPerson (@vendor.ContactPersonPhone)</p>
+                    <p class="card-text mb-1"><strong>Contact:</strong> @vendor.City (@vendor.StateName)</p>
                     <p class="card-text text-muted mb-2"><strong>Email:</strong> @vendor.Email</p>
 
                     <a asp-action="Details" asp-route-id="@vendor.Id" class="btn btn-sm btn-outline-primary">View Details</a>
@@ -573,7 +29,13 @@
 
 
 
-                    @using FleetManager.Business.DataObjects.VendorDto;
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.VendorDto;
 @model IEnumerable<VendorDto>
 @{
     ViewData["Title"] = "Professional Services Directory";
@@ -585,88 +47,420 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+    <title>@ViewData["Title"] - FleetManager</title>
     
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: #fafbfc;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
         }
-        
-        .hero-banner {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 1rem 0;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-light {
+            border: 2px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 100px 0 80px 0;
-            margin-bottom: 0;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4rem 0;
             position: relative;
             overflow: hidden;
-            min-height: 60vh;
-            display: flex;
-            align-items: center;
         }
-        
-        .hero-banner::before {
+
+        .hero-section::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            animation: float 6s ease-in-out infinite;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,100 1000,0 1000,100"/></svg>');
+            background-size: cover;
         }
-        
-        @@keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
+
         .hero-content {
             position: relative;
-            z-index: 1;
+            z-index: 2;
         }
-        
+
         .hero-title {
             font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            animation: slideInUp 1s ease-out;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
         }
-        
+
         .hero-subtitle {
-            font-size: 1.4rem;
-            font-weight: 400;
-            margin-bottom: 2rem;
-            opacity: 0.95;
-            animation: slideInUp 1s ease-out 0.2s both;
-        }
-        
-        .hero-description {
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             opacity: 0.9;
-            animation: slideInUp 1s ease-out 0.4s both;
+            margin-bottom: 2rem;
         }
-        
-        @@keyframes slideInUp {
+
+        /* Search & Filter Section */
+        .search-section {
+            background: white;
+            padding: 3rem 0;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 3rem;
+        }
+
+        .search-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-clear {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Vendor Cards */
+        .vendors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .vendor-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .vendor-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .vendor-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vendor-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .vendor-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .vendor-category {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+
+        .vendor-body {
+            padding: 2rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding: 0.75rem;
+            background: var(--bg-light);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-icon {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin-right: 1rem;
+            margin-top: 0.25rem;
+            min-width: 20px;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-value {
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .info-value a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .info-value a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        .btn-view-details {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-view-details:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .btn-cta {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-primary);
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h5 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .vendors-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-form {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Animations */
+        @@keyframes fadeInUp {
             from {
                 opacity: 0;
                 transform: translateY(30px);
@@ -676,539 +470,217 @@
                 transform: translateY(0);
             }
         }
-        
-        .stats-section {
-            background: white;
-            padding: 60px 0;
-            margin-bottom: 60px;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-            position: relative;
-            z-index: 2;
-            margin-top: -40px;
-        }
-        
-        .stat-item {
-            text-align: center;
-            padding: 30px 20px;
-            position: relative;
-        }
-        
-        .stat-item::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 1px;
-            height: 60px;
-            background: #e9ecef;
-        }
-        
-        .stat-item:last-child::after {
-            display: none;
-        }
-        
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        .stat-label {
-            color: #6c757d;
-            font-weight: 600;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .search-filter-bar {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.08);
-            margin-bottom: 60px;
-            border: 1px solid #f0f0f0;
-        }
-        
-        .section-title {
-            font-size: 2.8rem;
-            font-weight: 800;
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 60px;
-            position: relative;
-        }
-        
-        .section-title::after {
-            content: '';
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 2px;
-        }
-        
-        .vendor-card {
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            height: 100%;
-            overflow: hidden;
-            background: white;
-            position: relative;
-        }
-        
-        .vendor-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-        
-        .vendor-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-        
-        .vendor-card:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .vendor-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 30px 25px;
-            border-bottom: 1px solid #dee2e6;
-            position: relative;
-        }
-        
-        .vendor-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 12px;
-            line-height: 1.3;
-        }
-        
-        .vendor-category {
-            display: inline-block;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .vendor-body {
-            padding: 30px 25px;
-        }
-        
-        .info-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            padding: 12px 0;
-            border-bottom: 1px solid #f8f9fa;
-            transition: all 0.3s ease;
-        }
-        
-        .info-item:last-of-type {
-            border-bottom: none;
-        }
-        
-        .info-item:hover {
-            background: #f8f9fa;
-            margin-left: -25px;
-            margin-right: -25px;
-            padding-left: 25px;
-            padding-right: 25px;
-            border-radius: 8px;
-        }
-        
-        .info-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 16px;
-            color: #667eea;
-            flex-shrink: 0;
-            margin-top: 2px;
-            font-size: 1.1rem;
-        }
-        
-        .info-content {
-            flex: 1;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.9rem;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        
-        .info-value {
-            color: #6c757d;
-            font-size: 1rem;
-            word-break: break-word;
-        }
-        
-        .info-value a {
-            color: #667eea;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .info-value a:hover {
-            color: #764ba2;
-        }
-        
-        .btn-view-details {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 12px;
-            padding: 14px 24px;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            width: 100%;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .btn-view-details:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-        
-        .vendor-cta-section {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
-            color: white;
-            padding: 80px 0;
-            margin: 80px 0 0 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .vendor-cta-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
-        }
-        
-        .cta-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .btn-register-vendor {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            border: none;
-            border-radius: 50px;
-            padding: 18px 40px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .btn-register-vendor:hover {
-            background: linear-gradient(45deg, #c0392b, #a93226);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4);
-        }
-        
-        .no-vendors {
-            text-align: center;
-            padding: 100px 20px;
-            color: #6c757d;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-        }
-        
-        .no-vendors i {
-            font-size: 5rem;
-            color: #dee2e6;
-            margin-bottom: 30px;
-        }
-        
-        .additional-info-section {
-            padding: 80px 0;
-            background: #f8f9fa;
-        }
-        
-        .info-card {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-            height: 100%;
-            transition: transform 0.3s ease;
-        }
-        
-        .info-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .info-card h4 {
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        
-        .footer {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 60px 0 30px 0;
-        }
-        
-        .footer-section h5 {
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #ecf0f1;
-        }
-        
-        .footer-section ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .footer-section ul li {
-            margin-bottom: 8px;
-        }
-        
-        .footer-section ul li a {
-            color: #bdc3c7;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-section ul li a:hover {
-            color: #ecf0f1;
-        }
-        
-        .footer-bottom {
-            border-top: 1px solid #34495e;
-            margin-top: 40px;
-            padding-top: 30px;
-            text-align: center;
-            color: #bdc3c7;
-        }
-        
-        @@media (max-width: 768px) {
-            .hero-banner {
-                padding: 60px 0 40px 0;
-                min-height: 50vh;
-            }
-            
-            .hero-title {
-                font-size: 2.5rem;
-            }
-            
-            .hero-subtitle {
-                font-size: 1.2rem;
-            }
-            
-            .vendor-cta-section {
-                padding: 60px 0;
-            }
-            
-            .section-title {
-                font-size: 2.2rem;
-            }
-            
-            .stat-item::after {
-                display: none;
-            }
-            
-            .stats-section {
-                margin-top: -20px;
-            }
-        }
-        
+
         .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s ease;
+            animation: fadeInUp 0.6s ease-out;
         }
-        
-        .animate-on-scroll.animated {
-            opacity: 1;
-            transform: translateY(0);
+
+        /* Results Counter */
+        .results-counter {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .results-counter h5 {
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 600;
         }
     </style>
 </head>
-
 <body>
-    <!-- Hero Banner -->
-    <div class="hero-banner">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-truck me-2"></i>FleetManager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-store me-1"></i>Vendors</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-handshake me-1"></i>Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-phone me-1"></i>Contact</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-outline-light" asp-controller="Vendor" asp-action="Register" asp-area="Vendor">
+                            <i class="fas fa-plus me-1"></i>Join Network
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
         <div class="container">
             <div class="hero-content text-center">
-                <h1 class="hero-title">Professional Services Directory</h1>
-                <p class="hero-subtitle">Connect with trusted vendors and service providers for all your business needs</p>
-                <div class="row justify-content-center">
+                <h1 class="hero-title animate-on-scroll">Professional Services Directory</h1>
+                <p class="hero-subtitle animate-on-scroll">Connect with verified fleet service providers across the nation</p>
+                <div class="row justify-content-center animate-on-scroll">
                     <div class="col-lg-8">
-                        <p class="hero-description">Discover verified professionals, compare services, and build lasting business relationships with our curated network of industry-leading vendors.</p>
+                        <div class="d-flex flex-wrap gap-3 justify-content-center">
+                            <div class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-shield-alt me-1"></i>Verified Providers
+                            </div>
+                            <div class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-star me-1"></i>Quality Assured
+                            </div>
+                            <div class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-clock me-1"></i>24/7 Support
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Stats Section -->
-    <div class="stats-section animate-on-scroll">
+    <!-- Search & Filter Section -->
+    <section class="search-section">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 col-6">
-                    <div class="stat-item">
-                        <span class="stat-number">@(Model?.Count() ?? 0)+</span>
-                        <div class="stat-label">Verified Vendors</div>
+            <div class="search-form animate-on-scroll">
+                <form id="searchForm" method="get">
+                    <div class="row g-3">
+                        <div class="col-lg-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-search me-2"></i>Search Services, City, or State
+                            </label>
+                            <input type="text" class="form-control" id="searchQuery" name="search" 
+                                   placeholder="e.g., Auto Repair, Lagos, Lagos State..." 
+                                   value="@Context.Request.Query["search"]">
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-filter me-2"></i>Filter by Category
+                            </label>
+                            @* <select class="form-select" id="categoryFilter" name="category">
+                                <option value="">All Categories</option>
+                                @if (ViewBag.Categories != null)
+                                {
+                                    @foreach (var category in ViewBag.Categories)
+                                    {
+                                        var selected = Context.Request.Query["category"] == category.Value ? "selected" : "";
+                                        <option value="@category.Value" @selected>@category.Text</option>
+                                    }
+                                }
+                            </select> 
+
+                            <select class="form-select" id="categoryFilter" name="category" asp-items="@(ViewBag.Categories as List<SelectListItem>)">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-4 d-flex align-items-end">
+                            <div class="d-flex gap-2 w-100">
+                                <button type="submit" class="btn btn-search flex-fill">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                                <button type="button" class="btn btn-clear" onclick="clearFilters()">
+                                    <i class="fas fa-times me-2"></i>Clear
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-6">
-                    <div class="stat-item">
-                        <span class="stat-number">@(Model?.Select(v => v.VendorCategoryName).Distinct().Count() ?? 0)+</span>
-                        <div class="stat-label">Service Categories</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-6">
-                    <div class="stat-item">
-                        <span class="stat-number">24/7</span>
-                        <div class="stat-label">Support Available</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-6">
-                    <div class="stat-item">
-                        <span class="stat-number">100%</span>
-                        <div class="stat-label">Satisfaction Goal</div>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Main Content -->
-    <div class="container">
-        <!-- Search and Filter Bar -->
-        <div class="search-filter-bar animate-on-scroll">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h5 class="mb-3 mb-md-0">
-                        <i class="fas fa-search me-2 text-primary"></i>
-                        Find the perfect vendor for your needs
-                    </h5>
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <button class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-filter me-2"></i>Filter & Search
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section Title -->
-        <h2 class="section-title animate-on-scroll">Featured Vendors & Services</h2>
-
-        <!-- Vendors Grid -->
+    <main class="container">
         @if (Model != null && Model.Any())
         {
-            <div class="row">
+            <!-- Results Counter -->
+            <div class="results-counter animate-on-scroll">
+                <h5>
+                    <i class="fas fa-list-ul me-2"></i>
+                    Found @Model.Count() Professional Service @(Model.Count() == 1 ? "Provider" : "Providers")
+                </h5>
+            </div>
+
+            <!-- Vendors Grid -->
+            <div class="vendors-grid">
                 @foreach (var vendor in Model)
                 {
-                    <div class="col-xl-4 col-lg-6 col-md-6 mb-5">
-                        <div class="card vendor-card animate-on-scroll">
-                            <div class="vendor-header">
-                                <h3 class="vendor-name">@vendor.VendorName</h3>
-                                <span class="vendor-category">@vendor.VendorCategoryName</span>
+                    <div class="vendor-card animate-on-scroll">
+                        <div class="vendor-header">
+                            <h3 class="vendor-name">@vendor.VendorName</h3>
+                            <span class="vendor-category">@vendor.VendorCategoryName</span>
+                        </div>
+                        <div class="vendor-body">
+                            <div class="info-item">
+                                <i class="fas fa-briefcase info-icon"></i>
+                                <div class="info-content">
+                                    <div class="info-label">Services Offered</div>
+                                    <div class="info-value">@vendor.VendorServiceOffered</div>
+                                </div>
                             </div>
-                            <div class="vendor-body">
-                                <div class="info-item">
-                                    <i class="fas fa-briefcase info-icon"></i>
-                                    <div class="info-content">
-                                        <div class="info-label">Services</div>
-                                        <div class="info-value">@vendor.VendorServiceOffered</div>
+                            
+                            <div class="info-item">
+                                <i class="fas fa-user info-icon"></i>
+                                <div class="info-content">
+                                    <div class="info-label">Contact Person</div>
+                                    <div class="info-value">@vendor.ContactPerson</div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <i class="fas fa-phone info-icon"></i>
+                                <div class="info-content">
+                                    <div class="info-label">Phone Number</div>
+                                    <div class="info-value">
+                                        <a href="tel:@vendor.ContactPersonPhone">
+                                            @vendor.ContactPersonPhone
+                                        </a>
                                     </div>
                                 </div>
-                                
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(vendor.Email))
+                            {
                                 <div class="info-item">
-                                    <i class="fas fa-user info-icon"></i>
+                                    <i class="fas fa-envelope info-icon"></i>
                                     <div class="info-content">
-                                        <div class="info-label">Contact Person</div>
-                                        <div class="info-value">@vendor.ContactPerson</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="info-item">
-                                    <i class="fas fa-phone info-icon"></i>
-                                    <div class="info-content">
-                                        <div class="info-label">Phone</div>
+                                        <div class="info-label">Email Address</div>
                                         <div class="info-value">
-                                            <a href="tel:@vendor.ContactPersonPhone">
-                                                @vendor.ContactPersonPhone
+                                            <a href="mailto:@vendor.Email">
+                                                @vendor.Email
                                             </a>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                @if (!string.IsNullOrEmpty(vendor.Email))
-                                {
-                                    <div class="info-item">
-                                        <i class="fas fa-envelope info-icon"></i>
-                                        <div class="info-content">
-                                            <div class="info-label">Email</div>
-                                            <div class="info-value">
-                                                <a href="mailto:@vendor.Email">
-                                                    @vendor.Email
-                                                </a>
-                                            </div>
-                                        </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(vendor.Address))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-map-marker-alt info-icon"></i>
+                                    <div class="info-content">
+                                        <div class="info-label">Location</div>
+                                        <div class="info-value">@vendor.City, @vendor.StateName</div>
                                     </div>
-                                }
-                                
-                                @if (!string.IsNullOrEmpty(vendor.Address))
-                                {
-                                    <div class="info-item">
-                                        <i class="fas fa-map-marker-alt info-icon"></i>
-                                        <div class="info-content">
-                                            <div class="info-label">Location</div>
-                                            <div class="info-value">@vendor.Address</div>
-                                        </div>
-                                    </div>
-                                }
-                                
-                                <div class="mt-4">
-                                    <a asp-action="Details" asp-route-id="@vendor.Id" class="btn btn-view-details">
-                                        <i class="fas fa-eye me-2"></i>View Full Profile
-                                    </a>
                                 </div>
+                            }
+                            
+                            <div class="mt-4">
+                                <a asp-action="Details" asp-route-id="@vendor.Id" class="btn btn-view-details">
+                                    <i class="fas fa-eye me-2"></i>View Complete Profile
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -1217,221 +689,97 @@
         }
         else
         {
-            <div class="no-vendors animate-on-scroll">
-                <i class="fas fa-store"></i>
-                <h3 class="mb-3">No Vendors Available</h3>
-                <p class="mb-4 fs-5">We're currently building our network of professional service providers.</p>
-                <a asp-controller="Vendor" asp-action="Register" asp-area="Vendor" class="btn btn-primary btn-lg">
-                    <i class="fas fa-rocket me-2"></i>Be Our First Vendor Partner
-                </a>
+            <!-- Empty State -->
+            <div class="empty-state animate-on-scroll">
+                <i class="fas fa-search-location"></i>
+                <h3>No Service Providers Found</h3>
+                <p class="fs-5">We couldn't find any vendors matching your criteria. Try adjusting your search filters or browse all categories.</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a asp-controller="Vendor" asp-action="Register" asp-area="Vendor" class="btn btn-cta">
+                        <i class="fas fa-rocket me-2"></i>Become a Partner
+                    </a>
+                    <button class="btn btn-clear" onclick="clearFilters()">
+                        <i class="fas fa-list me-2"></i>View All Vendors
+                    </button>
+                </div>
             </div>
         }
-    </div>
-
-    <!-- Vendor CTA Section -->
-    <div class="vendor-cta-section" id="vendor-registration">
-        <div class="container">
-            <div class="cta-content text-center">
-                <div class="row justify-content-center">
-                    <div class="col-lg-10">
-                        <h2 class="display-5 fw-bold mb-4">Are You a Service Provider?</h2>
-                        <p class="lead mb-5 fs-4">
-                            Join our network of trusted vendors and connect with clients who need your expertise. 
-                            Expand your business reach and build lasting professional relationships.
-                        </p>
-                        <div class="row text-start mb-5">
-                            <div class="col-md-4 mb-4">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-check-circle fa-3x text-success me-4"></i>
-                                    <div>
-                                        <h5 class="mb-2 text-white">Verified Listings</h5>
-                                        <small class="text-light">Get your business verified and trusted by clients</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-users fa-3x text-info me-4"></i>
-                                    <div>
-                                        <h5 class="mb-2 text-white">Quality Leads</h5>
-                                        <small class="text-light">Connect with serious, qualified clients</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-chart-line fa-3x text-warning me-4"></i>
-                                    <div>
-                                        <h5 class="mb-2 text-white">Grow Your Business</h5>
-                                        <small class="text-light">Expand your client base and revenue</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <a asp-controller="Vendor" asp-action="Register" asp-area="Vendor" class="btn btn-register-vendor btn-lg me-3 mb-3">
-                                <i class="fas fa-rocket me-2"></i>Register as Vendor
-                            </a>
-                            <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-light btn-lg mb-3">
-                                <i class="fas fa-phone me-2"></i>Contact Us
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Additional Information Section -->
-    <div class="additional-info-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-6 mb-5">
-                    <div class="info-card animate-on-scroll">
-                        <h4 class="mb-4">
-                            <i class="fas fa-handshake text-primary me-3"></i>
-                            For Clients
-                        </h4>
-                        <p class="mb-4 fs-5">
-                            Browse our directory of professional service providers, compare offerings, and connect directly with vendors that match your business needs.
-                        </p>
-                        <ul class="list-unstyled">
-                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Verified vendor profiles</strong> - All vendors go through our verification process</li>
-                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Direct contact information</strong> - Connect instantly with service providers</li>
-                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Service category filtering</strong> - Find exactly what you're looking for</li>
-                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Free to browse and connect</strong> - No hidden fees or charges</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-6 mb-5">
-                    <div class="info-card animate-on-scroll">
-                        <h4 class="mb-4">
-                            <i class="fas fa-store text-success me-3"></i>
-                            For Vendors
-                        </h4>
-                        <p class="mb-4 fs-5">
-                            Showcase your services to potential clients, build your professional network, and grow your business through our platform.
-                        </p>
-                        <ul class="list-unstyled">
-                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Professional profile page</strong> - Showcase your expertise and services</li>
-                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Lead generation opportunities</strong> - Get connected with potential clients</li>
-                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Business verification badges</strong> - Build trust with verification status</li>
-                            <li class="mb-3"><i class="fas fa-check text-success me-3"></i><strong>Direct client communication</strong> - Handle inquiries efficiently</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="footer-section">
-                        <h5><i class="fas fa-building me-2"></i>Professional Services Directory</h5>
-                        <p class="mb-4">Connecting businesses with trusted service providers. Your gateway to reliable professional services and quality vendors.</p>
-                        <div class="social-links">
-                            <a href="#" class="text-light me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
-                            <a href="#" class="text-light me-3"><i class="fab fa-twitter fa-lg"></i></a>
-                            <a href="#" class="text-light me-3"><i class="fab fa-linkedin-in fa-lg"></i></a>
-                            <a href="#" class="text-light"><i class="fab fa-instagram fa-lg"></i></a>
-                        </div>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h5><i class="fas fa-truck me-2"></i>FleetManager</h5>
+                    <p>Your trusted partner in fleet management solutions. Connecting you with verified service providers nationwide.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-instagram"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <div class="footer-section">
-                        <h5>Quick Links</h5>
-                        <ul>
-                            <li><a href="#">Home</a></li>
-                            <li><a href="#">Browse Vendors</a></li>
-                            <li><a href="#">Categories</a></li>
-                            <li><a href="#">About Us</a></li>
-                            <li><a href="#">Contact</a></li>
-                        </ul>
-                    </div>
+                <div class="footer-section">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="d-block py-1">Home</a></li>
+                        <li><a href="#" class="d-block py-1">About Us</a></li>
+                        <li><a href="#" class="d-block py-1">Services</a></li>
+                        <li><a href="#" class="d-block py-1">Contact</a></li>
+                    </ul>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <div class="footer-section">
-                        <h5>For Vendors</h5>
-                        <ul>
-                            <li><a href="#">Register</a></li>
-                            <li><a href="#">Vendor Login</a></li>
-                            <li><a href="#">Pricing</a></li>
-                            <li><a href="#">Resources</a></li>
-                            <li><a href="#">Support</a></li>
-                        </ul>
-                    </div>
+                <div class="footer-section">
+                    <h5>For Vendors</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="d-block py-1">Join Network</a></li>
+                        <li><a href="#" class="d-block py-1">Vendor Portal</a></li>
+                        <li><a href="#" class="d-block py-1">Resources</a></li>
+                        <li><a href="#" class="d-block py-1">Support</a></li>
+                    </ul>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <div class="footer-section">
-                        <h5>Support</h5>
-                        <ul>
-                            <li><a href="#">Help Center</a></li>
-                            <li><a href="#">FAQs</a></li>
-                            <li><a href="#">Terms of Service</a></li>
-                            <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Report Issue</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <div class="footer-section">
-                        <h5>Contact Info</h5>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <i class="fas fa-map-marker-alt me-2"></i>
-                                Lagos, Nigeria
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-phone me-2"></i>
-                                <a href="tel:+234-XXX-XXXX">+234-XXX-XXXX</a>
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-envelope me-2"></i>
-                                <a href="mailto:info@directory.com">info@directory.com</a>
-                            </li>
-                            <li>
-                                <i class="fas fa-clock me-2"></i>
-                                24/7 Support
-                            </li>
-                        </ul>
-                    </div>
+                <div class="footer-section">
+                    <h5>Support</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-phone me-2"></i>+234 (0) 123 456 7890</li>
+                        <li><i class="fas fa-envelope me-2"></i>support@fleetmanager.com</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i>Lagos, Nigeria</li>
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <p>&copy; 2025 Professional Services Directory. All rights reserved.</p>
-                    </div>
-                    <div class="col-md-6 text-md-end">
-                        <p>Powered by FleetManager Business Solutions</p>
-                    </div>
-                </div>
+                <p>&copy; 2025 FleetManager. All rights reserved. | Privacy Policy | Terms of Service</p>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
+        // Clear filters function
+        // function clearFilters() {
+        //     document.getElementById('searchQuery').value = '';
+        //     document.getElementById('categoryFilter').value = '';
+        //     document.getElementById('searchForm').submit();
+        // }
 
-        // Intersection Observer for scroll animations
+        function clearFilters() {
+    document.getElementById('searchQuery').value = '';
+    document.getElementById('categoryFilter').selectedIndex = 0;
+    document.getElementById('searchForm').submit();
+}
+
+
+        // Animate on scroll
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -1440,150 +788,911 @@
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('animated');
+                    entry.target.classList.add('animate-on-scroll');
                 }
             });
         }, observerOptions);
 
-        // Observe all elements with animate-on-scroll class
-        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        document.querySelectorAll('.vendor-card, .search-form, .results-counter, .empty-state').forEach(el => {
             observer.observe(el);
         });
 
-        // Loading animation for vendor cards
-        window.addEventListener('load', function() {
-            const cards = document.querySelectorAll('.vendor-card');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 150);
-            });
+        // Search form enhancement
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            const searchQuery = document.getElementById('searchQuery').value.trim();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            if (!searchQuery && !categoryFilter) {
+                e.preventDefault();
+                alert('Please enter a search term or select a category to filter vendors.');
+                return;
+            }
         });
 
-        // Counter animation for stats
-        function animateCounter(element, target) {
-            let current = 0;
-            const increment = target / 100;
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= target) {
-                    current = target;
-                    clearInterval(timer);
-                }
-                element.textContent = Math.floor(current) + (element.textContent.includes('+') ? '+' : '');
-            }, 20);
+        // Auto-submit on category change
+        document.getElementById('categoryFilter').addEventListener('change', function() {
+            document.getElementById('searchForm').submit();
+        });
+
+        // Phone number formatting
+        document.querySelectorAll('a[href^="tel:"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Analytics tracking could be added here
+            });
+        });
+    </script>
+</body>
+</html> *@
+
+
+
+
+
+
+
+
+        @using FleetManager.Business.DataObjects.VendorDto;
+@model IEnumerable<VendorDto>
+@{
+    ViewData["Title"] = "Professional Services Directory";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FleetManager</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
-        // Animate stats when they come into view
-        const statsObserver = new IntersectionObserver((entries) => {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 1rem 0;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-light {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,100 1000,0 1000,100"/></svg>');
+            background-size: cover;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        /* Search & Filter Section */
+        .search-section {
+            background: white;
+            padding: 3rem 0;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 3rem;
+        }
+
+        .search-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-clear {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Improved Vendor Cards */
+        .vendors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .vendor-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            height: fit-content;
+        }
+
+        .vendor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .vendor-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 1.5rem 1.5rem 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vendor-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .vendor-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+            line-height: 1.3;
+        }
+
+        .vendor-category {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+            display: inline-block;
+        }
+
+        .verified-badge {
+            position: absolute;
+            top: 3.5rem;
+            right: 1rem;
+            background: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .vendor-body {
+            padding: 1.5rem;
+        }
+
+        .vendor-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .info-icon {
+            color: var(--primary-color);
+            font-size: 1rem;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .info-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .info-text a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .info-text a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        .services-preview {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .services-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .services-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .btn-view-details {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .btn-view-details:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: white;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-contact {
+            flex: 1;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            gap: 0.5rem;
+        }
+
+        .btn-contact.btn-call {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-contact.btn-call:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-contact.btn-email {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-contact.btn-email:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .location-info {
+            background: rgba(37, 99, 235, 0.05);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(37, 99, 235, 0.1);
+        }
+
+        .location-info .info-row {
+            margin-bottom: 0;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .btn-cta {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-primary);
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h5 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .vendors-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-form {
+                padding: 1.5rem;
+            }
+
+            .contact-actions {
+                flex-direction: column;
+            }
+
+            .vendor-header {
+                padding: 1.25rem;
+            }
+
+            .vendor-body {
+                padding: 1.25rem;
+            }
+        }
+
+        /* Animations */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Results Counter */
+        .results-counter {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .results-counter h5 {
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-truck me-2"></i>FleetManager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-store me-1"></i>Vendors</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-handshake me-1"></i>Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-phone me-1"></i>Contact</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-outline-light" asp-controller="Vendor" asp-action="Register" asp-area="Vendor">
+                            <i class="fas fa-plus me-1"></i>Join Network
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content text-center">
+                <h1 class="hero-title animate-on-scroll">Professional Services Directory</h1>
+                <p class="hero-subtitle animate-on-scroll">Connect with verified fleet service providers across the nation</p>
+                <div class="row justify-content-center animate-on-scroll">
+                    <div class="col-lg-8">
+                        <div class="d-flex flex-wrap gap-3 justify-content-center">
+                            <div class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-shield-alt me-1"></i>Verified Providers
+                            </div>
+                            <div class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-star me-1"></i>Quality Assured
+                            </div>
+                            <div class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-clock me-1"></i>24/7 Support
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search & Filter Section -->
+    <section class="search-section">
+        <div class="container">
+            <div class="search-form animate-on-scroll">
+                <form id="searchForm" method="get">
+                    <div class="row g-3">
+                        <div class="col-lg-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-search me-2"></i>Search Services, City, or State
+                            </label>
+                            <input type="text" class="form-control" id="searchQuery" name="search" 
+                                   placeholder="e.g., Auto Repair, Lagos, Lagos State..." 
+                                   value="@Context.Request.Query["search"]">
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-filter me-2"></i>Filter by Category
+                            </label>
+                            <select class="form-select" id="categoryFilter" name="category" asp-items="@(ViewBag.Categories as List<SelectListItem>)">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-4 d-flex align-items-end">
+                            <div class="d-flex gap-2 w-100">
+                                <button type="submit" class="btn btn-search flex-fill">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                                <button type="button" class="btn btn-clear" onclick="clearFilters()">
+                                    <i class="fas fa-times me-2"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container">
+        @if (Model != null && Model.Any())
+        {
+            <!-- Results Counter -->
+            <div class="results-counter animate-on-scroll">
+                <h5>
+                    <i class="fas fa-list-ul me-2"></i>
+                    Found @Model.Count() Professional Service @(Model.Count() == 1 ? "Provider" : "Providers")
+                </h5>
+            </div>
+
+            <!-- Vendors Grid -->
+            <div class="vendors-grid">
+                @foreach (var vendor in Model)
+                {
+                    <div class="vendor-card animate-on-scroll">
+                        <div class="vendor-header">
+                            <div class="verified-badge">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Verified</span>
+                            </div>
+                            <h3 class="vendor-name">@vendor.VendorName</h3>
+                            <span class="vendor-category">@vendor.VendorCategoryName</span>
+                        </div>
+                        <div class="vendor-body">
+                            <div class="services-preview">
+                                <div class="services-label">Services Offered</div>
+                                <div class="services-text">@vendor.VendorServiceOffered</div>
+                            </div>
+                            
+                            <div class="vendor-info">
+                                <div class="info-row">
+                                    <i class="fas fa-user info-icon"></i>
+                                    <div class="info-text">@vendor.ContactPerson</div>
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(vendor.Address))
+                                {
+                                    <div class="location-info">
+                                        <div class="info-row">
+                                            <i class="fas fa-map-marker-alt info-icon"></i>
+                                            <div class="info-text">@vendor.City, @vendor.StateName</div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div class="contact-actions">
+                                <a href="tel:@vendor.ContactPersonPhone" class="btn-contact btn-call">
+                                    <i class="fas fa-phone"></i>
+                                    Call
+                                </a>
+                                @if (!string.IsNullOrEmpty(vendor.Email))
+                                {
+                                    <a href="mailto:@vendor.Email" class="btn-contact btn-email">
+                                        <i class="fas fa-envelope"></i>
+                                        Email
+                                    </a>
+                                }
+                            </div>
+                            
+                            <a asp-action="Details" asp-route-id="@vendor.Id" class="btn btn-view-details">
+                                <i class="fas fa-eye me-2"></i>View Full Profile
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="empty-state animate-on-scroll">
+                <i class="fas fa-search-location"></i>
+                <h3>No Service Providers Found</h3>
+                <p class="fs-5">We couldn't find any vendors matching your criteria. Try adjusting your search filters or browse all categories.</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a asp-controller="Vendor" asp-action="Register" asp-area="Vendor" class="btn btn-cta">
+                        <i class="fas fa-rocket me-2"></i>Become a Partner
+                    </a>
+                    <button class="btn btn-clear" onclick="clearFilters()">
+                        <i class="fas fa-list me-2"></i>View All Vendors
+                    </button>
+                </div>
+            </div>
+        }
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h5><i class="fas fa-truck me-2"></i>FleetManager</h5>
+                    <p>Your trusted partner in fleet management solutions. Connecting you with verified service providers nationwide.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="d-block py-1">Home</a></li>
+                        <li><a href="#" class="d-block py-1">About Us</a></li>
+                        <li><a href="#" class="d-block py-1">Services</a></li>
+                        <li><a href="#" class="d-block py-1">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h5>For Vendors</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="d-block py-1">Join Network</a></li>
+                        <li><a href="#" class="d-block py-1">Vendor Portal</a></li>
+                        <li><a href="#" class="d-block py-1">Resources</a></li>
+                        <li><a href="#" class="d-block py-1">Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h5>Support</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-phone me-2"></i>+234 (0) 123 456 7890</li>
+                        <li><i class="fas fa-envelope me-2"></i>support@fleetmanager.com</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i>Lagos, Nigeria</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FleetManager. All rights reserved. | Privacy Policy | Terms of Service</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Clear filters function
+        // function clearFilters() {
+        //     document.getElementById('searchQuery').value = '';
+        //     document.getElementById('categoryFilter').value = '';
+        //     document.getElementById('searchForm').submit();
+        // }
+
+        function clearFilters() {
+    document.getElementById('searchQuery').value = '';
+    document.getElementById('categoryFilter').selectedIndex = 0;
+    document.getElementById('searchForm').submit();
+}
+
+
+        // Animate on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    const statNumbers = entry.target.querySelectorAll('.stat-number');
-                    statNumbers.forEach(stat => {
-                        const target = parseInt(stat.textContent.replace(/\D/g, ''));
-                        if (target && !isNaN(target)) {
-                            animateCounter(stat, target);
-                        }
-                    });
-                    statsObserver.unobserve(entry.target);
+                    entry.target.classList.add('animate-on-scroll');
                 }
             });
-        }, { threshold: 0.5 });
+        }, observerOptions);
 
-        const statsSection = document.querySelector('.stats-section');
-        if (statsSection) {
-            statsObserver.observe(statsSection);
-        }
-
-        // Add loading states and error handling for images
-        document.querySelectorAll('img').forEach(img => {
-            img.addEventListener('error', function() {
-                this.style.display = 'none';
-            });
+        document.querySelectorAll('.vendor-card, .search-form, .results-counter, .empty-state').forEach(el => {
+            observer.observe(el);
         });
 
-        // Enhanced hover effects for cards
-        document.querySelectorAll('.vendor-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-8px) scale(1.02)';
-            });
+        // Search form enhancement
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            const searchQuery = document.getElementById('searchQuery').value.trim();
+            const categoryFilter = document.getElementById('categoryFilter').value;
             
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) scale(1)';
-            });
-        });
-
-        // Add click tracking for analytics (placeholder)
-        document.querySelectorAll('[data-track]').forEach(element => {
-            element.addEventListener('click', function() {
-                const action = this.getAttribute('data-track');
-                // Analytics tracking code would go here
-                console.log('Tracked action:', action);
-            });
-        });
-
-        // Lazy loading for better performance
-        if ('IntersectionObserver' in window) {
-            const lazyImages = document.querySelectorAll('img[data-src]');
-            const imageObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.src = img.dataset.src;
-                        img.classList.remove('lazy');
-                        imageObserver.unobserve(img);
-                    }
-                });
-            });
-
-            lazyImages.forEach(img => imageObserver.observe(img));
-        }
-
-        // Add search functionality placeholder
-        function initializeSearch() {
-            const searchButton = document.querySelector('.search-filter-bar button');
-            if (searchButton) {
-                searchButton.addEventListener('click', function() {
-                    // Search modal or functionality would be implemented here
-                    console.log('Search functionality to be implemented');
-                });
+            if (!searchQuery && !categoryFilter) {
+                e.preventDefault();
+                alert('Please enter a search term or select a category to filter vendors.');
+                return;
             }
-        }
-
-        // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeSearch();
-            
-            // Add smooth reveal animation to hero content
-            setTimeout(() => {
-                document.querySelector('.hero-content').style.opacity = '1';
-            }, 100);
         });
 
-        // Performance optimization: Debounce scroll events
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
+        // Auto-submit on category change
+        document.getElementById('categoryFilter').addEventListener('change', function() {
+            document.getElementById('searchForm').submit();
+        });
 
-        // Optimize scroll performance
-        const handleScroll = debounce(() => {
-            const scrolled = window.pageYOffset;
-            const heroSection = document.querySelector('.hero-banner');
-            if (heroSection) {
-                heroSection.style.transform = `translateY(${scrolled * 0.5}px)`;
-            }
-        }, 10);
-
-        window.addEventListener('scroll', handleScroll);
+        // Phone number formatting
+        document.querySelectorAll('a[href^="tel:"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Analytics tracking could be added here
+            });
+        });
     </script>
 </body>
 </html>

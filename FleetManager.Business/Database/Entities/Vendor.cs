@@ -22,6 +22,9 @@ namespace FleetManager.Business.Database.Entities
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
+        public string? City { get; set; }
+        public long? StateId { get; set; }
+        public virtual State? State { get; set; }
         public string VendorServiceOffered { get; set; }
         public string? CACRegistrationNo { get; set; }
         public string? TaxIdNumber { get; set; }

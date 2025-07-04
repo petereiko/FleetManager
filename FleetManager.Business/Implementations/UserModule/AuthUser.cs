@@ -47,6 +47,14 @@ namespace FleetManager.Business.Implementations.UserModule
             }
         }
 
+        public long? VendorId
+        {
+            get
+            {
+                var vendorClaim = User?.FindFirst("VendorId")?.Value;
+                return long.TryParse(vendorClaim, out var id) ? id : null;
+            }
+        }
 
 
         public string BaseUrl

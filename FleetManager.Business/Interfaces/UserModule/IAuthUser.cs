@@ -17,5 +17,6 @@ namespace FleetManager.Business.Interfaces.UserModule
         //Added newly
         long? CompanyId { get; }
         long? CompanyBranchId { get; }
+        long? VendorId { get; }
     }
 }

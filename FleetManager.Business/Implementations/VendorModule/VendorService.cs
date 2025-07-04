@@ -42,6 +42,9 @@ namespace FleetManager.Business.Implementations.VendorModule
             _logger = logger;
         }
 
+        private static readonly Random _rng = new Random();
+
+
         public async Task<MessageResponse> OnboardVendorAsync(VendorOnboardingDto dto)
         {
             var resp = new MessageResponse();
@@ -99,6 +102,8 @@ namespace FleetManager.Business.Implementations.VendorModule
                     Email = dto.Email,
                     PhoneNumber = dto.PhoneNumber,
                     Address = dto.Address,
+                    City =dto.City,
+                    StateId=dto.StateId,
                     VendorServiceOffered = dto.VendorServiceOffered,
                     CACRegistrationNo = dto.CACRegistrationNo,
                     TaxIdNumber = dto.TaxIdNumber,
@@ -123,7 +128,7 @@ namespace FleetManager.Business.Implementations.VendorModule
                     VendorId = vendor.Id,
                     Email = dto.Email,
                     Subject = "Vendor Account Created",
-                    Message = $"Dear {dto.FirstName} {dto.LastName},<br/>Your vendor account is ready. PW: <b>{tempPwd}</b><br/><a href='{confirmUrl}'>Confirm Email</a>",
+                    Message = $"Dear {dto.FirstName} {dto.LastName},<br/>Your vendor account is ready. Email:{dto.Email}<br/> PW: <b>{tempPwd}</b><br/><a href='{confirmUrl}'>Confirm Email</a>",
                     Url = confirmUrl
                 });
 
@@ -166,6 +171,8 @@ namespace FleetManager.Business.Implementations.VendorModule
                 entity.Email = dto.Email;
                 entity.PhoneNumber = dto.PhoneNumber;
                 entity.Address = dto.Address;
+                entity.City = dto.City;
+                entity.StateId = dto.StateId;
                 entity.VendorServiceOffered = dto.VendorServiceOffered;
                 entity.CACRegistrationNo = dto.CACRegistrationNo;
                 entity.TaxIdNumber = dto.TaxIdNumber;
@@ -243,6 +250,9 @@ namespace FleetManager.Business.Implementations.VendorModule
                 ContactPerson = v.ContactPerson,
                 ContactPersonPhone = v.ContactPersonPhone,
                 Address = v.Address,
+                City = v.City,
+                StateId = v.StateId,
+                StateName = v.State != null ? v.State.Name : "",
                 Email = v.Email,
                 PhoneNumber = v.PhoneNumber,
                 CACRegistrationNo = v.CACRegistrationNo,
@@ -255,12 +265,59 @@ namespace FleetManager.Business.Implementations.VendorModule
             };
         }
 
-        public async Task<List<VendorDto>> GetVendorsAsync()
+        //public async Task<List<VendorDto>> GetVendorsAsync()
+        //{
+        //    var list = await _context.Vendors
+        //        .AsNoTracking()
+        //        .Include(v => v.VendorCategory)
+        //        .ToListAsync();
+
+        //    return list.Select(v => new VendorDto
+        //    {
+        //        Id = v.Id,
+        //        FirstName = v.FirstName,
+        //        LastName = v.LastName,
+        //        VendorName = v.VendorName,
+        //        VendorCategoryId = v.VendorCategoryId,
+        //        VendorCategoryName = v.VendorCategory.Name,
+        //        VendorServiceOffered = v.VendorServiceOffered,
+        //        ContactPerson = v.ContactPerson,
+        //        ContactPersonPhone = v.ContactPersonPhone,
+        //        Address = v.Address,
+        //        StateId = v.StateId,
+        //        StateName = v.State != null ? v.State.Name : "",
+        //        Email = v.Email,
+        //        PhoneNumber = v.PhoneNumber,
+        //        CACRegistrationNo = v.CACRegistrationNo,
+        //        TaxIdNumber = v.TaxIdNumber,
+        //        IsActive = v.IsActive,
+        //        CreatedDate = v.CreatedDate
+        //    }).ToList();
+        //}
+
+        public async Task<List<VendorDto>> GetVendorsAsync(string? search, int? categoryId)
         {
-            var list = await _context.Vendors
+            var query = _context.Vendors
                 .AsNoTracking()
                 .Include(v => v.VendorCategory)
-                .ToListAsync();
+                .Include(v => v.State)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(v =>
+                    v.VendorName.Contains(search) ||
+                    v.VendorServiceOffered.Contains(search) ||
+                    v.City.Contains(search) ||
+                    v.State.Name.Contains(search));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(v => v.VendorCategoryId == categoryId.Value);
+            }
+
+            var list = await query.ToListAsync();
 
             return list.Select(v => new VendorDto
             {
@@ -274,6 +331,9 @@ namespace FleetManager.Business.Implementations.VendorModule
                 ContactPerson = v.ContactPerson,
                 ContactPersonPhone = v.ContactPersonPhone,
                 Address = v.Address,
+                City = v.City,
+                StateId = v.StateId,
+                StateName = v.State != null ? v.State.Name : "",
                 Email = v.Email,
                 PhoneNumber = v.PhoneNumber,
                 CACRegistrationNo = v.CACRegistrationNo,
@@ -282,6 +342,52 @@ namespace FleetManager.Business.Implementations.VendorModule
                 CreatedDate = v.CreatedDate
             }).ToList();
         }
+
+
+        public async Task<VendorDashboardViewModel?> GetVendorDashboardAsync()
+        {
+            var userId = _authUser.UserId;
+
+            var v = await _context.Vendors
+                .AsNoTracking()
+                .Include(v => v.User)
+                .Include(v => v.VendorCategory)
+                .Include(v => v.State)
+                .FirstOrDefaultAsync(v => v.UserId == userId);
+
+            if (v == null)
+            {
+                _logger.LogWarning("Vendor not found for UserId: {UserId}", userId);
+                return null;
+            }
+                
+
+            return new VendorDashboardViewModel
+            {
+                FirstName = v.FirstName,
+                LastName = v.LastName,
+                VendorName = v.VendorName,
+                VendorCategoryName = v.VendorCategory.Name ?? "Not Assigned",
+                VendorServiceOffered = v.VendorServiceOffered,
+                ContactPerson = v.ContactPerson,
+                ContactPersonPhone = v.ContactPersonPhone,
+                Address = v.Address,
+                City = v.City,
+                StateName = v.State != null ? v.State.Name : "Unkown",
+                Email = v.Email,
+                PhoneNumber = v.PhoneNumber,
+                CACRegistrationNo = v.CACRegistrationNo,
+                TaxIdNumber = v.TaxIdNumber,
+                IsActive = v.IsActive,
+                CreatedDate = v.CreatedDate,
+                IsVerified = true,
+                ProfileViews = _rng.Next(1, 1001)
+            };
+        }
+
+
+
+
 
         public List<SelectListItem> GetVendorCategoryOptions()
             => _context.VendorCategories
@@ -293,15 +399,19 @@ namespace FleetManager.Business.Implementations.VendorModule
                 })
                 .ToList();
 
-        //public List<SelectListItem> GetVendorServiceOptions()
-        //    => _context.VendorServicesOffered
-        //        .AsNoTracking()
-        //        .Select(s => new SelectListItem
-        //        {
-        //            Value = s.Id.ToString(),
-        //            Text = s.Name
-        //        })
-        //        .ToList();
+        public async Task<List<StateDto>> GetAllStatesAsync()
+        {
+            return await _context.States
+                .AsNoTracking()
+                .OrderBy(s => s.Name)
+                .Select(s => new StateDto
+                {
+                    Id = s.Id,
+                    Name = s.Name
+                })
+                .ToListAsync();
+        }
+
     }
 }
 

@@ -119,7 +119,7 @@ namespace DVLA.UI.Controllers
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "User" });
             }
-            else if (roles.Contains("Company Admin"))
+            else if (roles.Contains("Vendor"))
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "Vendor" });
             }

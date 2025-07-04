@@ -1,6 +1,7 @@
 ﻿using FleetManager.Business.DataObjects.VendorDto;
 using FleetManager.Business.Interfaces.VendorModule;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FleetManager.App.Areas.Vendor.Controllers
 {
@@ -18,17 +19,24 @@ namespace FleetManager.App.Areas.Vendor.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, int? category)
         {
-            var vendors = await _vendorService.GetVendorsAsync();
+            ViewBag.Categories = _vendorService.GetVendorCategoryOptions();
+            var vendors = await _vendorService.GetVendorsAsync( search, category);
             return View(vendors);
         }
 
         [HttpGet]
-        public IActionResult Register()
+        public async Task<IActionResult> Register()
         {
-            ViewBag.Categories = _vendorService.GetVendorCategoryOptions();
-            //ViewBag.Services = _vendorService.GetVendorServiceOptions();
+            ViewBag.Categories = _vendorService.GetVendorCategoryOptions(); 
+            var states = await _vendorService.GetAllStatesAsync();
+            ViewBag.States = states.Select(s => new SelectListItem
+            {
+                Value = s.Id.ToString(),
+                Text = s.Name
+            }).ToList();
+
             return View(new VendorOnboardingDto());
         }
 
@@ -36,7 +44,12 @@ namespace FleetManager.App.Areas.Vendor.Controllers
         public async Task<IActionResult> Register(VendorOnboardingDto dto)
         {
             ViewBag.Categories = _vendorService.GetVendorCategoryOptions();
-            //ViewBag.Services = _vendorService.GetVendorServiceOptions();
+            var states = await _vendorService.GetAllStatesAsync();
+            ViewBag.States = states.Select(s => new SelectListItem
+            {
+                Value = s.Id.ToString(),
+                Text = s.Name
+            }).ToList();
 
             if (!ModelState.IsValid)
                 return View(dto);

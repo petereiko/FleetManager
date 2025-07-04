@@ -1,0 +1,854 @@
+﻿@* @using FleetManager.Business.DataObjects.VendorDto
+@model VendorDashboardViewModel
+@{
+    ViewData["Title"] = "Vendor Dashboard";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4">Welcome, @Model.FirstName 👋</h2>
+
+    <!-- Vendor Summary Card -->
+    <div class="card shadow rounded-4 border-0 mb-4">
+        <div class="card-body">
+            <h4 class="card-title">@Model.VendorName</h4>
+            <p class="text-muted mb-2">
+                <i class="fas fa-briefcase me-1"></i> @Model.VendorCategoryName
+            </p>
+            <p>
+                <strong>Services:</strong><br />
+                @Model.VendorServiceOffered
+            </p>
+        </div>
+    </div>
+
+    <!-- Business Details Grid -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-light shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title">Contact Information</h5>
+                    <p><i class="fas fa-envelope me-2"></i> @Model.Email</p>
+                    <p><i class="fas fa-phone me-2"></i> @Model.PhoneNumber</p>
+                    <p><i class="fas fa-user-tie me-2"></i> @Model.ContactPerson</p>
+                    <p><i class="fas fa-mobile-alt me-2"></i> @Model.ContactPersonPhone</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-light shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title">Business Location</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> @Model.Address</p>
+                    <p><strong>City:</strong> @Model.City</p>
+                    <p><strong>State:</strong> @Model.StateName</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Info -->
+    <div class="row g-4 mt-4">
+        <div class="col-md-6">
+            <div class="card border-light shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title">Registration Details</h5>
+                    <p><strong>CAC Reg No:</strong> @Model.CACRegistrationNo ?? "N/A"</p>
+                    <p><strong>Tax ID:</strong> @Model.TaxIdNumber ?? "N/A"</p>
+                    <p>
+                        <strong>Account Status:</strong>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </p>
+                    <p><strong>Joined:</strong> @Model.CreatedDate.ToString("dddd, dd MMMM yyyy")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-light shadow-sm rounded-4">
+                <div class="card-body">
+                    <h5 class="card-title">Profile Insights</h5>
+                    <p>
+                        <strong>Profile Views:</strong>
+                        <span class="text-primary">@Model.ProfileViews</span>
+                    </p>
+                    <p>
+                        <strong>Verification:</strong>
+                        @if (Model.IsVerified)
+                        {
+                            <span class="badge bg-info text-dark">Verified</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Pending</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+ *@
+
+
+
+
+
+
+@using FleetManager.Business.DataObjects.VendorDto
+@model VendorDashboardViewModel
+@{
+    ViewData["Title"] = "Vendor Dashboard";
+Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - FleetManager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 1rem 0;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-light {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,100 1000,0 1000,100"/></svg>');
+            background-size: cover;
+        }
+
+        .dashboard-header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .status-badges {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .status-badge.verified {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .status-badge.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 2rem 0;
+            margin-top: -2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            background: white;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--bg-light), white);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            position: relative;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .stats-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .stats-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stats-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .stats-icon {
+            font-size: 2rem;
+            opacity: 0.8;
+        }
+
+        /* Info Items */
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Profile Completion */
+        .profile-completion {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .completion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .completion-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .completion-percentage {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .progress-bar-container {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: white;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .welcome-title {
+                font-size: 2rem;
+            }
+            
+            .stats-number {
+                font-size: 2.5rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .status-badges {
+                justify-content: center;
+            }
+        }
+
+        /* Animations */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .stagger-animation > * {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .stagger-animation > *:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .stagger-animation > *:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .stagger-animation > *:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-truck me-2"></i>FleetManager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-user-edit me-1"></i>Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-handshake me-1"></i>Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chart-bar me-1"></i>Analytics</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-outline-light" asp-action="Logout" asp-controller="Account" asp-area="">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <section class="dashboard-header">
+        <div class="container">
+            <div class="dashboard-header-content fade-in-up">
+                <h1 class="welcome-title">Welcome back, @Model.FirstName! 👋</h1>
+                <p class="welcome-subtitle">Here's what's happening with your vendor profile today</p>
+                
+                <div class="status-badges">
+                    @if (Model.IsActive)
+                    {
+                        <div class="status-badge active">
+                            <i class="fas fa-check-circle"></i>
+                            Active
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="status-badge pending">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Inactive
+                        </div>
+                    }
+                    
+                    @if (Model.IsVerified)
+                    {
+                        <div class="status-badge verified">
+                            <i class="fas fa-shield-check"></i>
+                            Verified
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="status-badge pending">
+                            <i class="fas fa-clock"></i>
+                            Pending Verification
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Content -->
+    <section class="dashboard-content">
+        <div class="container">
+            <!-- Profile Completion -->
+            <div class="profile-completion fade-in-up">
+                <div class="completion-header">
+                    <div class="completion-title">
+                        <i class="fas fa-user-check me-2"></i>
+                        Profile Completion
+                    </div>
+                    <div class="completion-percentage">85%</div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: 85%"></div>
+                </div>
+                <p class="mt-2 mb-0 opacity-75">
+                    <small>Complete your profile to increase visibility and trust with clients</small>
+                </p>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="row g-4 mb-4 stagger-animation">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card">
+                        <div class="stats-content">
+                            <div class="stats-number">@Model.ProfileViews</div>
+                            <div class="stats-label">Profile Views</div>
+                            <div class="stats-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card">
+                        <div class="stats-content">
+                            <div class="stats-number">@(DateTime.Now.Year - Model.CreatedDate.Year)</div>
+                            <div class="stats-label">Years Active</div>
+                            <div class="stats-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card">
+                        <div class="stats-content">
+                            <div class="stats-number">24</div>
+                            <div class="stats-label">Inquiries</div>
+                            <div class="stats-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card">
+                        <div class="stats-content">
+                            <div class="stats-number">@(Model.IsVerified ? "100" : "0")%</div>
+                            <div class="stats-label">Trust Score</div>
+                            <div class="stats-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Row -->
+            <div class="row g-4">
+                <!-- Business Profile -->
+                <div class="col-lg-8">
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <div class="card-icon">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                Business Profile
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-store"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <div class="info-label">Business Name</div>
+                                            <div class="info-value">@Model.VendorName</div>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-tag"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <div class="info-label">Category</div>
+                                            <div class="info-value">@Model.VendorCategoryName</div>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <div class="info-label">Location</div>
+                                            <div class="info-value">@Model.City, @Model.StateName</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <div class="info-label">Member Since</div>
+                                            <div class="info-value">@Model.CreatedDate.ToString("MMMM yyyy")</div>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-certificate"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <div class="info-label">CAC Registration</div>
+                                            <div class="info-value">@(Model.CACRegistrationNo ?? "Not Provided")</div>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-receipt"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <div class="info-label">Tax ID</div>
+                                            <div class="info-value">@(Model.TaxIdNumber ?? "Not Provided")</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 p-3 bg-light rounded-3">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-tools me-2"></i>
+                                    Services Offered
+                                </h6>
+                                <p class="mb-0">@Model.VendorServiceOffered</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact & Actions -->
+                <div class="col-lg-4">
+                    <!-- Contact Information -->
+                    <div class="card fade-in-up mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <div class="card-icon">
+                                    <i class="fas fa-address-book"></i>
+                                </div>
+                                Contact Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Email</div>
+                                    <div class="info-value">@Model.Email</div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Phone</div>
+                                    <div class="info-value">@Model.PhoneNumber</div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Contact Person</div>
+                                    <div class="info-value">@Model.ContactPerson</div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Contact Phone</div>
+                                    <div class="info-value">@Model.ContactPersonPhone</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <div class="card-icon">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                Quick Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-3">
+                                <a href="#" class="action-btn">
+                                    <i class="fas fa-edit"></i>
+                                    Update Profile
+                                </a>
+                                <a href="#" class="action-btn secondary">
+                                    <i class="fas fa-eye"></i>
+                                    View Public Profile
+                                </a>
+                                <a href="#" class="action-btn secondary">
+                                    <i class="fas fa-upload"></i>
+                                    Upload Documents
+                                </a>
+                                <a href="#" class="action-btn secondary">
+                                    <i class="fas fa-headset"></i>
+                                    Get Support
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
