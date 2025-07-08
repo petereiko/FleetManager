@@ -248,14 +248,14 @@ Layout = null;
         }
 
         .status-badge.active {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
+            background: aliceblue;
+            color: green;
             border-color: rgba(16, 185, 129, 0.3);
         }
 
         .status-badge.verified {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
+            background: mintcream;
+            color: darkgoldenrod;
             border-color: rgba(59, 130, 246, 0.3);
         }
 
@@ -573,7 +573,7 @@ Layout = null;
                 <p class="welcome-subtitle">Here's what's happening with your vendor profile today</p>
                 
                 <div class="status-badges">
-                    @if (Model.IsActive)
+                    @* @if (Model.IsActive)
                     {
                         <div class="status-badge active">
                             <i class="fas fa-check-circle"></i>
@@ -586,12 +586,13 @@ Layout = null;
                             <i class="fas fa-exclamation-circle"></i>
                             Inactive
                         </div>
-                    }
+                    } *@
                     
                     @if (Model.IsVerified)
                     {
                         <div class="status-badge verified">
-                            <i class="fas fa-shield-check"></i>
+                            <i class="fas fa-check-circle"></i>
+                            @* <i class="fas fa-shield-check"></i> *@
                             Verified
                         </div>
                     }

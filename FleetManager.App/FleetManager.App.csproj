@@ -30,6 +30,7 @@
     <Folder Include="Areas\Company\Models\" />
     <Folder Include="wwwroot\DriverImages\" />
     <Folder Include="wwwroot\FuelReceipts\" />
+    <Folder Include="wwwroot\vendorRentals\" />
     <Folder Include="wwwroot\VehicleImages\" />
   </ItemGroup>
 

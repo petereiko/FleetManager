@@ -83,7 +83,7 @@ namespace FleetManager.Business.Implementations.VehicleModule
                     CreatedBy = createdByUserId,
                     IsActive = true
                 };
-
+               
                 _context.Vehicles.Add(entity);
                 await _context.SaveChangesAsync();
 

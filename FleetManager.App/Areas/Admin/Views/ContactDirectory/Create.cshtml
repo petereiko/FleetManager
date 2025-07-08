@@ -1,0 +1,619 @@
+﻿@using FleetManager.Business.DataObjects;
+@model ContactDirectoryDto
+@{
+    ViewData["Title"] = "Add Contact";
+}
+
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+    }
+
+    .form-section {
+        border-left: 4px solid #007bff;
+        padding-left: 20px;
+        margin-left: 10px;
+    }
+
+    .section-title {
+        color: #007bff;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .form-control.is-valid {
+        border-color: #28a745;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='m2.3 6.73.3.3.3-.3 2.7-2.7-.3-.3L3.6 5.44 2.2 4.04l-.3.3 1.4 1.4z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .progress-container {
+        margin-bottom: 20px;
+    }
+
+    .progress {
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+    }
+
+    .progress-bar {
+        transition: width 0.3s ease;
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+    }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    .btn-group .btn {
+        border-radius: 8px;
+        margin-right: 8px;
+    }
+
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+
+    .toast {
+        border-radius: 8px;
+    }
+
+    .preview-item {
+        border-left: 3px solid #007bff;
+        padding-left: 15px;
+        margin-bottom: 15px;
+    }
+
+    .preview-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+
+    .preview-value {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .breadcrumb-item a:hover {
+        color: #007bff;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        margin-top: 5px;
+    }
+
+    @@media (max-width: 768px) {
+        .form-section {
+            border-left: none;
+            padding-left: 0;
+            margin-left: 0;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-group .btn {
+            margin-right: 0;
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" class="text-decoration-none">
+                            <i class="fas fa-address-book me-1"></i>Contacts
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Add New Contact</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="fas fa-user-plus me-2"></i>Add New Contact
+            </h2>
+            <p class="text-muted mb-0">Create a new contact entry in your directory</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Directory
+            </a>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="progress-container">
+                <div class="progress">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" id="formProgress"></div>
+                </div>
+                <small class="text-muted mt-1">Complete the form to add your contact</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <div class="card shadow">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>Contact Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" asp-area="Admin" asp-controller="ContactDirectory" method="post" id="contactForm" enctype="multipart/form-data" novalidate>
+                        @Html.AntiForgeryToken()
+                        <!-- Basic Information Section -->
+                        <div class="form-section mb-5">
+                            <h6 class="section-title">
+                                <i class="fas fa-user me-2"></i>Basic Information
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label asp-for="ContactName" class="form-label required">
+                                        <i class="fas fa-user me-1"></i>Contact Name
+                                    </label>
+                                    <input asp-for="ContactName" 
+                                           class="form-control form-control-lg" 
+                                           placeholder="Enter full name"
+                                           data-required="true" />
+                                    <span asp-validation-for="ContactName" class="text-danger"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Enter the full name of the contact person
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Company Information Section -->
+                        <div class="form-section mb-5">
+                            <h6 class="section-title">
+                                <i class="fas fa-building me-2"></i>Company Information
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="VendorName" class="form-label required">
+                                        <i class="fas fa-building me-1"></i>Vendor/Company Name
+                                    </label>
+                                    <input asp-for="VendorName" 
+                                           class="form-control" 
+                                           placeholder="Enter company name"
+                                           data-required="true" />
+                                    <span asp-validation-for="VendorName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CategoryId" class="form-label required">
+                                        <i class="fas fa-tag me-1"></i>Category
+                                    </label>
+                                    <select asp-for="CategoryId" 
+                                            asp-items="ViewBag.Categories" 
+                                            class="form-select"
+                                            data-required="true">
+                                        <option value="">Select a category...</option>
+                                    </select>
+                                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Details Section -->
+                        <div class="form-section mb-5">
+                            <h6 class="section-title">
+                                <i class="fas fa-address-book me-2"></i>Contact Details
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="PhoneNumber" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>Phone Number
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-phone"></i>
+                                        </span>
+                                        <input asp-for="PhoneNumber" 
+                                               class="form-control" 
+                                               placeholder="(123) 456-7890"
+                                               data-phone="true" />
+                                    </div>
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>Email Address
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                        <input asp-for="Email" 
+                                               class="form-control" 
+                                               placeholder="contact@company.com"
+                                               type="email" />
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location Information Section -->
+                        <div class="form-section mb-5">
+                            <h6 class="section-title">
+                                <i class="fas fa-map-marker-alt me-2"></i>Location Information
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label asp-for="Address" class="form-label">
+                                        <i class="fas fa-map-marker-alt me-1"></i>Address
+                                    </label>
+                                    <textarea asp-for="Address" 
+                                              class="form-control" 
+                                              rows="3"
+                                              placeholder="Enter complete address including street, city, state, and zip code"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Include street address, city, state, and postal code
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Services & Notes Section -->
+                        <div class="form-section mb-5">
+                            <h6 class="section-title">
+                                <i class="fas fa-clipboard-list me-2"></i>Additional Information
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label asp-for="Services" class="form-label">
+                                        <i class="fas fa-cogs me-1"></i>Services Provided
+                                    </label>
+                                    <textarea asp-for="Services" 
+                                              class="form-control" 
+                                              rows="3"
+                                              placeholder="List the services or products this contact/vendor provides"></textarea>
+                                    <span asp-validation-for="Services" class="text-danger"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Describe what services or products they offer
+                                    </div>
+                                </div>
+                                @* <div class="col-md-12 mb-3">
+                                    <label asp-for="Notes" class="form-label">
+                                        <i class="fas fa-sticky-note me-1"></i>Additional Notes
+                                    </label>
+                                    <textarea asp-for="Notes" 
+                                              class="form-control" 
+                                              rows="4"
+                                              placeholder="Add any additional notes, comments, or important information about this contact"></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Any additional information that might be useful
+                                    </div>
+                                </div> *@
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Fields marked with <span class="text-danger">*</span> are required
+                                        </span>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                            <i class="fas fa-times me-2"></i>Cancel
+                                        </a>
+                                        <button type="button" class="btn btn-outline-primary btn-lg" id="previewBtn">
+                                            <i class="fas fa-eye me-2"></i>Preview
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn-lg">
+                                            <i class="fas fa-save me-2"></i>Save Contact
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="previewModalLabel">
+                    <i class="fas fa-eye me-2"></i>Contact Preview
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <!-- Preview content will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-edit me-1"></i>Continue Editing
+                </button>
+                <button type="button" class="btn btn-success" id="saveFromPreview">
+                    <i class="fas fa-save me-1"></i>Save Contact
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i>
+                Contact saved successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('contactForm');
+        const progressBar = document.getElementById('formProgress');
+        const previewBtn = document.getElementById('previewBtn');
+        const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+        const saveFromPreviewBtn = document.getElementById('saveFromPreview');
+
+        // Form validation and progress tracking
+        function updateProgress() {
+            const requiredFields = form.querySelectorAll('[data-required="true"]');
+            const filledFields = Array.from(requiredFields).filter(field => field.value.trim() !== '');
+            const progress = (filledFields.length / requiredFields.length) * 100;
+            
+            progressBar.style.width = progress + '%';
+            progressBar.setAttribute('aria-valuenow', progress);
+        }
+
+        // Phone number formatting
+        function formatPhoneNumber(value) {
+            const cleaned = value.replace(/\D/g, '');
+            const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+            if (match) {
+                return `(${match[1]}) ${match[2]}-${match[3]}`;
+            }
+            return value;
+        }
+
+        // Real-time validation
+        function validateField(field) {
+            const value = field.value.trim();
+            const isRequired = field.hasAttribute('data-required');
+            
+            field.classList.remove('is-valid', 'is-invalid');
+            
+            if (isRequired && value === '') {
+                field.classList.add('is-invalid');
+                return false;
+            }
+            
+            if (field.type === 'email' && value && !isValidEmail(value)) {
+                field.classList.add('is-invalid');
+                return false;
+            }
+            
+            if (value) {
+                field.classList.add('is-valid');
+            }
+            
+            return true;
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Event listeners
+        form.addEventListener('input', function(e) {
+            updateProgress();
+            
+            if (e.target.hasAttribute('data-phone')) {
+                e.target.value = formatPhoneNumber(e.target.value);
+            }
+            
+            validateField(e.target);
+        });
+
+        form.addEventListener('blur', function(e) {
+            validateField(e.target);
+        }, true);
+
+        // Preview functionality
+        previewBtn.addEventListener('click', function() {
+            const formData = new FormData(form);
+            const previewContent = document.getElementById('previewContent');
+            
+            const contactName = formData.get('ContactName') || 'Not specified';
+            const vendorName = formData.get('VendorName') || 'Not specified';
+            const categorySelect = form.querySelector('[name="CategoryId"]');
+            const categoryName = categorySelect.options[categorySelect.selectedIndex]?.text || 'Not specified';
+            const phoneNumber = formData.get('PhoneNumber') || 'Not specified';
+            const email = formData.get('Email') || 'Not specified';
+            const address = formData.get('Address') || 'Not specified';
+            const services = formData.get('Services') || 'Not specified';
+
+            previewContent.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="preview-item">
+                            <div class="preview-label">
+                                <i class="fas fa-user me-1"></i>Contact Name
+                            </div>
+                            <p class="preview-value">${contactName}</p>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">
+                                <i class="fas fa-building me-1"></i>Vendor/Company
+                            </div>
+                            <p class="preview-value">${vendorName}</p>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">
+                                <i class="fas fa-tag me-1"></i>Category
+                            </div>
+                            <p class="preview-value">${categoryName}</p>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">
+                                <i class="fas fa-phone me-1"></i>Phone Number
+                            </div>
+                            <p class="preview-value">${phoneNumber}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="preview-item">
+                            <div class="preview-label">
+                                <i class="fas fa-envelope me-1"></i>Email Address
+                            </div>
+                            <p class="preview-value">${email}</p>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">
+                                <i class="fas fa-map-marker-alt me-1"></i>Address
+                            </div>
+                            <p class="preview-value">${address}</p>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">
+                                <i class="fas fa-cogs me-1"></i>Services
+                            </div>
+                            <p class="preview-value">${services}</p>
+                        </div>
+                        
+                    </div>
+                </div>
+            `;
+            
+            previewModal.show();
+        });
+
+        // Save from preview
+        saveFromPreviewBtn.addEventListener('click', function() {
+            previewModal.hide();
+            form.submit();
+        });
+
+        // Form submission
+        const form = document.getElementById('contactForm');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const toastEl = document.getElementById('successToast');
+  const toast = new bootstrap.Toast(toastEl);
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    // disable button + spinner
+    const originalHtml = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+    // build form data (including files)
+    const data = new FormData(form);
+
+    // append antiforgery token header
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'RequestVerificationToken': token
+      },
+      body: data
+    });
+
+    if (response.ok) {
+      // show success toast
+      toast.show();
+
+      // redirect back to Index after 1s
+      setTimeout(() => {
+        window.location.href = '@Url.Action("Index","ContactDirectory", new { area = "Admin" })';
+      }, 1000);
+    } else {
+      // on error, re-enable and show basic alert
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalHtml;
+      alert('Error saving contact. Please try again.');
+    }
+  });
+        // Initialize progress
+        updateProgress();
+    });
+</script>

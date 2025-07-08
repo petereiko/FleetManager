@@ -1,5 +1,4 @@
-﻿@* /Views/Shared/_SidebarAdmin.cshtml *@
-@using Microsoft.AspNetCore.Mvc.Rendering
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
 
 <div class="sidebar-inner slimscroll">
     <div id="sidebar-menu" class="sidebar-menu">
@@ -78,7 +77,7 @@
                     <span class="menu-side">
                         <img src="~/assets/img/icons/menu-icon-02.svg" alt="">
                     </span>
-                    <span> Assign Vehicles & Drivers </span>
+                    <span> Assignments </span>
                     <span class="menu-arrow"></span>
                 </a>
                 <ul style="display: none;">
@@ -183,14 +182,42 @@
                 </ul>
             </li>
 
-            <li class="logout-btn">
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ContactDirectory"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-08.svg" alt="">
+                    </span>
+                    <span> Vendors Directory </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ContactDirectory"
+                           asp-action="Index">
+                            View Contacts Info
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ContactDirectory"
+                           asp-action="Create">
+                            Add Contact
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* <li class="logout-btn">
                 <a asp-area="Vendor" asp-controller="Vendor" asp-action="Index" target="_blank">
                     <span class="menu-side">
                         <img src="~/assets/img/icons/logout.svg" alt="">
                     </span>
                     <span>Visit Vendors</span>
                 </a>
-            </li>
+            </li> *@
 
             <li class="logout-btn">
                 <a asp-area="" asp-controller="Account" asp-action="Logout">

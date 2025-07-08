@@ -828,6 +828,8 @@
 
 
 
+@using FleetManager.Business.Interfaces.UserModule
+@inject IAuthUser AuthUser
 
 
 
@@ -1555,6 +1557,15 @@
                             <a asp-action="Details" asp-route-id="@vendor.Id" class="btn btn-view-details">
                                 <i class="fas fa-eye me-2"></i>View Full Profile
                             </a>
+                            <a asp-area="Vendor"
+                               asp-controller="Rental"
+                               asp-action="Apply"
+                               asp-route-vendorId="@vendor.Id"
+                               asp-route-companyBranchId="@AuthUser.CompanyBranchId"
+                               class="btn btn-view-details">
+                                <i class="fas fa-truck me-2"></i> Apply for rental
+                            </a>
+
                         </div>
                     </div>
                 }

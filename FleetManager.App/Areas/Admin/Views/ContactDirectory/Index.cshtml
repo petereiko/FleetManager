@@ -1,0 +1,686 @@
+﻿@using FleetManager.Business.DataObjects;
+@model IEnumerable<ContactDirectoryDto>
+@{
+    ViewData["Title"] = "Contact Directory";
+}
+
+<style>
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    .avatar-circle-lg {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .sortable:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .sort-icon {
+        margin-left: 5px;
+        opacity: 0.5;
+        font-size: 0.8rem;
+    }
+
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .btn-group .btn {
+        border-radius: 0.25rem;
+        margin-right: 2px;
+    }
+
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+
+
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="fas fa-address-book me-2"></i>Contact Directory
+            </h2>
+            <p class="text-muted mb-0">Manage your business contacts and vendor information</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Create" class="btn btn-success btn-lg shadow-sm">
+                <i class="fas fa-plus me-2"></i>Add New Contact
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="input-group">
+                <span class="input-group-text bg-light">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control" id="searchInput" placeholder="Search contacts by name, vendor, category, or email...">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="categoryFilter">
+                <option value="">All Categories</option>
+                @foreach (var category in Model.Select(c => c.CategoryName).Distinct().OrderBy(c => c))
+                {
+                    <option value="@category">@category</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Contacts</h6>
+                            <h3 class="mb-0">@Model.Count()</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Active Contacts</h6>
+                            <h3 class="mb-0">@Model.Count(c => c.IsActive)</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Vendors</h6>
+                            <h3 class="mb-0">@Model.Select(c => c.VendorName).Distinct().Count()</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-building fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Categories</h6>
+                            <h3 class="mb-0">@Model.Select(c => c.CategoryName).Distinct().Count()</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-tags fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contacts Table -->
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Contact List
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" id="tableView">
+                            <i class="fas fa-table"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="cardView">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <!-- Table View -->
+            <div id="tableContainer" class="table-responsive">
+                <table class="table table-hover mb-0" id="contactsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="sortable" data-sort="contact">
+                                <i class="fas fa-user me-1"></i>Contact Name
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-sort="vendor">
+                                <i class="fas fa-building me-1"></i>Vendor
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-sort="category">
+                                <i class="fas fa-tag me-1"></i>Category
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th><i class="fas fa-phone me-1"></i>Phone</th>
+                            <th><i class="fas fa-envelope me-1"></i>Email</th>
+                            <th><i class="fas fa-map-marker-alt me-1"></i>Location</th>
+                            <th class="text-center"><i class="fas fa-signal me-1"></i>Status</th>
+                            <th class="text-center" width="120">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var contact in Model.OrderBy(c => c.ContactName))
+                        {
+                            <tr class="contact-row" data-contact="@contact.ContactName?.ToLower()" 
+                                data-vendor="@contact.VendorName?.ToLower()" 
+                                data-category="@contact.CategoryName?.ToLower()"
+                                data-email="@contact.Email?.ToLower()">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            @(contact.ContactName?.Substring(0, 1).ToUpper() ?? "?")
+                                        </div>
+                                        <div>
+                                            <strong>@contact.ContactName</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">@contact.VendorName</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@contact.CategoryName</span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(contact.PhoneNumber))
+                                    {
+                                        <a href="tel:@contact.PhoneNumber" class="text-decoration-none">
+                                            <i class="fas fa-phone me-1"></i>@contact.PhoneNumber
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(contact.Email))
+                                    {
+                                        <a href="mailto:@contact.Email" class="text-decoration-none">
+                                            <i class="fas fa-envelope me-1"></i>@contact.Email
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        @(contact.Address?.Length > 30 ? contact.Address.Substring(0, 30) + "..." : contact.Address)
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    @if (contact.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-pause-circle me-1"></i>Inactive
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-outline-info" 
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#detailsModal"
+                                                data-url="@Url.Action("Details", new { id = contact.Id })"
+                                                data-bs-toggle="tooltip" 
+                                                title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a asp-action="Edit" asp-route-id="@contact.Id" 
+                                           class="btn btn-outline-primary"
+                                           data-bs-toggle="tooltip" 
+                                           title="Edit Contact">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-outline-danger delete-btn"
+                                                data-contact-id="@contact.Id"
+                                                data-contact-name="@contact.ContactName"
+                                                data-bs-toggle="tooltip" 
+                                                title="Delete Contact">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Card View (Initially Hidden) -->
+            <div id="cardContainer" style="display: none;" class="p-3">
+                <div class="row" id="contactCards">
+                    @foreach (var contact in Model.OrderBy(c => c.ContactName))
+                    {
+                        <div class="col-md-6 col-lg-4 mb-3 contact-card" 
+                             data-contact="@contact.ContactName?.ToLower()" 
+                             data-vendor="@contact.VendorName?.ToLower()" 
+                             data-category="@contact.CategoryName?.ToLower()"
+                             data-email="@contact.Email?.ToLower()">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="avatar-circle-lg">
+                                            @(contact.ContactName?.Substring(0, 1).ToUpper() ?? "?")
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <button class="dropdown-item" 
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#detailsModal"
+                                                            data-url="@Url.Action("Details", new { id = contact.Id })">
+                                                        <i class="fas fa-eye me-2"></i>View Details
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" asp-action="Edit" asp-route-id="@contact.Id">
+                                                        <i class="fas fa-edit me-2"></i>Edit
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger delete-btn"
+                                                            data-contact-id="@contact.Id"
+                                                            data-contact-name="@contact.ContactName">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <h6 class="card-title">@contact.ContactName</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-building me-1"></i>@contact.VendorName
+                                        </small><br>
+                                        <span class="badge bg-secondary">@contact.CategoryName</span>
+                                    </p>
+                                    <div class="mb-2">
+                                        @if (!string.IsNullOrEmpty(contact.PhoneNumber))
+                                        {
+                                            <div class="mb-1">
+                                                <a href="tel:@contact.PhoneNumber" class="text-decoration-none">
+                                                    <i class="fas fa-phone me-1"></i>@contact.PhoneNumber
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(contact.Email))
+                                        {
+                                            <div class="mb-1">
+                                                <a href="mailto:@contact.Email" class="text-decoration-none">
+                                                    <i class="fas fa-envelope me-1"></i>@contact.Email
+                                                </a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        @if (contact.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause-circle me-1"></i>Inactive
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="text-center py-5" style="display: none;">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No contacts found</h4>
+        <p class="text-muted">Try adjusting your search criteria or filters</p>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="detailsModalLabel">
+                    <i class="fas fa-user me-2"></i>Contact Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the contact <strong id="deleteContactName"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" class="d-inline">
+                    <input type="hidden" name="id" id="deleteContactId" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete Contact
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const tableRows = document.querySelectorAll('.contact-row');
+        const contactCards = document.querySelectorAll('.contact-card');
+        const emptyState = document.getElementById('emptyState');
+        const tableContainer = document.getElementById('tableContainer');
+        const cardContainer = document.getElementById('cardContainer');
+
+        function filterContacts() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+            let visibleCount = 0;
+
+            // Filter table rows
+            tableRows.forEach(row => {
+                const contactName = row.dataset.contact || '';
+                const vendorName = row.dataset.vendor || '';
+                const categoryName = row.dataset.category || '';
+                const email = row.dataset.email || '';
+
+                const matchesSearch = contactName.includes(searchTerm) || 
+                                    vendorName.includes(searchTerm) || 
+                                    categoryName.includes(searchTerm) || 
+                                    email.includes(searchTerm);
+
+                const matchesCategory = !selectedCategory || categoryName === selectedCategory.toLowerCase();
+
+                if (matchesSearch && matchesCategory) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Filter cards
+            contactCards.forEach(card => {
+                const contactName = card.dataset.contact || '';
+                const vendorName = card.dataset.vendor || '';
+                const categoryName = card.dataset.category || '';
+                const email = card.dataset.email || '';
+
+                const matchesSearch = contactName.includes(searchTerm) || 
+                                    vendorName.includes(searchTerm) || 
+                                    categoryName.includes(searchTerm) || 
+                                    email.includes(searchTerm);
+
+                const matchesCategory = !selectedCategory || categoryName === selectedCategory.toLowerCase();
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide empty state
+            if (visibleCount === 0) {
+                emptyState.style.display = 'block';
+                tableContainer.style.display = 'none';
+                cardContainer.style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                if (document.getElementById('tableView').classList.contains('active')) {
+                    tableContainer.style.display = 'block';
+                    cardContainer.style.display = 'none';
+                } else {
+                    tableContainer.style.display = 'none';
+                    cardContainer.style.display = 'block';
+                }
+            }
+        }
+
+        searchInput.addEventListener('input', filterContacts);
+        categoryFilter.addEventListener('change', filterContacts);
+
+        // View toggle
+        document.getElementById('tableView').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('cardView').classList.remove('active');
+            tableContainer.style.display = 'block';
+            cardContainer.style.display = 'none';
+        });
+
+        document.getElementById('cardView').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('tableView').classList.remove('active');
+            tableContainer.style.display = 'none';
+            cardContainer.style.display = 'block';
+        });
+
+        // Table sorting
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', function() {
+                const sortType = this.dataset.sort;
+                const table = document.getElementById('contactsTable');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                
+                const isAscending = this.classList.contains('sort-asc');
+                
+                // Remove all sort classes
+                document.querySelectorAll('.sortable').forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+
+                // Add appropriate sort class
+                if (isAscending) {
+                    this.classList.add('sort-desc');
+                } else {
+                    this.classList.add('sort-asc');
+                }
+
+                rows.sort((a, b) => {
+                    let aValue, bValue;
+                    
+                    switch(sortType) {
+                        case 'contact':
+                            aValue = a.dataset.contact || '';
+                            bValue = b.dataset.contact || '';
+                            break;
+                        case 'vendor':
+                            aValue = a.dataset.vendor || '';
+                            bValue = b.dataset.vendor || '';
+                            break;
+                        case 'category':
+                            aValue = a.dataset.category || '';
+                            bValue = b.dataset.category || '';
+                            break;
+                        default:
+                            return 0;
+                    }
+
+                    if (isAscending) {
+                        return bValue.localeCompare(aValue);
+                    } else {
+                        return aValue.localeCompare(bValue);
+                    }
+                });
+
+                // Re-append sorted rows
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+
+        // Details modal
+        const detailsModal = document.getElementById('detailsModal');
+        detailsModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const url = button.getAttribute('data-url');
+            const body = detailsModal.querySelector('.modal-body');
+            
+            body.innerHTML = `
+                <div class="d-flex justify-content-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    body.innerHTML = html;
+                    body.classList.add('fade-in');
+                })
+                .catch(error => {
+                    body.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Error loading contact details. Please try again.
+                        </div>
+                    `;
+                });
+        });
+
+        // Delete confirmation
+        const deleteModal = document.getElementById('deleteModal');
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const contactId = this.dataset.contactId;
+                const contactName = this.dataset.contactName;
+                
+                document.getElementById('deleteContactId').value = contactId;
+                document.getElementById('deleteContactName').textContent = contactName;
+                document.getElementById('deleteForm').action = '@Url.Action("Delete")';
+                
+                new bootstrap.Modal(deleteModal).show();
+            });
+        });
+    });
+</script>
