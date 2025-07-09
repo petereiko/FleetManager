@@ -1,6 +1,10 @@
-﻿@using FleetManager.Business.DataObjects
+﻿@* @using FleetManager.Business.DataObjects
 @using FleetManager.Business.Enums
 @model List<DriverDutyOfCareDto>
+@await Html.PartialAsync(
+    "_DeleteConfirmationModal",
+    new DeleteConfirmationViewModel { ActionName = "Delete" }
+)
 @{
     ViewData["Title"] = "Duty of Care Records";
 }
@@ -607,18 +611,6 @@
                         <label class="form-label">Status</label>
                         <select name="status" class="form-select">
                             <option value="">All Statuses</option>
-                            @* <option value="@DriverDutyOfCareStatus.Compliant" 
-                                    @(Context.Request.Query["status"] == DriverDutyOfCareStatus.Compliant.ToString() ? "selected" : "")>
-                                Compliant
-                            </option>
-                            <option value="@DriverDutyOfCareStatus.PendingReview" 
-                                    @(Context.Request.Query["status"] == DriverDutyOfCareStatus.PendingReview.ToString() ? "selected" : "")>
-                                Pending Review
-                            </option>
-                            <option value="@DriverDutyOfCareStatus.ActionRequired" 
-                                    @(Context.Request.Query["status"] == DriverDutyOfCareStatus.ActionRequired.ToString() ? "selected" : "")>
-                                Action Required
-                            </option> *@
                         </select>
                     </div>
                     <div class="form-group">
@@ -629,7 +621,7 @@
                             {
                                @*  <option value="@type" @(Context.Request.Query["recordType"] == type.ToString() ? "selected" : "")>
                                     @type.ToString()
-                                </option> *@
+                                </option> 
                             }
                         </select>
                     </div>
@@ -766,9 +758,12 @@
                                                 onclick="viewDetails(@record.Id)" title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline" 
-                                                onclick="confirmDelete(@record.Id)" title="Delete Record">
-                                            <i class="fas fa-trash"></i>
+                                        
+                                        <button class="btn btn-outline-danger delete-btn"
+                                                  data-item-id="@record.Id"
+                                                  data-item-name="@record.DriverName @record.DutyOfCareRecordType.ToString()"
+                                                  title="Delete">
+                                              <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -804,32 +799,6 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal" id="deleteModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">
-                <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
-                Confirm Deletion
-            </h3>
-            <button type="button" class="modal-close" onclick="closeModal('deleteModal')">×</button>
-        </div>
-        <div>
-            <p>Are you sure you want to delete this duty of care record?</p>
-            <p style="color: var(--text-secondary); margin-bottom: 0;">This action cannot be undone and will permanently remove the record from your system.</p>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="closeModal('deleteModal')">Cancel</button>
-            <form id="deleteForm" method="post" style="display: inline;">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn" style="background: var(--danger-color); color: white;">
-                    <i class="fas fa-trash"></i>
-                    Delete Record
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
 
 <!-- View Details Modal -->
 <div class="modal" id="detailsModal">
@@ -1114,87 +1083,160 @@
 
 
 
+ *@
 
 
 
 
 
 
-
-
-
-
-
-
-
-@* 
-@using FleetManager.Business.DataObjects
+    @using FleetManager.Business.DataObjects
 @using FleetManager.Business.Enums
 @model List<DriverDutyOfCareDto>
 @{
     ViewData["Title"] = "Duty of Care Records";
 }
 
-
 <style>
-    .border-left-primary {
-        border-left: 0.25rem solid #4e73df !important;
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.8rem;
     }
 
-    .border-left-success {
-        border-left: 0.25rem solid #1cc88a !important;
+    .avatar-circle-lg {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
     }
 
-    .border-left-warning {
-        border-left: 0.25rem solid #f6c23e !important;
+    .sortable {
+        cursor: pointer;
+        user-select: none;
     }
 
-    .border-left-danger {
-        border-left: 0.25rem solid #e74a3b !important;
+    .sortable:hover {
+        background-color: rgba(255, 255, 255, 0.1);
     }
 
-    .avatar-sm {
-        width: 2rem;
-        height: 2rem;
-        font-size: 0.875rem;
+    .sort-icon {
+        margin-left: 5px;
+        opacity: 0.5;
+        font-size: 0.8rem;
+    }
+
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .table-hover tbody tr:hover {
-        background-color: rgba(0,0,0,.05);
+        background-color: rgba(0, 123, 255, 0.05);
     }
 
     .btn-group .btn {
         border-radius: 0.25rem;
-        margin-right: 0.125rem;
+        margin-right: 2px;
     }
 
-    .text-gray-800 {
-        color: #5a5c69 !important;
+    .btn-group .btn:last-child {
+        margin-right: 0;
     }
 
-    .text-gray-300 {
-        color: #dddfeb !important;
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .status-badge {
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem;
+    }
+
+    .badge-compliant {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-action {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .status-icon {
+        font-size: 1.2rem;
+    }
+
+    .status-success {
+        color: #28a745;
+    }
+
+    .status-warning {
+        color: #ffc107;
+    }
+
+    .status-danger {
+        color: #dc3545;
+    }
+
+    .date-range-picker {
+        display: flex;
+        gap: 10px;
+    }
+
+    .date-range-picker .form-control {
+        width: 150px;
     }
 </style>
 
-
-
-<div class="container-fluid px-4 py-3">
+<div class="container-fluid py-4">
     <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-1 text-gray-800 fw-bold">
-                <i class="fas fa-shield-alt text-primary me-2"></i>
-                Duty of Care Records
-            </h1>
-            <p class="text-muted mb-0">Manage driver safety and compliance records</p>
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="fas fa-shield-alt me-2"></i>Duty of Care Records
+            </h2>
+            <p class="text-muted mb-0">Monitor driver safety and compliance records across your fleet</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary" onclick="exportToExcel()">
-                <i class="fas fa-download me-1"></i>Export
-            </button>
-            <a href="@Url.Action("Create")" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i>New Record
+        <div class="col-md-4 text-end">
+            <a asp-action="Create" class="btn btn-success btn-lg shadow-sm">
+                <i class="fas fa-plus me-2"></i>New Record
+            </a>
+            <a href="@Url.Action("ExportToExcel")" class="btn btn-primary btn-lg shadow-sm ms-2">
+                <i class="fas fa-download me-2"></i>Export Data
             </a>
         </div>
     </div>
@@ -1202,78 +1244,78 @@
     <!-- Alert Messages -->
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
             <i class="fas fa-check-circle me-2"></i>
             @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>
             @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <!-- Stats Cards -->
+    <!-- Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Records</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count</div>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Records</h6>
+                            <h3 class="mb-0">@Model.Count</h3>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        <div class="align-self-center">
+                            <i class="fas fa-clipboard-list fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Approved</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count(x => x.DutyOfCareStatus == DriverDutyOfCareStatus.Compliant)</div>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Compliant</h6>
+                            <h3 class="mb-0">@Model.Count(x => x.DutyOfCareStatus == DriverDutyOfCareStatus.Compliant)</h3>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Review</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count(x => x.DutyOfCareStatus == DriverDutyOfCareStatus.PendingReview)</div>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Pending Review</h6>
+                            <h3 class="mb-0">@Model.Count(x => x.DutyOfCareStatus == DriverDutyOfCareStatus.PendingReview)</h3>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-danger shadow h-100 py-2">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Issues Reported</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count(x => x.ReportsVehicleIssues || x.ReportsFatigue)</div>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Issues Reported</h6>
+                            <h3 class="mb-0">@Model.Count(x => x.ReportsVehicleIssues || x.ReportsFatigue)</h3>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
                         </div>
                     </div>
                 </div>
@@ -1281,240 +1323,390 @@
         </div>
     </div>
 
-    <!-- Filters Card -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-filter me-2"></i>Filters
-            </h6>
-            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
-                <i class="fas fa-chevron-down"></i>
-            </button>
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text bg-light">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control" id="searchInput" placeholder="Search by driver, vehicle, status...">
+            </div>
         </div>
-        <div class="collapse" id="filtersCollapse">
-            <div class="card-body">
-                <form id="filterForm" class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Date Range</label>
-                        <div class="input-group">
-                            <input type="date" class="form-control" id="dateFrom" name="dateFrom">
-                            <span class="input-group-text">to</span>
-                            <input type="date" class="form-control" id="dateTo" name="dateTo">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" id="statusFilter" name="status">
-                            <option value="">All Statuses</option>
-                            <option value="PendingReview">Pending Review</option>
-                            <option value="Approved">Approved</option>
-                            <option value="RequiresAction">Requires Action</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Record Type</label>
-                        <select class="form-select" id="typeFilter" name="type">
-                            <option value="">All Types</option>
-                            <option value="HealthCheck">Health Check</option>
-                            <option value="PreTrip">Pre-Trip</option>
-                            <option value="PostTrip">Post-Trip</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Search</label>
-                        <input type="text" class="form-control" id="searchInput" placeholder="Search driver, vehicle...">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-outline-secondary me-2" onclick="clearFilters()">
-                            <i class="fas fa-times"></i> Clear
-                        </button>
-                        <button type="button" class="btn btn-primary" onclick="applyFilters()">
-                            <i class="fas fa-search"></i> Filter
-                        </button>
-                    </div>
-                </form>
+        <div class="col-md-2">
+            <select class="form-select" id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="Compliant">Compliant</option>
+                <option value="PendingReview">Pending Review</option>
+                <option value="ActionRequired">Action Required</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="typeFilter">
+                <option value="">All Types</option>
+                @foreach (var type in Enum.GetValues<DutyOfCareRecordType>())
+                {
+                    <option value="@type">@type.ToString()</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <div class="date-range-picker">
+                <input type="text" class="form-control flatpickr" id="dateFrom" placeholder="From Date">
+                <input type="text" class="form-control flatpickr" id="dateTo" placeholder="To Date">
+                <button class="btn btn-primary" id="applyDateFilter">
+                    <i class="fas fa-filter"></i>
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Records Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-table me-2"></i>Records (@Model.Count)
-            </h6>
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>Records List
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" id="tableView">
+                            <i class="fas fa-table"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="cardView">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            @if (Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover" id="recordsTable">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col">
-                                    <i class="fas fa-calendar me-1"></i>Date
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-user me-1"></i>Driver
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-car me-1"></i>Vehicle
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-clipboard-check me-1"></i>Type
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-traffic-light me-1"></i>Status
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-heartbeat me-1"></i>Health
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-tools me-1"></i>Vehicle Check
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>Issues
-                                </th>
-                                <th scope="col" class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var record in Model)
-                            {
-                                <tr class="@(record.ReportsVehicleIssues || record.ReportsFatigue ? "table-warning" : "")">
-                                    <td>
-                                        <div class="fw-bold">@record.Date.ToString("MMM dd, yyyy")</div>
+        <div class="card-body p-0">
+            <!-- Table View -->
+            <div id="tableContainer" class="table-responsive">
+                <table class="table table-hover mb-0" id="recordsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="sortable" data-sort="date">
+                                <i class="fas fa-calendar me-1"></i>Date
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-sort="driver">
+                                <i class="fas fa-user me-1"></i>Driver
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-sort="vehicle">
+                                <i class="fas fa-car me-1"></i>Vehicle
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-sort="type">
+                                <i class="fas fa-tag me-1"></i>Type
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-sort="status">
+                                <i class="fas fa-signal me-1"></i>Status
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th><i class="fas fa-heartbeat me-1"></i>Health</th>
+                            <th><i class="fas fa-car me-1"></i>Vehicle Check</th>
+                            <th><i class="fas fa-exclamation-triangle me-1"></i>Issues</th>
+                            <th class="text-center" width="120">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in Model)
+                        {
+                            <tr class="record-row" 
+                                data-driver="@record.DriverName?.ToLower()" 
+                                data-vehicle="@record.VehicleDescription?.ToLower()"
+                                data-status="@record.DutyOfCareStatus.ToString().ToLower()"
+                                data-type="@record.DutyOfCareRecordType.ToString().ToLower()"
+                                data-date="@record.Date.ToString("yyyy-MM-dd")">
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span>@record.Date.ToString("MMM dd, yyyy")</span>
                                         <small class="text-muted">@record.DeclarationTimestamp.ToString("HH:mm")</small>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                <i class="fas fa-user text-white"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">@record.DriverName</div>
-                                                <small class="text-muted">ID: @record.DriverId</small>
-                                            </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            @(record.DriverName?.Substring(0, Math.Min(2, record.DriverName.Length)).ToUpper())
                                         </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                <i class="fas fa-car text-white"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">@record.VehicleDescription</div>
-                                                <small class="text-muted">ID: @record.VehicleId</small>
-                                            </div>
+                                        <div>
+                                            <strong>@record.DriverName</strong>
+                                            <div class="text-muted small">ID: @record.DriverId</div>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">
-                                            @record.DutyOfCareRecordType.ToString()
-                                        </span>
-                                    </td>
-                                    <td>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);">
+                                            <i class="fas fa-car"></i>
+                                        </div>
+                                        <div>
+                                            <strong>@record.VehicleDescription</strong>
+                                            <div class="text-muted small">ID: @record.VehicleId</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">@record.DutyOfCareRecordType.ToString()</span>
+                                </td>
+                                <td>
+                                    @{
+                                        var statusClass = record.DutyOfCareStatus switch
+                                        {
+                                            DriverDutyOfCareStatus.Compliant => "badge-compliant",
+                                            DriverDutyOfCareStatus.PendingReview => "badge-pending",
+                                            DriverDutyOfCareStatus.ActionRequired => "badge-action",
+                                            _ => "badge-secondary"
+                                        };
+                                        var statusText = record.DutyOfCareStatus.ToString()
+                                            .Replace("PendingReview", "Pending Review")
+                                            .Replace("ActionRequired", "Action Required");
+                                    }
+                                    <span class="status-badge @statusClass">@statusText</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (record.IsFitToDrive)
+                                    {
+                                        <i class="fas fa-check-circle status-icon status-success" title="Fit to Drive"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-times-circle status-icon status-danger" title="Not Fit to Drive"></i>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (record.VehiclePreCheckCompleted)
+                                    {
+                                        <i class="fas fa-check-circle status-icon status-success" title="Pre-check Completed"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-times-circle status-icon status-danger" title="Pre-check Not Completed"></i>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (record.ReportsVehicleIssues || record.ReportsFatigue)
+                                    {
+                                        <i class="fas fa-exclamation-triangle status-icon status-warning" title="Issues Reported"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-check status-icon status-success" title="No Issues"></i>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-action="Edit" asp-route-id="@record.Id" 
+                                           class="btn btn-outline-primary"
+                                           data-bs-toggle="tooltip" 
+                                           title="Edit Record">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-outline-info" 
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#detailsModal"
+                                                data-url="@Url.Action("Details", new { id = record.Id })"
+                                                data-bs-toggle="tooltip" 
+                                                title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-outline-danger delete-btn"
+                                                data-record-id="@record.Id"
+                                                data-record-name="@record.DriverName - @record.DutyOfCareRecordType.ToString()"
+                                                data-bs-toggle="tooltip" 
+                                                title="Delete Record">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Card View (Initially Hidden) -->
+            <div id="cardContainer" style="display: none;" class="p-3">
+                <div class="row" id="recordCards">
+                    @foreach (var record in Model)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-3 record-card" 
+                             data-driver="@record.DriverName?.ToLower()" 
+                             data-vehicle="@record.VehicleDescription?.ToLower()"
+                             data-status="@record.DutyOfCareStatus.ToString().ToLower()"
+                             data-type="@record.DutyOfCareRecordType.ToString().ToLower()"
+                             data-date="@record.Date.ToString("yyyy-MM-dd")">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="avatar-circle-lg">
+                                            @(record.DriverName?.Substring(0, Math.Min(2, record.DriverName.Length)).ToUpper())
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <button class="dropdown-item" 
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#detailsModal"
+                                                            data-url="@Url.Action("Details", new { id = record.Id })">
+                                                        <i class="fas fa-eye me-2"></i>View Details
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" asp-action="Edit" asp-route-id="@record.Id">
+                                                        <i class="fas fa-edit me-2"></i>Edit
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger delete-btn"
+                                                            data-record-id="@record.Id"
+                                                            data-record-name="@record.DriverName - @record.DutyOfCareRecordType.ToString()">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <h6 class="card-title">@record.DriverName</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-car me-1"></i>@record.VehicleDescription
+                                        </small><br>
+                                        <span class="badge bg-primary">@record.DutyOfCareRecordType.ToString()</span>
                                         @{
-                                            var statusClass = record.DutyOfCareStatus switch
+                                            var cardStatusClass = record.DutyOfCareStatus switch
                                             {
-                                                DriverDutyOfCareStatus.Compliant => "bg-success",
-                                                DriverDutyOfCareStatus.PendingReview => "bg-warning",
-                                                DriverDutyOfCareStatus.ActionRequired => "bg-danger",
-                                                _ => "bg-secondary"
+                                                DriverDutyOfCareStatus.Compliant => "badge-compliant",
+                                                DriverDutyOfCareStatus.PendingReview => "badge-pending",
+                                                DriverDutyOfCareStatus.ActionRequired => "badge-action",
+                                                _ => "badge-secondary"
                                             };
+                                            var cardStatusText = record.DutyOfCareStatus.ToString()
+                                                .Replace("PendingReview", "Pending Review")
+                                                .Replace("ActionRequired", "Action Required");
                                         }
-                                        <span class="badge @statusClass">
-                                            @record.DutyOfCareStatus.ToString().Replace("PendingReview", "Pending Review").Replace("RequiresAction", "Requires Action")
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        @if (record.IsFitToDrive)
-                                        {
-                                            <i class="fas fa-check-circle text-success" title="Fit to Drive"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-times-circle text-danger" title="Not Fit to Drive"></i>
-                                        }
-                                    </td>
-                                    <td class="text-center">
-                                        @if (record.VehiclePreCheckCompleted)
-                                        {
-                                            <i class="fas fa-check-circle text-success" title="Pre-check Completed"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-times-circle text-danger" title="Pre-check Not Completed"></i>
-                                        }
-                                    </td>
-                                    <td class="text-center">
-                                        @if (record.ReportsVehicleIssues || record.ReportsFatigue)
-                                        {
-                                            <i class="fas fa-exclamation-triangle text-warning" title="Issues Reported"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-check text-success" title="No Issues"></i>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="@Url.Action("Edit", new { id = record.Id })" 
-                                               class="btn btn-sm btn-outline-primary" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-sm btn-outline-info" 
-                                                    onclick="viewDetails(@record.Id)" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    onclick="confirmDelete(@record.Id)" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                        <span class="status-badge @cardStatusClass">@cardStatusText</span>
+                                    </p>
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Health Check:</span>
+                                            @if (record.IsFitToDrive)
+                                            {
+                                                <span class="text-success"><i class="fas fa-check-circle"></i> Fit</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger"><i class="fas fa-times-circle"></i> Not Fit</span>
+                                            }
                                         </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Vehicle Check:</span>
+                                            @if (record.VehiclePreCheckCompleted)
+                                            {
+                                                <span class="text-success"><i class="fas fa-check-circle"></i> Completed</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger"><i class="fas fa-times-circle"></i> Not Completed</span>
+                                            }
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Issues:</span>
+                                            @if (record.ReportsVehicleIssues || record.ReportsFatigue)
+                                            {
+                                                <span class="text-warning"><i class="fas fa-exclamation-triangle"></i> Reported</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-success"><i class="fas fa-check"></i> None</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>@record.Date.ToString("MMM dd, yyyy")
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>@record.DeclarationTimestamp.ToString("HH:mm")
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <i class="fas fa-clipboard-list fa-3x text-gray-300 mb-3"></i>
-                    <h5 class="text-muted">No duty of care records found</h5>
-                    <p class="text-muted">Get started by creating your first record.</p>
-                    <a href="@Url.Action("Create")" class="btn btn-primary">
-                        <i class="fas fa-plus me-1"></i>Create First Record
-                    </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="text-center py-5" style="display: none;">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No records found</h4>
+        <p class="text-muted">Try adjusting your search criteria or filters</p>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create New Record
+        </a>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="detailsModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Record Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
-            }
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                    Confirm Deletion
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this duty of care record?</p>
-                <p class="text-muted mb-0">This action cannot be undone.</p>
+                <p>Are you sure you want to delete the record <strong id="deleteRecordName"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone.
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="post" style="display: inline;">
-                    @Html.AntiForgeryToken()
+                <form id="deleteForm" method="post" class="d-inline">
+                    <input type="hidden" name="id" id="deleteRecordId" />
                     <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i>Delete
+                        <i class="fas fa-trash me-1"></i>Delete Record
                     </button>
                 </form>
             </div>
@@ -1522,83 +1714,249 @@
     </div>
 </div>
 
-<!-- View Details Modal -->
-<div class="modal fade" id="detailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-info-circle text-primary me-2"></i>
-                    Record Details
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="detailsContent">
-                <!-- Content will be loaded via AJAX -->
-            </div>
-        </div>
-    </div>
-</div>
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
     <script>
-        function confirmDelete(id) {
-            document.getElementById('deleteForm').action = '@Url.Action("Delete")/' + id;
-            new bootstrap.Modal(document.getElementById('deleteModal')).show();
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
 
-        function viewDetails(id) {
-            // Load details via AJAX (you'll need to create a Details action)
-            fetch('@Url.Action("Details")/' + id)
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('detailsContent').innerHTML = html;
-                    new bootstrap.Modal(document.getElementById('detailsModal')).show();
-                })
-                .catch(error => {
-                    console.error('Error loading details:', error);
-                    alert('Error loading record details');
-                });
-        }
+            // Initialize date pickers
+            flatpickr(".flatpickr", {
+                dateFormat: "Y-m-d",
+                allowInput: true
+            });
 
-        function exportToExcel() {
-            window.location.href = '@Url.Action("ExportToExcel")';
-        }
+            // Search and filter functionality
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const typeFilter = document.getElementById('typeFilter');
+            const dateFrom = document.getElementById('dateFrom');
+            const dateTo = document.getElementById('dateTo');
+            const applyDateFilter = document.getElementById('applyDateFilter');
+            const tableRows = document.querySelectorAll('.record-row');
+            const recordCards = document.querySelectorAll('.record-card');
+            const emptyState = document.getElementById('emptyState');
+            const tableContainer = document.getElementById('tableContainer');
+            const cardContainer = document.getElementById('cardContainer');
 
-        function applyFilters() {
-            const form = document.getElementById('filterForm');
-            const formData = new FormData(form);
-            const params = new URLSearchParams(formData);
-            window.location.href = '@Url.Action("Index")?' + params.toString();
-        }
+            function filterRecords() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedStatus = statusFilter.value.toLowerCase();
+                const selectedType = typeFilter.value.toLowerCase();
+                const fromDate = dateFrom.value;
+                const toDate = dateTo.value;
+                
+                let visibleCount = 0;
 
-        function clearFilters() {
-            document.getElementById('filterForm').reset();
-            window.location.href = '@Url.Action("Index")';
-        }
+                // Filter table rows
+                tableRows.forEach(row => {
+                    const driverName = row.dataset.driver || '';
+                    const vehicleName = row.dataset.vehicle || '';
+                    const status = row.dataset.status || '';
+                    const type = row.dataset.type || '';
+                    const date = row.dataset.date || '';
 
-        // Initialize DataTable for enhanced functionality
-        $(document).ready(function() {
-            if ($('#recordsTable tbody tr').length > 0) {
-                $('#recordsTable').DataTable({
-                    "pageLength": 25,
-                    "order": [[0, "desc"]],
-                    "columnDefs": [
-                        { "orderable": false, "targets": [8] }
-                    ],
-                    "language": {
-                        "search": "Search records:",
-                        "lengthMenu": "Show _MENU_ records per page",
-                        "info": "Showing _START_ to _END_ of _TOTAL_ records",
-                        "paginate": {
-                            "first": "First",
-                            "last": "Last",
-                            "next": "Next",
-                            "previous": "Previous"
-                        }
+                    const matchesSearch = driverName.includes(searchTerm) || 
+                                        vehicleName.includes(searchTerm);
+
+                    const matchesStatus = !selectedStatus || status === selectedStatus;
+                    const matchesType = !selectedType || type === selectedType;
+                    
+                    let matchesDate = true;
+                    if (fromDate && date < fromDate) {
+                        matchesDate = false;
+                    }
+                    if (toDate && date > toDate) {
+                        matchesDate = false;
+                    }
+
+                    if (matchesSearch && matchesStatus && matchesType && matchesDate) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
                     }
                 });
+
+                // Filter cards
+                recordCards.forEach(card => {
+                    const driverName = card.dataset.driver || '';
+                    const vehicleName = card.dataset.vehicle || '';
+                    const status = card.dataset.status || '';
+                    const type = card.dataset.type || '';
+                    const date = card.dataset.date || '';
+
+                    const matchesSearch = driverName.includes(searchTerm) || 
+                                        vehicleName.includes(searchTerm);
+
+                    const matchesStatus = !selectedStatus || status === selectedStatus;
+                    const matchesType = !selectedType || type === selectedType;
+                    
+                    let matchesDate = true;
+                    if (fromDate && date < fromDate) {
+                        matchesDate = false;
+                    }
+                    if (toDate && date > toDate) {
+                        matchesDate = false;
+                    }
+
+                    if (matchesSearch && matchesStatus && matchesType && matchesDate) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Show/hide empty state
+                if (visibleCount === 0) {
+                    emptyState.style.display = 'block';
+                    tableContainer.style.display = 'none';
+                    cardContainer.style.display = 'none';
+                } else {
+                    emptyState.style.display = 'none';
+                    if (document.getElementById('tableView').classList.contains('active')) {
+                        tableContainer.style.display = 'block';
+                        cardContainer.style.display = 'none';
+                    } else {
+                        tableContainer.style.display = 'none';
+                        cardContainer.style.display = 'block';
+                    }
+                }
             }
+
+            searchInput.addEventListener('input', filterRecords);
+            statusFilter.addEventListener('change', filterRecords);
+            typeFilter.addEventListener('change', filterRecords);
+            applyDateFilter.addEventListener('click', filterRecords);
+
+            // View toggle
+            document.getElementById('tableView').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('cardView').classList.remove('active');
+                tableContainer.style.display = 'block';
+                cardContainer.style.display = 'none';
+                filterRecords(); // Reapply filters to ensure consistency
+            });
+
+            document.getElementById('cardView').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('tableView').classList.remove('active');
+                tableContainer.style.display = 'none';
+                cardContainer.style.display = 'block';
+                filterRecords(); // Reapply filters to ensure consistency
+            });
+
+            // Table sorting
+            document.querySelectorAll('.sortable').forEach(header => {
+                header.addEventListener('click', function() {
+                    const sortType = this.dataset.sort;
+                    const table = document.getElementById('recordsTable');
+                    const tbody = table.querySelector('tbody');
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    
+                    const isAscending = this.classList.contains('sort-asc');
+                    
+                    // Remove all sort classes
+                    document.querySelectorAll('.sortable').forEach(h => {
+                        h.classList.remove('sort-asc', 'sort-desc');
+                    });
+
+                    // Add appropriate sort class
+                    if (isAscending) {
+                        this.classList.add('sort-desc');
+                    } else {
+                        this.classList.add('sort-asc');
+                    }
+
+                    rows.sort((a, b) => {
+                        let aValue, bValue;
+                        
+                        switch(sortType) {
+                            case 'date':
+                                aValue = a.dataset.date || '';
+                                bValue = b.dataset.date || '';
+                                break;
+                            case 'driver':
+                                aValue = a.dataset.driver || '';
+                                bValue = b.dataset.driver || '';
+                                break;
+                            case 'vehicle':
+                                aValue = a.dataset.vehicle || '';
+                                bValue = b.dataset.vehicle || '';
+                                break;
+                            case 'type':
+                                aValue = a.dataset.type || '';
+                                bValue = b.dataset.type || '';
+                                break;
+                            case 'status':
+                                aValue = a.dataset.status || '';
+                                bValue = b.dataset.status || '';
+                                break;
+                            default:
+                                return 0;
+                        }
+
+                        if (isAscending) {
+                            return bValue.localeCompare(aValue);
+                        } else {
+                            return aValue.localeCompare(bValue);
+                        }
+                    });
+
+                    // Re-append sorted rows
+                    rows.forEach(row => tbody.appendChild(row));
+                });
+            });
+
+            // Details modal
+            const detailsModal = document.getElementById('detailsModal');
+            detailsModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const url = button.getAttribute('data-url');
+                const body = detailsModal.querySelector('.modal-body');
+                
+                body.innerHTML = `
+                    <div class="d-flex justify-content-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+                
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        body.innerHTML = html;
+                        body.classList.add('fade-in');
+                    })
+                    .catch(error => {
+                        body.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Error loading record details. Please try again.
+                            </div>
+                        `;
+                    });
+            });
+
+            // Delete confirmation
+            const deleteModal = document.getElementById('deleteModal');
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const recordId = this.dataset.recordId;
+                    const recordName = this.dataset.recordName;
+                    
+                    document.getElementById('deleteRecordId').value = recordId;
+                    document.getElementById('deleteRecordName').textContent = recordName;
+                    document.getElementById('deleteForm').action = '@Url.Action("Delete")';
+                    
+                    new bootstrap.Modal(deleteModal).show();
+                });
+            });
         });
     </script>
-
- *@
