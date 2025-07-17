@@ -4,6 +4,7 @@ using FleetManager.Business;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FleetManager.Business.Migrations
 {
     [DbContext(typeof(FleetManagerDbContext))]
-    partial class FleetManagerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250711115422_InitReportsCenter")]
+    partial class InitReportsCenter
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,7 +30,7 @@ namespace FleetManager.Business.Migrations
                     b.Property<long>("CompanyBranchId")
                         .HasColumnType("bigint");
 
-                    b.Property<decimal?>("Cost")
+                    b.Property<decimal>("Cost")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("Date")
@@ -69,7 +72,7 @@ namespace FleetManager.Business.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("Volume")
+                    b.Property<decimal>("Volume")
                         .HasColumnType("decimal(18,2)");
 
                     b.ToTable((string)null);
@@ -1337,76 +1340,6 @@ namespace FleetManager.Business.Migrations
                     b.ToTable("VehicleModels");
                 });
 
-            modelBuilder.Entity("FleetManager.Business.Database.Entities.VehiclePart", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("VehiclePartCategoryId")
-                        .IsRequired()
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VehiclePartCategoryId");
-
-                    b.ToTable("VehicleParts");
-                });
-
-            modelBuilder.Entity("FleetManager.Business.Database.Entities.VehiclePartCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("VehiclePartCategories");
-                });
-
             modelBuilder.Entity("FleetManager.Business.Database.Entities.VehicleToCompanyRental", b =>
                 {
                     b.Property<long>("Id")
@@ -2151,17 +2084,6 @@ namespace FleetManager.Business.Migrations
                     b.Navigation("Vehicle");
                 });
 
-            modelBuilder.Entity("FleetManager.Business.Database.Entities.VehiclePart", b =>
-                {
-                    b.HasOne("FleetManager.Business.Database.Entities.VehiclePartCategory", "VehiclePartCategory")
-                        .WithMany("VehicleParts")
-                        .HasForeignKey("VehiclePartCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("VehiclePartCategory");
-                });
-
             modelBuilder.Entity("FleetManager.Business.Database.Entities.VehicleToCompanyRental", b =>
                 {
                     b.HasOne("FleetManager.Business.Database.Entities.CompanyBranch", "CompanyBranch")
@@ -2263,11 +2185,6 @@ namespace FleetManager.Business.Migrations
                     b.Navigation("MaintenanceRecords");
 
                     b.Navigation("VehicleDocuments");
-                });
-
-            modelBuilder.Entity("FleetManager.Business.Database.Entities.VehiclePartCategory", b =>
-                {
-                    b.Navigation("VehicleParts");
                 });
 
             modelBuilder.Entity("FleetManager.Business.Database.Entities.Vendor", b =>

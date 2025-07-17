@@ -1,0 +1,186 @@
+﻿@* @using FleetManager.Business.DataObjects.ReportsDto
+@model ReportResultBase
+
+@{
+    int totalPages = (int)Math.Ceiling((double)Model.TotalRecords / Model.PageSize);
+    int currentPage = Model.PageNumber;
+    int startPage = Math.Max(1, currentPage - 2);
+    int endPage = Math.Min(totalPages, startPage + 4);
+
+    if (endPage - startPage < 4)
+        startPage = Math.Max(1, endPage - 4);
+}
+
+@if (Model.TotalRecords > 0)
+{
+    <nav aria-label="Report pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link pagination-link" data-page="1" href="#">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link pagination-link" data-page="@(currentPage - 1)" href="#">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link pagination-link" data-page="@i" href="#">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                <a class="page-link pagination-link" data-page="@(currentPage + 1)" href="#">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                <a class="page-link pagination-link" data-page="@totalPages" href="#">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        </ul>
+
+        <p class="text-center text-muted mt-2">
+            Showing @((currentPage - 1) * Model.PageSize + 1) to
+            @Math.Min(currentPage * Model.PageSize, Model.TotalRecords) of @Model.TotalRecords records
+        </p>
+    </nav>
+
+    <div id="ajaxLoader" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted mt-2">Fetching data...</p>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('.pagination-link').on('click', function (e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                const form = $('#filterForm');
+                const query = form.length ? form.serialize() + '&PageNumber=' + page : 'PageNumber=' + page;
+
+                $('#ajaxLoader').show();
+                $('.report-content').css('opacity', 0.5);
+
+                $.ajax({
+                    url: '@Url.Action(ViewContext.RouteData.Values["action"].ToString())',
+                    type: 'GET',
+                    data: query,
+                    success: function (result) {
+                        const $content = $(result).find('.report-content');
+                        $('.report-content').replaceWith($content);
+                    },
+                    error: function () {
+                        alert('Failed to load page.');
+                    },
+                    complete: function () {
+                        $('#ajaxLoader').hide();
+                        $('.report-content').css('opacity', 1);
+                    }
+                });
+            });
+        });
+    </script>
+}
+ *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+ @using FleetManager.Business.DataObjects.ReportsDto
+@model ReportResultBase
+
+@{
+    int totalPages = (int)Math.Ceiling((double)Model.TotalRecords / Model.PageSize);
+    int currentPage = Model.PageNumber;
+    int startPage = Math.Max(1, currentPage - 2);
+    int endPage = Math.Min(totalPages, startPage + 4);
+    if (endPage - startPage < 4) startPage = Math.Max(1, endPage - 4);
+}
+
+@if (Model.TotalRecords > 0)
+{
+    <nav class="mt-4" aria-label="Report pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link pagination-link" data-page="1" href="#">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link pagination-link" data-page="@(currentPage - 1)" href="#">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link pagination-link" data-page="@i" href="#">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                <a class="page-link pagination-link" data-page="@(currentPage + 1)" href="#">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                <a class="page-link pagination-link" data-page="@totalPages" href="#">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        </ul>
+        <p class="text-center text-muted mt-2">
+            Showing @((currentPage - 1) * Model.PageSize + 1) to
+            @Math.Min(currentPage * Model.PageSize, Model.TotalRecords) of @Model.TotalRecords records
+        </p>
+    </nav>
+
+    <script>
+        $(document).ready(function () {
+            $('.pagination-link').on('click', function (e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                const form = $('#filterForm');
+                const query = form.serialize() + '&PageNumber=' + page;
+
+                $('#ajaxLoader').show();
+                $('#ajaxReportContent').css('opacity', 0.5);
+
+                $.ajax({
+                    url: '@Url.Action(ViewContext.RouteData.Values["action"].ToString())',
+                    type: 'GET',
+                    data: query,
+                    success: function (result) {
+                        const newContent = $(result).find('#ajaxReportContent');
+                        $('#ajaxReportContent').replaceWith(newContent);
+                    },
+                    error: function () {
+                        alert('Failed to change page.');
+                    },
+                    complete: function () {
+                        $('#ajaxLoader').hide();
+                        $('#ajaxReportContent').css('opacity', 1);
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,149 @@
+﻿@using FleetManager.Business.DataObjects.ReportsDto
+@model ReportMetadata
+
+@{
+    string borderClass = "border-primary";
+    string iconClass = "bg-primary";
+    string icon = "fa-chart-bar";
+
+    var reportType = Model.Type?.ToLower() ?? "";
+
+    if (reportType.Contains("driver"))
+    {
+        borderClass = "border-success";
+        iconClass = "bg-success";
+        icon = "fa-user";
+    }
+    else if (reportType.Contains("vehicle"))
+    {
+        borderClass = "border-info";
+        iconClass = "bg-info";
+        icon = "fa-car";
+    }
+    else if (reportType.Contains("fuel"))
+    {
+        borderClass = "border-warning";
+        iconClass = "bg-warning";
+        icon = "fa-gas-pump";
+    }
+    else if (reportType.Contains("assignment"))
+    {
+        borderClass = "border-purple";
+        iconClass = "bg-purple";
+        icon = "fa-route";
+    }
+
+    int completeness = Math.Clamp(Model.CompletenessPercentage, 0, 100);
+    string updatedAt = Model.LastGenerated.ToString("MMM dd, yyyy");
+    int readMinutes = Model.EstimatedReadTimeMinutes > 0 ? Model.EstimatedReadTimeMinutes : 2;
+}
+
+<div class="card report-card h-100 border-start @borderClass border-4">
+    <div class="card-header bg-white">
+        <div class="d-flex align-items-center">
+            <div class="report-icon @iconClass text-white rounded-circle p-3 me-3">
+                <i class="fas @icon fa-2x"></i>
+            </div>
+            <h5 class="report-title card-title mb-0">@Model.Name</h5>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <p class="report-description card-text text-muted">@Model.Description</p>
+
+        <div class="report-metadata mt-4">
+            <div class="d-flex small text-muted mb-2 justify-content-between">
+                <div>
+                    <i class="fas fa-history me-1"></i> Updated: @updatedAt
+                </div>
+                <div>
+                    <i class="fas fa-clock me-1"></i> ~@readMinutes min read
+                </div>
+            </div>
+
+            <div class="report-progress">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span>Data Completeness</span>
+                    <span>@completeness%</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar @iconClass" role="progressbar" 
+                         style="width: @completeness%" 
+                         aria-valuenow="@completeness" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between">
+            @* <a href="@Url.Action(Model.Type)" class="btn btn-sm btn-outline-primary"> *@
+            @*     <i class="fas fa-eye me-1"></i> View Report *@
+            @* </a> *@
+            <a href="@Url.Action(Model.Type, "Reports", new { area = "Admin" })" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-eye me-1"></i> View Report
+            </a>
+
+
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    @foreach (var format in new[] { "Excel", "PDF", "CSV" })
+                    {
+                        var exportIconClass = format switch
+                        {
+                            "Excel" => "fa-file-excel text-success",
+                            "PDF" => "fa-file-pdf text-danger",
+                            "CSV" => "fa-file-csv text-info",
+                            _ => "fa-file"
+                        };
+
+                            <li>
+                                <form method="post" asp-action="Export">
+                                    <input type="hidden" name="ReportRequest.ReportType" value="@Model.Type" />
+                                    <button type="submit" name="Format" value="@format" class="dropdown-item">
+                                        <i class="fas @exportIconClass me-2"></i> @format
+                                    </button>
+                                </form>
+                            </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .report-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .report-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+    }
+
+    .report-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card-footer {
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .bg-purple {
+        background-color: #6f42c1 !important;
+    }
+</style>

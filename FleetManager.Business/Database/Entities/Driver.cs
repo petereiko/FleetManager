@@ -27,5 +27,7 @@ namespace FleetManager.Business.Database.Entities
 
         public long? CompanyId { get; set; }
         public virtual Company Company { get; set; }
+        //public virtual ICollection<DriverViolation> Violations { get; set; } = new List<DriverViolation>();
+
     }
 }

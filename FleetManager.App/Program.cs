@@ -2,9 +2,11 @@
 
 using System.Configuration;
 using System.Globalization;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DVLA.Business.UserModule;
 using FleetManager.Business;
 using FleetManager.Business.Database.IdentityModels;
+using FleetManager.Business.DataObjects.ReportsDto;
 using FleetManager.Business.GoogleMap.Options;
 using FleetManager.Business.GoogleRoutesApi.Interfaces;
 using FleetManager.Business.GoogleRoutesApi.Services;
@@ -19,9 +21,11 @@ using FleetManager.Business.Implementations.DutyOfCareModule;
 using FleetManager.Business.Implementations.EmailModule;
 using FleetManager.Business.Implementations.FineAndTollModule;
 using FleetManager.Business.Implementations.FuelLogModule;
+using FleetManager.Business.Implementations.MaintenanceModule;
 using FleetManager.Business.Implementations.ManageDriverModule;
 using FleetManager.Business.Implementations.NotificationModule;
 using FleetManager.Business.Implementations.RentalModule;
+using FleetManager.Business.Implementations.ReportModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
 using FleetManager.Business.Implementations.VendorModule;
@@ -34,9 +38,11 @@ using FleetManager.Business.Interfaces.DutyOfCareModule;
 using FleetManager.Business.Interfaces.EmailModule;
 using FleetManager.Business.Interfaces.FineAndTollModule;
 using FleetManager.Business.Interfaces.FuelLogModule;
+using FleetManager.Business.Interfaces.MaintenanceModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.RentalModule;
+using FleetManager.Business.Interfaces.ReportModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
@@ -87,7 +93,6 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 .AddRoleStore<RoleStore<ApplicationRole, FleetManagerDbContext, string, ApplicationUserRole, IdentityRoleClaim<string>>>()
 .AddDefaultTokenProviders();
 
-
 // Add authentication services
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -135,7 +140,11 @@ builder.Services.AddTransient<IFineAndTollService, FineAndTollService>();
 builder.Services.AddTransient<INotificationService, NotificationService>();
 builder.Services.AddTransient<IVendorService, VendorService>();
 builder.Services.AddTransient<IRentalService, RentalService>();
+builder.Services.AddTransient<IReportService, ReportService>();
+builder.Services.AddTransient<IReportExportService, ReportExportService>();
 builder.Services.AddTransient<IContactDirectoryService, ContactDirectoryService>();
+builder.Services.AddTransient<IMaintenanceService, MaintenanceService>();
+
 
 //builder.Services.AddSingleton<IGoogleRoutesService, FakeRoutesService>();
 
@@ -157,6 +166,8 @@ builder.Services.AddTransient<IAuditRepo, AuditRepo>();
 builder.Services.AddTransient<IAuthUser, AuthUser>();
 //builder.Services.AddTransient<ITempPasswordService, TempPasswordService>();
 builder.Services.AddTransient<BackgroundJobService>();
+
+
 
 
 builder.Services.AddHangfire(configuration => configuration

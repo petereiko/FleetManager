@@ -1,0 +1,170 @@
+﻿@* @using FleetManager.Business.DataObjects.ReportsDto
+@using FleetManager.Business.Enums
+@model ReportResult<DriverPerformanceReportDto>
+
+<div class="report-container">
+    @await Html.PartialAsync("_ReportHeader", Model)
+
+    <div class="report-content">
+        @await Html.PartialAsync("_ReportFilters", new ReportRequest())
+
+        @await Html.PartialAsync("_SummaryCards", ViewBag.SummaryCards as List<SummaryCardItem>)
+
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2 text-muted"></i> Driver Performance
+                    </h5>
+                    <div class="text-muted">
+                        Showing @((Model.PageNumber - 1) * Model.PageSize + 1)-@(Model.PageNumber * Model.PageSize > Model.TotalRecords ? Model.TotalRecords : Model.PageNumber * Model.PageSize) of @Model.TotalRecords drivers
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Driver</th>
+                                <th>License</th>
+                                <th>Status</th>
+                                <th class="text-end">Trips</th>
+                                <th class="text-end">Distance</th>
+                                <th class="text-end">Fuel Cost</th>
+                                <th class="text-end">Performance</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var driver in Model.Data)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-3">
+                                                <div class="bg-light border rounded-circle p-2">
+                                                    <i class="fas fa-user text-primary"></i>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">@driver.DriverName</div>
+                                                <div class="small text-muted">
+                                                    @if (driver.VehiclesAssigned.Any())
+                                                    {
+                                                        @string.Join(", ", driver.VehiclesAssigned.Take(2))
+                                                        @if (driver.VehiclesAssigned.Count > 2)
+                                                        {
+                                                            <span>+@(driver.VehiclesAssigned.Count - 2) more</span>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>No vehicles assigned</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>@driver.LicenseNumber</div>
+                                        <div class="small @(driver.IsLicenseExpiringSoon ? "text-danger" : "text-success")">
+                                            @(driver.LicenseExpiryDate?.ToString("MMM yyyy") ?? "N/A")
+                                            @if (driver.IsLicenseExpiringSoon)
+                                            {
+                                                <span class="badge bg-warning ms-1">Expiring</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(driver.CurrentShiftStatus == ShiftStatus.OnDuty ? "bg-success" : "bg-secondary")">
+                                            @driver.CurrentShiftStatus
+                                        </span>
+                                        <div class="small text-muted">
+                                            @if (driver.LastSeen.HasValue)
+                                            {
+                                                <span>Last seen: @driver.LastSeen.Value.ToString("g")</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="text-end fw-bold">@driver.TotalTrips</td>
+                                    <td class="text-end">@driver.TotalDistance.ToString("N0") km</td>
+                                    <td class="text-end fw-bold text-primary">@driver.TotalFuelCost.ToString("C")</td>
+                                    <td>
+                                        <div class="d-flex align-items-center justify-content-end">
+                                            <div class="progress me-2" style="height: 8px; width: 100px;">
+                                                <div class="progress-bar @(driver.PerformanceScore > 80 ? "bg-success" :
+                                                                         driver.PerformanceScore > 60 ? "bg-primary" :
+                                                                         driver.PerformanceScore > 40 ? "bg-warning" : "bg-danger")"
+                                                     role="progressbar"
+                                                     style="width: @driver.PerformanceScore%"
+                                                     aria-valuenow="@driver.PerformanceScore"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100"></div>
+                                            </div>
+                                            <span class="fw-bold">@driver.PerformanceScore.ToString("0")%</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="@Url.Action("DriverDetail", new { id = driver.DriverId })"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @await Html.PartialAsync("_Pagination", Model)
+    </div>
+</div> *@
+
+
+
+
+
+
+
+
+
+@using FleetManager.Business.DataObjects.ReportsDto
+@model ReportResult<DriverPerformanceReportDto>
+
+<div class="report-container">
+    @await Html.PartialAsync("_ReportHeader", new ReportHeaderModel
+{
+    ReportType = Model.ReportType,
+    TotalRecords = Model.TotalRecords,
+    GeneratedAt = Model.GeneratedAt,
+    StartDate = Model.Request?.StartDate,
+    EndDate = Model.Request?.EndDate,
+    ReportRequest = Model.Request
+})
+
+
+    <div id="ajaxReportContent" class="report-content">
+        @await Html.PartialAsync("_ReportFilters", Model.Request)
+        @await Html.PartialAsync("_SummaryCards", ViewBag.SummaryCards as List<SummaryCardItem>)
+
+        @* @await Html.PartialAsync("_SummaryCards", Model.Summary) *@
+        @await Html.PartialAsync("_ReportTable", Model)
+        @await Html.PartialAsync("_Pagination", Model)
+    </div>
+
+    <div id="ajaxLoader" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted mt-2">Fetching data...</p>
+    </div>
+</div>
+
+
+
+

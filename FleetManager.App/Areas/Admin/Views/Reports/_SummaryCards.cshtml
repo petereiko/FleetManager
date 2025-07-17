@@ -1,0 +1,135 @@
+﻿@using FleetManager.Business.DataObjects.ReportsDto
+@model List<SummaryCardItem>
+
+<div class="report-summary mb-4">
+    <div class="row">
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            var item = Model[i];
+            var isPercentage = item.IsPercentage;
+            double percent = 0;
+
+            if (isPercentage && double.TryParse(item.Value?.ToString(), out double val))
+            {
+                percent = val;
+            }
+
+            <div class="col-md-3 mb-3">
+                <div class="card summary-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="card-subtitle text-muted mb-2">@item.Key</h6>
+                                <h3 class="card-title fw-bold">@item.Value</h3>
+                            </div>
+                            <div class="summary-icon @item.BackgroundClass text-white rounded-circle p-3">
+                                <i class="fas @item.IconClass fa-lg"></i>
+                            </div>
+                        </div>
+
+                        @if (isPercentage)
+                        {
+                            <div class="progress mt-3" style="height: 8px;">
+                                <div class="progress-bar @item.BackgroundClass" role="progressbar"
+                                     style="width: @percent%" aria-valuenow="@percent"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="mt-2 text-end small">
+                                <span class="fw-bold @(percent > 75 ? "text-success" :
+                                                     percent > 50 ? "text-primary" :
+                                                     percent > 25 ? "text-warning" : "text-danger")">
+                                    @percent.ToString("0.##")%
+                                </span>
+                                <span class="text-muted">of target</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.ReportsDto
+@model ReportResult<dynamic>
+
+@{
+    var summaryItems = Model.Summary.ToList();
+    var colorClasses = new[] { "bg-primary", "bg-success", "bg-info", "bg-warning", "bg-secondary", "bg-dark" };
+    var iconClasses = new[] { "fa-users", "fa-road", "fa-gas-pump", "fa-chart-line", "fa-shield-alt", "fa-tachometer-alt" };
+}
+
+<div class="report-summary mb-4">
+    <div class="row">
+        @for (int i = 0; i < summaryItems.Count; i++)
+        {
+            var item = summaryItems[i];
+            var color = i < colorClasses.Length ? colorClasses[i] : "bg-secondary";
+            var icon = i < iconClasses.Length ? iconClasses[i] : "fa-chart-bar";
+
+            string formattedValue;
+            if (item.Value is double dVal)
+            {
+                formattedValue = dVal.ToString("N2");
+            }
+            else if (item.Value is int iVal)
+            {
+                formattedValue = iVal.ToString("N0");
+            }
+            else
+            {
+                formattedValue = item.Value?.ToString();
+            }
+
+            <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card summary-card h-100 border-0 shadow-sm animate__animated animate__fadeIn">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="card-subtitle text-muted mb-2" title="@item.Key" data-bs-toggle="tooltip">
+                                    @item.Key
+                                </h6>
+                                <h3 class="card-title fw-bold">@formattedValue</h3>
+                            </div>
+                            <div class="summary-icon @color text-white rounded-circle p-3">
+                                <i class="fas @icon fa-lg"></i>
+                            </div>
+                        </div>
+
+                        @if (item.Key.ToLower().Contains("score") || item.Key.ToLower().Contains("percentage"))
+                        {
+                            double value = 0;
+                            double.TryParse(item.Value?.ToString(), out value);
+                            <div class="progress mt-3" style="height: 8px;">
+                                <div class="progress-bar @color" role="progressbar"
+                                     style="width: @value%" aria-valuenow="@value"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="mt-2 text-end small">
+                                <span class="fw-bold @(value > 75 ? "text-success" :
+                                                     value > 50 ? "text-primary" :
+                                                     value > 25 ? "text-warning" : "text-danger")">
+                                    @value.ToString("0.##")%
+                                </span>
+                                <span class="text-muted">of target</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+ *@

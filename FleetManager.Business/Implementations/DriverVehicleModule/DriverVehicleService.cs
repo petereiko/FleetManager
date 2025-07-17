@@ -217,7 +217,7 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                        DriverId = dv.DriverId!.Value,
                        DriverName = $"{u.FirstName} {u.LastName}",
                        VehicleId = dv.VehicleId!.Value,
-                       VehicleMakeModel =  $"{v.VehicleMake.Name} {v.VehicleModel.Name}",
+                       VehicleMakeModel =  $"{v.VehicleMake.Name} {v.VehicleModel.Name }" ,
                        PlateNo = v.PlateNo,
                        StartDate = dv.StartDate ?? DateTime.MinValue,
                        EndDate = dv.EndDate

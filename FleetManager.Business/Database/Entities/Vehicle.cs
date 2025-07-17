@@ -42,6 +42,8 @@ namespace FleetManager.Business.Database.Entities
 
         public long? VendorId { get; set; }
         public virtual Vendor? Vendor { get; set; }
+        public virtual ICollection<MaintenanceRecord> MaintenanceRecords { get; set; } = new List<MaintenanceRecord>();
+
     }
 }
 

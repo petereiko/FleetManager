@@ -1,0 +1,275 @@
+﻿@* @using FleetManager.Business.DataObjects.ReportsDto
+@model List<ReportMetadata>
+@inject IReportService ReportService
+@inject IAuthUser AuthUser
+@{
+    ViewData["Title"] = "Reports Center";
+    var branchId = AuthUser.CompanyBranchId.Value;
+    var dashboardSummary = await ReportService.GetDashboardSummaryAsync(new ReportRequest
+            {
+                StartDate = DateTime.UtcNow.AddMonths(-1),
+                EndDate = DateTime.UtcNow
+            }, branchId);
+
+    var driverSummary = dashboardSummary["DriverSummary"];
+    var vehicleSummary = dashboardSummary["VehicleSummary"];
+}
+
+<div class="reports-hub">
+    <div class="hub-header bg-primary text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold">
+                        <i class="fas fa-chart-line me-3"></i>Reports Center
+                    </h1>
+                    <p class="lead mb-0">Get real-time insights into fleet, drivers, fuel, and performance.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="stats-card bg-white text-dark p-3 rounded shadow-sm">
+                        <div class="d-flex justify-content-around">
+                            <div class="text-center">
+                                <div class="stat-icon text-primary">
+                                    <i class="fas fa-car fa-lg"></i>
+                                </div>
+                                <div class="stat-value mt-2">@((int)vehicleSummary.GetType().GetProperty("Active")?.GetValue(vehicleSummary))</div>
+                                <div class="stat-label">Active Vehicles</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="stat-icon text-success">
+                                    <i class="fas fa-user fa-lg"></i>
+                                </div>
+                                <div class="stat-value mt-2">@((int)driverSummary.GetType().GetProperty("Active")?.GetValue(driverSummary))</div>
+                                <div class="stat-label">Active Drivers</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <div class="category-filters mb-4">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="flex-grow-1">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search reports..." id="reportSearch" />
+                    </div>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-filter="all">All</button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="driver"><i class="fas fa-user me-1"></i> Driver</button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="vehicle"><i class="fas fa-car me-1"></i> Vehicle</button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="fuel"><i class="fas fa-gas-pump me-1"></i> Fuel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 reports-grid">
+            @foreach (var report in Model)
+            {
+                var category = report.Type.ToLower().Contains("driver") ? "driver"
+                : report.Type.ToLower().Contains("vehicle") ? "vehicle"
+                : report.Type.ToLower().Contains("fuel") ? "fuel"
+                : "other";
+
+                <div class="col" data-category="@category">
+                    @await Html.PartialAsync("_ReportCard", report)
+                </div>
+            }
+        </div>
+    </div>
+</div> *@
+
+
+
+
+
+
+
+
+
+@using FleetManager.Business.DataObjects.ReportsDto
+@model ReportsCenterViewModel
+@{
+    ViewData["Title"] = "Reports Center";
+}
+
+<div class="reports-hub">
+<div class="reports-hub">
+<div class="hub-header bg-primary text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 fw-bold">
+                        <i class="fas fa-chart-network me-3"></i>Reports Center
+                    </h1>
+                    <p class="lead mb-0">Access comprehensive analytics and operational insights for your fleet</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="stats-card bg-white text-dark p-3 rounded shadow">
+                        <div class="d-flex justify-content-around flex-wrap">
+                            <div class="text-center mb-3 mx-2">
+                                <div class="stat-icon text-primary">
+                                    <i class="fas fa-car fa-2x"></i>
+                                </div>
+                                <div class="stat-value mt-2">@Model.TotalVehicleCount</div>
+                                <div class="stat-label">Total Vehicles</div>
+                                <div class="text-muted small">Active: @Model.ActiveVehicleCount</div>
+                            </div>
+                            <div class="text-center mb-3 mx-2">
+                                <div class="stat-icon text-success">
+                                    <i class="fas fa-user fa-2x"></i>
+                                </div>
+                                <div class="stat-value mt-2">@Model.TotalDriverCount</div>
+                                <div class="stat-label">Total Drivers</div>
+                                <div class="text-muted small">Active: @Model.ActiveDriverCount</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <div class="container py-5">
+        <div class="category-filters mb-4">
+            <div class="d-flex flex-wrap align-items-center">
+                <div class="me-3 mb-2">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" 
+                               placeholder="Search reports..." id="reportSearch">
+                    </div>
+                </div>
+                <div class="btn-group mb-2" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-filter="all">All</button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="driver">
+                        <i class="fas fa-user me-1"></i> Driver
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="vehicle">
+                        <i class="fas fa-car me-1"></i> Vehicle
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="fuel">
+                        <i class="fas fa-gas-pump me-1"></i> Fuel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 reports-grid">
+                    @foreach (var report in Model.MetadataList)
+                    {
+                        <div class="col" data-category="@(report.Type.ToLower().Contains("driver") ? "driver" :
+                                     report.Type.ToLower().Contains("vehicle") ? "vehicle" :
+                                     report.Type.ToLower().Contains("fuel") ? "fuel" : "other")">
+                            @await Html.PartialAsync("_ReportCard", report)
+                        </div>
+                    }
+
+
+        </div>
+    </div>
+</div>
+
+    <style>
+        .reports-hub {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .hub-header {
+            background: linear-gradient(120deg, #0d6efd, #0b5ed7);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 0 0 2rem 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-card {
+            border-radius: 1rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .stat-icon {
+            background: rgba(13, 110, 253, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .category-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+    </style>
+
+
+    <script>
+        // Report search and filtering
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('reportSearch');
+            const filterButtons = document.querySelectorAll('[data-filter]');
+            const reportCards = document.querySelectorAll('.reports-grid .col');
+            
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                const term = this.value.toLowerCase();
+                reportCards.forEach(card => {
+                    const title = card.querySelector('.report-title').textContent.toLowerCase();
+                    const desc = card.querySelector('.report-description').textContent.toLowerCase();
+                    const category = card.dataset.category;
+                    
+                    if (title.includes(term) || desc.includes(term)) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Category filtering
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active button
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filter = this.dataset.filter;
+                    
+                    // Filter cards
+                    reportCards.forEach(card => {
+                        if (filter === 'all' || card.dataset.category === filter) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>

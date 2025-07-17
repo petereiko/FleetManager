@@ -1,0 +1,119 @@
+﻿@using FleetManager.Business.DataObjects.ReportsDto
+@model ReportRequest
+
+<div class="report-filters card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 py-3">
+        <h5 class="mb-0 d-flex align-items-center">
+            <i class="fas fa-filter text-primary me-2"></i> Filter Options
+        </h5>
+    </div>
+
+    <div class="card-body">
+        <form id="filterForm" method="get" class="row g-3">
+
+            <div class="col-md-3">
+                <label class="form-label"><i class="fas fa-calendar-start me-2 text-muted"></i> Start Date</label>
+                <input type="date" class="form-control" name="StartDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label"><i class="fas fa-calendar-end me-2 text-muted"></i> End Date</label>
+                <input type="date" class="form-control" name="EndDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label"><i class="fas fa-list-ol me-2 text-muted"></i> Page Size</label>
+                <select class="form-select" name="PageSize">
+                    <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                    <option value="25" selected="@(Model.PageSize == 25)">25</option>
+                    <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                    <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label"><i class="fas fa-user-tag me-2 text-muted"></i> Status</label>
+                <select class="form-select" name="Status">
+                    <option value="">-- All --</option>
+                    <option value="OnDuty" selected="@(Model.Status == "OnDuty")">On Duty</option>
+                    <option value="OffDuty" selected="@(Model.Status == "OffDuty")">Off Duty</option>
+                    <option value="Active" selected="@(Model.Status == "Active")">Active</option>
+                    <option value="Inactive" selected="@(Model.Status == "Inactive")">Inactive</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 form-check form-switch d-flex align-items-center">
+                <input class="form-check-input me-2" type="checkbox" name="ExportOnFilterApply" id="exportToggle" @(Model.ExportOnFilterApply ? "checked" : "") />
+                <label class="form-check-label" for="exportToggle">Export on apply</label>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-filter me-1"></i> Apply
+                </button>
+                <a href="@Url.Action(ViewContext.RouteData.Values["action"].ToString())" class="btn btn-outline-secondary">
+                    <i class="fas fa-sync-alt me-1"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     $('#filterForm').submit(function (e) {
+        //         e.preventDefault();
+
+        //         const exportRequested = $('#exportToggle').is(':checked');
+        //         const form = $(this);
+
+        //         if (exportRequested) {
+        //             // Redirect with export flag
+        //             const actionUrl = '@Url.Action(ViewContext.RouteData.Values["action"].ToString())';
+        //             const queryParams = form.serialize();
+        //             window.location.href = actionUrl + '?' + queryParams + '&Format=PDF';
+        //         } else {
+        //             $.ajax({
+        //                 url: '@Url.Action(ViewContext.RouteData.Values["action"].ToString())',
+        //                 type: 'GET',
+        //                 data: form.serialize(),
+        //                 success: function (result) {
+        //                     $('.report-content').html($(result).find('.report-content').html());
+        //                 },
+        //                 error: function () {
+        //                     alert('Failed to filter reports.');
+        //                 }
+        //             });
+        //         }
+        //     });
+        // });
+
+            $(document).ready(function () {
+            $('#filterForm').on('submit', function (e) {
+                e.preventDefault();
+                const query = $(this).serialize();
+
+                $('#ajaxLoader').show();
+                $('#ajaxReportContent').css('opacity', 0.5);
+
+                $.ajax({
+                    url: '@Url.Action(ViewContext.RouteData.Values["action"].ToString())',
+                    type: 'GET',
+                    data: query,
+                    success: function (result) {
+                        const newContent = $(result).find('#ajaxReportContent');
+                        $('#ajaxReportContent').replaceWith(newContent);
+                    },
+                    error: function () {
+                        alert('Failed to apply filters.');
+                    },
+                    complete: function () {
+                        $('#ajaxLoader').hide();
+                        $('#ajaxReportContent').css('opacity', 1);
+                    }
+                });
+            });
+        });
+    </script>
+}
