@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using System.Reflection.Emit;
 using FleetManager.Business.Database.Entities;
 using FleetManager.Business.Database.Entities.MaintenanceTicket;
 using FleetManager.Business.Database.IdentityModels;
@@ -12,6 +13,7 @@ namespace FleetManager.Business
     {
         public FleetManagerDbContext(DbContextOptions<FleetManagerDbContext> options) : base(options)
         {
+
         }
 
         // (Optional) add this for discoverability:
@@ -35,7 +37,14 @@ namespace FleetManager.Business
                 //   .WithMany()
                 //   .HasForeignKey(fl => fl.DriverId);
             });
+
+            // One-to-one: MaintenanceTicket ↔ Invoice
+            mb.Entity<MaintenanceTicket>()
+                .HasOne(t => t.Invoice)
+                .WithOne(i => i.MaintenanceTicket)
+                .HasForeignKey<Invoice>(i => i.MaintenanceTicketId);
         }
+
 
 
         #region Identities

@@ -37,7 +37,7 @@ namespace FleetManager.Business.Database.Entities.MaintenanceTicket
         public string? AdminNotes { get; set; }
 
         // Link to the automatically generated invoice
-        public long? InvoiceId { get; set; }
+        //public long? InvoiceId { get; set; }
         public virtual Invoice? Invoice { get; set; }
     }
 

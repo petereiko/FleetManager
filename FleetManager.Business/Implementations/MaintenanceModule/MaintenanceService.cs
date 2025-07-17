@@ -88,7 +88,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         Invoice = t.Invoice == null ? null : new InvoiceDto
                         {
                             Id = t.Invoice.Id,
-                            TicketId = t.Invoice.TicketId,
+                            TicketId = t.Invoice.MaintenanceTicketId,
                             InvoiceDate = t.Invoice.InvoiceDate,
                             Status = t.Invoice.Status,
                             TotalAmount = t.Invoice.TotalAmount,
@@ -165,7 +165,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         Invoice = t.Invoice == null ? null : new InvoiceDto
                         {
                             Id = t.Invoice.Id,
-                            TicketId = t.Invoice.TicketId,
+                            TicketId = t.Invoice.MaintenanceTicketId,
                             InvoiceDate = t.Invoice.InvoiceDate,
                             Status = t.Invoice.Status,
                             TotalAmount = t.Invoice.TotalAmount,
@@ -238,7 +238,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         Invoice = t.Invoice == null ? null : new InvoiceDto
                         {
                             Id = t.Invoice.Id,
-                            TicketId = t.Invoice.TicketId,
+                            TicketId = t.Invoice.MaintenanceTicketId,
                             InvoiceDate = t.Invoice.InvoiceDate,
                             Status = t.Invoice.Status,
                             TotalAmount = t.Invoice.TotalAmount,
@@ -308,7 +308,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 Invoice = t.Invoice == null ? null : new InvoiceDto
                 {
                     Id = t.Invoice.Id,
-                    TicketId = t.Invoice.TicketId,
+                    TicketId = t.Invoice.MaintenanceTicketId,
                     InvoiceDate = t.Invoice.InvoiceDate,
                     Status = t.Invoice.Status,
                     TotalAmount = t.Invoice.TotalAmount,
@@ -384,7 +384,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 // Create invoice
                 var inv = new Invoice
                 {
-                    TicketId = ticket.Id,
+                    MaintenanceTicketId = ticket.Id,
                     CompanyBranchId = ticket.CompanyBranchId,
                     InvoiceDate = DateTime.UtcNow,
                     Status = InvoiceStatus.Pending,
@@ -526,14 +526,14 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 EnsureAdminOrOwner();
                 var b = branchId ?? _auth.CompanyBranchId;
                 var query = _context.Invoices.AsNoTracking()
-                    .Include(i => i.Ticket).ThenInclude(t => t.Driver).ThenInclude(d => d.User)
-                    .Include(i => i.Ticket).ThenInclude(t => t.Vehicle)
+                    .Include(i => i.MaintenanceTicket).ThenInclude(t => t.Driver).ThenInclude(d => d.User)
+                    .Include(i => i.MaintenanceTicket).ThenInclude(t => t.Vehicle)
                     .Where(i => i.CompanyBranchId == b)
                     .OrderByDescending(i => i.InvoiceDate)
                     .Select(i => new InvoiceDto
                     {
                         Id = i.Id,
-                        TicketId = i.TicketId,
+                        TicketId = i.MaintenanceTicketId,
                         InvoiceDate = i.InvoiceDate,
                         Status = i.Status,
                         TotalAmount = i.TotalAmount,
@@ -572,14 +572,14 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
             {
                 //var d = driverId ?? _auth.UserId;
                 var query = _context.Invoices.AsNoTracking()
-               .Include(i => i.Ticket).ThenInclude(t => t.Driver).ThenInclude(dv => dv.User)
-               .Include(i => i.Ticket).ThenInclude(t => t.Vehicle)
-               .Where(i => i.Ticket.Driver.Id == driverId)
+               .Include(i => i.MaintenanceTicket).ThenInclude(t => t.Driver).ThenInclude(dv => dv.User)
+               .Include(i => i.MaintenanceTicket).ThenInclude(t => t.Vehicle)
+               .Where(i => i.MaintenanceTicket.Driver.Id == driverId)
                .OrderByDescending(i => i.InvoiceDate)
                .Select(i => new InvoiceDto
                {
                    Id = i.Id,
-                   TicketId = i.TicketId,
+                   TicketId = i.MaintenanceTicketId,
                    InvoiceDate = i.InvoiceDate,
                    Status = i.Status,
                    TotalAmount = i.TotalAmount,
@@ -620,14 +620,14 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
             {
                 EnsureAdminOrOwner();
                 var query = _context.Invoices.AsNoTracking()
-                    .Include(i => i.Ticket).ThenInclude(t => t.Driver).ThenInclude(d => d.User)
-                    .Include(i => i.Ticket).ThenInclude(t => t.Vehicle)
-                    .Where(i => i.Ticket.VehicleId == vehicleId)
+                    .Include(i => i.MaintenanceTicket).ThenInclude(t => t.Driver).ThenInclude(d => d.User)
+                    .Include(i => i.MaintenanceTicket).ThenInclude(t => t.Vehicle)
+                    .Where(i => i.MaintenanceTicket.VehicleId == vehicleId)
                     .OrderByDescending(i => i.InvoiceDate)
                     .Select(i => new InvoiceDto
                     {
                         Id = i.Id,
-                        TicketId = i.TicketId,
+                        TicketId = i.MaintenanceTicketId,
                         InvoiceDate = i.InvoiceDate,
                         Status = i.Status,
                         TotalAmount = i.TotalAmount,
@@ -660,8 +660,8 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
         public async Task<InvoiceDto?> GetInvoiceByIdAsync(long invoiceId)
         {
             var inv = await _context.Invoices.AsNoTracking()
-                .Include(i => i.Ticket).ThenInclude(t => t.Driver).ThenInclude(d => d.User)
-                .Include(i => i.Ticket).ThenInclude(t => t.Vehicle)
+                .Include(i => i.MaintenanceTicket).ThenInclude(t => t.Driver).ThenInclude(d => d.User)
+                .Include(i => i.MaintenanceTicket).ThenInclude(t => t.Vehicle)
                 .FirstOrDefaultAsync(i => i.Id == invoiceId);
             if (inv == null) return null;
             //if (!_auth.Roles.Split(',').Any(r => new[] { "Super Admin", "Company Owner", "Company Admin" }.Contains(r.Trim()))
@@ -670,7 +670,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
             return new InvoiceDto
             {
                 Id = inv.Id,
-                TicketId = inv.TicketId,
+                TicketId = inv.MaintenanceTicketId,
                 InvoiceDate = inv.InvoiceDate,
                 Status = inv.Status,
                 TotalAmount = inv.TotalAmount,
@@ -705,7 +705,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 // If paid, move ticket to InProgress
                 if (newStatus == InvoiceStatus.Paid)
                 {
-                    var ticket = await _context.MaintenanceTickets.FindAsync(inv.TicketId);
+                    var ticket = await _context.MaintenanceTickets.FindAsync(inv.MaintenanceTicketId);
                     if (ticket != null)
                     {
                         ticket.Status = TicketStatus.InProgress;
@@ -726,7 +726,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     ? $"Your invoice # {invoiceId} has been marked Paid and ticket moved InProgress."
                     : $"Your invoice # {invoiceId} has been Cancelled.";
                 await _notification.CreateAsync(
-                    inv.Ticket.Driver.UserId,
+                    inv.MaintenanceTicket.Driver.UserId,
                     title,
                     message,
                     NotificationType.Success,

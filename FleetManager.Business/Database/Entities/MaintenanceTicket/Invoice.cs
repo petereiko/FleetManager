@@ -13,8 +13,8 @@ namespace FleetManager.Business.Database.Entities.MaintenanceTicket
         public virtual CompanyBranch? CompanyBranch { get; set; }
 
         // Link back to the ticket
-        public long TicketId { get; set; }
-        public virtual MaintenanceTicket Ticket { get; set; }
+        public long MaintenanceTicketId { get; set; }
+        public virtual MaintenanceTicket MaintenanceTicket { get; set; }
 
         // Invoice metadata
         public DateTime InvoiceDate { get; set; } = DateTime.UtcNow;

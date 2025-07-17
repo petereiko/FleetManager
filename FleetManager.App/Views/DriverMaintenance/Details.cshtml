@@ -1,0 +1,169 @@
+﻿@using FleetManager.Business.DataObjects.MaintenanceDto
+@model MaintenanceTicketDto
+@{
+    ViewData["Title"] = $"Ticket #{Model.Id}";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="mb-3">
+    <strong>Date:</strong>
+    @Model.CreatedAt.ToString("yyyy‑MM‑dd HH:mm")
+</div>
+
+<div class="mb-3">
+    <strong>Vehicle:</strong>
+    @Model.VehicleDescription
+</div>
+
+<div class="mb-3">
+    <strong>Subject:</strong>
+    @Model.Subject
+</div>
+
+<div class="mb-3">
+    <strong>Notes:</strong><br />
+    <div class="border rounded p-3">@Model.Notes</div>
+</div>
+
+<div class="mb-3">
+    <strong>Status:</strong>
+    <span class="badge badge-status-@Model.Status">
+        @Model.Status
+    </span>
+</div>
+
+@if (Model.Items?.Any() == true)
+{
+    <h4>Line Items</h4>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Part</th>
+                <th>Category</th>
+                <th class="text-end">Qty</th>
+                <th class="text-end">Unit Price</th>
+                <th class="text-end">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var i in Model.Items)
+            {
+                <tr>
+                    <td>@i.PartName</td>
+                    <td>@i.PartCategoryName</td>
+                    <td class="text-end">@i.Quantity</td>
+                    <td class="text-end">@i.UnitPrice.ToString("C")</td>
+                    <td class="text-end">@i.LineTotal.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (Model.Invoice != null)
+{
+    <div class="mt-4">
+        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+            <i class="fas fa-file-invoice-dollar"></i> View Invoice
+        </button>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="invoiceModalLabel">Invoice #@Model.Invoice.Id</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- Invoice Header -->
+                    <div class="d-flex justify-content-between mb-4">
+                        <div>
+                            <h4>FleetGuard</h4>
+                            <p>
+                                123 Fleet Street<br />
+                                City, Country<br />
+                                Phone: +123 456 7890
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <strong>Invoice Date:</strong> @Model.Invoice.InvoiceDate.ToString("yyyy‑MM‑dd")<br />
+                            <strong>Status:</strong>
+                            <span class="badge badge-status-@Model.Invoice.Status">
+                                @Model.Invoice.Status
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Bill To / Ticket Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Bill To:</h6>
+                            <p>@Model.DriverName<br />Branch ID: @Model.DriverId</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h6>Ticket #:</h6>
+                            <p>@Model.Id</p>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Items Table -->
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Part</th>
+                                <th>Category</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Line Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ii in Model.Invoice.Items)
+                            {
+                                <tr>
+                                    <td>@ii.PartName</td>
+                                    <td>@ii.PartCategory</td>
+                                    <td class="text-end">@ii.Quantity</td>
+                                    <td class="text-end">@ii.UnitPrice.ToString("C")</td>
+                                    <td class="text-end">@ii.LineTotal.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">Total Due:</th>
+                                <th class="text-end">@Model.Invoice.Items.Sum(x => x.LineTotal).ToString("C")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!-- Footer / Thank you note -->
+                    <div class="text-center mt-4">
+                        <em>Thank you for your business!</em>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+    <script>
+        // nothing additional needed; bootstrap handles the modal
+    </script>
+
