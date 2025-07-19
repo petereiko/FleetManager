@@ -1,4 +1,5 @@
-﻿using FleetManager.Business.DataObjects.MaintenanceDto;
+﻿using FleetManager.App.Models;
+using FleetManager.Business.DataObjects.MaintenanceDto;
 using FleetManager.Business.DataObjects.VehicleDto;
 using FleetManager.Business.Enums;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
@@ -8,6 +9,7 @@ using FleetManager.Business.ViewModels.MaintenanceViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace FleetManager.App.Controllers
 {
@@ -67,7 +69,10 @@ namespace FleetManager.App.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading maintenance tickets");
-                return View("Error");
+                return View("Error", new ErrorViewModel
+                {
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+                });
             }
         }
 
@@ -98,7 +103,10 @@ namespace FleetManager.App.Controllers
                     DriverId = driverId,
                     Vehicles = vehicles,
                     PartCategories = categories,
-                    Items = new List<MaintenanceTicketItemInputViewModel>() // start empty
+                    Items = new List<MaintenanceTicketItemInputViewModel>
+                    {
+                        new MaintenanceTicketItemInputViewModel()  // <-- one empty row
+                    }
                 };
                 return View(vm);
             }
@@ -188,7 +196,10 @@ namespace FleetManager.App.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading ticket details #{TicketId}", id);
-                return View("Error");
+                return View("Error", new ErrorViewModel
+                {
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+                });
             }
         }
 

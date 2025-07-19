@@ -12,5 +12,6 @@ namespace FleetManager.Business.ViewModels
         public string Password { get; set; }
         public bool RememberMe { get; set; }
         public List<string> Errors { get; set;}=new List<string>();
+        
     }
 }

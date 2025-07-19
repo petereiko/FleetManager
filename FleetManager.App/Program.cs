@@ -46,6 +46,7 @@ using FleetManager.Business.Interfaces.ReportModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
+using FleetManager.Business.UtilityModels;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -272,6 +273,7 @@ app.UseSession();
 
 app.UseAuthorization();
 
+//app.UseMiddleware<SessionTimeoutRedirectMiddleware>();
 
 
 app.UseHangfireDashboard("/hangfire");

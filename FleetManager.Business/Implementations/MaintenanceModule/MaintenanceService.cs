@@ -271,21 +271,38 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
 
         }
 
-        public async Task<MaintenanceTicketDto> GetTicketByIdAsync(long ticketId)
+        public async Task<MaintenanceTicketDto?> GetTicketByIdAsync(long ticketId)
         {
+            var t = await _context.MaintenanceTickets
+                .AsNoTracking()
+                .Include(t => t.Driver)
+                    .ThenInclude(d => d.User)
+                .Include(t => t.Vehicle)
+                    .ThenInclude(v => v.VehicleMake)
+                .Include(t => t.Vehicle)
+                    .ThenInclude(v => v.VehicleModel)
+                // load both nav‐props off of Items:
+                .Include(t => t.Items)
+                    .ThenInclude(i => i.VehiclePartCategory)
+                .Include(t => t.Items)
+                    .ThenInclude(i => i.VehiclePart)
+                // load invoice + its items too
+                .Include(t => t.Invoice)
+                    .ThenInclude(inv => inv.Items)
+                        .ThenInclude(ii => ii.VehiclePartCategory)
+                .Include(t => t.Invoice)
+                    .ThenInclude(inv => inv.Items)
+                        .ThenInclude(ii => ii.VehiclePart)
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
 
-            var t = await _context.MaintenanceTickets.AsNoTracking()
-                 .Include(x => x.Driver).ThenInclude(d => d.User)
-                 .Include(v => v.Vehicle)
-                 .Include(q => q.Items).ThenInclude(i => i.VehiclePartCategory)
-                 .FirstOrDefaultAsync(t => t.Id == ticketId);
             if (t == null) return null;
+
 
             return new MaintenanceTicketDto
             {
                 Id = t.Id,
                 DriverId = t.DriverId,
-                DriverName = t.Driver.User.FirstName + " " + t.Driver.User.LastName,
+                DriverName = $"{t.Driver.User.FirstName} {t.Driver.User.LastName}",
                 VehicleId = t.VehicleId,
                 VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
                 Subject = t.Subject,
@@ -299,8 +316,8 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     Id = i.Id,
                     PartId = i.VehiclePartId,
                     PartName = i.VehiclePart.Name,
-                    PartCategoryName = i.VehiclePartCategory.Name,
-                    CustomDescription = i.CustomPartDescription,
+                    PartCategoryName = i.VehiclePartCategory.Name ?? "",
+                    CustomDescription = i.CustomPartDescription ?? "",
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
                     LineTotal = i.Quantity * i.UnitPrice
@@ -316,17 +333,15 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     {
                         Id = ii.Id,
                         PartId = ii.VehiclePartId,
-                        PartName = ii.VehiclePart.Name,
-                        PartCategory = ii.VehiclePartCategory.Name,
-                        CustomPartDescription = ii.Description,
+                        PartName = ii.VehiclePart.Name ?? "",
+                        PartCategory = ii.VehiclePartCategory.Name ?? "",
+                        CustomPartDescription = ii.Description ,
                         Quantity = ii.Quantity,
                         UnitPrice = ii.UnitPrice,
                         LineTotal = ii.Quantity * ii.UnitPrice
                     }).ToList()
                 }
             };
-
-
         }
 
 

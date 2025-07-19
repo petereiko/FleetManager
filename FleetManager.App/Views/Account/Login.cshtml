@@ -22,6 +22,7 @@
 
 		<!-- Form -->
 		<form asp-action="Login">
+			
 			<div class="input-block">
 				<label asp-for="Email">Email <span class="login-danger">*</span></label>
 				<input asp-for="Email" class="form-control" type="text">
@@ -59,4 +60,21 @@
 
 		</div>
 	</div>
-</div>
+</div
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('sessionExpired')) {
+            Toastify({
+                text: "You've been logged out due to inactivity. Please log in to continuew.",
+                duration: 5000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#ff6b6b"
+            }).showToast();
+        }
+    </script>
+

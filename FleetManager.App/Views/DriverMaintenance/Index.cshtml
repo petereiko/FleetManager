@@ -1,102 +1,798 @@
-﻿@using FleetManager.Business.ViewModels.MaintenanceViewModels
+﻿
+@using FleetManager.Business.ViewModels.MaintenanceViewModels
+@using FleetManager.Business.Enums
+
 @model MaintenanceTicketListViewModel
 @{
     ViewData["Title"] = "My Maintenance Tickets";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>@ViewData["Title"]</h2>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="fas fa-plus"></i> New Ticket
-    </a>
+<style>
+    /* Main Container */
+    .maintenance-tickets-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .page-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 5px 0 0 0;
+    }
+
+    .header-actions .btn {
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+
+        .header-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+
+    /* Summary Cards */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .summary-card .card-body {
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+    .summary-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+        .summary-icon.pending {
+            background: linear-gradient(45deg, #ffc107, #ffeb3b);
+        }
+
+        .summary-icon.in-progress {
+            background: linear-gradient(45deg, #17a2b8, #00bcd4);
+        }
+
+        .summary-icon.resolved {
+            background: linear-gradient(45deg, #28a745, #4caf50);
+        }
+
+        .summary-icon.total {
+            background: linear-gradient(45deg, #6c757d, #9e9e9e);
+        }
+
+    .summary-content h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .summary-content p {
+        margin: 0;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    /* Filters Section */
+    .filters-section {
+        margin-bottom: 30px;
+    }
+
+        .filters-section .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+    .filter-form .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .filter-form .form-select,
+    .filter-form .form-control {
+        border-radius: 12px;
+        border: 2px solid #e9ecef;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+
+        .filter-form .form-select:focus,
+        .filter-form .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+    /* Tickets Table */
+    .tickets-section .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+        padding: 20px 25px;
+    }
+
+    .card-title {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .table-header {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+        .table-header th {
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 20px 15px;
+            border: none;
+            white-space: nowrap;
+        }
+
+    .table-hover tbody tr {
+        transition: all 0.3s ease;
+    }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+    .ticket-row td {
+        padding: 20px 15px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+
+    .ticket-number {
+        font-weight: 700;
+        color: #667eea;
+        font-size: 1.1rem;
+    }
+
+    .date-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .date-main {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .date-time {
+        font-size: 0.85rem;
+    }
+
+    .vehicle-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .vehicle-name {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .subject-text {
+        color: #495057;
+        line-height: 1.4;
+    }
+
+    /* Status Badges - Maintaining your existing system */
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-status-Pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-status-InProgress {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .badge-status-Resolved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-status-Rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    /* Priority Indicators */
+    .priority-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .priority-high {
+        color: #dc3545;
+    }
+
+    .priority-medium {
+        color: #ffc107;
+    }
+
+    .priority-low {
+        color: #28a745;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+        .action-buttons .btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+            .action-buttons .btn:hover {
+                transform: translateY(-2px);
+            }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h4 {
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+
+    .empty-state p {
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+    }
+
+    /* Pagination */
+    .pagination-section {
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .pagination .page-link {
+        border-radius: 8px;
+        margin: 0 4px;
+        padding: 10px 15px;
+        border: 2px solid #e9ecef;
+        color: #667eea;
+        transition: all 0.3s ease;
+    }
+
+        .pagination .page-link:hover {
+            background-color: #667eea;
+            border-color: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .pagination .page-item.active .page-link {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+
+    .pagination-info {
+        margin-top: 15px;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .summary-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .table-responsive {
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .maintenance-tickets-container {
+            padding: 10px;
+        }
+
+        .page-header {
+            padding: 20px;
+        }
+
+        .summary-card .card-body {
+            padding: 20px;
+        }
+    }
+</style>
+
+
+<div class="maintenance-tickets-container">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="title-section">
+                <h1 class="page-title">
+                    <i class="fas fa-wrench me-3"></i>
+                    @ViewData["Title"]
+                </h1>
+                <p class="page-subtitle">Track and manage your vehicle maintenance requests</p>
+            </div>
+            <div class="header-actions">
+                <a asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>
+                    New Ticket
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-icon pending">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>@Model.Tickets.Count(t => t.Status == TicketStatus.Pending)</h3>
+                    <p>Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-icon in-progress">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>@Model.Tickets.Count(t => t.Status == TicketStatus.InProgress)</h3>
+                    <p>In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-icon resolved">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>@Model.Tickets.Count(t => t.Status == TicketStatus.Resolved)</h3>
+                    <p>Resolved</p>
+                </div>
+            </div>
+        </div>
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-icon total">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>@Model.Tickets.Count()</h3>
+                    <p>Total Tickets</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="filter-form">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="InProgress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select name="dateRange" class="form-select">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="quarter">This Quarter</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <input type="text" name="search" class="form-control" placeholder="Search tickets, vehicles, or subjects...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="tickets-section">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-ticket-alt me-2"></i>
+                    Maintenance Tickets
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Tickets.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-header">
+                                <tr>
+                                    <th class="ticket-id">
+                                        <i class="fas fa-hashtag me-1"></i>
+                                        Ticket #
+                                    </th>
+                                    <th class="date-column">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        Date Created
+                                    </th>
+                                    <th class="vehicle-column">
+                                        <i class="fas fa-car me-1"></i>
+                                        Vehicle
+                                    </th>
+                                    <th class="subject-column">
+                                        <i class="fas fa-file-alt me-1"></i>
+                                        Subject
+                                    </th>
+                                    <th class="status-column">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Status
+                                    </th>
+                                    <th class="priority-column">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Priority
+                                    </th>
+                                    <th class="actions-column">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ticket in Model.Tickets)
+                                {
+                                    <tr class="ticket-row">
+                                        <td class="ticket-id">
+                                            <span class="ticket-number">#@ticket.Id</span>
+                                        </td>
+                                        <td class="date-column">
+                                            <div class="date-info">
+                                                <span class="date-main">@ticket.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                                <small class="date-time text-muted">@ticket.CreatedAt.ToString("HH:mm")</small>
+                                            </div>
+                                        </td>
+                                        <td class="vehicle-column">
+                                            <div class="vehicle-info">
+                                                <i class="fas fa-car text-primary me-2"></i>
+                                                <span class="vehicle-name">@ticket.VehicleDescription</span>
+                                            </div>
+                                        </td>
+                                        <td class="subject-column">
+                                            <div class="subject-info">
+                                                <span class="subject-text" title="@ticket.Subject">
+                                                    @(ticket.Subject.Length > 50 ? ticket.Subject.Substring(0, 50) + "..." : ticket.Subject)
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="status-column">
+                                            <span class="badge badge-status-@ticket.Status status-badge">
+                                                @ticket.Status
+                                            </span>
+                                        </td>
+                                        <td class="priority-column">
+                                            <span class="priority-indicator priority-medium">
+                                                <i class="fas fa-circle"></i>
+                                                Medium
+                                            </span>
+                                        </td>
+                                        <td class="actions-column">
+                                            <div class="action-buttons">
+                                                <a asp-action="Details" 
+                                                   asp-route-id="@ticket.Id" 
+                                                   class="btn btn-sm btn-outline-primary"
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" 
+                                                   asp-route-id="@ticket.Id" 
+                                                   class="btn btn-sm btn-outline-secondary"
+                                                   title="Edit Ticket">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h4>No maintenance tickets found</h4>
+                        <p>You haven't created any maintenance tickets yet.</p>
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            Create Your First Ticket
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.Pagination.TotalPages > 1)
+    {
+        <div class="pagination-section">
+            <nav aria-label="Tickets pagination">
+                <ul class="pagination justify-content-center">
+                    @if (Model.Pagination.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(Model.Pagination.CurrentPage - 1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+                    
+                    @for (int p = Math.Max(1, Model.Pagination.CurrentPage - 2); p <= Math.Min(Model.Pagination.TotalPages, Model.Pagination.CurrentPage + 2); p++)
+                    {
+                        <li class="page-item @(p == Model.Pagination.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@p">@p</a>
+                        </li>
+                    }
+                    
+                    @if (Model.Pagination.CurrentPage < Model.Pagination.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-page="@(Model.Pagination.CurrentPage + 1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+            
+            <div class="pagination-info">
+                <small class="text-muted">
+                    Showing @((Model.Pagination.CurrentPage - 1) * 10 + 1) to @Math.Min(Model.Pagination.CurrentPage * 10, Model.Pagination.TotalItems) 
+                    of @Model.Pagination.TotalItems tickets
+                </small>
+            </div>
+        </div>
+    }
 </div>
 
-<table class="table table-hover align-middle">
-    <thead class="table-light">
-        <tr>
-            <th>Ticket #</th>
-            <th>Date</th>
-            <th>Vehicle</th>
-            <th>Subject</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var t in Model.Tickets)
-        {
-            <tr>
-                <td>@t.Id</td>
-                <td>
-                    <span title="@t.CreatedAt.ToString("yyyy‑MM‑dd HH:mm")">
-                        @t.CreatedAt.ToString("yyyy‑MM‑dd")
-                    </span>
-                </td>
-                <td>@t.VehicleDescription</td>
-                <td>@t.Subject</td>
-                <td>
-                    <span class="badge badge-status-@t.Status">
-                        @t.Status
-                    </span>
-                </td>
-                <td class="text-end">
-                    <a asp-area="" asp-action="Details"
-                       asp-route-id="@t.Id"
-                       class="btn btn-sm btn-outline-secondary"
-                       title="View details">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
 
-@if (Model.Pagination.TotalPages > 1)
-{
-    <nav aria-label="Tickets paging">
-        <ul class="pagination justify-content-center">
-            @for (int p = 1; p <= Model.Pagination.TotalPages; p++)
-            {
-                <li class="page-item @(p == Model.Pagination.CurrentPage ? "active" : "")">
-                    <a class="page-link"
-                       asp-action="Index"
-                       asp-route-page="@p">
-                        @p
-                    </a>
-                </li>
-            }
-        </ul>
-    </nav>
-}
 
-    <style>
-        /* Row hover highlight */
-        table.table-hover tbody tr:hover {
-            background-color: #f5f5f5;
-        }
 
-        /* Status badge colors */
-        .badge-status-Pending {
-            background-color: #ffc107;
-            color: #212529;
-        }
 
-        .badge-status-InProgress {
-            background-color: #17a2b8;
-            color: white;
-        }
 
-        .badge-status-Resolved {
-            background-color: #28a745;
-            color: white;
-        }
 
-        .badge-status-Rejected {
-            background-color: #dc3545;
-            color: white;
-        }
 
-        /* If you have other statuses, add them here... */
-    </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.ViewModels.MaintenanceViewModels *@
+@* @model MaintenanceTicketListViewModel *@
+@* @{ *@
+@*     ViewData["Title"] = "My Maintenance Tickets"; *@
+@* } *@
+
+@* <div class="d-flex justify-content-between align-items-center mb-4"> *@
+@*     <h2>@ViewData["Title"]</h2> *@
+@*     <a asp-action="Create" class="btn btn-primary"> *@
+@*         <i class="fas fa-plus"></i> New Ticket *@
+@*     </a> *@
+@* </div> *@
+
+@* <table class="table table-hover align-middle"> *@
+@*     <thead class="table-light"> *@
+@*         <tr> *@
+@*             <th>Ticket #</th> *@
+@*             <th>Date</th> *@
+@*             <th>Vehicle</th> *@
+@*             <th>Subject</th> *@
+@*             <th>Status</th> *@
+@*             <th></th> *@
+@*         </tr> *@
+@*     </thead> *@
+@*     <tbody> *@
+@*         @foreach (var t in Model.Tickets) *@
+@*         { *@
+@*             <tr> *@
+@*                 <td>@t.Id</td> *@
+@*                 <td> *@
+@*                     <span title="@t.CreatedAt.ToString("yyyy‑MM‑dd HH:mm")"> *@
+@*                         @t.CreatedAt.ToString("yyyy‑MM‑dd") *@
+@*                     </span> *@
+@*                 </td> *@
+@*                 <td>@t.VehicleDescription</td> *@
+@*                 <td>@t.Subject</td> *@
+@*                 <td> *@
+@*                     <span class="badge badge-status-@t.Status"> *@
+@*                         @t.Status *@
+@*                     </span> *@
+@*                 </td> *@
+@*                 <td class="text-end"> *@
+@*                     <a asp-area="" asp-action="Details" *@
+@*                        asp-route-id="@t.Id" *@
+@*                        class="btn btn-sm btn-outline-secondary" *@
+@*                        title="View details"> *@
+@*                         <i class="fas fa-eye"></i> *@
+@*                     </a> *@
+@*                 </td> *@
+@*             </tr> *@
+@*         } *@
+@*     </tbody> *@
+@* </table> *@
+
+@* @if (Model.Pagination.TotalPages > 1) *@
+@* { *@
+@*     <nav aria-label="Tickets paging"> *@
+@*         <ul class="pagination justify-content-center"> *@
+@*             @for (int p = 1; p <= Model.Pagination.TotalPages; p++) *@
+@*             { *@
+@*                 <li class="page-item @(p == Model.Pagination.CurrentPage ? "active" : "")"> *@
+@*                     <a class="page-link" *@
+@*                        asp-action="Index" *@
+@*                        asp-route-page="@p"> *@
+@*                         @p *@
+@*                     </a> *@
+@*                 </li> *@
+@*             } *@
+@*         </ul> *@
+@*     </nav> *@
+@* } *@
+
+@*     <style> *@
+@*         /* Row hover highlight */ *@
+@*         table.table-hover tbody tr:hover { *@
+@*             background-color: #f5f5f5; *@
+@*         } *@
+
+@*         /* Status badge colors */ *@
+@*         .badge-status-Pending { *@
+@*             background-color: #ffc107; *@
+@*             color: #212529; *@
+@*         } *@
+
+@*         .badge-status-InProgress { *@
+@*             background-color: #17a2b8; *@
+@*             color: white; *@
+@*         } *@
+
+@*         .badge-status-Resolved { *@
+@*             background-color: #28a745; *@
+@*             color: white; *@
+@*         } *@
+
+@*         .badge-status-Rejected { *@
+@*             background-color: #dc3545; *@
+@*             color: white; *@
+@*         } *@
+
+@*         /* If you have other statuses, add them here... */ *@
+@*     </style> *@
 

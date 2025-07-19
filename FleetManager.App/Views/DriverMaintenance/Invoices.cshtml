@@ -1,0 +1,46 @@
+﻿@using FleetManager.Business.ViewModels.MaintenanceViewModels
+@model InvoiceListViewModel
+@{
+    ViewData["Title"] = "My Invoices";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var inv in Model.Invoices)
+        {
+            <tr>
+                <td>@inv.Id</td>
+                <td>@inv.InvoiceDate.ToString("yyyy‑MM‑dd")</td>
+                <td>@inv.TotalAmount.ToString("C")</td>
+                <td>@inv.Status</td>
+                <td>
+                    <a asp-action="InvoiceDetails" asp-route-id="@inv.Id" class="btn btn-sm btn-outline-secondary">
+                        View
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        @for (int p = 1; p <= Model.Pagination.TotalPages; p++)
+        {
+            <li class="page-item @(p == Model.Pagination.CurrentPage? "active": "")">
+                <a class="page-link" asp-action="Invoices" asp-route-page="@p">@p</a>
+            </li>
+        }
+    </ul>
+</nav>

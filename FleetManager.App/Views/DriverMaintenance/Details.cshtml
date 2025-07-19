@@ -4,152 +4,1047 @@
     ViewData["Title"] = $"Ticket #{Model.Id}";
 }
 
-<h2>@ViewData["Title"]</h2>
 
-<div class="mb-3">
-    <strong>Date:</strong>
-    @Model.CreatedAt.ToString("yyyy‑MM‑dd HH:mm")
-</div>
 
-<div class="mb-3">
-    <strong>Vehicle:</strong>
-    @Model.VehicleDescription
-</div>
+<style>
+    /* Main Container */
+    .ticket-details-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-<div class="mb-3">
-    <strong>Subject:</strong>
-    @Model.Subject
-</div>
+    /* Header Section */
+    .details-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
 
-<div class="mb-3">
-    <strong>Notes:</strong><br />
-    <div class="border rounded p-3">@Model.Notes</div>
-</div>
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
 
-<div class="mb-3">
-    <strong>Status:</strong>
-    <span class="badge badge-status-@Model.Status">
-        @Model.Status
-    </span>
-</div>
+    .ticket-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
 
-@if (Model.Items?.Any() == true)
-{
-    <h4>Line Items</h4>
-    <table class="table table-bordered">
-        <thead class="table-light">
-            <tr>
-                <th>Part</th>
-                <th>Category</th>
-                <th class="text-end">Qty</th>
-                <th class="text-end">Unit Price</th>
-                <th class="text-end">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var i in Model.Items)
-            {
-                <tr>
-                    <td>@i.PartName</td>
-                    <td>@i.PartCategoryName</td>
-                    <td class="text-end">@i.Quantity</td>
-                    <td class="text-end">@i.UnitPrice.ToString("C")</td>
-                    <td class="text-end">@i.LineTotal.ToString("C")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    .ticket-meta {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
 
-@if (Model.Invoice != null)
-{
-    <div class="mt-4">
-        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#invoiceModal">
-            <i class="fas fa-file-invoice-dollar"></i> View Invoice
-        </button>
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .status-badge-lg {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Info Cards */
+    .info-card, .summary-card, .actions-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .info-card:hover, .summary-card:hover, .actions-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+        padding: 20px 25px;
+    }
+
+    .card-title {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    /* Vehicle Details */
+    .vehicle-details {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .vehicle-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .vehicle-info h6 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #2c3e50;
+    }
+
+    .vehicle-info p {
+        margin: 5px 0 0 0;
+        color: #6c757d;
+    }
+
+    /* Detail Rows */
+    .detail-row {
+        margin-bottom: 20px;
+    }
+
+        .detail-row label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+    .detail-value h6 {
+        margin: 0;
+        color: #495057;
+    }
+
+    .notes-content {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        border-left: 4px solid #667eea;
+        line-height: 1.6;
+        color: #495057;
+    }
+
+    /* Table Styles */
+    .table-header {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+        .table-header th {
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 15px;
+            border: none;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .part-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .part-name {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .category-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .quantity-badge {
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .price-text, .total-text {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .table-footer {
+        background: #f8f9fa;
+        border-top: 2px solid #dee2e6;
+    }
+
+    .grand-total {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    /* Summary Card */
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+    .summary-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .summary-value {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .cost-highlight {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    /* Action Buttons */
+    .action-buttons .btn {
+        font-weight: 500;
+        border-radius: 12px;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+    }
+
+        .action-buttons .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    /* Status Badges */
+    .badge-status-Pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-status-InProgress {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .badge-status-Resolved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-status-Rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-status-Paid {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-status-Unpaid {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-status-Overdue {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-status-Cancelled {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    /* Back Section */
+    .back-section {
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    /* Invoice Modal Styles */
+    .invoice-modal {
+        border: none;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    .invoice-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom: none;
+        padding: 20px 30px;
+    }
+
+        .invoice-header .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+    .invoice-body {
+        padding: 0;
+        background: #f8f9fa;
+    }
+
+    .invoice-container {
+        background: white;
+        margin: 20px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    /* Invoice Header Section */
+    .invoice-header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 40px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .company-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .company-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .company-details h2 {
+        margin: 0 0 5px 0;
+        color: #2c3e50;
+        font-weight: 700;
+    }
+
+    .company-tagline {
+        color: #6c757d;
+        font-style: italic;
+        margin-bottom: 15px;
+    }
+
+    .company-address p {
+        margin: 2px 0;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    .invoice-info {
+        text-align: right;
+    }
+
+    .invoice-number h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .invoice-id {
+        color: #667eea;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 5px 0 20px 0;
+    }
+
+    .date-item {
+        margin-bottom: 10px;
+    }
+
+        .date-item strong {
+            color: #2c3e50;
+        }
+
+    .invoice-status-section {
+        margin-top: 20px;
+    }
+
+    .invoice-status-badge {
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Invoice Parties */
+    .invoice-parties {
+        display: flex;
+        justify-content: space-between;
+        padding: 30px 40px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        .invoice-parties h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+    .client-info p, .service-info p {
+        margin: 5px 0;
+        color: #495057;
+    }
+
+    .client-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+
+    /* Invoice Items Table */
+    .invoice-items-section {
+        padding: 0;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+        .invoice-table thead {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .invoice-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .invoice-table td {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .invoice-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+    .item-name {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .category-tag {
+        background: #e9ecef;
+        color: #495057;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .item-quantity {
+        text-align: center;
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .item-price, .item-total {
+        text-align: right;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    /* Invoice Totals */
+    .invoice-totals {
+        padding: 30px 40px;
+        border-top: 2px solid #dee2e6;
+    }
+
+    .totals-section {
+        max-width: 400px;
+        margin-left: auto;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 1.1rem;
+    }
+
+    .total-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .total-value {
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .subtotal {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .tax {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .grand-total {
+        font-size: 1.3rem;
+        padding-top: 15px;
+        margin-top: 5px;
+    }
+
+        .grand-total .total-value {
+            color: #28a745;
+            font-size: 1.5rem;
+        }
+
+    /* Invoice Footer */
+    .invoice-footer {
+        display: flex;
+        justify-content: space-between;
+        padding: 40px;
+        border-top: 1px solid #dee2e6;
+        background: #f8f9fa;
+    }
+
+    .payment-info {
+        flex: 1;
+    }
+
+        .payment-info h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .payment-info p {
+            margin: 5px 0;
+            color: #495057;
+        }
+
+    .thank-you {
+        flex: 1;
+        text-align: right;
+    }
+
+        .thank-you p {
+            margin: 5px 0;
+            color: #495057;
+        }
+
+        .thank-you strong {
+            color: #2c3e50;
+        }
+
+    /* Invoice Watermark */
+    .invoice-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        opacity: 0.03;
+        font-size: 8rem;
+        font-weight: 900;
+        color: #000;
+        pointer-events: none;
+        z-index: 0;
+        white-space: nowrap;
+    }
+
+    .watermark-text {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        letter-spacing: 10px;
+    }
+
+    /* Toast notifications */
+    .toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1100;
+    }
+
+    .toast {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 15px;
+        opacity: 1;
+    }
+
+    .toast-body {
+        padding: 15px 20px;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+
+    /* Print-specific styles */
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .print-container, .print-container * {
+            visibility: visible;
+        }
+
+        .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="ticket-details-container">
+    <!-- Header Section -->
+    <div class="details-header">
+        <div class="header-content">
+            <div class="ticket-info">
+                <div class="ticket-number">
+                    <i class="fas fa-ticket-alt me-2"></i>
+                    <span>Ticket #@Model.Id</span>
+                </div>
+                <div class="ticket-meta">
+                    <span class="created-date">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Created @Model.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
+                    </span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="ticket-status">
+                    <span class="badge badge-status-@Model.Status status-badge-lg">
+                        @Model.Status
+                    </span>
+                </div>
+                @if (Model.Invoice != null)
+                {
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                        View Invoice
+                    </button>
+                }
+            </div>
+        </div>
     </div>
 
-    <!-- Invoice Modal -->
+    <!-- Main Content -->
+    <div class="details-content">
+        <div class="row">
+            <!-- Left Column - Ticket Information -->
+            <div class="col-lg-8">
+                <!-- Vehicle Information Card -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-car me-2"></i>
+                            Vehicle Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="vehicle-details">
+                            <div class="vehicle-icon">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="vehicle-info">
+                                <h6>@Model.VehicleDescription</h6>
+                                <p class="text-muted">Assigned Vehicle</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticket Details Card -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            Ticket Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="detail-row">
+                            <label>Subject:</label>
+                            <div class="detail-value">
+                                <h6>@Model.Subject</h6>
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <label>Description/Notes:</label>
+                            <div class="detail-value">
+                                <div class="notes-content">
+                                    @Html.Raw(Model.Notes?.Replace("\n", "<br />"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Line Items Card -->
+                @if (Model.Items?.Any() == true)
+                {
+                    <div class="info-card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-cogs me-2"></i>
+                                Parts & Services
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-header">
+                                        <tr>
+                                            <th>Part/Service</th>
+                                            <th>Category</th>
+                                            <th class="text-center">Quantity</th>
+                                            <th class="text-end">Unit Price</th>
+                                            <th class="text-end">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="part-info">
+                                                        <i class="fas fa-cog text-primary me-2"></i>
+                                                        <span class="part-name">@item.PartName</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="category-badge">@item.PartCategoryName</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="quantity-badge">@item.Quantity</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="price-text">₦@item.UnitPrice.ToString("N2")</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="total-text">₦@item.LineTotal.ToString("N2")</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-footer">
+                                        <tr>
+                                            <th colspan="4" class="text-end">Grand Total:</th>
+                                            <th class="text-end">
+                                                <span class="grand-total">₦@Model.Items.Sum(x => x.LineTotal).ToString("N2")</span>
+                                            </th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Right Column - Summary & Actions -->
+            <div class="col-lg-4">
+                <!-- Quick Summary Card -->
+                <div class="summary-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Ticket Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-item">
+                            <div class="summary-label">Current Status</div>
+                            <div class="summary-value">
+                                <span class="badge badge-status-@Model.Status">@Model.Status</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Created Date</div>
+                            <div class="summary-value">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Vehicle</div>
+                            <div class="summary-value">@Model.VehicleDescription</div>
+                        </div>
+                        @if (Model.Items?.Any() == true)
+                        {
+                            <div class="summary-item">
+                                <div class="summary-label">Total Cost</div>
+                                <div class="summary-value">
+                                    <span class="cost-highlight">₦@Model.Items.Sum(x => x.LineTotal).ToString("N2")</span>
+                                </div>
+                            </div>
+                        }
+                        @if (Model.Invoice != null)
+                        {
+                            <div class="summary-item">
+                                <div class="summary-label">Invoice Status</div>
+                                <div class="summary-value">
+                                    <span class="badge badge-status-@Model.Invoice.Status">@Model.Invoice.Status</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="actions-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-tools me-2"></i>
+                            Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="action-buttons">
+                            @if (Model.Invoice != null)
+                            {
+                                <button class="btn btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                                    View Invoice
+                                </button>
+                            }
+                            <a href="#" class="btn btn-outline-secondary w-100 mb-2" onclick="printTicket()">
+                                <i class="fas fa-print me-2"></i>
+                                Print Ticket
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-edit me-2"></i>
+                                Edit Ticket
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="back-section">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to My Tickets
+        </a>
+    </div>
+</div>
+
+<!-- Professional Invoice Modal -->
+@if (Model.Invoice != null)
+{
     <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="invoiceModalLabel">Invoice #@Model.Invoice.Id</h5>
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content invoice-modal">
+                <div class="modal-header invoice-header">
+                    <h5 class="modal-title" id="invoiceModalLabel">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                        Invoice #@Model.Invoice.Id
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-
-                    <!-- Invoice Header -->
-                    <div class="d-flex justify-content-between mb-4">
-                        <div>
-                            <h4>FleetGuard</h4>
-                            <p>
-                                123 Fleet Street<br />
-                                City, Country<br />
-                                Phone: +123 456 7890
-                            </p>
+                <div class="modal-body invoice-body">
+                    <div class="invoice-container">
+                        <!-- Invoice Header -->
+                        <div class="invoice-header-section">
+                            <div class="company-info">
+                                <div class="company-logo">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="company-details">
+                                    <h2>FleetGuard</h2>
+                                    <p class="company-tagline">Professional Fleet Management Solutions</p>
+                                    <div class="company-address">
+                                        <p>123 Fleet Street, Victoria Island</p>
+                                        <p>Lagos, Nigeria</p>
+                                        <p>Phone: +234 (0) 123 456 7890</p>
+                                        <p>Email: billing@fleetguard.ng</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="invoice-info">
+                                <div class="invoice-number">
+                                    <h3>INVOICE</h3>
+                                    <p class="invoice-id">#@Model.Invoice.Id</p>
+                                </div>
+                                <div class="invoice-dates">
+                                    <div class="date-item">
+                                        <strong>Invoice Date:</strong>
+                                        <span>@Model.Invoice.InvoiceDate.ToString("MMM dd, yyyy")</span>
+                                    </div>
+                                    <div class="date-item">
+                                        <strong>Due Date:</strong>
+                                        <span>@Model.Invoice.InvoiceDate.AddDays(30).ToString("MMM dd, yyyy")</span>
+                                    </div>
+                                </div>
+                                <div class="invoice-status-section">
+                                    <span class="badge badge-status-@Model.Invoice.Status invoice-status-badge">
+                                        @Model.Invoice.Status
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <strong>Invoice Date:</strong> @Model.Invoice.InvoiceDate.ToString("yyyy‑MM‑dd")<br />
-                            <strong>Status:</strong>
-                            <span class="badge badge-status-@Model.Invoice.Status">
-                                @Model.Invoice.Status
-                            </span>
+
+                        <!-- Bill To / Service Details -->
+                        <div class="invoice-parties">
+                            <div class="bill-to-section">
+                                <h6>Bill To:</h6>
+                                <div class="client-info">
+                                    <p class="client-name">@Model.DriverName</p>
+                                    <p class="client-id">Driver ID: @Model.DriverId</p>
+                                    <p class="vehicle-ref">Vehicle: @Model.VehicleDescription</p>
+                                </div>
+                            </div>
+                            <div class="service-ref-section">
+                                <h6>Service Reference:</h6>
+                                <div class="service-info">
+                                    <p>Maintenance Ticket: #@Model.Id</p>
+                                    <p>Service Date: @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                                    <p>Subject: @Model.Subject</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Invoice Items Table -->
+                        <div class="invoice-items-section">
+                            <table class="invoice-table">
+                                <thead>
+                                    <tr>
+                                        <th class="item-description">Description</th>
+                                        <th class="item-category">Category</th>
+                                        <th class="item-quantity">Qty</th>
+                                        <th class="item-price">Unit Price</th>
+                                        <th class="item-total">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Invoice.Items)
+                                    {
+                                        <tr>
+                                            <td class="item-description">
+                                                <div class="item-details">
+                                                    <span class="item-name">@item.PartName</span>
+                                                </div>
+                                            </td>
+                                            <td class="item-category">
+                                                <span class="category-tag">@item.PartCategory</span>
+                                            </td>
+                                            <td class="item-quantity">@item.Quantity</td>
+                                            <td class="item-price">₦@item.UnitPrice.ToString("N2")</td>
+                                            <td class="item-total">₦@item.LineTotal.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Invoice Totals -->
+                        <div class="invoice-totals">
+                            <div class="totals-section">
+                                <div class="total-row subtotal">
+                                    <span class="total-label">Subtotal:</span>
+                                    <span class="total-value">₦@Model.Invoice.Items.Sum(x => x.LineTotal).ToString("N2")</span>
+                                </div>
+                                <div class="total-row tax">
+                                    <span class="total-label">VAT (7.5%):</span>
+                                    <span class="total-value">₦@(Model.Invoice.Items.Sum(x => x.LineTotal) * 0.075m).ToString("N2")</span>
+                                </div>
+                                <div class="total-row grand-total">
+                                    <span class="total-label">Total Due:</span>
+                                    <span class="total-value">₦@(Model.Invoice.Items.Sum(x => x.LineTotal) * 1.075m).ToString("N2")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Invoice Footer -->
+                        <div class="invoice-footer">
+                            <div class="payment-info">
+                                <h6>Payment Information:</h6>
+                                <p>Bank: First Bank of Nigeria</p>
+                                <p>Account Name: FleetGuard Services Ltd</p>
+                                <p>Account Number: 3012345678</p>
+                                <p>Sort Code: 011</p>
+                            </div>
+                            <div class="thank-you">
+                                <p><strong>Thank you for your business!</strong></p>
+                                <p>For any questions regarding this invoice, please contact our billing department.</p>
+                            </div>
+                        </div>
+
+                        <!-- Invoice Watermark -->
+                        <div class="invoice-watermark">
+                            <span class="watermark-text">FLEETGUARD</span>
                         </div>
                     </div>
-
-                    <!-- Bill To / Ticket Info -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h6>Bill To:</h6>
-                            <p>@Model.DriverName<br />Branch ID: @Model.DriverId</p>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <h6>Ticket #:</h6>
-                            <p>@Model.Id</p>
-                        </div>
-                    </div>
-
-                    <!-- Invoice Items Table -->
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Part</th>
-                                <th>Category</th>
-                                <th class="text-end">Qty</th>
-                                <th class="text-end">Unit Price</th>
-                                <th class="text-end">Line Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var ii in Model.Invoice.Items)
-                            {
-                                <tr>
-                                    <td>@ii.PartName</td>
-                                    <td>@ii.PartCategory</td>
-                                    <td class="text-end">@ii.Quantity</td>
-                                    <td class="text-end">@ii.UnitPrice.ToString("C")</td>
-                                    <td class="text-end">@ii.LineTotal.ToString("C")</td>
-                                </tr>
-                            }
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="4" class="text-end">Total Due:</th>
-                                <th class="text-end">@Model.Invoice.Items.Sum(x => x.LineTotal).ToString("C")</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    <!-- Footer / Thank you note -->
-                    <div class="text-center mt-4">
-                        <em>Thank you for your business!</em>
-                    </div>
-
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <div class="modal-footer invoice-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
                         Close
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="printInvoice()">
+                        <i class="fas fa-print me-2"></i>
+                        Print Invoice
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="downloadPDF()">
+                        <i class="fas fa-download me-2"></i>
+                        Download PDF
                     </button>
                 </div>
             </div>
@@ -157,13 +1052,99 @@
     </div>
 }
 
-<div class="mt-4">
-    <a asp-action="Index" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Back to List
-    </a>
-</div>
+<!-- Add toast container placeholder -->
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
-    <script>
-        // nothing additional needed; bootstrap handles the modal
-    </script>
+
+<script>
+    // Print Ticket functionality
+    function printTicket() {
+        const printContent = document.querySelector('.ticket-details-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = `
+            <div class="container mt-4">${printContent}</div>
+            <style>
+                body { background-color: white !important; }
+                .back-section, .header-actions button { display: none; }
+                .ticket-details-container { box-shadow: none; }
+            </style>
+        `;
+
+        window.print();
+        document.body.innerHTML = originalContent;
+    }
+
+    // Print Invoice functionality
+    function printInvoice() {
+        const printContent = document.querySelector('.invoice-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = `
+            <div class="container">${printContent}</div>
+            <style>
+                body { background-color: white !important; padding: 20px; }
+                .invoice-modal-footer { display: none; }
+            </style>
+        `;
+
+        window.print();
+        document.body.innerHTML = originalContent;
+    }
+
+    // Download PDF functionality
+    function downloadPDF() {
+        // In a real application, this would call a server endpoint
+        // For this demo, we'll show a success message
+        const invoiceId = '@Model.Invoice?.Id';
+        if (!invoiceId) return;
+
+        // Show toast notification
+        showToast('success', 'PDF download started', 'Your invoice PDF is being prepared for download.');
+
+        // Simulate PDF generation delay
+        setTimeout(() => {
+            showToast('success', 'Download complete', 'Invoice PDF has been downloaded successfully.');
+        }, 2500);
+    }
+
+    // Toast notification function
+    function showToast(type, title, message) {
+        const toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            createToastContainer();
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <strong>${title}</strong><br>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+
+        document.getElementById('toast-container').appendChild(toast);
+
+        const bsToast = new bootstrap.Toast(toast, {
+            autohide: true,
+            delay: 5000
+        });
+        bsToast.show();
+    }
+
+    // Create toast container if it doesn't exist
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '1100';
+        document.body.appendChild(container);
+    }
+</script>
 

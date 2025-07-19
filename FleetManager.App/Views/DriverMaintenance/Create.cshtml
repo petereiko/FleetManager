@@ -1,5 +1,6 @@
 ﻿@using FleetManager.Business.ViewModels.MaintenanceViewModels
 
+
 @model MaintenanceTicketCreateViewModel
 @{
     ViewData["Title"] = "Report Maintenance Issue";
@@ -42,13 +43,15 @@
                 <th>Description</th>
                 <th>Qty</th>
                 <th>Unit Price</th>
-                <th><button type="button" id="addItem" class="btn btn-sm btn-success">+</button></th>
+                <th>
+                    <button type="button" id="addItem" class="btn btn-sm btn-success">+</button>
+                </th>
             </tr>
         </thead>
         <tbody>
             @for (int i = 0; i < Model.Items.Count; i++)
             {
-                <tr>
+                <tr data-index="@i">
                     <td>
                         <select name="Items[@i].PartCategoryId" class="form-select part-category">
                             <option value="">--</option>
@@ -84,49 +87,86 @@
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
 
-    <partial name="_ValidationScriptsPartial" />
-    <script>
-        // add/remove rows
-        $('#addItem').click(function(){
-            var idx = $('#itemsTable tbody tr').length;
-            var template = `<tr>
-                <td>
-                  <select name="Items[${idx}].PartCategoryId" class="form-select part-category">
-                    <option value="">--</option>
-        @foreach (var c in Model.PartCategories)
-        {
-            <text><option value="@c.Value">@c.Text</option></text>
-        }
-                  </select>
-                </td>
-                <td><select name="Items[${idx}].PartId" class="form-select part-list"><option>--</option></select></td>
-                <td><input name="Items[${idx}].CustomDescription" class="form-control" /></td>
-                <td><input name="Items[${idx}].Quantity" type="number" min="1" class="form-control" /></td>
-                <td><input name="Items[${idx}].UnitPrice" type="number" step="0.01" class="form-control" /></td>
-                <td><button type="button" class="btn btn-sm btn-danger removeItem">–</button></td>
-            </tr>`;
-            $('#itemsTable tbody').append(template);
-        });
-        $(document).on('click','.removeItem',function(){
-            $(this).closest('tr').remove();
-        });
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
 
-        // when category changes, load parts
-        $(document).on('change','.part-category',function(){
-            var $row = $(this).closest('tr');
-            var catId = $(this).val();
-            var $partSelect = $row.find('.part-list');
-            $partSelect.prop('disabled', true).empty().append('<option>Loading…</option>');
-            if(!catId){
-                $partSelect.empty().append('<option value="">--</option>').prop('disabled', false);
-                return;
-            }
-            $.getJSON('@Url.Action("GetPartsByCategory")', { categoryId: catId })
-              .done(function(items){
-                  $partSelect.empty().append('<option value="">--</option>');
-                  items.forEach(i => $partSelect.append(`<option value="${i.value}">${i.text}</option>`));
-              })
-              .fail(()=> alert('Could not load parts'))
-              .always(()=> $partSelect.prop('disabled', false));
+<script>
+    $(function() {
+      // serialize once
+      var categoryOptionsHtml = '@Html.Raw(string.Join("", Model.PartCategories.Select(c => $"<option value=\"{c.Value}\">{c.Text}</option>")))';
+
+      // + button
+      $('#addItem').on('click', function() {
+         var idx = $('#itemsTable tbody tr').length;
+         var row = `
+           <tr data-index="${idx}">
+             <td>
+               <select name="Items[${idx}].PartCategoryId" class="form-select part-category">
+                 <option value="">--</option>
+                 ${categoryOptionsHtml}
+               </select>
+             </td>
+             <td>
+               <select name="Items[${idx}].PartId" class="form-select part-list">
+                 <option value="">--</option>
+               </select>
+             </td>
+             <td><input name="Items[${idx}].CustomDescription" class="form-control" /></td>
+             <td><input name="Items[${idx}].Quantity" type="number" min="1" class="form-control" /></td>
+             <td><input name="Items[${idx}].UnitPrice" type="number" step="0.01" class="form-control" /></td>
+             <td><button type="button" class="btn btn-sm btn-danger removeItem">–</button></td>
+           </tr>`;
+         $('#itemsTable tbody').append(row);
+      });
+
+      // – button
+      $(document).on('click', '.removeItem', function() {
+        $(this).closest('tr').remove();
+        // re-index
+        $('#itemsTable tbody tr').each(function(i, tr) {
+          $(tr).attr('data-index', i);
+          $(tr).find('select, input').each(function() {
+            var name = $(this).attr('name');
+            if (!name) return;
+            var newName = name.replace(/Items\[\d+\]/, `Items[${i}]`);
+            $(this).attr('name', newName);
+          });
         });
-    </script>
+      });
+
+      // category → parts
+      $(document).on('change', '.part-category', function() {
+        var $row = $(this).closest('tr');
+        var catId = $(this).val();
+        var $part = $row.find('.part-list');
+        $part.prop('disabled', true).html('<option>Loading…</option>');
+        if (!catId) {
+          $part.html('<option value="">--</option>').prop('disabled', false);
+          return;
+        }
+        $.getJSON('@Url.Action("GetPartsByCategory", "DriverMaintenance")', { categoryId: catId })
+         .done(function(items) {
+           $part.html('<option value="">--</option>');
+           items.forEach(function(i) {
+             $part.append(`<option value="${i.value}">${i.text}</option>`);
+           });
+         })
+         .fail(function() {
+           alert('Could not load parts');
+         })
+         .always(function() {
+           $part.prop('disabled', false);
+         });
+      });
+    });
+</script>
+
+
+
+
+
+
+
+
+

@@ -59,8 +59,7 @@ namespace DVLA.UI.Controllers
             if (!ModelState.IsValid)
             {
                 model.Errors.Add(
-                    ModelState.Values.SelectMany(v => v.Errors)
-                                     .FirstOrDefault()?.ErrorMessage
+                    ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
                 );
                 return View(model);
             }
@@ -100,9 +99,8 @@ namespace DVLA.UI.Controllers
             await CookieHere(user, model.RememberMe);
             TempData["SuccessMessage"] = "Login successful.";
 
-            // **Fetch all roles** and pick in descending priority
+            // Default redirects based on role
             var roles = await _userManager.GetRolesAsync(user);
-            // You can change the order below if you want a different priority:
             if (roles.Contains("Super Admin"))
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });

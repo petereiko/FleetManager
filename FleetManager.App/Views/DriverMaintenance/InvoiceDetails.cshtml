@@ -1,0 +1,37 @@
+﻿@using FleetManager.Business.DataObjects.MaintenanceDto
+@model InvoiceDto
+@{
+    ViewData["Title"] = $"Invoice #{Model.Id}";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<p><strong>Date:</strong> @Model.InvoiceDate.ToString("yyyy‑MM‑dd")</p>
+<p><strong>Status:</strong> @Model.Status</p>
+
+<h4>Items</h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Part</th>
+            <th>Category</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ii in Model.Items)
+        {
+            <tr>
+                <td>@ii.PartName</td>
+                <td>@ii.PartCategory</td>
+                <td>@ii.Quantity</td>
+                <td>@ii.UnitPrice.ToString("C")</td>
+                <td>@ii.LineTotal.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Invoices" class="btn btn-secondary">Back to Invoices</a>
