@@ -20,7 +20,7 @@ using FleetManager.Business.ViewModels;
 using FleetManager.Business.UtilityModels;
 using FleetManager.Business.Enums;
 
-namespace DVLA.UI.Controllers
+namespace FleetManager.App.Controllers
 {
     public class AccountController : Controller
     {
@@ -294,6 +294,16 @@ namespace DVLA.UI.Controllers
         }
 
 
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
 
+        [HttpGet]
+        public IActionResult SessionExpired()
+        {
+            return View();
+        }
     }
 }

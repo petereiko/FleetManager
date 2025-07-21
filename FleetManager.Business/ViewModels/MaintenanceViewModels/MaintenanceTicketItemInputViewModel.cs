@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FleetManager.Business.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace FleetManager.Business.ViewModels.MaintenanceViewModels
         [Required]
         [Range(1, 1000)]
         public int Quantity { get; set; }
+        [Required]
+        public MaintenancePriority? Priority { get; set; }
 
         [Required]
         [Range(0.0, 100000.0)]

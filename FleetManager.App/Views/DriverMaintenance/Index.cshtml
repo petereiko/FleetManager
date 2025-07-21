@@ -279,16 +279,20 @@
         font-weight: 500;
     }
 
-    .priority-high {
-        color: #dc3545;
-    }
-
-    .priority-medium {
-        color: #ffc107;
-    }
-
     .priority-low {
-        color: #28a745;
+        color: #28a745; /* green */
+    }
+
+    .priority-moderate {
+        color: #ffc107; /* amber */
+    }
+
+    .priority-high {
+        color: #fd7e14; /* orange */
+    }
+
+    .priority-urgent {
+        color: #dc3545; /* red */
     }
 
     /* Action Buttons */
@@ -586,9 +590,13 @@
                                             </span>
                                         </td>
                                         <td class="priority-column">
-                                            <span class="priority-indicator priority-medium">
+                                            @{
+                                                // e.g. "Low" -> "low", "Moderate" -> "moderate", etc.
+                                                var cssClass = ticket.Priority.ToString().ToLower();
+                                            }
+                                            <span class="priority-indicator priority-@cssClass">
                                                 <i class="fas fa-circle"></i>
-                                                Medium
+                                                @ticket.Priority
                                             </span>
                                         </td>
                                         <td class="actions-column">

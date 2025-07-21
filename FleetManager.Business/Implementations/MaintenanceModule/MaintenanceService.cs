@@ -71,6 +71,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         Subject = t.Subject,
                         Notes = t.Notes,
                         Status = t.Status,
+                        Priority=t.Priority,
                         AdminNotes = t.AdminNotes,
                         CreatedAt = t.CreatedDate,
                         ResolvedAt = t.ResolvedAt,
@@ -148,6 +149,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         Subject = t.Subject,
                         Notes = t.Notes,
                         Status = t.Status,
+                        Priority = t.Priority,
                         AdminNotes = t.AdminNotes,
                         CreatedAt = t.CreatedDate,
                         ResolvedAt = t.ResolvedAt,
@@ -221,6 +223,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         Subject = t.Subject,
                         Notes = t.Notes,
                         Status = t.Status,
+                        Priority = t.Priority,
                         AdminNotes = t.AdminNotes,
                         CreatedAt = t.CreatedDate,
                         ResolvedAt = t.ResolvedAt,
@@ -308,6 +311,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 Subject = t.Subject,
                 Notes = t.Notes,
                 Status = t.Status,
+                Priority = t.Priority,
                 AdminNotes = t.AdminNotes,
                 CreatedAt = t.CreatedDate,
                 ResolvedAt = t.ResolvedAt,
@@ -376,6 +380,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     Subject = input.Subject,
                     Notes = input.Notes,
                     Status = TicketStatus.Pending,
+                    Priority = input.Priority,
                     CreatedDate = DateTime.UtcNow,
                     CreatedBy = _auth.UserId
                 };
@@ -403,7 +408,9 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     CompanyBranchId = ticket.CompanyBranchId,
                     InvoiceDate = DateTime.UtcNow,
                     Status = InvoiceStatus.Pending,
-                    TotalAmount = input.Items.Sum(i => i.Quantity * i.UnitPrice)
+                    TotalAmount = input.Items.Sum(i => i.Quantity * i.UnitPrice),
+                    CreatedBy = _auth.UserId
+
                 };
                 _context.Invoices.Add(inv);
                 await _context.SaveChangesAsync();
@@ -431,6 +438,15 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 resp.Result = dto;
 
                 // Notify admins of new ticket
+                string urgency = input.Priority switch
+                {
+                    MaintenancePriority.Low => "low priority",
+                    MaintenancePriority.Moderate => "moderate priority",
+                    MaintenancePriority.High => "high priority",
+                    MaintenancePriority.Urgent => "urgent",
+                    null => "unspecified",
+                    _ => "unspecified"
+                };
                 var admins = await _context.CompanyAdmins
                     .Where(a => a.CompanyBranchId == ticket.CompanyBranchId && a.IsActive)
                     .Select(a => a.UserId).ToListAsync();
@@ -439,7 +455,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     await _notification.CreateAsync(
                         adminId,
                         "New Maintenance Ticket",
-                        $" A new ticket #{ticket.Id} was created by {resp.Result.DriverName}",
+                        $" New {urgency} ticket #{ticket.Id} was created by {resp.Result.DriverName}",
                         NotificationType.Info,
                         new { ticketId = ticket.Id });
                 }
@@ -770,6 +786,15 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 .Where(p => p.VehiclePartCategoryId == categoryId)
                 .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name })
                 .ToListAsync();
+
+        public List<SelectListItem> GetPriorityTypeOptions() =>
+           Enum.GetValues<MaintenancePriority>()
+               .Select(e => new SelectListItem
+               {
+                   Value = ((int)e).ToString(),
+                   Text = e.ToString()
+               })
+               .ToList();
 
         #endregion
     }

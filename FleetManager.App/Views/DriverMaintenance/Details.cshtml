@@ -287,6 +287,37 @@
         color: white;
     }
 
+    /* Priority Indicators (large) */
+    .priority-indicator-lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+
+    .priority-low {
+        color: #28a745;
+    }
+
+    .priority-moderate {
+        color: #ffc107;
+    }
+
+    .priority-high {
+        color: #fd7e14;
+    }
+
+    .priority-urgent {
+        color: #dc3545;
+    }
+
+
+
     /* Back Section */
     .back-section {
         margin-top: 30px;
@@ -674,6 +705,18 @@
                         @Model.Status
                     </span>
                 </div>
+
+                <div class="ticket-priority">
+                    @{
+                        var pClass = Model.Priority.ToString().ToLower();
+                    }
+                    <span class="priority-indicator-lg priority-@pClass">
+                        <i class="fas fa-circle"></i>
+                        @Model.Priority
+                    </span>
+                </div>
+
+
                 @if (Model.Invoice != null)
                 {
                     <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal">
@@ -816,6 +859,19 @@
                                 <span class="badge badge-status-@Model.Status">@Model.Status</span>
                             </div>
                         </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Priority</div>
+                            <div class="summary-value">
+                                @{
+                                    var sClass = Model.Priority.ToString().ToLower();
+                                }
+                                <span class="priority-indicator priority-@sClass">
+                                    <i class="fas fa-circle"></i>
+                                    @Model.Priority
+                                </span>
+                            </div>
+                        </div>
+
                         <div class="summary-item">
                             <div class="summary-label">Created Date</div>
                             <div class="summary-value">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>

@@ -18,6 +18,7 @@ namespace FleetManager.Business.DataObjects.MaintenanceDto
         public string Subject { get; set; } = "";
         public string? Notes { get; set; }
         public TicketStatus Status { get; set; }
+        public MaintenancePriority? Priority { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ResolvedAt { get; set; }
         public string? AdminNotes { get; set; }

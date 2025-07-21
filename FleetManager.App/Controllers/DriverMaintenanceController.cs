@@ -94,6 +94,7 @@ namespace FleetManager.App.Controllers
                     .QueryAssignmentsByDriver(driverId)
                     .Select(a => new SelectListItem(a.VehicleMakeModel, a.VehicleId.ToString()))
                     .ToListAsync();
+                var priorities = _service.GetPriorityTypeOptions();
 
                 // All part categories:
                 var categories = await _service.GetPartCategoriesAsync();
@@ -103,6 +104,7 @@ namespace FleetManager.App.Controllers
                     DriverId = driverId,
                     Vehicles = vehicles,
                     PartCategories = categories,
+                    Priorities = priorities,
                     Items = new List<MaintenanceTicketItemInputViewModel>
                     {
                         new MaintenanceTicketItemInputViewModel()  // <-- one empty row
@@ -132,6 +134,7 @@ namespace FleetManager.App.Controllers
                     .QueryAssignmentsByDriver(driverId)
                     .Select(a => new SelectListItem(a.VehicleMakeModel, a.VehicleId.ToString()))
                     .ToListAsync();
+                vm.Priorities = _service.GetPriorityTypeOptions();
 
                 vm.PartCategories = await _service.GetPartCategoriesAsync();
 
@@ -144,6 +147,7 @@ namespace FleetManager.App.Controllers
                     VehicleId = vm.VehicleId,
                     Subject = vm.Subject,
                     Notes = vm.Notes,
+                    Priority=vm.Priority,
                     Items = vm.Items.Select(i => new MaintenanceTicketItemInputDto
                     {
                         PartCategoryId = i.PartCategoryId,

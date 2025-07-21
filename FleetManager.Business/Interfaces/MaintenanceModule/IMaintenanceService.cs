@@ -30,5 +30,6 @@ namespace FleetManager.Business.Interfaces.MaintenanceModule
         // Dropdowns
         Task<List<SelectListItem>> GetPartCategoriesAsync();
         Task<List<SelectListItem>> GetPartsByCategoryAsync(int categoryId);
+        List<SelectListItem> GetPriorityTypeOptions();
     }
 }

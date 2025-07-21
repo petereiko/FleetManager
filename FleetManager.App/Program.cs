@@ -106,6 +106,27 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Use HTTPS
+
+
+
+        // 👇 Custom redirect logic
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = context =>
+            {
+                var isExpired = context.Request.Cookies["AuthDemo.Cookie"] != null;
+
+                // If cookie exists but the session is invalid (likely expired)
+                if (isExpired && !context.HttpContext.User.Identity.IsAuthenticated)
+                {
+                    context.Response.Redirect("/Account/SessionExpired");
+                    return Task.CompletedTask;
+                }
+
+                context.Response.Redirect(context.RedirectUri); // default behavior
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddAuthorization();
 

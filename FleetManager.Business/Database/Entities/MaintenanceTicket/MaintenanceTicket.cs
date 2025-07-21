@@ -33,6 +33,8 @@ namespace FleetManager.Business.Database.Entities.MaintenanceTicket
 
         // Admin investigation & resolution
         public TicketStatus Status { get; set; } = TicketStatus.Pending;
+
+        public MaintenancePriority? Priority { get; set;}
         public DateTime? ResolvedAt { get; set; }
         public string? AdminNotes { get; set; }
 

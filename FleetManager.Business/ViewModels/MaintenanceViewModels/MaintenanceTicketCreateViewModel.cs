@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using FleetManager.Business.Enums;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -18,11 +19,15 @@ namespace FleetManager.Business.ViewModels.MaintenanceViewModels
         [Display(Name = "Vehicle")]
         public long VehicleId { get; set; }
 
+        public MaintenancePriority Priority { get; set; }
+
         [Required, StringLength(150)]
         public string Subject { get; set; }
 
         [Display(Name = "Notes / Description")]
         public string? Notes { get; set; }
+        [Required]
+        public List<SelectListItem> Priorities { get; set; } = new();
 
         /// <summary>
         /// The line‐items (parts) the driver is requesting work on.
