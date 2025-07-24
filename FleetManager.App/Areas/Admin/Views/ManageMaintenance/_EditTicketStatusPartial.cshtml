@@ -1,0 +1,423 @@
+﻿@using FleetManager.Business.Enums
+@model FleetManager.Business.ViewModels.MaintenanceViewModels.MaintenanceTicketStatusEditViewModel
+
+<style>
+    /* Enhanced modal styles */
+    .modal-dialog {
+        transition: transform 0.3s ease-out;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -50px);
+    }
+
+    .modal.show .modal-dialog {
+        transform: none;
+    }
+
+    /* Custom form styling */
+    .form-select-lg, .form-control-lg {
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .form-select-lg:focus, .form-control-lg:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+    /* Status preview styling */
+    #statusPreview {
+        border-left: 4px solid #007bff !important;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Character counter styling */
+    #notesCounter {
+        font-size: 0.875rem;
+        transition: color 0.2s ease;
+    }
+
+        #notesCounter.text-warning {
+            color: #ffc107 !important;
+        }
+
+        #notesCounter.text-danger {
+            color: #dc3545 !important;
+        }
+
+    /* Enhanced kbd styling */
+    kbd {
+        background-color: #495057;
+        border-radius: 0.25rem;
+        padding: 0.125rem 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    /* Loading button animation */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+    }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="updateForm" method="post" asp-area="Admin" asp-controller="ManageMaintenance" asp-action="UpdateTicketStatus">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="TicketId" />
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="updateModalLabel">
+                        <i class="fas fa-edit me-2"></i>Update Maintenance Ticket
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    @* <input type="hidden" name="TicketId" id="modalTicketId" /> *@
+                   
+
+                    <!-- Alert container for inline messages -->
+                    <div id="modalAlert" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                        <span id="modalAlertMessage"></span>
+                        <button type="button" class="btn-close" aria-label="Close" onclick="$('#modalAlert').hide()"></button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="modalTicketStatus" class="form-label fw-semibold">
+                                <i class="fas fa-flag me-1 text-primary"></i>Ticket Status
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select name="NewStatus" id="modalTicketStatus" class="form-select form-select-lg" required>
+                                @foreach (var status in Enum.GetValues<TicketStatus>())
+                                {
+                                    <option value="@status">
+                                        @(status switch
+                                        {
+                                            TicketStatus.Pending => "🕒 Pending",
+                                            TicketStatus.InProgress => "🔧 In Progress",
+                                            TicketStatus.Resolved => "✅ Resolved",
+                                            TicketStatus.Rejected => "❌ Rejected",
+                                            _ => status.ToString()
+                                        })
+                                    </option>
+                                }
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Select the current status of this maintenance ticket
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="modalInvoiceStatus" class="form-label fw-semibold">
+                                <i class="fas fa-file-invoice me-1 text-success"></i>Invoice Status
+                            </label>
+                            <select name="NewInvoiceStatus" id="modalInvoiceStatus" class="form-select form-select-lg">
+                                <option value="">-- Select Invoice Status --</option>
+                                @foreach (var status in Enum.GetValues<InvoiceStatus>())
+                                {
+                                    <option value="@status">
+                                        @(status switch
+                                        {
+                                            InvoiceStatus.Pending => "⏳ Pending",
+                                            InvoiceStatus.Paid => "💰 Paid",
+                                            InvoiceStatus.Cancelled => "🚫 Cancelled",
+                                            _ => status.ToString()
+                                        })
+                                    </option>
+                                }
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Optional: Update invoice payment status
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalAdminNotes" class="form-label fw-semibold">
+                            <i class="fas fa-sticky-note me-1 text-warning"></i>Admin Notes
+                        </label>
+                        <textarea name="AdminNotes"
+                                  id="modalAdminNotes"
+                                  class="form-control form-control-lg"
+                                  rows="4"
+                                  placeholder="Add any relevant notes, comments, or updates about this ticket..."
+                                  maxlength="1000"></textarea>
+                        <div class="form-text d-flex justify-content-between">
+                            <span><i class="fas fa-info-circle me-1"></i>Optional: Add administrative notes for internal reference</span>
+                            <span id="notesCounter" class="text-muted">0/1000</span>
+                        </div>
+                    </div>
+
+                    <!-- Status change preview -->
+                    <div id="statusPreview" class="card bg-light border-0 p-3 mb-3" style="display: none;">
+                        <h6 class="card-title mb-2">
+                            <i class="fas fa-eye me-1 text-info"></i>Status Change Preview
+                        </h6>
+                        <div id="statusChangeText" class="text-muted"></div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        <i class="fas fa-keyboard me-1"></i>
+                        Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to save quickly
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@* <script>
+    $(document).ready(function() {
+        // Character counter for admin notes
+        $('#modalAdminNotes').on('input', function() {
+            const current = $(this).val().length;
+            const max = 1000;
+            const counter = $('#notesCounter');
+
+            counter.text(`${current}/${max}`);
+
+            if (current > max * 0.9) {
+                counter.removeClass('text-muted text-warning').addClass('text-danger');
+            } else if (current > max * 0.7) {
+                counter.removeClass('text-muted text-danger').addClass('text-warning');
+            } else {
+                counter.removeClass('text-warning text-danger').addClass('text-muted');
+            }
+        });
+
+        // Status change preview
+        let originalStatus = '';
+
+        $('#updateModal').on('show.bs.modal', function() {
+            originalStatus = $('#modalTicketStatus').val();
+            updateStatusPreview();
+        });
+
+        $('#modalTicketStatus').on('change', function() {
+            updateStatusPreview();
+        });
+
+        function updateStatusPreview() {
+            const currentStatus = $('#modalTicketStatus').val();
+            const preview = $('#statusPreview');
+            const previewText = $('#statusChangeText');
+
+            if (originalStatus && currentStatus && originalStatus !== currentStatus) {
+                const statusEmojis = {
+                    'Pending': '🕒',
+                    'InProgress': '🔧',
+                    'Resolved': '✅',
+                    'Rejected': '❌'
+                };
+
+                previewText.html(`
+                    Status will change from
+                    <strong>${statusEmojis[originalStatus] || ''} ${originalStatus}</strong>
+                    to
+                    <strong>${statusEmojis[currentStatus] || ''} ${currentStatus}</strong>
+                `);
+                preview.slideDown();
+            } else {
+                preview.slideUp();
+            }
+        }
+
+        // AJAX form submission
+        $('#updateForm').on('submit', function(e) {
+            e.preventDefault();
+            const $form = $(this);
+            const $submitBtn = $form.find('button[type="submit"]');
+            const $modal = $('#updateModal');
+            const ticketId = $('#TicketId').val();
+
+            // Show loading state
+            $submitBtn.prop('disabled', true)
+                     .addClass('btn-loading')
+                     .html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+
+            $.ajax({
+                type: 'POST',
+                url: $form.attr('action'),
+                data: $form.serialize(),
+                success: function (result) {
+                    if (result.success) {
+                        // Close modal
+                        $modal.modal('hide');
+
+                        // Show success toast
+                        if (typeof showToast === 'function') {
+                            showToast('✅ Ticket status updated successfully!', 'success', 3000);
+                        }
+
+                        // Update status display on Index page
+                        if (typeof updateStatusDisplay === 'function') {
+                            updateStatusDisplay(ticketId, result.newStatus);
+                        }
+                    } else {
+                        // Show error message
+                        const errorMessage = result.message || 'Failed to update ticket status';
+                        if (typeof showToast === 'function') {
+                            showToast('❌ ' + errorMessage, 'error', 4000);
+                        }
+
+                        // Reset button state
+                        $submitBtn.prop('disabled', false)
+                                 .removeClass('btn-loading')
+                                 .html('<i class="fas fa-save me-1"></i>Save Changes');
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = 'An unexpected error occurred. Please try again.';
+
+                    if (xhr.status === 400) {
+                        // Handle validation errors
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.errors) {
+                            errorMessage = Object.values(response.errors)
+                                                .flat()
+                                                .join('<br>');
+                        }
+                    }
+
+                    // Show error toast
+                    if (typeof showToast === 'function') {
+                        showToast('❌ ' + errorMessage, 'error', 5000);
+                    }
+
+                    // Reset button state
+                    $submitBtn.prop('disabled', false)
+                             .removeClass('btn-loading')
+                             .html('<i class="fas fa-save me-1"></i>Save Changes');
+                }
+            });
+        });
+
+        // Cleanup when modal closes
+        $('#updateModal').on('hidden.bs.modal', function() {
+            $(this).remove();
+        });
+    });
+        // Auto-resize textarea
+        $('#modalAdminNotes').on('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
+</script>
+ *@
+
+<!-- Enhanced Update Modal -->
+@* <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="updateForm" method="post" asp-action="UpdateTicketStatus">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="updateModalLabel">
+                        <i class="fas fa-edit me-2"></i>Update Maintenance Ticket
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" name="TicketId" id="modalTicketId" />
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-flag me-1"></i>Ticket Status
+                            </label>
+                            <select name="NewStatus" id="modalTicketStatus" class="form-select form-select-lg">
+                                @foreach (var status in Enum.GetValues<TicketStatus>())
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-file-invoice me-1"></i>Invoice Status
+                            </label>
+                            <select name="InvoiceStatus" id="modalInvoiceStatus" class="form-select form-select-lg">
+                                <option value="">-- Select Invoice Status --</option>
+                                @foreach (var status in Enum.GetValues<InvoiceStatus>())
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-sticky-note me-1"></i>Admin Notes
+                        </label>
+                        <textarea name="AdminNotes" id="modalAdminNotes" class="form-control" rows="4"
+                                  placeholder="Add any relevant notes or comments..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+ *@

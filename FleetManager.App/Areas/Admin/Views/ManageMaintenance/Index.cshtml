@@ -1,0 +1,1186 @@
+﻿@using FleetManager.Business.Enums
+@using FleetManager.Business.ViewModels.MaintenanceViewModels
+@model MaintenanceTicketListViewModel
+@{
+    ViewData["Title"] = "Maintenance Tickets";
+}
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+
+<!-- Toastify CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    }
+
+    .status-card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+        }
+
+    .ticket-row {
+        transition: all 0.2s ease-in-out;
+    }
+
+        .ticket-row:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+            transform: scale(1.01);
+        }
+
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .date-display {
+        line-height: 1.2;
+    }
+
+    .pagination-rounded .page-link {
+        border-radius: 20px;
+        margin: 0 2px;
+    }
+
+    .ticket-subject {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: 48px !important;
+        border: 2px solid #007bff !important;
+    }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 44px !important;
+            padding-left: 12px !important;
+        }
+
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* Improved action buttons */
+    .action-btn-group {
+        display: flex;
+        gap: 0.25rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .action-btn {
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+        border: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        min-width: 80px;
+        justify-content: center;
+    }
+
+    .action-btn-view {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .action-btn-view:hover {
+            background-color: #545b62;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+    .action-btn-edit {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .action-btn-edit:hover {
+            background-color: #0056b3;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+    /* Enhanced modal styles */
+    .modal-dialog {
+        transition: transform 0.3s ease-out;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -50px);
+    }
+
+    .modal.show .modal-dialog {
+        transform: none;
+    }
+
+    /* Custom form styling */
+    .form-select-lg, .form-control-lg {
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .form-select-lg:focus, .form-control-lg:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+    /* Status preview styling */
+    #statusPreview {
+        border-left: 4px solid #007bff !important;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Character counter styling */
+    #notesCounter {
+        font-size: 0.875rem;
+        transition: color 0.2s ease;
+    }
+
+        #notesCounter.text-warning {
+            color: #ffc107 !important;
+        }
+
+        #notesCounter.text-danger {
+            color: #dc3545 !important;
+        }
+
+    /* Enhanced kbd styling */
+    kbd {
+        background-color: #495057;
+        border-radius: 0.25rem;
+        padding: 0.125rem 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    /* Loading button animation */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+    }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    /* Custom toastify styles */
+    .toastify.success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+
+    .toastify.error {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+    }
+</style>
+
+<!-- Enhanced Header Section -->
+<div class="maintenance-header bg-gradient-primary text-white rounded-3 p-4 mb-4 shadow-sm">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="mb-2 fw-bold">
+                <i class="fas fa-tools me-3"></i>Maintenance Management
+            </h1>
+            <p class="mb-0 opacity-75">Track and manage vehicle maintenance tickets</p>
+        </div>
+        <div class="text-end">
+            <div class="badge bg-light text-primary fs-6 px-3 py-2">
+                <i class="fas fa-ticket-alt me-2"></i>@Model.Tickets.Count() Active Tickets
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Filters Card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light border-0">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-filter me-2 text-primary"></i>Filter Options
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-lg-3 col-md-4">
+                <label asp-for="CurrentFilter" class="form-label fw-semibold">
+                    <i class="fas fa-search me-1"></i>Filter Type
+                </label>
+                <select asp-for="CurrentFilter" asp-items="Model.FilterOptions"
+                        id="filterType" class="form-select form-select-md border-primary">
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-4" id="driverContainer">
+                <label asp-for="DriverId" class="form-label fw-semibold">
+                    <i class="fas fa-user me-1"></i>Select Driver
+                </label>
+                <select asp-for="DriverId" asp-items="Model.Drivers"
+                        id="driverSelect" class="form-select form-select-md select2">
+                    <option value="">-- Choose a driver --</option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-4" id="vehicleContainer">
+                <label asp-for="VehicleId" class="form-label fw-semibold">
+                    <i class="fas fa-car me-1"></i>Select Vehicle
+                </label>
+                <select asp-for="VehicleId" asp-items="Model.Vehicles"
+                        id="vehicleSelect" class="form-select form-select-md select2">
+                    <option value="">-- Choose a vehicle --</option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-12 d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search me-2"></i>Apply Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Enhanced Status Overview Cards -->
+<div class="row mb-4">
+    @{
+        var pendingCount = Model.Tickets.Count(t => t.Status == TicketStatus.Pending);
+        var inProgressCount = Model.Tickets.Count(t => t.Status == TicketStatus.InProgress);
+        var resolvedCount = Model.Tickets.Count(t => t.Status == TicketStatus.Resolved);
+        var rejectedCount = Model.Tickets.Count(t => t.Status == TicketStatus.Rejected);
+    }
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm status-card pending">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold fs-4">@pendingCount</div>
+                        <div class="text-muted">Pending</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm status-card in-progress">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-wrench fa-2x text-info"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold fs-4">@inProgressCount</div>
+                        <div class="text-muted">In Progress</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm status-card resolved">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold fs-4">@resolvedCount</div>
+                        <div class="text-muted">Resolved</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm status-card rejected">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-times-circle fa-2x text-danger"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold fs-4">@rejectedCount</div>
+                        <div class="text-muted">Rejected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Tickets Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-light border-0 d-flex align-items-center justify-content-between">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2 text-primary"></i>Maintenance Tickets
+        </h5>
+        <small class="text-muted">@Model.Tickets.Count() tickets found</small>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="border-0">
+                            <i class="fas fa-hashtag me-1"></i>ID
+                        </th>
+                        <th class="border-0">
+                            <i class="fas fa-clipboard me-1"></i>Subject
+                        </th>
+                        <th class="border-0">
+                            <i class="fas fa-user me-1"></i>Driver
+                        </th>
+                        <th class="border-0">
+                            <i class="fas fa-car me-1"></i>Vehicle
+                        </th>
+                        <th class="border-0">
+                            <i class="fas fa-flag me-1"></i>Status
+                        </th>
+                        <th class="border-0 text-center">
+                            <i class="fas fa-calendar me-1"></i>Created
+                        </th>
+                        <th class="border-0 text-center">
+                            <i class="fas fa-cogs me-1"></i>Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Tickets.Any())
+                    {
+                        @foreach (var ticket in Model.Tickets)
+                        {
+                            <tr class="ticket-row">
+                                <td class="fw-bold text-primary">#@ticket.Id</td>
+                                <td>
+                                    <div class="ticket-subject" title="@ticket.Subject">
+                                        @ticket.Subject
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                            @ticket.DriverName?.FirstOrDefault()
+                                        </div>
+                                        @ticket.DriverName
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        @ticket.VehicleDescription
+                                    </span>
+                                </td>
+                                <td>
+                                    @{
+                                        var statusClass = ticket.Status switch
+                                        {
+                                            TicketStatus.Pending => "bg-warning text-dark",
+                                            TicketStatus.InProgress => "bg-info text-white",
+                                            TicketStatus.Resolved => "bg-success text-white",
+                                            TicketStatus.Rejected => "bg-danger text-white",
+                                            _ => "bg-secondary text-white"
+                                        };
+
+                                        var statusIcon = ticket.Status switch
+                                        {
+                                            TicketStatus.Pending => "fas fa-clock",
+                                            TicketStatus.InProgress => "fas fa-wrench",
+                                            TicketStatus.Resolved => "fas fa-check",
+                                            TicketStatus.Rejected => "fas fa-times",
+                                            _ => "fas fa-question"
+                                        };
+                                    }
+                                    <span class="badge @statusClass px-3 py-2">
+                                        <i class="@statusIcon me-1"></i>@ticket.Status
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="date-display">
+                                        <div class="fw-semibold">@ticket.CreatedAt.ToString("MMM dd")</div>
+                                        <small class="text-muted">@ticket.CreatedAt.ToString("yyyy")</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-btn-group">
+                                        <a class="action-btn action-btn-view"
+                                           asp-area="Admin"
+                                           asp-controller="ManageMaintenance"
+                                           asp-action="Details"
+                                           asp-route-id="@ticket.Id"
+                                           title="View ticket details">
+                                            <i class="fas fa-eye"></i>
+                                            <span class="d-none d-sm-inline">View</span>
+                                        </a>
+
+                                        <!-- Update Button -->
+                                        <button type="button"
+                                                class="action-btn action-btn-edit btn-edit"
+                                                data-ticket-id="@ticket.Id"
+                                                data-ticket-status="@ticket.Status"
+                                                data-invoice-status="@ticket.Invoice?.Status"
+                                                data-admin-notes="@ticket.AdminNotes"
+                                                title="Edit">
+                                            <i class="fas fa-edit"></i><span class="d-none d-sm-inline">Edit</span>
+                                        </button>
+
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <div class="fs-5">No tickets found</div>
+                                    <small>Try adjusting your filters</small>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Pagination -->
+@if (Model.Pagination.TotalPages > 1)
+{
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                    <span class="text-muted">
+                        Showing <strong>@((Model.Pagination.CurrentPage - 1) * 10 + 1)</strong> to
+                        <strong>@Math.Min(Model.Pagination.CurrentPage * 10, Model.Pagination.TotalItems)</strong>
+                        of <strong>@Model.Pagination.TotalItems</strong> tickets
+                    </span>
+                </div>
+
+                <nav aria-label="Tickets pagination">
+                    <ul class="pagination pagination-rounded mb-0">
+                        @if (Model.Pagination.CurrentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(Model.Pagination.CurrentPage - 1)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+
+                        @for (int p = Math.Max(1, Model.Pagination.CurrentPage - 2); p <= Math.Min(Model.Pagination.TotalPages, Model.Pagination.CurrentPage + 2); p++)
+                        {
+                            <li class="page-item @(p == Model.Pagination.CurrentPage ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@p">@p</a>
+                            </li>
+                        }
+
+                        @if (Model.Pagination.CurrentPage < Model.Pagination.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(Model.Pagination.CurrentPage + 1)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+<!-- Update Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="updateForm" method="post" asp-area="Admin" asp-controller="ManageMaintenance" asp-action="UpdateTicketStatus">
+            @Html.AntiForgeryToken()
+            @* <input type="hidden" asp-for="@Model.EditModel.TicketId" /> *@
+            <input type="hidden" name="TicketId" />
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="updateModalLabel">
+                        <i class="fas fa-edit me-2"></i>Update Maintenance Ticket
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                   
+
+                    <!-- Alert container for inline messages -->
+                    <div id="modalAlert" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                        <span id="modalAlertMessage"></span>
+                        <button type="button" class="btn-close" aria-label="Close" onclick="$('#modalAlert').hide()"></button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="modalTicketStatus" class="form-label fw-semibold">
+                                <i class="fas fa-flag me-1 text-primary"></i>Ticket Status
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select name="NewStatus" id="modalTicketStatus" class="form-select form-select-lg" required>
+                                @foreach (var status in Enum.GetValues<TicketStatus>())
+                                {
+                                    <option value="@status">
+                                        @(status switch
+                                        {
+                                            TicketStatus.Pending => " Pending",
+                                            TicketStatus.InProgress => " In Progress",
+                                            TicketStatus.Resolved => " Resolved",
+                                            TicketStatus.Rejected => " Rejected",
+                                            _ => status.ToString()
+                                        })
+                                    </option>
+                                }
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Select the current status of this maintenance ticket
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="modalInvoiceStatus" class="form-label fw-semibold">
+                                <i class="fas fa-file-invoice me-1 text-success"></i>Invoice Status
+                            </label>
+                            <select name="NewInvoiceStatus" id="modalInvoiceStatus" class="form-select form-select-lg">
+                                <option value="">-- Select Invoice Status --</option>
+                                @foreach (var status in Enum.GetValues<InvoiceStatus>())
+                                {
+                                    <option value="@status">
+                                        @(status switch
+                                        {
+                                            InvoiceStatus.Pending => " Pending",
+                                            InvoiceStatus.Paid => " Paid",
+                                            InvoiceStatus.Cancelled => " Cancelled",
+                                            _ => status.ToString()
+                                        })
+                                    </option>
+                                }
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Optional: Update invoice payment status
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalAdminNotes" class="form-label fw-semibold">
+                            <i class="fas fa-sticky-note me-1 text-warning"></i>Admin Notes
+                        </label>
+                        <textarea name="AdminNotes"
+                                  id="modalAdminNotes"
+                                  class="form-control form-control-lg"
+                                  rows="4"
+                                  placeholder="Add any relevant notes, comments, or updates about this ticket..."
+                                  maxlength="1000"></textarea>
+                        <div class="form-text d-flex justify-content-between">
+                            <span><i class="fas fa-info-circle me-1"></i>Optional: Add administrative notes for internal reference</span>
+                            <span id="notesCounter" class="text-muted">0/1000</span>
+                        </div>
+                    </div>
+
+                    <!-- Status change preview -->
+                    <div id="statusPreview" class="card bg-light border-0 p-3 mb-3" style="display: none;">
+                        <h6 class="card-title mb-2">
+                            <i class="fas fa-eye me-1 text-info"></i>Status Change Preview
+                        </h6>
+                        <div id="statusChangeText" class="text-muted"></div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        <i class="fas fa-keyboard me-1"></i>
+                        Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to save quickly
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+<!-- Required JavaScript CDNs - Add these before closing </body> tag -->
+<!-- jQuery (required for Select2 and other functionality) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- Bootstrap 5 JavaScript Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Select2 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Toastify JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+
+        $(document).ready(function() {
+        // Initialize Select2 with enhanced styling
+        $('.select2').select2({
+            placeholder: 'Search and select...',
+            allowClear: true,
+            theme: 'bootstrap-5'
+        });
+
+        // Enhanced toast notification function
+        function showToast(message, type = 'success', duration = 3000) {
+            const backgroundColor = type === 'success'
+                ? 'linear-gradient(135deg, #28a745, #20c997)'
+                : 'linear-gradient(135deg, #dc3545, #20c997)';
+
+            Toastify({
+                text: message,
+                duration: duration,
+                close: true,
+                gravity: "top",
+                position: "right",
+                stopOnFocus: true,
+                style: {
+                    background: backgroundColor,
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                    fontWeight: "500"
+                },
+                onClick: function(){}
+            }).showToast();
+        }
+
+        // Filter UI functionality
+        function updateFilterUI() {
+            var mode = $('#filterType').val();
+            var $driverContainer = $('#driverContainer');
+            var $vehicleContainer = $('#vehicleContainer');
+
+            if (mode === 'ByDriver') {
+                $driverContainer.show().addClass('animate__animated animate__fadeInUp');
+                $vehicleContainer.hide();
+            } else if (mode === 'ByVehicle') {
+                $vehicleContainer.show().addClass('animate__animated animate__fadeInUp');
+                $driverContainer.hide();
+            } else {
+                $driverContainer.hide();
+                $vehicleContainer.hide();
+            }
+        }
+
+        // Initialize filter UI on page load
+        updateFilterUI();
+
+        // Update filter UI when selection changes
+        $('#filterType').on('change', function() {
+            updateFilterUI();
+            var mode = $(this).val();
+            if (mode !== 'ByDriver') {
+                $('#driverSelect').val('').trigger('change');
+            }
+            if (mode !== 'ByVehicle') {
+                $('#vehicleSelect').val('').trigger('change');
+            }
+        });
+
+        // Re-enable selects before form submission
+        $('form').on('submit', function() {
+            $('#driverSelect, #vehicleSelect').prop('disabled', false);
+        });
+
+        // ======== EDIT MODAL FUNCTIONALITY ========
+
+        // Handle edit button clicks
+        $(document).on('click', '.action-btn-edit', function(e) {
+            e.preventDefault();
+
+            const $btn = $(this);
+            const ticketId = $btn.data('ticket-id');
+            const ticketStatus = $btn.data('ticket-status');
+            const invoiceStatus = $btn.data('invoice-status');
+            const adminNotes = $btn.data('admin-notes');
+
+            // Populate form fields
+            $('input[name="TicketId"]').val(ticketId);
+            $('#modalTicketStatus').val(ticketStatus);
+            $('#modalInvoiceStatus').val(invoiceStatus || '');
+            $('#modalAdminNotes').val(adminNotes || '');
+
+            // Reset UI elements
+            $('#statusPreview').hide();
+            $('#modalAlert').hide();
+            updateNotesCounter();
+
+            // Show the modal
+            $('#updateModal').modal('show');
+        });
+
+        // Handle form submission via AJAX
+        $(document).on('submit', '#updateForm', function(e) {
+            e.preventDefault();
+
+            const $form = $(this);
+            const $submitBtn = $form.find('button[type=submit]');
+            const originalText = $submitBtn.html();
+
+            // Disable submit button and show loading state
+            $submitBtn.prop('disabled', true).addClass('btn-loading');
+
+            // Hide any existing alerts
+            $('#modalAlert').hide();
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: 'POST',
+                data: $form.serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        // Close modal
+                        $('#updateModal').modal('hide');
+
+                        // Find the ticket row and update ONLY the status badge
+                        const ticketId = response.ticketId;
+                        const newStatus = response.newStatus;
+
+                        // Find the row containing this ticket ID
+                        const $ticketRow = $(`td:contains("#${ticketId}")`).closest('tr');
+
+                        if ($ticketRow.length > 0) {
+                            // COMPREHENSIVE status mapping including all possible statuses
+                            const statusMapping = {
+                                'Pending': { class: 'bg-warning text-dark', icon: 'fas fa-clock' },
+                                'InProgress': { class: 'bg-info text-white', icon: 'fas fa-wrench' },
+                                'Resolved': { class: 'bg-success text-white', icon: 'fas fa-check' },
+                                'Rejected': { class: 'bg-danger text-white', icon: 'fas fa-times' }
+                            };
+
+                            const statusInfo = statusMapping[newStatus] || {
+                                class: 'bg-primary text-white',
+                                icon: 'fas fa-info-circle'
+                            };
+
+                            // Find ONLY the status badge (5th column - Status column)
+                            // This is more specific targeting to avoid updating the vehicle badge
+                            const $statusCell = $ticketRow.find('td').eq(4); // 5th column (0-indexed)
+                            const $statusBadge = $statusCell.find('span.badge');
+
+                            if ($statusBadge.length > 0) {
+                                $statusBadge
+                                    .attr('class', `badge ${statusInfo.class} px-3 py-2`)
+                                    .html(`<i class="${statusInfo.icon} me-1"></i>${newStatus}`);
+                            } else {
+                                // Fallback: if badge not found in expected location, try finding by status-specific classes
+                                const $allBadges = $ticketRow.find('span.badge');
+                                $allBadges.each(function() {
+                                    const $badge = $(this);
+                                    // Check if this badge contains status-related classes or icons
+                                    if ($badge.find('i.fa-clock, i.fa-wrench, i.fa-check, i.fa-times, i.fa-check-circle').length > 0) {
+                                        $badge
+                                            .attr('class', `badge ${statusInfo.class} px-3 py-2`)
+                                            .html(`<i class="${statusInfo.icon} me-1"></i>${newStatus}`);
+                                    }
+                                });
+                            }
+
+                            // Also update the edit button's data attributes for future edits
+                            const $editBtn = $ticketRow.find('.action-btn-edit');
+                            $editBtn.attr('data-ticket-status', newStatus);
+                        }
+
+                        // Show success toast
+                        showToast('Ticket updated successfully!', 'success');
+
+                    } else {
+                        // Show error message in modal
+                        showModalAlert(response.message || 'Failed to update ticket', 'danger');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showModalAlert('An unexpected error occurred. Please try again.', 'danger');
+                },
+                complete: function() {
+                    // Re-enable submit button and remove loading state
+                    $submitBtn.prop('disabled', false).removeClass('btn-loading').html(originalText);
+                }
+            });
+        });
+
+        // Helper function to show alerts in modal
+        function showModalAlert(message, type) {
+            $('#modalAlert')
+                .removeClass('alert-success alert-danger')
+                .addClass(`alert-${type} show`)
+                .find('#modalAlertMessage')
+                .text(message);
+            $('#modalAlert').show();
+        }
+
+        // Character counter for notes textarea
+        function updateNotesCounter() {
+            const notes = $('#modalAdminNotes').val() || '';
+            const length = notes.length;
+            const $counter = $('#notesCounter');
+
+            $counter.text(`${length}/1000`);
+
+            if (length > 800) {
+                $counter.removeClass('text-muted text-warning').addClass('text-danger');
+            } else if (length > 600) {
+                $counter.removeClass('text-muted text-danger').addClass('text-warning');
+            } else {
+                $counter.removeClass('text-warning text-danger').addClass('text-muted');
+            }
+        }
+
+        // Update counter on input
+        $(document).on('input', '#modalAdminNotes', updateNotesCounter);
+
+        // Status change preview
+        $(document).on('change', '#modalTicketStatus', function() {
+            const newStatus = $(this).val();
+            const $preview = $('#statusPreview');
+            const $changeText = $('#statusChangeText');
+
+            if (newStatus) {
+                $changeText.html(`Status will be changed to: <strong>${newStatus}</strong>`);
+                $preview.show();
+            } else {
+                $preview.hide();
+            }
+        });
+
+        // Add enhanced tooltips to action buttons
+        $('[title]').tooltip({
+            trigger: 'hover',
+            placement: 'top'
+        });
+
+        // Add keyboard shortcuts for better UX
+        $(document).on('keydown', function(e) {
+            // Escape key to close modal
+            if (e.key === 'Escape' && $('#updateModal').hasClass('show')) {
+                $('#updateModal').modal('hide');
+            }
+
+            // Ctrl+Enter to submit form when modal is open
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#updateModal').hasClass('show')) {
+                e.preventDefault();
+                $('#updateForm').submit();
+            }
+        });
+    });
+
+
+@*     $(document).ready(function() {
+        // Initialize Select2 with enhanced styling
+        $('.select2').select2({
+            placeholder: 'Search and select...',
+            allowClear: true,
+            theme: 'bootstrap-5'
+        });
+
+        // Enhanced toast notification function
+        function showToast(message, type = 'success', duration = 3000) {
+            const backgroundColor = type === 'success'
+                ? 'linear-gradient(135deg, #28a745, #20c997)'
+                : 'linear-gradient(135deg, #dc3545, #e74c3c)';
+
+            Toastify({
+                text: message,
+                duration: duration,
+                close: true,
+                gravity: "top",
+                position: "right",
+                stopOnFocus: true,
+                style: {
+                    background: backgroundColor,
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                    fontWeight: "500"
+                },
+                onClick: function(){}
+            }).showToast();
+        }
+
+        // Filter UI functionality
+        function updateFilterUI() {
+            var mode = $('#filterType').val();
+            var $driverContainer = $('#driverContainer');
+            var $vehicleContainer = $('#vehicleContainer');
+
+            if (mode === 'ByDriver') {
+                $driverContainer.show().addClass('animate__animated animate__fadeInUp');
+                $vehicleContainer.hide();
+            } else if (mode === 'ByVehicle') {
+                $vehicleContainer.show().addClass('animate__animated animate__fadeInUp');
+                $driverContainer.hide();
+            } else {
+                $driverContainer.hide();
+                $vehicleContainer.hide();
+            }
+        }
+
+        // Initialize filter UI on page load
+        updateFilterUI();
+
+        // Update filter UI when selection changes
+        $('#filterType').on('change', function() {
+            updateFilterUI();
+            var mode = $(this).val();
+            if (mode !== 'ByDriver') {
+                $('#driverSelect').val('').trigger('change');
+            }
+            if (mode !== 'ByVehicle') {
+                $('#vehicleSelect').val('').trigger('change');
+            }
+        });
+
+        // Re-enable selects before form submission
+        $('form').on('submit', function() {
+            $('#driverSelect, #vehicleSelect').prop('disabled', false);
+        });
+
+        // ======== EDIT MODAL FUNCTIONALITY ========
+
+        // Handle edit button clicks
+        $(document).on('click', '.action-btn-edit', function(e) {
+            e.preventDefault();
+
+            const $btn = $(this);
+            const ticketId = $btn.data('ticket-id');
+            const ticketStatus = $btn.data('ticket-status');
+            const invoiceStatus = $btn.data('invoice-status');
+            const adminNotes = $btn.data('admin-notes');
+
+            // Populate form fields
+            $('input[name="TicketId"]').val(ticketId);
+            $('#modalTicketStatus').val(ticketStatus);
+            $('#modalInvoiceStatus').val(invoiceStatus || '');
+            $('#modalAdminNotes').val(adminNotes || '');
+
+            // Reset UI elements
+            $('#statusPreview').hide();
+            $('#modalAlert').hide();
+            updateNotesCounter();
+
+            // Show the modal
+            $('#updateModal').modal('show');
+        });
+
+        // Handle form submission via AJAX
+        $(document).on('submit', '#updateForm', function(e) {
+            e.preventDefault();
+
+            const $form = $(this);
+            const $submitBtn = $form.find('button[type=submit]');
+            const originalText = $submitBtn.html();
+
+            // Disable submit button and show loading state
+            $submitBtn.prop('disabled', true).addClass('btn-loading');
+
+            // Hide any existing alerts
+            $('#modalAlert').hide();
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: 'POST',
+                data: $form.serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        // Close modal
+                        $('#updateModal').modal('hide');
+
+                        // Find the ticket row and update the status badge
+                        const ticketId = response.ticketId;
+                        const newStatus = response.newStatus;
+
+                        // Find the row containing this ticket ID
+                        const $ticketRow = $(`td:contains("#${ticketId}")`).closest('tr');
+
+                        if ($ticketRow.length > 0) {
+                            // Update status badge
+                            const statusMapping = {
+                                'Pending': { class: 'bg-warning text-dark', icon: 'fas fa-clock' },
+                                'InProgress': { class: 'bg-info text-white', icon: 'fas fa-wrench' },
+                                'Resolved': { class: 'bg-success text-white', icon: 'fas fa-check' },
+                                'Rejected': { class: 'bg-danger text-white', icon: 'fas fa-times' }
+                            };
+
+                            const statusInfo = statusMapping[newStatus] || {
+                                class: 'bg-secondary text-white',
+                                icon: 'fas fa-question'
+                            };
+
+                            // Find and update the status badge in this row
+                            const $statusBadge = $ticketRow.find('span.badge');
+                            $statusBadge
+                                .attr('class', `badge ${statusInfo.class} px-3 py-2`)
+                                .html(`<i class="${statusInfo.icon} me-1"></i>${newStatus}`);
+                        }
+
+                        // Show success toast
+                        showToast('Ticket updated successfully!', 'success');
+
+                    } else {
+                        // Show error message in modal
+                        showModalAlert(response.message || 'Failed to update ticket', 'danger');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showModalAlert('An unexpected error occurred. Please try again.', 'danger');
+                },
+                complete: function() {
+                    // Re-enable submit button and remove loading state
+                    $submitBtn.prop('disabled', false).removeClass('btn-loading').html(originalText);
+                }
+            });
+        });
+
+        // Helper function to show alerts in modal
+        function showModalAlert(message, type) {
+            $('#modalAlert')
+                .removeClass('alert-success alert-danger')
+                .addClass(`alert-${type} show`)
+                .find('#modalAlertMessage')
+                .text(message);
+            $('#modalAlert').show();
+        }
+
+        // Character counter for notes textarea
+        function updateNotesCounter() {
+            const notes = $('#modalAdminNotes').val() || '';
+            const length = notes.length;
+            const $counter = $('#notesCounter');
+
+            $counter.text(`${length}/1000`);
+
+            if (length > 800) {
+                $counter.removeClass('text-muted text-warning').addClass('text-danger');
+            } else if (length > 600) {
+                $counter.removeClass('text-muted text-danger').addClass('text-warning');
+            } else {
+                $counter.removeClass('text-warning text-danger').addClass('text-muted');
+            }
+        }
+
+        // Update counter on input
+        $(document).on('input', '#modalAdminNotes', updateNotesCounter);
+
+        // Status change preview
+        $(document).on('change', '#modalTicketStatus', function() {
+            const newStatus = $(this).val();
+            const $preview = $('#statusPreview');
+            const $changeText = $('#statusChangeText');
+
+            if (newStatus) {
+                $changeText.html(`Status will be changed to: <strong>${newStatus}</strong>`);
+                $preview.show();
+            } else {
+                $preview.hide();
+            }
+        });
+
+        // Add enhanced tooltips to action buttons
+        $('[title]').tooltip({
+            trigger: 'hover',
+            placement: 'top'
+        });
+
+        // Add keyboard shortcuts for better UX
+        $(document).on('keydown', function(e) {
+            // Escape key to close modal
+            if (e.key === 'Escape' && $('#updateModal').hasClass('show')) {
+                $('#updateModal').modal('hide');
+            }
+
+            // Ctrl+Enter to submit form when modal is open
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#updateModal').hasClass('show')) {
+                e.preventDefault();
+                $('#updateForm').submit();
+            }
+        });
+    });
+ *@
+</script>
+
+
+
+
+
+

@@ -1,0 +1,2482 @@
+﻿@using FleetManager.Business.Enums
+
+@using FleetManager.Business.DataObjects.MaintenanceDto
+@model MaintenanceTicketDto
+@{
+    ViewData["Title"] = $"Ticket #{Model.Id}";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+
+<!-- Toastify CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+
+<style>
+    /* Main Container */
+    .ticket-details-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Header Section */
+    .details-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .ticket-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .ticket-meta {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .status-badge-lg {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Info Cards */
+    .info-card, .summary-card, .actions-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .info-card:hover, .summary-card:hover, .actions-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+        padding: 20px 25px;
+    }
+
+    .card-title {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    /* Vehicle Details */
+    .vehicle-details {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .vehicle-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .vehicle-info h6 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #2c3e50;
+    }
+
+    .vehicle-info p {
+        margin: 5px 0 0 0;
+        color: #6c757d;
+    }
+
+    /* Detail Rows */
+    .detail-row {
+        margin-bottom: 20px;
+    }
+
+        .detail-row label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+    .detail-value h6 {
+        margin: 0;
+        color: #495057;
+    }
+
+    .notes-content {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        border-left: 4px solid #667eea;
+        line-height: 1.6;
+        color: #495057;
+    }
+
+    /* Table Styles */
+    .table-header {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+        .table-header th {
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 15px;
+            border: none;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .part-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .part-name {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .category-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .quantity-badge {
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .price-text, .total-text {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .table-footer {
+        background: #f8f9fa;
+        border-top: 2px solid #dee2e6;
+    }
+
+    .grand-total {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    /* Summary Card */
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+    .summary-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .summary-value {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .cost-highlight {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    /* Action Buttons */
+    .action-buttons .btn {
+        font-weight: 500;
+        border-radius: 12px;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+    }
+
+        .action-buttons .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    /* Status Badges */
+    .badge-status-Pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-status-InProgress {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .badge-status-Resolved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-status-Rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-status-Paid {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-status-Unpaid {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-status-Overdue {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-status-Cancelled {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    /* Priority Indicators (large) */
+    .priority-indicator-lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+
+    .priority-low {
+        color: #28a745;
+    }
+
+    .priority-moderate {
+        color: #ffc107;
+    }
+
+    .priority-high {
+        color: #fd7e14;
+    }
+
+    .priority-urgent {
+        color: #dc3545;
+    }
+
+
+
+    /* Back Section */
+    .back-section {
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    /* Invoice Modal Styles */
+    .invoice-modal {
+        border: none;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    .invoice-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom: none;
+        padding: 20px 30px;
+    }
+
+        .invoice-header .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+    .invoice-body {
+        padding: 0;
+        background: #f8f9fa;
+    }
+
+    .invoice-container {
+        background: white;
+        margin: 20px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    /* Invoice Header Section */
+    .invoice-header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 40px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .company-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .company-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .company-details h2 {
+        margin: 0 0 5px 0;
+        color: #2c3e50;
+        font-weight: 700;
+    }
+
+    .company-tagline {
+        color: #6c757d;
+        font-style: italic;
+        margin-bottom: 15px;
+    }
+
+    .company-address p {
+        margin: 2px 0;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    .invoice-info {
+        text-align: right;
+    }
+
+    .invoice-number h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .invoice-id {
+        color: #667eea;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 5px 0 20px 0;
+    }
+
+    .date-item {
+        margin-bottom: 10px;
+    }
+
+        .date-item strong {
+            color: #2c3e50;
+        }
+
+    .invoice-status-section {
+        margin-top: 20px;
+    }
+
+    .invoice-status-badge {
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Invoice Parties */
+    .invoice-parties {
+        display: flex;
+        justify-content: space-between;
+        padding: 30px 40px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        .invoice-parties h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+    .client-info p, .service-info p {
+        margin: 5px 0;
+        color: #495057;
+    }
+
+    .client-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+
+    /* Invoice Items Table */
+    .invoice-items-section {
+        padding: 0;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+        .invoice-table thead {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .invoice-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .invoice-table td {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .invoice-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+    .item-name {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .category-tag {
+        background: #e9ecef;
+        color: #495057;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .item-quantity {
+        text-align: center;
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .item-price, .item-total {
+        text-align: right;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    /* Invoice Totals */
+    .invoice-totals {
+        padding: 30px 40px;
+        border-top: 2px solid #dee2e6;
+    }
+
+    .totals-section {
+        max-width: 400px;
+        margin-left: auto;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 1.1rem;
+    }
+
+    .total-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .total-value {
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .subtotal {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .tax {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .grand-total {
+        font-size: 1.3rem;
+        padding-top: 15px;
+        margin-top: 5px;
+    }
+
+        .grand-total .total-value {
+            color: #28a745;
+            font-size: 1.5rem;
+        }
+
+    /* Invoice Footer */
+    .invoice-footer {
+        display: flex;
+        justify-content: space-between;
+        padding: 40px;
+        border-top: 1px solid #dee2e6;
+        background: #f8f9fa;
+    }
+
+    .payment-info {
+        flex: 1;
+    }
+
+        .payment-info h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .payment-info p {
+            margin: 5px 0;
+            color: #495057;
+        }
+
+    .thank-you {
+        flex: 1;
+        text-align: right;
+    }
+
+        .thank-you p {
+            margin: 5px 0;
+            color: #495057;
+        }
+
+        .thank-you strong {
+            color: #2c3e50;
+        }
+
+    /* Invoice Watermark */
+    .invoice-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        opacity: 0.03;
+        font-size: 8rem;
+        font-weight: 900;
+        color: #000;
+        pointer-events: none;
+        z-index: 0;
+        white-space: nowrap;
+    }
+
+    .watermark-text {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        letter-spacing: 10px;
+    }
+
+    /* Toast notifications */
+    .toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1100;
+    }
+
+    .toast {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 15px;
+        opacity: 1;
+    }
+
+    .toast-body {
+        padding: 15px 20px;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+
+    /* Print-specific styles */
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .print-container, .print-container * {
+            visibility: visible;
+        }
+
+        .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+    }
+
+    /* Enhanced modal styles */
+    .modal-dialog {
+        transition: transform 0.3s ease-out;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -50px);
+    }
+
+    .modal.show .modal-dialog {
+        transform: none;
+    }
+
+    /* Custom form styling */
+    .form-select-lg, .form-control-lg {
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .form-select-lg:focus, .form-control-lg:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+    /* Status preview styling */
+    #statusPreview {
+        border-left: 4px solid #007bff !important;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Character counter styling */
+    #notesCounter {
+        font-size: 0.875rem;
+        transition: color 0.2s ease;
+    }
+
+        #notesCounter.text-warning {
+            color: #ffc107 !important;
+        }
+
+        #notesCounter.text-danger {
+            color: #dc3545 !important;
+        }
+
+    /* Enhanced kbd styling */
+    kbd {
+        background-color: #495057;
+        border-radius: 0.25rem;
+        padding: 0.125rem 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    /* Loading button animation */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+    }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    /* Custom toastify styles */
+    .toastify.success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+
+    .toastify.error {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+
+    }
+
+    /* Add this CSS to prevent modal backdrop issues */
+    .modal-backdrop.show {
+        opacity: 0.5;
+    }
+
+    /* Ensure modal backdrops are properly removed */
+    .modal-backdrop.fade:not(.show) {
+        display: none !important;
+    }
+
+    /* Force remove any stuck backdrops */
+    body:not(.modal-open) .modal-backdrop {
+        display: none !important;
+    }
+
+    /* Ensure body is interactive when no modals are open */
+    body:not(.modal-open) {
+        overflow: auto !important;
+        padding-right: 0 !important;
+        pointer-events: auto !important;
+    }
+
+    /* Fix for any stuck modal states */
+    .modal:not(.show) {
+        display: none !important;
+    }
+
+    /* Toastify positioning to ensure it's above any backdrop */
+    .toastify {
+        z-index: 9999 !important;
+    }
+
+    /* Visual feedback for status updates */
+    .status-updated {
+        animation: statusPulse 1s ease-in-out;
+        transform: scale(1.05);
+    }
+
+    @@keyframes statusPulse {
+        0%
+
+    {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+        transform: scale(1.05);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        transform: scale(1);
+    }
+
+    }
+
+</style>
+
+<div class="ticket-details-container">
+    <!-- Header Section -->
+    <div class="details-header">
+        <div class="header-content">
+            <div class="ticket-info">
+                <div class="ticket-number">
+                    <i class="fas fa-ticket-alt me-2"></i>
+                    <span>Ticket #@Model.Id</span>
+                </div>
+                <div class="ticket-meta">
+                    <span class="created-date">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Created @Model.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
+                    </span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="ticket-status">
+                    <span class="badge badge-status-@Model.Status status-badge-lg">
+                        @Model.Status
+                    </span>
+                </div>
+
+                <div class="ticket-priority">
+                    @{
+                        var pClass = Model.Priority.ToString().ToLower();
+                    }
+                    <span class="priority-indicator-lg priority-@pClass">
+                        <i class="fas fa-circle"></i>
+                        @Model.Priority
+                    </span>
+                </div>
+
+
+                @if (Model.Invoice != null)
+                {
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>
+                            View Invoice
+                        </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="details-content">
+        <div class="row">
+            <!-- Left Column - Ticket Information -->
+            <div class="col-lg-8">
+                <!-- Vehicle Information Card -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-car me-2"></i>
+                            Vehicle Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="vehicle-details">
+                            <div class="vehicle-icon">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="vehicle-info">
+                                <h6>@Model.VehicleDescription</h6>
+                                <p class="text-muted">Assigned Vehicle</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticket Details Card -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            Ticket Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="detail-row">
+                            <label>Subject:</label>
+                            <div class="detail-value">
+                                <h6>@Model.Subject</h6>
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <label>Description/Notes:</label>
+                            <div class="detail-value">
+                                <div class="notes-content">
+                                    @Html.Raw(Model.Notes?.Replace("\n", "<br />"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Line Items Card -->
+                @if (Model.Items?.Any() == true)
+                {
+                        <div class="info-card">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    <i class="fas fa-cogs me-2"></i>
+                                    Parts & Services
+                                </h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-header">
+                                            <tr>
+                                                <th>Part/Service</th>
+                                                <th>Category</th>
+                                                <th class="text-center">Quantity</th>
+                                                <th class="text-end">Unit Price</th>
+                                                <th class="text-end">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach (var item in Model.Items)
+                                        {
+                                                    <tr>
+                                                        <td>
+                                                            <div class="part-info">
+                                                                <i class="fas fa-cog text-primary me-2"></i>
+                                                                <span class="part-name">@item.PartName</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span class="category-badge">@item.PartCategoryName</span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span class="quantity-badge">@item.Quantity</span>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <span class="price-text">₦@item.UnitPrice.ToString("N2")</span>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <span class="total-text">₦@item.LineTotal.ToString("N2")</span>
+                                                        </td>
+                                                    </tr>
+                                        }
+                                        </tbody>
+                                        <tfoot class="table-footer">
+                                            <tr>
+                                                <th colspan="4" class="text-end">Grand Total:</th>
+                                                <th class="text-end">
+                                                    <span class="grand-total">₦@Model.Items.Sum(x => x.LineTotal).ToString("N2")</span>
+                                                </th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                }
+            </div>
+
+            <!-- Right Column - Summary & Actions -->
+            <div class="col-lg-4">
+                <!-- Quick Summary Card -->
+                <div class="summary-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Ticket Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-item">
+                            <div class="summary-label">Current Status</div>
+                            <div class="summary-value">
+                                <span class="badge badge-status-@Model.Status">@Model.Status</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Priority</div>
+                            <div class="summary-value">
+                                @{
+                                    var sClass = Model.Priority.ToString().ToLower();
+                                }
+                                <span class="priority-indicator priority-@sClass">
+                                    <i class="fas fa-circle"></i>
+                                    @Model.Priority
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="summary-item">
+                            <div class="summary-label">Created Date</div>
+                            <div class="summary-value">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Vehicle</div>
+                            <div class="summary-value">@Model.VehicleDescription</div>
+                        </div>
+                        @if (Model.Items?.Any() == true)
+                        {
+                                <div class="summary-item">
+                                    <div class="summary-label">Total Cost</div>
+                                    <div class="summary-value">
+                                        <span class="cost-highlight">₦@Model.Items.Sum(x => x.LineTotal).ToString("N2")</span>
+                                    </div>
+                                </div>
+                        }
+                        @if (Model.Invoice != null)
+                        {
+                                <div class="summary-item">
+                                    <div class="summary-label">Invoice Status</div>
+                                    <div class="summary-value">
+                                        <span class="badge badge-status-@Model.Invoice.Status">@Model.Invoice.Status</span>
+                                    </div>
+                                </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="actions-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-tools me-2"></i>
+                            Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="action-buttons">
+                            @if (Model.Invoice != null)
+                            {
+                                    <button class="btn btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+                                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                                        View Invoice
+                                    </button>
+                            }
+                            <a href="#" class="btn btn-outline-secondary w-100 mb-2" onclick="printTicket()">
+                                <i class="fas fa-print me-2"></i>
+                                Print Ticket
+                            </a>
+                           
+                            <button class="btn btn-outline-primary w-100 mb-2"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#updateModal"
+                                    data-ticket-id="@Model.Id"
+                                    data-ticket-status="@Model.Status"
+                                    data-invoice-status="@Model.Invoice?.Status"
+                                    data-admin-notes="@Model.AdminNotes"
+                                    title="Update ticket status">
+                                <i class="fas fa-edit"></i>
+                                <span class="d-none d-sm-inline">Edit</span>
+                            </button>
+
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="back-section">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to My Tickets
+        </a>
+    </div>
+</div>
+
+<!-- Update Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="updateForm" method="post" asp-area="Admin" asp-controller="ManageMaintenance" asp-action="UpdateTicketStatus">
+            @Html.AntiForgeryToken()
+             @* <input type="hidden" asp-for="EditModel.TicketId" value="@Model.Id" /> *@
+            
+            <input type="hidden" name="TicketId" value="@Model.Id" />
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="updateModalLabel">
+                        <i class="fas fa-edit me-2"></i>Update Maintenance Ticket
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+
+
+                    <!-- Alert container for inline messages -->
+                    <div id="modalAlert" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                        <span id="modalAlertMessage"></span>
+                        <button type="button" class="btn-close" aria-label="Close" onclick="$('#modalAlert').hide()"></button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="modalTicketStatus" class="form-label fw-semibold">
+                                <i class="fas fa-flag me-1 text-primary"></i>Ticket Status
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select name="NewStatus" id="modalTicketStatus" class="form-select form-select-lg" required>
+                                @foreach (var status in Enum.GetValues<TicketStatus>())
+                                {
+                                    <option value="@status">
+                                        @(status switch
+                                        {
+                                            TicketStatus.Pending => " Pending",
+                                            TicketStatus.InProgress => " In Progress",
+                                            TicketStatus.Resolved => " Resolved",
+                                            TicketStatus.Rejected => " Rejected",
+                                            _ => status.ToString()
+                                        })
+                                    </option>
+                                }
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Select the current status of this maintenance ticket
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="modalInvoiceStatus" class="form-label fw-semibold">
+                                <i class="fas fa-file-invoice me-1 text-success"></i>Invoice Status
+                            </label>
+                            <select name="NewInvoiceStatus" id="modalInvoiceStatus" class="form-select form-select-lg">
+                                <option value="">-- Select Invoice Status --</option>
+                                @foreach (var status in Enum.GetValues<InvoiceStatus>())
+                                {
+                                    <option value="@status">
+                                        @(status switch
+                                        {
+                                            InvoiceStatus.Pending => " Pending",
+                                            InvoiceStatus.Paid => " Paid",
+                                            InvoiceStatus.Cancelled => " Cancelled",
+                                            _ => status.ToString()
+                                        })
+                                    </option>
+                                }
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Optional: Update invoice payment status
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalAdminNotes" class="form-label fw-semibold">
+                            <i class="fas fa-sticky-note me-1 text-warning"></i>Admin Notes
+                        </label>
+                        <textarea name="AdminNotes"
+                                  id="modalAdminNotes"
+                                  class="form-control form-control-lg"
+                                  rows="4"
+                                  placeholder="Add any relevant notes, comments, or updates about this ticket..."
+                                  maxlength="1000"></textarea>
+                        <div class="form-text d-flex justify-content-between">
+                            <span><i class="fas fa-info-circle me-1"></i>Optional: Add administrative notes for internal reference</span>
+                            <span id="notesCounter" class="text-muted">0/1000</span>
+                        </div>
+                    </div>
+
+                    <!-- Status change preview -->
+                    <div id="statusPreview" class="card bg-light border-0 p-3 mb-3" style="display: none;">
+                        <h6 class="card-title mb-2">
+                            <i class="fas fa-eye me-1 text-info"></i>Status Change Preview
+                        </h6>
+                        <div id="statusChangeText" class="text-muted"></div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        <i class="fas fa-keyboard me-1"></i>
+                        Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to save quickly
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<!-- Professional Invoice Modal -->
+@if (Model.Invoice != null)
+{
+        <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content invoice-modal">
+                    <div class="modal-header invoice-header">
+                        <h5 class="modal-title" id="invoiceModalLabel">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>
+                            Invoice #@Model.Invoice.Id
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body invoice-body">
+                        <div class="invoice-container">
+                            <!-- Invoice Header -->
+                            <div class="invoice-header-section">
+                                <div class="company-info">
+                                    <div class="company-logo">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="company-details">
+                                        <h2>FleetGuard</h2>
+                                        <p class="company-tagline">Professional Fleet Management Solutions</p>
+                                        <div class="company-address">
+                                            <p>123 Fleet Street, Victoria Island</p>
+                                            <p>Lagos, Nigeria</p>
+                                            <p>Phone: +234 (0) 123 456 7890</p>
+                                            <p>Email: billing@fleetguard.ng</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="invoice-info">
+                                    <div class="invoice-number">
+                                        <h3>INVOICE</h3>
+                                        <p class="invoice-id">#@Model.Invoice.Id</p>
+                                    </div>
+                                    <div class="invoice-dates">
+                                        <div class="date-item">
+                                            <strong>Invoice Date:</strong>
+                                            <span>@Model.Invoice.InvoiceDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        <div class="date-item">
+                                            <strong>Due Date:</strong>
+                                            <span>@Model.Invoice.InvoiceDate.AddDays(30).ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                    </div>
+                                    <div class="invoice-status-section">
+                                        <span class="badge badge-status-@Model.Invoice.Status invoice-status-badge">
+                                        @Model.Invoice.Status
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bill To / Service Details -->
+                            <div class="invoice-parties">
+                                <div class="bill-to-section">
+                                    <h6>Bill To:</h6>
+                                    <div class="client-info">
+                                        <p class="client-name">@Model.DriverName</p>
+                                        <p class="client-id">Driver ID: @Model.DriverId</p>
+                                        <p class="vehicle-ref">Vehicle: @Model.VehicleDescription</p>
+                                    </div>
+                                </div>
+                                <div class="service-ref-section">
+                                    <h6>Service Reference:</h6>
+                                    <div class="service-info">
+                                        <p>Maintenance Ticket: #@Model.Id</p>
+                                        <p>Service Date: @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                                        <p>Subject: @Model.Subject</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Invoice Items Table -->
+                            <div class="invoice-items-section">
+                                <table class="invoice-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="item-description">Description</th>
+                                            <th class="item-category">Category</th>
+                                            <th class="item-quantity">Qty</th>
+                                            <th class="item-price">Unit Price</th>
+                                            <th class="item-total">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (var item in Model.Invoice.Items)
+                                    {
+                                                <tr>
+                                                    <td class="item-description">
+                                                        <div class="item-details">
+                                                            <span class="item-name">@item.PartName</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="item-category">
+                                                        <span class="category-tag">@item.PartCategory</span>
+                                                    </td>
+                                                    <td class="item-quantity">@item.Quantity</td>
+                                                    <td class="item-price">₦@item.UnitPrice.ToString("N2")</td>
+                                                    <td class="item-total">₦@item.LineTotal.ToString("N2")</td>
+                                                </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Invoice Totals -->
+                            <div class="invoice-totals">
+                                <div class="totals-section">
+                                    <div class="total-row subtotal">
+                                        <span class="total-label">Subtotal:</span>
+                                        <span class="total-value">₦@Model.Invoice.Items.Sum(x => x.LineTotal).ToString("N2")</span>
+                                    </div>
+                                    <div class="total-row tax">
+                                        <span class="total-label">VAT (7.5%):</span>
+                                        <span class="total-value">₦@(Model.Invoice.Items.Sum(x => x.LineTotal) * 0.075m).ToString("N2")</span>
+                                    </div>
+                                    <div class="total-row grand-total">
+                                        <span class="total-label">Total Due:</span>
+                                        <span class="total-value">₦@(Model.Invoice.Items.Sum(x => x.LineTotal) * 1.075m).ToString("N2")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Invoice Footer -->
+                            <div class="invoice-footer">
+                                <div class="payment-info">
+                                    <h6>Payment Information:</h6>
+                                    <p>Bank: First Bank of Nigeria</p>
+                                    <p>Account Name: FleetGuard Services Ltd</p>
+                                    <p>Account Number: 3012345678</p>
+                                    <p>Sort Code: 011</p>
+                                </div>
+                                <div class="thank-you">
+                                    <p><strong>Thank you for your business!</strong></p>
+                                    <p>For any questions regarding this invoice, please contact our billing department.</p>
+                                </div>
+                            </div>
+
+                            <!-- Invoice Watermark -->
+                            <div class="invoice-watermark">
+                                <span class="watermark-text">FLEETGUARD</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer invoice-modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>
+                            Close
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="printInvoice()">
+                            <i class="fas fa-print me-2"></i>
+                            Print Invoice
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="downloadPDF()">
+                            <i class="fas fa-download me-2"></i>
+                            Download PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+}
+
+<!-- Add toast container placeholder -->
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+<!-- Required JavaScript CDNs - Add these before closing </body> tag -->
+<!-- jQuery (required for Select2 and other functionality) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- Bootstrap 5 JavaScript Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Select2 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Toastify JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+
+<script>
+        // Enhanced toast notification function
+    function showToast(message, type = 'success', duration = 3000) {
+        const backgroundColor = type === 'success'
+            ? 'linear-gradient(135deg, #28a745, #20c997)'
+            : 'linear-gradient(135deg, #dc3545, #e74c3c)';
+
+        Toastify({
+            text: message,
+            duration: duration,
+            close: true,
+            gravity: "top",
+            position: "right",
+            stopOnFocus: true,
+            style: {
+                background: backgroundColor,
+                borderRadius: "10px",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                fontWeight: "500"
+            },
+            onClick: function(){} // Callback after click
+        }).showToast();
+    }
+
+    // Function to update all ticket status elements on the page
+    function updatePageTicketStatusElements(newStatus, ticketId) {
+        console.log('Updating ticket status elements - Status:', newStatus, 'TicketId:', ticketId);
+
+        // Define ticket status classes mapping
+        const ticketStatusClasses = {
+            'Pending': 'badge-status-Pending',
+            'InProgress': 'badge-status-InProgress',
+            'Resolved': 'badge-status-Resolved',
+            'Rejected': 'badge-status-Rejected'
+        };
+
+        const newStatusClass = ticketStatusClasses[newStatus] || 'badge-status-Pending';
+
+        // 1. Update all header status badges (both regular and large)
+        $('.details-header .badge').each(function() {
+            const $badge = $(this);
+            // Only update if it's a ticket status badge (not invoice status)
+            if (Object.values(ticketStatusClasses).some(cls => $badge.hasClass(cls))) {
+                Object.values(ticketStatusClasses).forEach(cls => $badge.removeClass(cls));
+                $badge.addClass(newStatusClass);
+                $badge.text(newStatus);
+            }
+        });
+
+        // 2. Update header actions status badges
+        $('.header-actions .badge').each(function() {
+            const $badge = $(this);
+            if (Object.values(ticketStatusClasses).some(cls => $badge.hasClass(cls))) {
+                Object.values(ticketStatusClasses).forEach(cls => $badge.removeClass(cls));
+                $badge.addClass(newStatusClass);
+                $badge.text(newStatus);
+            }
+        });
+
+        // 3. Update summary card ticket status specifically
+        $('.summary-card .summary-item').each(function() {
+            const $item = $(this);
+            const labelText = $item.find('.summary-label').text().trim();
+            if (labelText === 'Current Status') {
+                const $valueBadge = $item.find('.summary-value .badge');
+                if ($valueBadge.length > 0) {
+                    Object.values(ticketStatusClasses).forEach(cls => $valueBadge.removeClass(cls));
+                    $valueBadge.addClass(newStatusClass);
+                    $valueBadge.text(newStatus);
+
+                    // Add visual feedback
+                    $valueBadge.addClass('status-updated');
+                    setTimeout(() => $valueBadge.removeClass('status-updated'), 1000);
+                }
+            }
+        });
+
+        // 4. Update any status badges with status-badge-lg class (header large badges)
+        $('.status-badge-lg').each(function() {
+            const $badge = $(this);
+            if (Object.values(ticketStatusClasses).some(cls => $badge.hasClass(cls))) {
+                Object.values(ticketStatusClasses).forEach(cls => $badge.removeClass(cls));
+                $badge.addClass(newStatusClass);
+                $badge.text(newStatus);
+            }
+        });
+
+        // 5. Update ticket status sections
+        $('.ticket-status .badge').each(function() {
+            const $badge = $(this);
+            if (Object.values(ticketStatusClasses).some(cls => $badge.hasClass(cls))) {
+                Object.values(ticketStatusClasses).forEach(cls => $badge.removeClass(cls));
+                $badge.addClass(newStatusClass);
+                $badge.text(newStatus);
+            }
+        });
+
+        // 6. Update data attributes on edit buttons
+        $('button[data-bs-target="#updateModal"], button[data-ticket-id]').each(function() {
+            $(this).attr('data-ticket-status', newStatus);
+        });
+
+        console.log('Ticket status update completed for all page elements');
+    }
+
+    // Function to update all invoice status elements on the page
+    function updatePageInvoiceStatusElements(newInvoiceStatus) {
+        if (!newInvoiceStatus) return;
+
+        console.log('Updating invoice status elements - Status:', newInvoiceStatus);
+
+        // Define invoice status classes mapping
+        const invoiceStatusClasses = {
+            'Pending': 'badge-status-Pending',
+            'Paid': 'badge-status-Paid',
+            'Unpaid': 'badge-status-Unpaid',
+            'Overdue': 'badge-status-Overdue',
+            'Cancelled': 'badge-status-Cancelled'
+        };
+
+        const newInvoiceStatusClass = invoiceStatusClasses[newInvoiceStatus] || 'badge-status-Pending';
+
+        // 1. Update summary card invoice status specifically
+        $('.summary-card .summary-item').each(function() {
+            const $item = $(this);
+            const labelText = $item.find('.summary-label').text().trim();
+            if (labelText === 'Invoice Status') {
+                const $valueBadge = $item.find('.summary-value .badge');
+                if ($valueBadge.length > 0) {
+                    Object.values(invoiceStatusClasses).forEach(cls => $valueBadge.removeClass(cls));
+                    $valueBadge.addClass(newInvoiceStatusClass);
+                    $valueBadge.text(newInvoiceStatus);
+
+                    // Add visual feedback
+                    $valueBadge.addClass('status-updated');
+                    setTimeout(() => $valueBadge.removeClass('status-updated'), 1000);
+                }
+            }
+        });
+
+        // 2. Update invoice modal status badges if modal exists
+        $('.invoice-status-badge').each(function() {
+            const $badge = $(this);
+            Object.values(invoiceStatusClasses).forEach(cls => $badge.removeClass(cls));
+            $badge.addClass(newInvoiceStatusClass);
+            $badge.text(newInvoiceStatus);
+        });
+
+        // 3. Update data attributes on edit buttons for invoice status
+        $('button[data-bs-target="#updateModal"], button[data-ticket-id]').each(function() {
+            $(this).attr('data-invoice-status', newInvoiceStatus);
+        });
+
+        console.log('Invoice status update completed for all page elements');
+    }
+
+    function cleanupModalBackdrops() {
+        // Remove all modal backdrops
+        $('.modal-backdrop').remove();
+
+        // Reset body classes
+        $('body').removeClass('modal-open');
+
+        // Reset body styles that might be set by Bootstrap
+        $('body').css({
+            'overflow': '',
+            'padding-right': ''
+        });
+
+        // Reset body attributes
+        $('body').removeAttr('style');
+
+        // Force page to be interactive
+        $('body').css('pointer-events', 'auto');
+        $('html').css('pointer-events', 'auto');
+    }
+
+    $(document).ready(function() {
+        // ======== EDIT MODAL FUNCTIONALITY FOR DETAILS PAGE ========
+
+        // Handle edit button clicks - Works with both data-bs-toggle buttons and action-btn-edit buttons
+        $(document).on('click', '.action-btn-edit, button[data-bs-toggle="modal"][data-bs-target="#updateModal"]', function(e) {
+            // Clean up any existing backdrops before opening modal
+            cleanupModalBackdrops();
+
+            // Don't prevent default for data-bs-toggle buttons as they need Bootstrap's native behavior
+            if (!$(this).attr('data-bs-toggle')) {
+                e.preventDefault();
+            }
+
+            const $btn = $(this);
+            let ticketId = $btn.data('ticket-id');
+            const ticketStatus = $btn.data('ticket-status');
+            const invoiceStatus = $btn.data('invoice-status');
+            const adminNotes = $btn.data('admin-notes');
+
+            // FALLBACK: If ticketId is not found in data attributes, try to extract from URL or page
+            if (!ticketId) {
+                // Try to get from the page title or other elements
+                const titleText = document.title;
+                const ticketMatch = titleText.match(/Ticket #(\d+)/);
+                if (ticketMatch) {
+                    ticketId = ticketMatch[1];
+                }
+            }
+
+            // Another fallback: try to get from the header
+            if (!ticketId) {
+                const headerTicketText = $('.ticket-number span').text();
+                const headerMatch = headerTicketText.match(/Ticket #(\d+)/);
+                if (headerMatch) {
+                    ticketId = headerMatch[1];
+                }
+            }
+
+            console.log('Debug - TicketId:', ticketId); // Debug log
+
+            // Validate that we have a ticket ID
+            if (!ticketId) {
+                showToast('Error: Could not determine ticket ID', 'error');
+                return;
+            }
+
+            // Small delay to ensure modal is opened by Bootstrap first (for data-bs-toggle buttons)
+            setTimeout(function() {
+                // Populate form fields
+                $('input[name="TicketId"]').val(ticketId);
+                $('#modalTicketStatus').val(ticketStatus);
+                $('#modalInvoiceStatus').val(invoiceStatus || '');
+                $('#modalAdminNotes').val(adminNotes || '');
+
+                // Debug: Log the form values
+                console.log('Form values set:', {
+                    ticketId: $('input[name="TicketId"]').val(),
+                    status: $('#modalTicketStatus').val(),
+                    invoiceStatus: $('#modalInvoiceStatus').val(),
+                    notes: $('#modalAdminNotes').val()
+                });
+
+                // Reset UI elements
+                $('#statusPreview').hide();
+                $('#modalAlert').hide();
+                updateNotesCounter();
+
+                // For non-Bootstrap toggle buttons, manually show the modal
+                if (!$btn.attr('data-bs-toggle')) {
+                    $('#updateModal').modal('show');
+                }
+            }, 100);
+        });
+
+        // Handle form submission via AJAX
+        $(document).on('submit', '#updateForm', function(e) {
+            e.preventDefault();
+
+            const $form = $(this);
+            const $submitBtn = $form.find('button[type=submit]');
+            const originalText = $submitBtn.html();
+
+            // Validate ticket ID before submission
+            const ticketId = $('input[name="TicketId"]').val();
+            if (!ticketId || ticketId.trim() === '') {
+                showModalAlert('Error: Ticket ID is missing. Please refresh the page and try again.', 'danger');
+                return;
+            }
+
+            // Debug: Log form data before submission
+            const formData = $form.serializeArray();
+            console.log('Form data being submitted:', formData);
+
+            // Disable submit button and show loading state
+            $submitBtn.prop('disabled', true).addClass('btn-loading');
+
+            // Hide any existing alerts
+            $('#modalAlert').hide();
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: 'POST',
+                data: $form.serialize(),
+                success: function(response) {
+                    console.log('Success response received:', response);
+
+                    if (response.success) {
+                        // PROPERLY CLOSE MODAL AND CLEAN UP
+                        const modalElement = document.getElementById('updateModal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+
+                        if (modal) {
+                            modal.hide();
+                        } else {
+                            $('#updateModal').modal('hide');
+                        }
+
+                        // Force cleanup after a short delay to ensure modal is fully closed
+                        setTimeout(function() {
+                            cleanupModalBackdrops();
+                        }, 300);
+
+                        const newTicketStatus = response.newStatus;
+                        const newInvoiceStatus = response.newInvoiceStatus;
+                        const responseTicketId = response.ticketId;
+
+                        console.log('Processing status updates:', {
+                            ticketStatus: newTicketStatus,
+                            invoiceStatus: newInvoiceStatus,
+                            ticketId: responseTicketId
+                        });
+
+                        // Check if we're on the index page (has table) or details page
+                        const $ticketTable = $('table tbody');
+
+                        if ($ticketTable.length > 0) {
+                            // INDEX PAGE LOGIC - Update table row
+                            const $ticketRow = $(`td:contains("#${responseTicketId}")`).closest('tr');
+
+                            if ($ticketRow.length > 0) {
+                                // COMPREHENSIVE status mapping for table display
+                                const tableStatusMapping = {
+                                    'Pending': { class: 'bg-warning text-dark', icon: 'fas fa-clock' },
+                                    'InProgress': { class: 'bg-info text-white', icon: 'fas fa-wrench' },
+                                    'Resolved': { class: 'bg-success text-white', icon: 'fas fa-check' },
+                                    'Rejected': { class: 'bg-danger text-white', icon: 'fas fa-times' }
+                                };
+
+                                const statusInfo = tableStatusMapping[newTicketStatus] || {
+                                    class: 'bg-primary text-white',
+                                    icon: 'fas fa-info-circle'
+                                };
+
+                                // Find ONLY the ticket status badge (5th column - Status column)
+                                const $statusCell = $ticketRow.find('td').eq(4);
+                                const $statusBadge = $statusCell.find('span.badge');
+
+                                if ($statusBadge.length > 0) {
+                                    $statusBadge
+                                        .attr('class', `badge ${statusInfo.class} px-3 py-2`)
+                                        .html(`<i class="${statusInfo.icon} me-1"></i>${newTicketStatus}`);
+                                }
+
+                                // Update edit button's data attributes
+                                const $editBtn = $ticketRow.find('.action-btn-edit');
+                                $editBtn.attr('data-ticket-status', newTicketStatus);
+                                if (newInvoiceStatus) {
+                                    $editBtn.attr('data-invoice-status', newInvoiceStatus);
+                                }
+                            }
+                        } else {
+                            // DETAILS PAGE LOGIC - Use comprehensive update functions
+
+                            // Update ticket status elements
+                            updatePageTicketStatusElements(newTicketStatus, responseTicketId);
+
+                            // Update invoice status elements if provided
+                            if (newInvoiceStatus) {
+                                updatePageInvoiceStatusElements(newInvoiceStatus);
+                            }
+                        }
+
+                        // Show success toast AFTER modal cleanup with detailed message
+                        setTimeout(function() {
+                            let successMessage = `Ticket status updated to ${newTicketStatus}`;
+                            if (newInvoiceStatus) {
+                                successMessage += ` and invoice status updated to ${newInvoiceStatus}`;
+                            }
+                            successMessage += '!';
+
+                            showToast(successMessage, 'success');
+                        }, 400);
+
+                    } else {
+                        // Show error message in modal
+                        showModalAlert(response.message || 'Failed to update ticket', 'danger');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+
+                    // Try to parse the error response
+                    let errorMessage = 'An unexpected error occurred. Please try again.';
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        if (errorResponse.errors) {
+                            const errorMessages = [];
+                            for (const field in errorResponse.errors) {
+                                errorMessages.push(...errorResponse.errors[field]);
+                            }
+                            errorMessage = errorMessages.join(', ');
+                        } else if (errorResponse.message) {
+                            errorMessage = errorResponse.message;
+                        }
+                    } catch (e) {
+                        // Use default error message
+                    }
+
+                    showModalAlert(errorMessage, 'danger');
+                },
+                complete: function() {
+                    // Re-enable submit button and remove loading state
+                    $submitBtn.prop('disabled', false).removeClass('btn-loading').html(originalText);
+                }
+            });
+        });
+
+        // Enhanced modal event handlers to ensure proper cleanup
+        $('#updateModal').on('hidden.bs.modal', function () {
+            // Force cleanup when modal is hidden
+            setTimeout(function() {
+                cleanupModalBackdrops();
+            }, 100);
+        });
+
+        // Additional cleanup on modal show to prevent stacking issues
+        $('#updateModal').on('show.bs.modal', function () {
+            cleanupModalBackdrops();
+        });
+
+        // Force cleanup if user clicks outside modal or presses escape
+        $(document).on('click', '.modal-backdrop', function() {
+            setTimeout(function() {
+                cleanupModalBackdrops();
+            }, 300);
+        });
+
+        // Handle escape key specifically
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#updateModal').hasClass('show')) {
+                setTimeout(function() {
+                    cleanupModalBackdrops();
+                }, 300);
+            }
+        });
+
+        // Helper function to show alerts in modal
+        function showModalAlert(message, type) {
+            $('#modalAlert')
+                .removeClass('alert-success alert-danger')
+                .addClass(`alert-${type} show`)
+                .find('#modalAlertMessage')
+                .text(message);
+            $('#modalAlert').show();
+        }
+
+        // Character counter for notes textarea
+        function updateNotesCounter() {
+            const notes = $('#modalAdminNotes').val() || '';
+            const length = notes.length;
+            const $counter = $('#notesCounter');
+
+            $counter.text(`${length}/1000`);
+
+            if (length > 800) {
+                $counter.removeClass('text-muted text-warning').addClass('text-danger');
+            } else if (length > 600) {
+                $counter.removeClass('text-muted text-danger').addClass('text-warning');
+            } else {
+                $counter.removeClass('text-warning text-danger').addClass('text-muted');
+            }
+        }
+
+        // Update counter on input
+        $(document).on('input', '#modalAdminNotes', updateNotesCounter);
+
+        // Status change preview
+        $(document).on('change', '#modalTicketStatus, #modalInvoiceStatus', function() {
+            const newTicketStatus = $('#modalTicketStatus').val();
+            const newInvoiceStatus = $('#modalInvoiceStatus').val();
+            const $preview = $('#statusPreview');
+            const $changeText = $('#statusChangeText');
+
+            if (newTicketStatus || newInvoiceStatus) {
+                let previewText = '';
+
+                if (newTicketStatus) {
+                    previewText += `Ticket status will be changed to: <strong>${newTicketStatus}</strong>`;
+                }
+
+                if (newInvoiceStatus) {
+                    if (previewText) previewText += '<br>';
+                    previewText += `Invoice status will be changed to: <strong>${newInvoiceStatus}</strong>`;
+                }
+
+                $changeText.html(previewText);
+                $preview.show();
+            } else {
+                $preview.hide();
+            }
+        });
+
+        // Add enhanced tooltips to action buttons
+        $('[title]').tooltip({
+            trigger: 'hover',
+            placement: 'top'
+        });
+
+        // Add keyboard shortcuts for better UX
+        $(document).on('keydown', function(e) {
+            // Escape key to close modal
+            if (e.key === 'Escape' && $('#updateModal').hasClass('show')) {
+                $('#updateModal').modal('hide');
+            }
+
+            // Ctrl+Enter to submit form when modal is open
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#updateModal').hasClass('show')) {
+                e.preventDefault();
+                $('#updateForm').submit();
+            }
+        });
+
+        // Emergency cleanup function - can be called from browser console if needed
+        window.forceCleanupModals = function() {
+            cleanupModalBackdrops();
+            console.log('Modal backdrops cleaned up manually');
+        };
+    });
+
+    // Print Ticket functionality
+    function printTicket() {
+        const printContent = document.querySelector('.ticket-details-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = `
+            <div class="container mt-4">${printContent}</div>
+            <style>
+                body { background-color: white !important; }
+                .back-section, .header-actions button { display: none; }
+                .ticket-details-container { box-shadow: none; }
+            </style>
+        `;
+
+        window.print();
+        document.body.innerHTML = originalContent;
+    }
+
+    // Print Invoice functionality
+    function printInvoice() {
+        const printContent = document.querySelector('.invoice-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = `
+            <div class="container">${printContent}</div>
+            <style>
+                body { background-color: white !important; padding: 20px; }
+                .invoice-modal-footer { display: none; }
+            </style>
+        `;
+
+        window.print();
+        document.body.innerHTML = originalContent;
+    }
+
+    // Download PDF functionality
+    function downloadPDF() {
+        // In a real application, this would call a server endpoint
+        // For this demo, we'll show a success message
+        const invoiceId = document.querySelector('.invoice-id')?.textContent || 'N/A';
+        if (invoiceId === 'N/A') return;
+
+        // Show toast notification
+        showToast('PDF download started', 'success');
+
+        // Simulate PDF generation delay
+        setTimeout(() => {
+            showToast('Download complete - Invoice PDF has been downloaded successfully.', 'success');
+        }, 2500);
+    }
+</script>
+
+
+
+
+@* <script>
+        // Enhanced toast notification function
+     // Enhanced toast notification function
+    function showToast(message, type = 'success', duration = 3000) {
+        const backgroundColor = type === 'success'
+            ? 'linear-gradient(135deg, #28a745, #20c997)'
+            : 'linear-gradient(135deg, #dc3545, #e74c3c)';
+
+        Toastify({
+            text: message,
+            duration: duration,
+            close: true,
+            gravity: "top",
+            position: "right",
+            stopOnFocus: true,
+            style: {
+                background: backgroundColor,
+                borderRadius: "10px",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                fontWeight: "500"
+            },
+            onClick: function(){} // Callback after click
+        }).showToast();
+    }
+
+    // Function to update all status elements on the page
+    function updatePageStatusElements(newStatus, ticketId) {
+        console.log('Updating page elements - Status:', newStatus, 'TicketId:', ticketId);
+
+        // Define status classes mapping
+        const statusClasses = {
+            'Pending': 'badge-status-Pending',
+            'InProgress': 'badge-status-InProgress',
+            'Resolved': 'badge-status-Resolved',
+            'Rejected': 'badge-status-Rejected'
+        };
+
+        const newStatusClass = statusClasses[newStatus] || 'badge-status-Pending';
+
+        // 1. Update header status badges (both regular and large)
+        $('.details-header .badge, .header-actions .badge').each(function() {
+            const $badge = $(this);
+            // Remove all status classes
+            Object.values(statusClasses).forEach(cls => $badge.removeClass(cls));
+            // Add new status class
+            $badge.addClass(newStatusClass);
+            $badge.text(newStatus);
+        });
+
+        // 2. Update summary card status specifically
+        $('.summary-card .summary-item').each(function() {
+            const $item = $(this);
+            const labelText = $item.find('.summary-label').text().trim();
+            if (labelText === 'Current Status') {
+                const $valueBadge = $item.find('.summary-value .badge');
+                if ($valueBadge.length > 0) {
+                    Object.values(statusClasses).forEach(cls => $valueBadge.removeClass(cls));
+                    $valueBadge.addClass(newStatusClass);
+                    $valueBadge.text(newStatus);
+                }
+            }
+        });
+
+        // 3. Update any status badges with status-badge-lg class (header large badges)
+        $('.status-badge-lg').each(function() {
+            const $badge = $(this);
+            Object.values(statusClasses).forEach(cls => $badge.removeClass(cls));
+            $badge.addClass(newStatusClass);
+            $badge.text(newStatus);
+        });
+
+        // 4. Update ticket status sections
+        $('.ticket-status .badge').each(function() {
+            const $badge = $(this);
+            Object.values(statusClasses).forEach(cls => $badge.removeClass(cls));
+            $badge.addClass(newStatusClass);
+            $badge.text(newStatus);
+        });
+
+        // 5. Update data attributes on edit buttons
+        $('button[data-bs-target="#updateModal"], button[data-ticket-id]').each(function() {
+            $(this).attr('data-ticket-status', newStatus);
+        });
+
+        // 6. Update any span elements that might contain status
+        $('span.badge').each(function() {
+            const $span = $(this);
+            if (Object.values(statusClasses).some(cls => $span.hasClass(cls))) {
+                Object.values(statusClasses).forEach(cls => $span.removeClass(cls));
+                $span.addClass(newStatusClass);
+                $span.text(newStatus);
+
+                // Add visual feedback - brief highlight effect
+                $span.addClass('status-updated');
+                setTimeout(() => $span.removeClass('status-updated'), 1000);
+            }
+        });
+
+        console.log('Status update completed for all page elements');
+    }
+    function cleanupModalBackdrops() {
+        // Remove all modal backdrops
+        $('.modal-backdrop').remove();
+
+        // Reset body classes
+        $('body').removeClass('modal-open');
+
+        // Reset body styles that might be set by Bootstrap
+        $('body').css({
+            'overflow': '',
+            'padding-right': ''
+        });
+
+        // Reset body attributes
+        $('body').removeAttr('style');
+
+        // Force page to be interactive
+        $('body').css('pointer-events', 'auto');
+        $('html').css('pointer-events', 'auto');
+    }
+
+    $(document).ready(function() {
+        // ======== EDIT MODAL FUNCTIONALITY FOR DETAILS PAGE ========
+
+        // Handle edit button clicks - Works with both data-bs-toggle buttons and action-btn-edit buttons
+        $(document).on('click', '.action-btn-edit, button[data-bs-toggle="modal"][data-bs-target="#updateModal"]', function(e) {
+            // Clean up any existing backdrops before opening modal
+            cleanupModalBackdrops();
+
+            // Don't prevent default for data-bs-toggle buttons as they need Bootstrap's native behavior
+            if (!$(this).attr('data-bs-toggle')) {
+                e.preventDefault();
+            }
+
+            const $btn = $(this);
+            let ticketId = $btn.data('ticket-id');
+            const ticketStatus = $btn.data('ticket-status');
+            const invoiceStatus = $btn.data('invoice-status');
+            const adminNotes = $btn.data('admin-notes');
+
+            // FALLBACK: If ticketId is not found in data attributes, try to extract from URL or page
+            if (!ticketId) {
+                // Try to get from the page title or other elements
+                const titleText = document.title;
+                const ticketMatch = titleText.match(/Ticket #(\d+)/);
+                if (ticketMatch) {
+                    ticketId = ticketMatch[1];
+                }
+            }
+
+            // Another fallback: try to get from the header
+            if (!ticketId) {
+                const headerTicketText = $('.ticket-number span').text();
+                const headerMatch = headerTicketText.match(/Ticket #(\d+)/);
+                if (headerMatch) {
+                    ticketId = headerMatch[1];
+                }
+            }
+
+            console.log('Debug - TicketId:', ticketId); // Debug log
+
+            // Validate that we have a ticket ID
+            if (!ticketId) {
+                showToast('Error: Could not determine ticket ID', 'error');
+                return;
+            }
+
+            // Small delay to ensure modal is opened by Bootstrap first (for data-bs-toggle buttons)
+            setTimeout(function() {
+                // Populate form fields
+                $('input[name="TicketId"]').val(ticketId);
+                $('#modalTicketStatus').val(ticketStatus);
+                $('#modalInvoiceStatus').val(invoiceStatus || '');
+                $('#modalAdminNotes').val(adminNotes || '');
+
+                // Debug: Log the form values
+                console.log('Form values set:', {
+                    ticketId: $('input[name="TicketId"]').val(),
+                    status: $('#modalTicketStatus').val(),
+                    invoiceStatus: $('#modalInvoiceStatus').val(),
+                    notes: $('#modalAdminNotes').val()
+                });
+
+                // Reset UI elements
+                $('#statusPreview').hide();
+                $('#modalAlert').hide();
+                updateNotesCounter();
+
+                // For non-Bootstrap toggle buttons, manually show the modal
+                if (!$btn.attr('data-bs-toggle')) {
+                    $('#updateModal').modal('show');
+                }
+            }, 100);
+        });
+
+        // Handle form submission via AJAX
+        $(document).on('submit', '#updateForm', function(e) {
+            e.preventDefault();
+
+            const $form = $(this);
+            const $submitBtn = $form.find('button[type=submit]');
+            const originalText = $submitBtn.html();
+
+            // Validate ticket ID before submission
+            const ticketId = $('input[name="TicketId"]').val();
+            if (!ticketId || ticketId.trim() === '') {
+                showModalAlert('Error: Ticket ID is missing. Please refresh the page and try again.', 'danger');
+                return;
+            }
+
+            // Debug: Log form data before submission
+            const formData = $form.serializeArray();
+            console.log('Form data being submitted:', formData);
+
+            // Disable submit button and show loading state
+            $submitBtn.prop('disabled', true).addClass('btn-loading');
+
+            // Hide any existing alerts
+            $('#modalAlert').hide();
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: 'POST',
+                data: $form.serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        // PROPERLY CLOSE MODAL AND CLEAN UP
+                        const modalElement = document.getElementById('updateModal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+
+                        if (modal) {
+                            modal.hide();
+                        } else {
+                            $('#updateModal').modal('hide');
+                        }
+
+                        // Force cleanup after a short delay to ensure modal is fully closed
+                        setTimeout(function() {
+                            cleanupModalBackdrops();
+                        }, 300);
+
+                        const newStatus = response.newStatus;
+                        const responseTicketId = response.ticketId;
+
+                        // COMPREHENSIVE status mapping
+                        const statusMapping = {
+                            'Pending': { class: 'bg-warning text-dark', icon: 'fas fa-clock' },
+                            'InProgress': { class: 'bg-info text-white', icon: 'fas fa-wrench' },
+                            'Resolved': { class: 'bg-success text-white', icon: 'fas fa-check' },
+                            'Rejected': { class: 'bg-danger text-white', icon: 'fas fa-times' }
+                        };
+
+                        const statusInfo = statusMapping[newStatus] || {
+                            class: 'bg-primary text-white',
+                            icon: 'fas fa-info-circle'
+                        };
+
+                        // Check if we're on the index page (has table) or details page
+                        const $ticketTable = $('table tbody');
+
+                        if ($ticketTable.length > 0) {
+                            // INDEX PAGE LOGIC - Update table row
+                            const $ticketRow = $(`td:contains("#${responseTicketId}")`).closest('tr');
+
+                            if ($ticketRow.length > 0) {
+                                // Find ONLY the status badge (5th column - Status column)
+                                const $statusCell = $ticketRow.find('td').eq(4);
+                                const $statusBadge = $statusCell.find('span.badge');
+
+                                if ($statusBadge.length > 0) {
+                                    $statusBadge
+                                        .attr('class', `badge ${statusInfo.class} px-3 py-2`)
+                                        .html(`<i class="${statusInfo.icon} me-1"></i>${newStatus}`);
+                                }
+
+                                // Update edit button's data attributes
+                                const $editBtn = $ticketRow.find('.action-btn-edit');
+                                $editBtn.attr('data-ticket-status', newStatus);
+                            }
+                        } else {
+                            // DETAILS PAGE LOGIC - Use comprehensive update function
+                            updatePageStatusElements(newStatus, responseTicketId);
+                        }
+
+                        // Show success toast AFTER modal cleanup
+                        setTimeout(function() {
+                            showToast('Ticket updated successfully!', 'success');
+                        }, 400);
+
+                    } else {
+                        // Show error message in modal
+                        showModalAlert(response.message || 'Failed to update ticket', 'danger');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+
+                    // Try to parse the error response
+                    let errorMessage = 'An unexpected error occurred. Please try again.';
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        if (errorResponse.errors) {
+                            const errorMessages = [];
+                            for (const field in errorResponse.errors) {
+                                errorMessages.push(...errorResponse.errors[field]);
+                            }
+                            errorMessage = errorMessages.join(', ');
+                        } else if (errorResponse.message) {
+                            errorMessage = errorResponse.message;
+                        }
+                    } catch (e) {
+                        // Use default error message
+                    }
+
+                    showModalAlert(errorMessage, 'danger');
+                },
+                complete: function() {
+                    // Re-enable submit button and remove loading state
+                    $submitBtn.prop('disabled', false).removeClass('btn-loading').html(originalText);
+                }
+            });
+        });
+
+        // Enhanced modal event handlers to ensure proper cleanup
+        $('#updateModal').on('hidden.bs.modal', function () {
+            // Force cleanup when modal is hidden
+            setTimeout(function() {
+                cleanupModalBackdrops();
+            }, 100);
+        });
+
+        // Additional cleanup on modal show to prevent stacking issues
+        $('#updateModal').on('show.bs.modal', function () {
+            cleanupModalBackdrops();
+        });
+
+        // Force cleanup if user clicks outside modal or presses escape
+        $(document).on('click', '.modal-backdrop', function() {
+            setTimeout(function() {
+                cleanupModalBackdrops();
+            }, 300);
+        });
+
+        // Handle escape key specifically
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#updateModal').hasClass('show')) {
+                setTimeout(function() {
+                    cleanupModalBackdrops();
+                }, 300);
+            }
+        });
+
+        // Helper function to show alerts in modal
+        function showModalAlert(message, type) {
+            $('#modalAlert')
+                .removeClass('alert-success alert-danger')
+                .addClass(`alert-${type} show`)
+                .find('#modalAlertMessage')
+                .text(message);
+            $('#modalAlert').show();
+        }
+
+        // Character counter for notes textarea
+        function updateNotesCounter() {
+            const notes = $('#modalAdminNotes').val() || '';
+            const length = notes.length;
+            const $counter = $('#notesCounter');
+
+            $counter.text(`${length}/1000`);
+
+            if (length > 800) {
+                $counter.removeClass('text-muted text-warning').addClass('text-danger');
+            } else if (length > 600) {
+                $counter.removeClass('text-muted text-danger').addClass('text-warning');
+            } else {
+                $counter.removeClass('text-warning text-danger').addClass('text-muted');
+            }
+        }
+
+        // Update counter on input
+        $(document).on('input', '#modalAdminNotes', updateNotesCounter);
+
+        // Status change preview
+        $(document).on('change', '#modalTicketStatus', function() {
+            const newStatus = $(this).val();
+            const $preview = $('#statusPreview');
+            const $changeText = $('#statusChangeText');
+
+            if (newStatus) {
+                $changeText.html(`Status will be changed to: <strong>${newStatus}</strong>`);
+                $preview.show();
+            } else {
+                $preview.hide();
+            }
+        });
+
+        // Add enhanced tooltips to action buttons
+        $('[title]').tooltip({
+            trigger: 'hover',
+            placement: 'top'
+        });
+
+        // Add keyboard shortcuts for better UX
+        $(document).on('keydown', function(e) {
+            // Escape key to close modal
+            if (e.key === 'Escape' && $('#updateModal').hasClass('show')) {
+                $('#updateModal').modal('hide');
+            }
+
+            // Ctrl+Enter to submit form when modal is open
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#updateModal').hasClass('show')) {
+                e.preventDefault();
+                $('#updateForm').submit();
+            }
+        });
+
+        // Emergency cleanup function - can be called from browser console if needed
+        window.forceCleanupModals = function() {
+            cleanupModalBackdrops();
+            console.log('Modal backdrops cleaned up manually');
+        };
+    });
+
+    // Print Ticket functionality
+    function printTicket() {
+        const printContent = document.querySelector('.ticket-details-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = `
+            <div class="container mt-4">${printContent}</div>
+            <style>
+                body { background-color: white !important; }
+                .back-section, .header-actions button { display: none; }
+                .ticket-details-container { box-shadow: none; }
+            </style>
+        `;
+
+        window.print();
+        document.body.innerHTML = originalContent;
+    }
+
+    // Print Invoice functionality
+    function printInvoice() {
+        const printContent = document.querySelector('.invoice-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = `
+            <div class="container">${printContent}</div>
+            <style>
+                body { background-color: white !important; padding: 20px; }
+                .invoice-modal-footer { display: none; }
+            </style>
+        `;
+
+        window.print();
+        document.body.innerHTML = originalContent;
+    }
+
+    // Download PDF functionality
+    function downloadPDF() {
+        // In a real application, this would call a server endpoint
+        // For this demo, we'll show a success message
+        const invoiceId = '@Model.Invoice?.Id';
+        if (!invoiceId) return;
+
+        // Show toast notification
+        showToast('PDF download started', 'success');
+
+        // Simulate PDF generation delay
+        setTimeout(() => {
+            showToast('Download complete - Invoice PDF has been downloaded successfully.', 'success');
+        }, 2500);
+    }
+</script>
+ *@

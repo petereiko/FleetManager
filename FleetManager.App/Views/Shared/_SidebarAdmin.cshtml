@@ -212,6 +212,35 @@
 
             <li class="submenu">
                 <a asp-area="Admin"
+                   asp-controller="ManageMaintenance"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-02.svg" alt="">
+                    </span>
+                    <span> Maintenace Tickets</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageMaintenance"
+                           asp-action="Index">
+                            Maintenance Tickets
+                        </a>
+                    </li>
+                    @* <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageMaintenance"
+                           asp-action="Dashboard">
+                            Reports Hub
+                        </a>
+                    </li> *@
+                </ul>
+            </li>
+
+
+            <li class="submenu">
+                <a asp-area="Admin"
                    asp-controller="Reports"
                    asp-action="Index">
                     <span class="menu-side">
@@ -238,6 +267,7 @@
                 </ul>
             </li>
 
+            
 
             @* <li class="logout-btn">
                 <a asp-area="Vendor" asp-controller="Vendor" asp-action="Index" target="_blank">

@@ -147,7 +147,7 @@
                             </div>
 
                             <!-- New Priority field -->
-                            <div class="col-md-4 mb-3">
+                            @* <div class="col-md-4 mb-3">
                                 <label asp-for="Priority" class="form-label fw-semibold">
                                     <i class="fas fa-exclamation-circle me-1 text-primary"></i>Priority <span class="text-danger">*</span>
                                 </label>
@@ -155,7 +155,23 @@
                                     <option value="">-- Select Urgency --</option>
                                 </select>
                                 <span asp-validation-for="Priority" class="text-danger small"></span>
+                            </div> *@
+
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Priority" class="form-label fw-semibold">
+                                    <i class="fas fa-exclamation-circle me-1 text-primary"></i>Priority <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="Priority"
+                                        asp-items="Model.Priorities"
+                                        class="form-select form-select-lg">
+                                    @* no blank option here *@
+                                </select>
+                                <span asp-validation-for="Priority" class="text-danger small"></span>
                             </div>
+
+
+
                         </div>
                         <div class="row mb-4">
                             <div class="col-12">
@@ -348,13 +364,13 @@
                                placeholder="Custom description..." />
                     </td>
                     <td>
-                        <input name="Items[${idx}].Quantity" type="number" min="1" class="form-control text-center" 
+                        <input name="Items[${idx}].Quantity" type="number" min="1" value="1" class="form-control text-center"
                                placeholder="1" />
                     </td>
                     <td>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input name="Items[₦{idx}].UnitPrice" type="number" step="0.01" class="form-control"
+                            <span class="input-group-text">₦</span>
+                            <input name="Items[${idx}].UnitPrice" type="number" step="0.01" class="form-control"
                                    placeholder="0.00" />
                         </div>
                     </td>
@@ -404,7 +420,7 @@
                     $part.html('<option value="">-- Select Part --</option>'); 
                     if (items && items.length > 0) {
                         items.forEach(function(item) { 
-                            $part.append(`<option value="₦{item.value}">${item.text}</option>`);
+                            $part.append(`<option value="${item.value}">${item.text}</option>`);
                         });
                         $part.prop('disabled', false);
                     } else {

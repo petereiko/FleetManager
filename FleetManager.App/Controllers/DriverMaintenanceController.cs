@@ -137,7 +137,6 @@ namespace FleetManager.App.Controllers
                 vm.Priorities = _service.GetPriorityTypeOptions();
 
                 vm.PartCategories = await _service.GetPartCategoriesAsync();
-
                 if (!ModelState.IsValid)
                     return View(vm);
 
