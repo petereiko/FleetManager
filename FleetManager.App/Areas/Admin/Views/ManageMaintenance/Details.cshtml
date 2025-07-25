@@ -1309,7 +1309,7 @@
                             <!-- Bill To / Service Details -->
                             <div class="invoice-parties">
                                 <div class="bill-to-section">
-                                    <h6>Bill To:</h6>
+                                    <h6>Bill From:</h6>
                                     <div class="client-info">
                                         <p class="client-name">@Model.DriverName</p>
                                         <p class="client-id">Driver ID: @Model.DriverId</p>
@@ -1368,11 +1368,11 @@
                                     </div>
                                     <div class="total-row tax">
                                         <span class="total-label">VAT (7.5%):</span>
-                                        <span class="total-value">₦@(Model.Invoice.Items.Sum(x => x.LineTotal) * 0.075m).ToString("N2")</span>
+                                        <span class="total-value">₦@((Model.Invoice.Items.Sum(x => x.LineTotal) * 0.075m).ToString("N2"))</span>
                                     </div>
                                     <div class="total-row grand-total">
                                         <span class="total-label">Total Due:</span>
-                                        <span class="total-value">₦@(Model.Invoice.Items.Sum(x => x.LineTotal) * 1.075m).ToString("N2")</span>
+                                        <span class="total-value">₦@((Model.Invoice.Items.Sum(x => x.LineTotal) * 1.075m).ToString("N2"))</span>
                                     </div>
                                 </div>
                             </div>
@@ -1407,10 +1407,20 @@
                             <i class="fas fa-print me-2"></i>
                             Print Invoice
                         </button>
-                        <button type="button" class="btn btn-success" onclick="downloadPDF()">
+                        @* <button type="button"
+                                class="btn btn-success"
+                                onclick="downloadPDF()">
                             <i class="fas fa-download me-2"></i>
                             Download PDF
-                        </button>
+                        </button> *@
+                        <a class="btn btn-success"
+                           asp-area=""  
+                           asp-controller="Invoice"
+                           asp-action="Download"
+                           asp-route-id="@Model.Invoice.Id">
+                        <i class="fas fa-download me-2"></i>
+                            Download PDF
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1985,20 +1995,39 @@
         document.body.innerHTML = originalContent;
     }
 
-    // Download PDF functionality
-    function downloadPDF() {
-        // In a real application, this would call a server endpoint
-        // For this demo, we'll show a success message
-        const invoiceId = document.querySelector('.invoice-id')?.textContent || 'N/A';
-        if (invoiceId === 'N/A') return;
+      async function downloadPDF() {
+      const id = '@Model.Invoice.Id';
+      if (!id) return;
 
-        // Show toast notification
-        showToast('PDF download started', 'success');
+      try {
+        showToast('info', 'Preparing PDF', 'Please wait while we generate your invoice…');
 
-        // Simulate PDF generation delay
-        setTimeout(() => {
-            showToast('Download complete - Invoice PDF has been downloaded successfully.', 'success');
-        }, 2500);
+        const resp = await fetch(`/invoice/download/${id}`, {
+          method: 'GET'
+        });
+
+        if (!resp.ok) {
+          throw new Error('Server returned ' + resp.status);
+        }
+
+        const blob = await resp.blob();
+        const url  = URL.createObjectURL(blob);
+
+        // create a temporary <a> to trigger download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Invoice_${id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        showToast('success', 'Download complete', 'Your PDF is ready for you.');
+      }
+      catch (err) {
+        console.error(err);
+        showToast('danger', 'Download failed', 'We could not generate your PDF.');
+      }
     }
 </script>
 

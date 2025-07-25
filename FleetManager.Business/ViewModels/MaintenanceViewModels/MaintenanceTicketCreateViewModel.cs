@@ -36,6 +36,7 @@ namespace FleetManager.Business.ViewModels.MaintenanceViewModels
 
         // Select‐lists to populate dropdowns
         public List<SelectListItem> Vehicles { get; set; } = new();
+        public List<SelectListItem> Drivers { get; set; } = new();
         public List<SelectListItem> PartCategories { get; set; } = new();
     }
 }

@@ -2,6 +2,8 @@
 
 using System.Configuration;
 using System.Globalization;
+using DinkToPdf.Contracts;
+using DinkToPdf;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DVLA.Business.UserModule;
 using FleetManager.Business;
@@ -47,15 +49,19 @@ using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
 using FleetManager.Business.UtilityModels;
+using FleetManager.Business.UtilityModels.PdfService;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
+using PuppeteerSharp;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -190,6 +196,24 @@ builder.Services.AddTransient<IAuthUser, AuthUser>();
 builder.Services.AddTransient<BackgroundJobService>();
 
 
+//Pdf Serivce
+// 1) MVC + Razor‑to‑string
+builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<ITempDataProvider, SessionStateTempDataProvider>();
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+builder.Services.AddScoped<IRazorViewToStringRenderer, RazorViewToStringRenderer>();
+
+// 2) Download & launch Chromium ONCE at startup, then register the Browser
+//    We block on the async calls here so we produce a real Browser, not a Task<Browser>.
+
+var browser = Puppeteer
+    .LaunchAsync(new LaunchOptions { Headless = true })
+    .GetAwaiter()
+    .GetResult(); 
+builder.Services.AddSingleton(browser);
+
+// 3) Your PDF service
+builder.Services.AddScoped<IPdfService, PuppeteerPdfService>();
 
 
 builder.Services.AddHangfire(configuration => configuration

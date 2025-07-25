@@ -1149,19 +1149,20 @@
     }
 
     // Download PDF functionality
+
+
     function downloadPDF() {
-        // In a real application, this would call a server endpoint
-        // For this demo, we'll show a success message
-        const invoiceId = '@Model.Invoice?.Id';
-        if (!invoiceId) return;
+
+      const downloadUrl = '@Url.Action("Download", "Invoice", new { area = "", id = "__ID__" })';
+    function downloadPDF() {
+      if (!@Model.Invoice.Id) return;
+      window.location = downloadUrl.replace("__ID__", '@Model.Invoice.Id');
+    }
 
         // Show toast notification
         showToast('success', 'PDF download started', 'Your invoice PDF is being prepared for download.');
 
-        // Simulate PDF generation delay
-        setTimeout(() => {
-            showToast('success', 'Download complete', 'Invoice PDF has been downloaded successfully.');
-        }, 2500);
+        
     }
 
     // Toast notification function

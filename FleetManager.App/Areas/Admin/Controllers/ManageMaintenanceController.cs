@@ -2,6 +2,7 @@
 using FleetManager.Business.DataObjects.MaintenanceDto;
 using FleetManager.Business.DataObjects.VehicleDto;
 using FleetManager.Business.Enums;
+using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.MaintenanceModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
@@ -125,14 +126,18 @@ namespace FleetManager.App.Areas.Admin.Controllers
             {
                 // load dropdowns: Drivers, Vehicles, PartCategories
 
-                var driverUserId = _auth.UserId!;
-                var driverId = await _assignmentService.GetDriverIdByUserAsync(driverUserId);
+                var drivers = await _driverService.GetDriversForBranchAsync();
+                var driverList = drivers
+                    .Select(d => new SelectListItem(d.FullName, d.Id.ToString()))
+                    .ToList();
 
-                // Vehicles assigned to this driver:
-                var vehicles = await _assignmentService
-                    .QueryAssignmentsByDriver(driverId)
-                    .Select(a => new SelectListItem(a.VehicleMakeModel, a.VehicleId.ToString()))
-                    .ToListAsync();
+                var vehicles = await GetVehiclesForCurrentBranchAsync();
+
+                var vehiclelist = vehicles
+                    .Select(v => new SelectListItem($"{v.Make} {v.Model} ({v.PlateNo})", v.Id.ToString()))
+                    .ToList();
+
+                
                 var priorities = _service.GetPriorityTypeOptions();
 
                 // All part categories:
@@ -140,8 +145,8 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
                 var vm = new MaintenanceTicketCreateViewModel
                 {
-                    DriverId = driverId,
-                    Vehicles = vehicles,
+                    Drivers = driverList,
+                    Vehicles = vehiclelist,
                     PartCategories = categories,
                     Priorities = priorities,
                     Items = new List<MaintenanceTicketItemInputViewModel>
@@ -165,14 +170,18 @@ namespace FleetManager.App.Areas.Admin.Controllers
         {
             try
             {
-                // repost dropdowns on validation failure
-                var driverUserId = _auth.UserId!;
-                var driverId = await _assignmentService.GetDriverIdByUserAsync(driverUserId);
 
-                var vehicles = await _assignmentService
-                    .QueryAssignmentsByDriver(driverId)
-                    .Select(a => new SelectListItem(a.VehicleMakeModel, a.VehicleId.ToString()))
-                    .ToListAsync();
+                // 1) Always reload dropdowns whenever we return to the view:
+                var drivers = await _driverService.GetDriversForBranchAsync();
+                vm.Drivers = drivers
+                    .Select(d => new SelectListItem(d.FullName, d.Id.ToString()))
+                    .ToList();
+
+                // Assume GetVehiclesForCurrentBranchAsync returns an IEnumerable<VehicleListItemDto> or similar
+                var vehicles = await GetVehiclesForCurrentBranchAsync();
+                vm.Vehicles = vehicles
+                    .Select(v => new SelectListItem($"{v.Make} {v.Model} ({v.PlateNo})", v.Id.ToString()))
+                    .ToList();
                 vm.Priorities = _service.GetPriorityTypeOptions();
 
                 vm.PartCategories = await _service.GetPartCategoriesAsync();
@@ -181,7 +190,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
                 var input = new MaintenanceTicketInputDto
                 {
-                    DriverId = driverId,
+                    DriverId = vm.DriverId,   // comes from the Driver dropdown
                     VehicleId = vm.VehicleId,
                     Subject = vm.Subject,
                     Notes = vm.Notes,
@@ -217,6 +226,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 return View(vm);
             }
         }
+
 
         /// <summary>
         /// Details of a single ticket.
@@ -425,6 +435,15 @@ namespace FleetManager.App.Areas.Admin.Controllers
             // Return JSON in the form [{ value: "...", text: "..." }, …]
             return Json(models);
         }
+
+        private async Task<List<VehicleListItemDto>> GetVehiclesForCurrentBranchAsync()
+        {
+            return await _vehicleService.GetVehiclesAsync(new VehicleFilterDto
+            {
+                BranchId = _auth.CompanyBranchId
+            });
+        }
+
     }
 
 }
