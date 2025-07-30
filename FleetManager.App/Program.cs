@@ -62,6 +62,8 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using PuppeteerSharp;
 using Microsoft.Extensions.DependencyInjection;
+using FleetManager.Business.Interfaces.ScheduleModule;
+using FleetManager.Business.Implementations.ScheduleModule;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -172,6 +174,9 @@ builder.Services.AddTransient<IReportService, ReportService>();
 builder.Services.AddTransient<IReportExportService, ReportExportService>();
 builder.Services.AddTransient<IContactDirectoryService, ContactDirectoryService>();
 builder.Services.AddTransient<IMaintenanceService, MaintenanceService>();
+builder.Services.AddTransient<ITimeOffService, TimeOffService>();
+builder.Services.AddTransient<ITimeOffCategoryService, TimeOffCategoryService>();
+
 
 
 //builder.Services.AddSingleton<IGoogleRoutesService, FakeRoutesService>();
@@ -336,6 +341,8 @@ app.MapHub<NotificationHub>("/notificationHub");
 //RecurringJob.AddOrUpdate<BackgroundJobService>("SendBulkEmail", service => service.SendBulkEmail(), "*/2 * * * *");
 //RecurringJob.AddOrUpdate<BackgroundJobService>("VerifyTransfers", service => service.VerifyPayments(), "*/1 * * * *");
 //RecurringJob.AddOrUpdate<BackgroundJobService>("PushVisualAssessmentResult", service => service.PushVisualAssessmentResult(), "*/2 * * * *");//Every 1 minute
+
+RecurringJob.AddOrUpdate<IPublicHolidayService>("GetHolidays", svc => svc.FetchAndStoreHolidaysAsync("NG", DateTime.UtcNow.Year), Cron.Yearly(1, 1)); // every Jan 1
 
 
 //Create a scope to resolve scoped services

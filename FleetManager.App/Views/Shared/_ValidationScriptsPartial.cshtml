@@ -1,2 +1,30 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+
+<script>
+    // Ensure jQuery & jQuery Validate are loaded first
+    (function ($) {
+        $.validator.unobtrusive.adapters.add(
+            "dategreaterthan", 
+            ["other"], 
+            function (options) {
+                var otherProp = options.params.other;
+                options.rules["dategreaterthan"] = otherProp;
+                options.messages["dategreaterthan"] = options.message;
+            }
+        );
+
+        $.validator.addMethod("dategreaterthan", function (value, element, params) {
+            var otherId = element.name.replace(/[^\.]*\./, "") === params ? params : params;
+            var otherElement = $("[name='" + otherId + "']").get(0);
+            if (!value || !otherElement || !otherElement.value) {
+                return true;
+            }
+            var thisDate = new Date(value);
+            var otherDate = new Date(otherElement.value);
+            return thisDate >= otherDate;
+        });
+    })(jQuery);
+</script>
+

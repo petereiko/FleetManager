@@ -81,7 +81,10 @@ namespace FleetManager.Business
         public DbSet<Notification> Notifications { get; set; }
         
         public DbSet<NextOfKin> NextOfKins { get; set; }
+        public DbSet<PublicHoliday> PublicHolidays { get; set;}
         public DbSet<State> States { get; set; }
+        public DbSet<TimeOffRequest> TimeOffRequests { get; set; }
+        public DbSet<TimeOffCategory> TimeOffCategories { get; set; }
         public DbSet<Trip> Trips { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }

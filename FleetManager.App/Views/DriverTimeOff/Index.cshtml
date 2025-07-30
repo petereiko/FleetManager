@@ -1,0 +1,158 @@
+﻿@using FleetManager.Business.Enums
+@using FleetManager.Business.ViewModels.Schedule
+@model DriverTimeOffIndexViewModel
+@{
+    ViewData["Title"] = "My Time‑Off Requests";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6/main.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<h2>@ViewData["Title"]</h2>
+
+<button class="btn btn-primary mb-3" data-bs-toggle="collapse" data-bs-target="#newRequestForm">
+    + New Time‑Off Request
+</button>
+<button class="btn btn-outline-secondary mb-3" data-bs-toggle="modal" data-bs-target="#calendarModal">
+    View Calendar
+</button>
+
+<div class="collapse mb-4" id="newRequestForm">
+    <div class="card card-body">
+        <form id="timeOffForm">
+            <div class="row">
+                <div class="col-md-4">
+                    <label>Category</label>
+                    <select name="CategoryId" class="form-select" required>
+                        <option value="">-- select --</option>
+                        @foreach (var c in Model.Categories)
+                        {
+                                <option value="@c.Value">@c.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Start</label>
+                    <input name="StartDate" class="form-control flatpickr" required />
+                </div>
+                <div class="col-md-3">
+                    <label>End</label>
+                    <input name="EndDate" class="form-control flatpickr" required />
+                </div>
+                <div class="col-md-2">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn btn-success w-100">Submit</button>
+                </div>
+            </div>
+            <div class="mt-2">
+                <label>Reason</label>
+                <textarea name="Reason" class="form-control" rows="2"></textarea>
+            </div>
+        </form>
+    </div>
+</div>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Period</th>
+            <th>Status</th>
+            <th>Requested</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model.Requests)
+        {
+                <tr>
+                    <td>@r.CategoryName</td>
+                    <td>@r.StartDate:yyyy‑MM‑dd – @r.EndDate:yyyy‑MM‑dd</td>
+                    <td>
+                        <span class="badge @(r.Status==TimeOffStatus.Approved?"bg-success": r.Status==TimeOffStatus.Denied?"bg-danger":"bg-warning")">
+                        @r.Status
+                        </span>
+                    </td>
+                    <td>@r.RequestedAt:yyyy‑MM‑dd</td>
+                    <td>
+                        <button class="btn btn-sm btn-link viewDetail" data-id="@r.Id">
+                            Details
+                        </button>
+                    </td>
+                </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Time‑Off Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detailBody">
+        <div class="text-center py-5"><i class="fas fa-spinner fa-spin"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Modal -->
+<div class="modal fade" id="calendarModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Calendar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="fc"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // init Flatpickr
+    flatpickr(".flatpickr", { dateFormat: "Y-m-d" });
+
+    // AJAX form submission
+    $("#timeOffForm").submit(function(e) {
+      e.preventDefault();
+      var data = $(this).serialize();
+      $.post("@Url.Action("Create", "DriverTimeOff")", data)
+        .done(resp => {
+          Toastify({ text:"Request submitted!", backgroundColor:"green" }).showToast();
+          setTimeout(()=>location.reload(), 800);
+        })
+        .fail(err => {
+          Toastify({ text:"Error: " + err.responseText, backgroundColor:"red" }).showToast();
+        });
+    });
+
+    // Details button
+    $(".viewDetail").click(function() {
+      var id = $(this).data("id");
+      $("#detailBody").html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin"></i></div>');
+      $("#detailModal").modal("show");
+      $("#detailBody").load(`@Url.Action("Details", "DriverTimeOff")/${id}`);
+    });
+
+    // FullCalendar in calendar modal
+    $('#calendarModal').on('shown.bs.modal', function() {
+      if (!window._fc) {
+        window._fc = new FullCalendar.Calendar(document.getElementById('fc'), {
+          initialView: 'dayGridMonth',
+          events: '/api/calendar/events?year=' + new Date().getFullYear(),
+          height: 600
+        });
+        window._fc.render();
+      }
+    });
+</script>

@@ -1,0 +1,48 @@
+﻿@using FleetManager.Business.DataObjects.Schedule
+@using FleetManager.Business.Enums
+@model TimeOffRequestDto
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-3">Category</dt>
+        <dd class="col-sm-9">@Model.CategoryName</dd>
+
+        <dt class="col-sm-3">From</dt>
+        <dd class="col-sm-9">@Model.StartDate:yyyy‑MM‑dd</dd>
+
+        <dt class="col-sm-3">To</dt>
+        <dd class="col-sm-9">@Model.EndDate:yyyy‑MM‑dd</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge @(
+            Model.Status == TimeOffStatus.Approved ? "bg-success" :
+            Model.Status == TimeOffStatus.Denied   ? "bg-danger"  :
+            "bg-secondary")">
+                @Model.Status
+            </span>
+        </dd>
+
+        <dt class="col-sm-3">Submitted</dt>
+        <dd class="col-sm-9">@Model.RequestedAt:yyyy‑MM‑dd HH:mm</dd>
+
+        <dt class="col-sm-3">Reviewed By</dt>
+        <dd class="col-sm-9">
+            @if (!string.IsNullOrEmpty(Model.ReviewedByName))
+            {
+                <span>@Model.ReviewedByName</span>
+                <span>on @Model.ReviewedAt?.ToString("yyyy-MM-dd HH:mm")</span>
+            }
+            else
+            {
+                <em>Not yet reviewed</em>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Admin Comments</dt>
+        <dd class="col-sm-9">@Model.AdminNotes ?? "<em>—</em>"</dd>
+
+        <dt class="col-sm-3">Reason</dt>
+        <dd class="col-sm-9">@Model.Reason</dd>
+    </dl>
+</div>

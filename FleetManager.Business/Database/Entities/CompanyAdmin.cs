@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FleetManager.Business.Database.IdentityModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,6 @@ namespace FleetManager.Business.Database.Entities
         public long? CompanyBranchId { get; set; }
         public virtual CompanyBranch CompanyBranch { get; set; }
         public string? UserId { get; set; }
+        public virtual ApplicationUser? User { get; set; }
     }
 }
