@@ -3,6 +3,7 @@ using FleetManager.Business.DataObjects.Schedule;
 using FleetManager.Business.Interfaces.ScheduleModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,32 +27,6 @@ namespace FleetManager.Business.Implementations.ScheduleModule
             _log = log;
         }
 
-        public async Task FetchAndStoreHolidaysAsync(string countryCode, int year)
-        {
-            var url = $"https://date.nager.at/api/v3/PublicHolidays/{year}/{countryCode}";
-            var resp = await _http.GetFromJsonAsync<List<NagerHolidayApiDto>>(url);
-            if (resp == null) throw new Exception("Failed to fetch holidays");
-
-            foreach (var h in resp)
-            {
-                if (!await _db.PublicHolidays
-                       .AnyAsync(x => x.CountryCode == countryCode && x.Date == h.Date))
-                {
-                    _db.PublicHolidays.Add(new PublicHoliday
-                    {
-                        CountryCode = countryCode,
-                        Date = h.Date,
-                        LocalName = h.LocalName,
-                        CreatedDate = DateTime.UtcNow,
-                        CreatedBy = "System",
-                        IsActive = true
-
-                    });
-                }
-            }
-            await _db.SaveChangesAsync();
-        }
-
         public async Task<List<PublicHolidayDto>> GetHolidaysAsync(string countryCode, int year)
         {
             var start = new DateTime(year, 1, 1);
@@ -69,13 +44,49 @@ namespace FleetManager.Business.Implementations.ScheduleModule
                 .ToListAsync();
         }
 
-        private class NagerHolidayApiDto
+
+
+        public async Task FetchAndStoreHolidaysAsync(string countryCode, int year)
         {
-            public DateTime Date { get; set; }
-            public string LocalName { get; set; } = null!;
-            public string Name { get; set; } = null!;
-            public string CountryCode { get; set; } = null!;
-            public bool Fixed { get; set; }
+            // 1) fetch from the API
+            var url = $"https://date.nager.at/api/v3/PublicHolidays/{year}/{countryCode}";
+            List<NagerHolidayApiDto> holidays;
+            using (var client = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                holidays = JsonConvert.DeserializeObject<List<NagerHolidayApiDto>>(json)!
+                                     .ToList();
+            }
+
+            // 2) if we got any, map to your EF entity
+            if (holidays.Count > 0)
+            {
+                var entities = holidays
+                    // avoid duplicates by only inserting ones not already in the DB
+                    .Where(h => !_db.PublicHolidays
+                                     .Any(e => e.CountryCode == countryCode && e.Date == h.Date))
+                    .Select(h => new PublicHoliday
+                    {
+                        CountryCode = h.CountryCode,
+                        Date = h.Date,
+                        LocalName = h.LocalName,
+                        // Name = h.Name, // if you want the English name as well
+                        IsActive = true,
+                        CreatedDate = DateTime.UtcNow,
+                        CreatedBy = "System"
+                    })
+                    .ToList();
+
+                if (entities.Count > 0)
+                {
+                    await _db.PublicHolidays.AddRangeAsync(entities);
+                    await _db.SaveChangesAsync();
+                }
+            }
         }
+
     }
 }

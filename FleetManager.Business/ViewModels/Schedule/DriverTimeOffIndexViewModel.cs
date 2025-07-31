@@ -10,7 +10,9 @@ namespace FleetManager.Business.ViewModels.Schedule
 {
     public class DriverTimeOffIndexViewModel
     {
-        public List<SelectListItem> Categories { get; set; } = new();
-        public List<TimeOffRequestDto> Requests { get; set; } = new();
+        public IEnumerable<SelectListItem> Categories { get; set; } = Enumerable.Empty<SelectListItem>();
+
+        public IEnumerable<TimeOffRequestDto> Requests { get; set; } = Enumerable.Empty<TimeOffRequestDto>();
+
     }
 }

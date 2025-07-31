@@ -38,14 +38,15 @@ namespace FleetManager.App.Controllers
             .Select(h => new CalendarEventDto
             {
                 Title = h.LocalName,
-                Start = h.Date.ToString("yyyy‑MM‑dd"),
+                Start = h.Date.ToString("yyyy-MM-dd"),
+                //End = h.Date.AddDays(1).ToString("yyyy-MM-dd"),
                 Color = "red"
             })
             .Concat(offs.Select(o => new CalendarEventDto
             {
-                Title = $"Time Off: {o.Reason}",
-                Start = o.StartDate.ToString("yyyy‑MM‑dd"),
-                End = o.EndDate.AddDays(1).ToString("yyyy‑MM‑dd"),
+                Title = $"Time Off — {o.CategoryName}",
+                Start = o.StartDate.ToString("yyyy-MM-dd"),
+                End = o.EndDate.AddDays(1).ToString("yyyy-MM-dd"),  // <-- inclusive range
                 Color = o.Status switch
                 {
                     TimeOffStatus.Pending => "orange",

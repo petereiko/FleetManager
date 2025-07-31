@@ -1,4 +1,4 @@
-﻿@using FleetManager.Business.Enums
+﻿@* @using FleetManager.Business.Enums
 @using FleetManager.Business.ViewModels.Schedule
 @model DriverTimeOffIndexViewModel
 @{
@@ -6,10 +6,7 @@
 }
 
 <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6/main.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
 <h2>@ViewData["Title"]</h2>
@@ -23,7 +20,8 @@
 
 <div class="collapse mb-4" id="newRequestForm">
     <div class="card card-body">
-        <form id="timeOffForm">
+        <form id="timeOffForm" method="post" action='@Url.Action("Create","DriverTimeOff")'>
+            @Html.AntiForgeryToken()
             <div class="row">
                 <div class="col-md-4">
                     <label>Category</label>
@@ -71,13 +69,17 @@
         {
                 <tr>
                     <td>@r.CategoryName</td>
-                    <td>@r.StartDate:yyyy‑MM‑dd – @r.EndDate:yyyy‑MM‑dd</td>
+                <td>
+                    @r.StartDate.ToString("d MMMM yyyy")
+                    –
+                    @r.EndDate.ToString("d MMMM yyyy")
+                </td>
                     <td>
                         <span class="badge @(r.Status==TimeOffStatus.Approved?"bg-success": r.Status==TimeOffStatus.Denied?"bg-danger":"bg-warning")">
                         @r.Status
                         </span>
                     </td>
-                    <td>@r.RequestedAt:yyyy‑MM‑dd</td>
+                    <td>@r.RequestedAt.ToString("d MMMM yyyy")</td>
                     <td>
                         <button class="btn btn-sm btn-link viewDetail" data-id="@r.Id">
                             Details
@@ -118,41 +120,799 @@
   </div>
 </div>
 
+<!-- jQuery (required for your $ handlers) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap 5 bundle (includes Modal, Collapse, etc.) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+
 <script>
+
+    // FullCalendar in calendar modal
+      document.addEventListener('DOMContentLoaded', function() {
+      // only initialize once when modal is shown
+      $('#calendarModal').on('shown.bs.modal', function() {
+        if (!window._fc) {
+          window._fc = new FullCalendar.Calendar(
+            document.getElementById('fc'),
+            {
+              initialView: 'dayGridMonth',
+              events: '/api/calendar/events?year=' + new Date().getFullYear(),
+              height: 600
+            }
+          );
+          window._fc.render();
+        }
+      });
+    });
+
     // init Flatpickr
     flatpickr(".flatpickr", { dateFormat: "Y-m-d" });
 
     // AJAX form submission
-    $("#timeOffForm").submit(function(e) {
+
+       $('#timeOffForm').on('submit', function(e) {
       e.preventDefault();
-      var data = $(this).serialize();
-      $.post("@Url.Action("Create", "DriverTimeOff")", data)
-        .done(resp => {
-          Toastify({ text:"Request submitted!", backgroundColor:"green" }).showToast();
-          setTimeout(()=>location.reload(), 800);
+      var $f = $(this);
+      var data = $f.serialize();
+      $.post($f.attr('action'), data)
+        .done(() => {
+          Toastify({ text: "Request submitted!", backgroundColor: "green" }).showToast();
+          setTimeout(() => location.reload(), 800);
         })
-        .fail(err => {
-          Toastify({ text:"Error: " + err.responseText, backgroundColor:"red" }).showToast();
+        .fail(xhr => {
+          Toastify({ text: "Error: " + xhr.responseText, backgroundColor: "red" }).showToast();
         });
     });
 
     // Details button
-    $(".viewDetail").click(function() {
+        $(document).on("click", ".viewDetail", function() {
       var id = $(this).data("id");
-      $("#detailBody").html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin"></i></div>');
-      $("#detailModal").modal("show");
-      $("#detailBody").load(`@Url.Action("Details", "DriverTimeOff")/${id}`);
+      var detailBody = $("#detailBody");
+
+      detailBody.html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin"></i></div>');
+
+      // build the proper URL to the User area action, then append ?id=
+      var baseUrl = '@Url.Action("Details", "DriverTimeOff")'; // e.g. "/User/DriverTimeOff/Details"
+      var url = baseUrl + "?id=" + id;
+
+      $.get(url)
+        .done(function(html) {
+          detailBody.html(html);
+          new bootstrap.Modal(document.getElementById('detailModal')).show();
+        })
+        .fail(function(xhr, status, err) {
+          detailBody.html(
+            '<p class="text-danger">Failed to load details (' + xhr.status + ')</p>'
+          );
+        });
     });
 
+
+    
+</script>
+ *@
+
+
+
+
+
+
+
+      @using FleetManager.Business.Enums
+@using FleetManager.Business.ViewModels.Schedule
+@model DriverTimeOffIndexViewModel
+@{
+    ViewData["Title"] = "My Time‑Off Requests";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #3b82f6;
+        --primary-dark: #2563eb;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --border-radius: 12px;
+    }
+
+    body {
+        background: whitesmoke;
+        min-height: 100vh;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-xl);
+        margin: 20px auto;
+        max-width: 1200px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+        color: var(--gray-600);
+        font-size: 1.1rem;
+        font-weight: 400;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-modern {
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .btn-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-modern:hover::before {
+            left: 100%;
+        }
+
+    .btn-primary-modern {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+        .btn-primary-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+    .btn-outline-modern {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+        backdrop-filter: blur(10px);
+    }
+
+        .btn-outline-modern:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+    .form-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control-modern {
+        border: 2px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+            background: white;
+        }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .requests-table-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .table-modern {
+        margin: 0;
+        background: transparent;
+    }
+
+        .table-modern thead {
+            background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .table-modern th {
+            font-weight: 700;
+            color: var(--gray-800);
+            padding: 1.25rem 1rem;
+            border: none;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+
+        .table-modern tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+            .table-modern tbody tr:hover {
+                background: rgba(59, 130, 246, 0.05);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-sm);
+            }
+
+        .table-modern td {
+            padding: 1.25rem 1rem;
+            border: none;
+            vertical-align: middle;
+        }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .status-approved {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-denied {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .status-pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .btn-details {
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+    }
+
+        .btn-details:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-dark);
+        }
+
+    .modal-modern .modal-content {
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-xl);
+        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .modal-modern .modal-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        border-bottom: none;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+
+    .modal-modern .modal-title {
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .calendar-container {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    /* FullCalendar customizations */
+    .fc {
+        font-family: inherit;
+    }
+
+    .fc-header-toolbar {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .fc-button-primary {
+        background: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        border-radius: var(--border-radius) !important;
+    }
+
+        .fc-button-primary:hover {
+            background: var(--primary-dark) !important;
+            border-color: var(--primary-dark) !important;
+        }
+
+    .fc-daygrid-day {
+        transition: all 0.3s ease;
+    }
+
+        .fc-daygrid-day:hover {
+            background: rgba(59, 130, 246, 0.05) !important;
+        }
+
+    .fc-event {
+        border-radius: 6px !important;
+        border: none !important;
+        padding: 2px 6px !important;
+        font-weight: 600 !important;
+        box-shadow: var(--shadow-sm) !important;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 2rem;
+        height: 2rem;
+        border: 3px solid rgba(59, 130, 246, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @@keyframes spin {
+        to
+
+    {
+        transform: rotate(360deg);
+    }
+
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--gray-600);
+    }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--gray-300);
+            margin-bottom: 1rem;
+        }
+
+    @@media (max-width: 768px) {
+        .main-container
+
+    {
+        margin: 10px;
+        padding: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn-modern {
+        width: 100%;
+        justify-content: center;
+        max-width: 300px;
+    }
+
+    .table-modern {
+        font-size: 0.875rem;
+    }
+
+        .table-modern th,
+        .table-modern td {
+            padding: 0.75rem 0.5rem;
+        }
+
+    }
+</style>
+
+<div class="main-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-calendar-alt"></i>
+            @ViewData["Title"]
+        </h1>
+        <p class="page-subtitle">Manage your time-off requests and view your schedule</p>
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn-modern btn-primary-modern" data-bs-toggle="collapse" data-bs-target="#newRequestForm">
+            <i class="fas fa-plus"></i>
+            New Time‑Off Request
+        </button>
+        <button class="btn-modern btn-outline-modern" data-bs-toggle="modal" data-bs-target="#calendarModal">
+            <i class="fas fa-calendar"></i>
+            View Calendar
+        </button>
+    </div>
+
+    <div class="collapse mb-4" id="newRequestForm">
+        <div class="form-container">
+            <h3 class="form-title">
+                <i class="fas fa-plus-circle"></i>
+                Submit New Request
+            </h3>
+            <form id="timeOffForm" method="post" action='@Url.Action("Create","DriverTimeOff")'>
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="CategoryId" class="form-control-modern form-select" required>
+                            <option value="">-- Select Category --</option>
+                            @foreach (var c in Model.Categories)
+                            {
+                                <option value="@c.Value">@c.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Start Date</label>
+                        <input name="StartDate" class="form-control-modern flatpickr" required />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">End Date</label>
+                        <input name="EndDate" class="form-control-modern flatpickr" required />
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn-modern btn-primary-modern w-100">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Reason</label>
+                    <textarea name="Reason" class="form-control-modern" rows="3" placeholder="Please provide details about your request..."></textarea>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="requests-table-container">
+        @if (Model.Requests.Any())
+        {
+            <table class="table table-modern">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-tag me-2"></i>Category</th>
+                        <th><i class="fas fa-calendar-days me-2"></i>Period</th>
+                        <th><i class="fas fa-check-circle me-2"></i>Status</th>
+                        <th><i class="fas fa-clock me-2"></i>Requested</th>
+                        <th><i class="fas fa-cog me-2"></i>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Requests)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@r.CategoryName</strong>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-calendar-day me-2 text-muted"></i>
+                                    @r.StartDate.ToString("d MMM yyyy")
+                                    <i class="fas fa-arrow-right mx-2 text-muted"></i>
+                                    @r.EndDate.ToString("d MMM yyyy")
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge @(r.Status==TimeOffStatus.Approved?"status-approved": r.Status==TimeOffStatus.Denied?"status-denied":"status-pending")">
+                                    <i class="fas @(r.Status==TimeOffStatus.Approved?"fa-check": r.Status==TimeOffStatus.Denied?"fa-times":"fa-clock")"></i>
+                                    @r.Status
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-muted">
+                                    <i class="fas fa-calendar-plus me-1"></i>
+                                    @r.RequestedAt.ToString("d MMM yyyy")
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn-details viewDetail" data-id="@r.Id">
+                                    <i class="fas fa-eye me-1"></i>
+                                    Details
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <h4>No Requests Yet</h4>
+                <p>You haven't submitted any time-off requests. Click "New Time-Off Request" to get started.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade modal-modern" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i>
+                    Time‑Off Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailBody">
+                <div class="text-center py-5">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-3 text-muted">Loading details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Modal -->
+<div class="modal fade modal-modern" id="calendarModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    Your Schedule Calendar
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="calendar-container">
+                    <div id="fc"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery (required for your $ handlers) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap 5 bundle (includes Modal, Collapse, etc.) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
     // FullCalendar in calendar modal
-    $('#calendarModal').on('shown.bs.modal', function() {
-      if (!window._fc) {
-        window._fc = new FullCalendar.Calendar(document.getElementById('fc'), {
-          initialView: 'dayGridMonth',
-          events: '/api/calendar/events?year=' + new Date().getFullYear(),
-          height: 600
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize calendar when modal is shown
+        $('#calendarModal').on('shown.bs.modal', function() {
+            if (!window._fc) {
+                window._fc = new FullCalendar.Calendar(
+                    document.getElementById('fc'),
+                    {
+                        initialView: 'dayGridMonth',
+                        events: '/api/calendar/events?year=' + new Date().getFullYear(),
+                        height: 600,
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,listMonth'
+                        },
+                        eventDidMount: function(info) {
+                            // Add tooltips to events
+                            info.el.setAttribute('title', info.event.title);
+                        },
+                        eventClick: function(info) {
+                            // Optional: Handle event clicks
+                            info.jsEvent.preventDefault();
+                        },
+                        dayCellDidMount: function(info) {
+                            // Optional: Customize day cells
+                        }
+                    }
+                );
+                window._fc.render();
+            }
         });
-        window._fc.render();
-      }
+    });
+
+    // Initialize Flatpickr with better styling
+    flatpickr(".flatpickr", {
+        dateFormat: "Y-m-d",
+        theme: "light",
+        minDate: "today",
+        allowInput: true,
+        altInput: true,
+        altFormat: "F j, Y"
+    });
+
+    // AJAX form submission with enhanced feedback
+    $('#timeOffForm').on('submit', function(e) {
+        e.preventDefault();
+        var $f = $(this);
+        var $submitBtn = $f.find('button[type="submit"]');
+        var originalText = $submitBtn.html();
+
+        // Show loading state
+        $submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Submitting...');
+        $submitBtn.prop('disabled', true);
+
+        var data = $f.serialize();
+        $.post($f.attr('action'), data)
+            .done(() => {
+                Toastify({
+                    text: "✓ Request submitted successfully!",
+                    backgroundColor: "linear-gradient(135deg, #10b981, #059669)",
+                    duration: 3000
+                }).showToast();
+
+                // Hide form and reset
+                $('#newRequestForm').collapse('hide');
+                $f[0].reset();
+
+                setTimeout(() => location.reload(), 1500);
+            })
+            .fail(xhr => {
+                Toastify({
+                    text: "✗ Error: " + (xhr.responseText || "Failed to submit request"),
+                    backgroundColor: "linear-gradient(135deg, #ef4444, #dc2626)",
+                    duration: 5000
+                }).showToast();
+            })
+            .always(() => {
+                // Restore button state
+                $submitBtn.html(originalText);
+                $submitBtn.prop('disabled', false);
+            });
+    });
+
+    // Enhanced details modal
+    $(document).on("click", ".viewDetail", function() {
+        var id = $(this).data("id");
+        var detailBody = $("#detailBody");
+
+        detailBody.html(`
+            <div class="text-center py-5">
+                <div class="loading-spinner"></div>
+                <p class="mt-3 text-muted">Loading details...</p>
+            </div>
+        `);
+
+        // Show modal immediately
+        var modal = new bootstrap.Modal(document.getElementById('detailModal'));
+        modal.show();
+
+        // Build the proper URL to the User area action, then append ?id=
+        var baseUrl = '@Url.Action("Details", "DriverTimeOff")';
+        var url = baseUrl + "?id=" + id;
+
+        $.get(url)
+            .done(function(html) {
+                detailBody.html(html);
+            })
+            .fail(function(xhr, status, err) {
+                detailBody.html(`
+                    <div class="text-center py-5">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3">Failed to Load Details</h5>
+                        <p class="text-muted">Error ${xhr.status}: ${xhr.statusText}</p>
+                        <button class="btn-modern btn-outline-modern" onclick="location.reload()">
+                            <i class="fas fa-refresh"></i> Retry
+                        </button>
+                    </div>
+                `);
+            });
+    });
+
+    // Enhanced toast notifications
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add smooth animations to collapsible elements
+        $('#newRequestForm').on('show.bs.collapse', function() {
+            $(this).find('.form-container').css('transform', 'translateY(-20px)').css('opacity', '0');
+        });
+
+        $('#newRequestForm').on('shown.bs.collapse', function() {
+            $(this).find('.form-container').animate({
+                transform: 'translateY(0)',
+                opacity: 1
+            }, 300);
+        });
     });
 </script>

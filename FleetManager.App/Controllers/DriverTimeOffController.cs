@@ -34,7 +34,12 @@ namespace FleetManager.App.Controllers
             {
                 var driverId = await _assignmentService.GetDriverIdByUserAsync(_auth.UserId!);
                 var requests = await _timeOff.GetRequestsByDriverAsync(driverId);
-                var vm = new TimeOffListViewModel { Requests = requests };
+                var categories = await _timeOff.GetCategoriesAsync();
+                var vm = new DriverTimeOffIndexViewModel
+                { 
+                    Requests = requests,
+                    Categories = categories
+                };
                 return View(vm);
             }
             catch (Exception ex)
@@ -58,14 +63,53 @@ namespace FleetManager.App.Controllers
         }
 
         // POST: /User/DriverTimeOff/Create
+        //[HttpPost, ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Create(TimeOffCreateViewModel vm)
+        //{
+        //    // repopulate categories on failure
+        //    vm.Categories = await _timeOff.GetCategoriesAsync();
+
+        //    if (!ModelState.IsValid)
+        //        return View(vm);
+
+        //    try
+        //    {
+        //        var driverId = await _assignmentService.GetDriverIdByUserAsync(_auth.UserId!);
+        //        var dto = new TimeOffRequestDto
+        //        {
+        //            DriverId = driverId,
+        //            CategoryId = vm.CategoryId,
+        //            StartDate = vm.StartDate,
+        //            EndDate = vm.EndDate,
+        //            Reason = vm.Reason,
+        //            Status = TimeOffStatus.Pending,
+        //            CompanyBranchId = _auth.CompanyBranchId!.Value
+        //        };
+        //        await _timeOff.CreateRequestAsync(dto);
+
+        //        TempData["SuccessMessage"] = "Time‑off request submitted.";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error creating time‑off request");
+        //        ModelState.AddModelError("", "An error occurred submitting your request.");
+        //        return View(vm);
+        //    }
+        //}
+
+
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TimeOffCreateViewModel vm)
         {
-            // repopulate categories on failure
             vm.Categories = await _timeOff.GetCategoriesAsync();
 
             if (!ModelState.IsValid)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return BadRequest("Validation failed");
                 return View(vm);
+            }
 
             try
             {
@@ -82,16 +126,22 @@ namespace FleetManager.App.Controllers
                 };
                 await _timeOff.CreateRequestAsync(dto);
 
-                TempData["SuccessMessage"] = "Time‑off request submitted.";
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true });
+
+                TempData["SuccessMessage"] = "Time-off request submitted.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating time‑off request");
+                _logger.LogError(ex, "Error creating time-off request");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return StatusCode(500, "An error occurred submitting your request.");
                 ModelState.AddModelError("", "An error occurred submitting your request.");
                 return View(vm);
             }
         }
+
 
         // GET: /User/DriverTimeOff/Details/5
         public async Task<IActionResult> Details(long id)

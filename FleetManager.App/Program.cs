@@ -176,6 +176,7 @@ builder.Services.AddTransient<IContactDirectoryService, ContactDirectoryService>
 builder.Services.AddTransient<IMaintenanceService, MaintenanceService>();
 builder.Services.AddTransient<ITimeOffService, TimeOffService>();
 builder.Services.AddTransient<ITimeOffCategoryService, TimeOffCategoryService>();
+builder.Services.AddTransient<IPublicHolidayService, PublicHolidayService>();
 
 
 
@@ -341,6 +342,14 @@ app.MapHub<NotificationHub>("/notificationHub");
 //RecurringJob.AddOrUpdate<BackgroundJobService>("SendBulkEmail", service => service.SendBulkEmail(), "*/2 * * * *");
 //RecurringJob.AddOrUpdate<BackgroundJobService>("VerifyTransfers", service => service.VerifyPayments(), "*/1 * * * *");
 //RecurringJob.AddOrUpdate<BackgroundJobService>("PushVisualAssessmentResult", service => service.PushVisualAssessmentResult(), "*/2 * * * *");//Every 1 minute
+
+
+//using (var scope = app.Services.CreateScope())
+//{
+//    var svc = scope.ServiceProvider.GetRequiredService<IPublicHolidayService>();
+//    await svc.FetchAndStoreHolidaysAsync("NG", DateTime.UtcNow.Year);
+//}
+
 
 RecurringJob.AddOrUpdate<IPublicHolidayService>("GetHolidays", svc => svc.FetchAndStoreHolidaysAsync("NG", DateTime.UtcNow.Year), Cron.Yearly(1, 1)); // every Jan 1
 
