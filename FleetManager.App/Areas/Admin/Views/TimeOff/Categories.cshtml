@@ -1,0 +1,173 @@
+﻿@using FleetManager.Business.ViewModels.Schedule
+@model TimeOffCategoryListViewModel
+@{
+    ViewData["Title"] = "Time-Off Categories";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css" rel="stylesheet" />
+
+<h1>@ViewData["Title"]</h1>
+
+<button class="btn btn-primary mb-3" data-bs-toggle="collapse" data-bs-target="#addCatForm">
+    Add Category
+</button>
+
+<div id="addCatForm" class="collapse mb-4">
+    <form id="createCatForm" class="form-inline">
+        @Html.AntiForgeryToken()
+        <div class="form-group mr-2">
+            <input name="Name" class="form-control" placeholder="Name" required maxlength="100" />
+        </div>
+        <div class="form-group mr-2">
+            <input name="Description" class="form-control" placeholder="Description" maxlength="500" />
+        </div>
+        <button type="submit" class="btn btn-success">Create</button>
+        <button type="button"
+                class="btn btn-secondary ms-2"
+                data-bs-toggle="collapse"
+                data-bs-target="#addCatForm">
+            Cancel
+        </button>
+    </form>
+</div>
+
+<table class="table table-bordered" id="catsTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model.Categories)
+        {
+          <tr id="cat-row-@c.Id">
+            <td class="cat-name">@c.Name</td>
+            <td class="cat-desc">@c.Description</td>
+                <td>@c.CreatedAt.ToString("d MMM yyyy")</td>
+            <td>
+              <button class="btn btn-sm btn-info edit-cat-btn" data-id="@c.Id">Edit</button>
+              <button class="btn btn-sm btn-danger del-cat-btn" data-id="@c.Id">Delete</button>
+            </td>
+          </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editCatModal" tabindex="-1" aria-labelledby="editCatLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCatLabel">Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body"><!-- loaded via AJAX --></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.js"></script>
+
+<script>
+
+        // at top of your script
+    const editModalEl = document.getElementById('editCatModal');
+    const editModal   = new bootstrap.Modal(editModalEl);
+
+$(function(){
+    // Create
+    $('#createCatForm').on('submit', function(e){
+        e.preventDefault();
+        var data = $(this).serialize();
+        $.post('/Admin/TimeOff/CreateCategory', data)
+         .done(function(resp){
+            if (resp.success) {
+                // append new row
+                var c=resp.category;
+                $('#catsTable tbody').append(
+                  `<tr id="cat-row-${c.id}">
+                     <td class="cat-name">${c.name}</td>
+                     <td class="cat-desc">${c.description}</td>
+                     <td>${c.createdAtFriendly}</td>
+                     <td>
+                       <button class="btn btn-sm btn-info edit-cat-btn" data-id="${c.id}">Edit</button>
+                       <button class="btn btn-sm btn-danger del-cat-btn" data-id="${c.id}">Delete</button>
+                     </td>
+                   </tr>`);
+                $('#addCatForm').collapse('hide');
+                $('#createCatForm')[0].reset();
+                Toastify({ text: resp.message, duration: 3000 }).showToast();
+            } else {
+                Toastify({ text: resp.message, duration: 3000, backgroundColor: "linear-gradient(to right, #b71c1c, #f44336)" }).showToast();
+            }
+        });
+    });
+
+    // Edit – load form
+           $(function(){
+      // load & show
+      $('#catsTable').on('click', '.edit-cat-btn', function(){
+        var id = $(this).data('id');
+        $.get('/Admin/TimeOff/EditCategory/' + id, function(html){
+          $('#editCatModal .modal-body').html(html);
+          editModal.show();
+        });
+      });
+
+      // submit & hide
+      $('#editCatModal').on('submit', 'form.ajax-cat-edit', function(e){
+        e.preventDefault();
+        var $f = $(this), data = $f.serialize(), url = $f.attr('action');
+        $.post(url, data).done(function(resp){
+          if (resp.success) {
+            // update row…
+            editModal.hide();
+            Toastify({ text: resp.message, duration: 3000 }).showToast();
+          } else {
+            Toastify({ text: resp.message, duration: 3000 }).showToast();
+          }
+        });
+      });
+    });
+
+
+    // Edit – submit
+    $('#editCatModal').on('submit', 'form.ajax-cat-edit', function(e){
+        e.preventDefault();
+        var $f = $(this), data = $f.serialize(), url = $f.attr('action');
+        $.post(url, data).done(function(resp){
+            if (resp.success) {
+                var row = $('#cat-row-' + resp.category.id);
+                row.find('.cat-name').text(resp.category.name);
+                row.find('.cat-desc').text(resp.category.description);
+                $('#editCatModal').modal('hide');
+                Toastify({ text: resp.message, duration: 3000 }).showToast();
+            } else {
+                Toastify({ text: resp.message, duration: 3000, backgroundColor: "linear-gradient(to right, #b71c1c, #f44336)" }).showToast();
+            }
+        });
+    });
+
+    // Delete
+    $('#catsTable').on('click', '.del-cat-btn', function(){
+        if (!confirm('Delete this category?')) return;
+        var id = $(this).data('id');
+        var token = $('input[name="__RequestVerificationToken"]').first().val();
+        $.post('/Admin/TimeOff/DeleteCategory/' + id, { __RequestVerificationToken: token })
+         .done(function(resp){
+            if (resp.success) {
+                $('#cat-row-' + id).remove();
+                Toastify({ text: resp.message, duration: 3000 }).showToast();
+            } else {
+                Toastify({ text: resp.message, duration: 3000, backgroundColor: "linear-gradient(to right, #b71c1c, #f44336)" }).showToast();
+            }
+        });
+    });
+});
+</script>
+

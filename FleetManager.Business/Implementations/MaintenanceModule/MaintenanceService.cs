@@ -300,6 +300,20 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
 
             if (t == null) return null;
 
+            // find reviewer admin name if present
+            string? reviewerName = null;
+            if (t.ModifiedBy != null)
+            {
+                var admin = await _context.CompanyAdmins
+                    .AsNoTracking()
+                    .Where(ca => ca.UserId == t.ModifiedBy)
+                    .Select(ca => ca.User)
+                    .FirstOrDefaultAsync();
+
+                if (admin != null)
+                    reviewerName = $"{admin.FirstName} {admin.LastName}";
+            }
+
 
             return new MaintenanceTicketDto
             {
@@ -315,6 +329,7 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 AdminNotes = t.AdminNotes,
                 CreatedAt = t.CreatedDate,
                 ResolvedAt = t.ResolvedAt,
+                ResolvedBy = reviewerName,
                 Items = t.Items.Select(i => new MaintenanceTicketItemDto
                 {
                     Id = i.Id,

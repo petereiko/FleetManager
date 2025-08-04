@@ -21,6 +21,7 @@ namespace FleetManager.Business.DataObjects.MaintenanceDto
         public MaintenancePriority? Priority { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ResolvedAt { get; set; }
+        public string? ResolvedBy { get; set; }
         public string? AdminNotes { get; set; }
         public List<MaintenanceTicketItemDto> Items { get; set; } = new();
         //public long? InvoiceId { get; set; }

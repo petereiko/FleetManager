@@ -15,6 +15,9 @@ namespace FleetManager.Business.Database.Entities
 
         public string? Description { get; set; }
 
+        public long? CompanyBranchId { get; set; }
+        public virtual CompanyBranch? CompanyBranch { get; set; } = null!;
+
         // navigation
         //public virtual ICollection<TimeOff> TimeOffRequests { get; set; } = new List<TimeOff>();
     }

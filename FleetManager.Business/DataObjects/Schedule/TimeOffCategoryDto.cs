@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FleetManager.Business.Database.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,8 @@ namespace FleetManager.Business.DataObjects.Schedule
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;
+        public long? CompanyBranchId { get; set; }
+        public string?  BranchName { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string? CreatedBy { get; set; }

@@ -1,9 +1,16 @@
 ﻿using FleetManager.Business.Database.Entities;
+using FleetManager.Business.DataObjects;
 using FleetManager.Business.DataObjects.Schedule;
 using FleetManager.Business.Enums;
+using FleetManager.Business.Implementations.UserModule;
+using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.ScheduleModule;
 using FleetManager.Business.Interfaces.UserModule;
+using FleetManager.Business.Migrations;
+using FleetManager.Business.UtilityModels;
+using iTextSharp.text.log;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -18,36 +25,120 @@ namespace FleetManager.Business.Implementations.ScheduleModule
     {
         private readonly FleetManagerDbContext _db;
         private readonly IAuthUser _auth;
+        private readonly INotificationService _notification;
         private readonly ILogger<TimeOffService> _log;
 
-        public TimeOffService(FleetManagerDbContext db, IAuthUser auth, ILogger<TimeOffService> log)
+        public TimeOffService(FleetManagerDbContext db, IAuthUser auth, ILogger<TimeOffService> log, INotificationService notification)
         {
             _db = db;
             _auth = auth;
             _log = log;
+            _notification = notification;
         }
 
-        public async Task<TimeOffRequestDto> CreateRequestAsync(TimeOffRequestDto dto)
+        private void EnsureAdminOrOwner()
         {
-            var entity = new TimeOffRequest
+            var roles = (_auth.Roles ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(r => r.Trim());
+            if (!roles.Contains("Company Admin") &&
+                !roles.Contains("Company Owner") &&
+                !roles.Contains("Super Admin") &&
+                !roles.Contains("Driver"))
             {
-                DriverId = dto.DriverId,
-                CompanyBranchId = dto.CompanyBranchId,
-                StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                Reason = dto.Reason,
-                Status = TimeOffStatus.Pending,
-                IsActive = true,
-                CreatedDate = DateTime.UtcNow,
-                CategoryId = dto.CategoryId,
-                CreatedBy = _auth.UserId
-            };
+                throw new UnauthorizedAccessException("Insufficient permissions to access fuel logs.");
+            }
+        }
 
-            _db.TimeOffRequests.Add(entity);
-            await _db.SaveChangesAsync();
 
-            dto.Id = entity.Id;
-            return dto;
+        public async Task<MessageResponse<TimeOffRequestDto>> CreateRequestAsync(TimeOffRequestDto dto)
+        {
+            var resp = new MessageResponse<TimeOffRequestDto>();
+            try
+            {
+                // only drivers
+                var roles = (_auth.Roles ?? "").Split(',').Select(r => r.Trim());
+                if (!roles.Contains("Driver"))
+                    throw new UnauthorizedAccessException("Only drivers can make such requests.");
+
+                var driver = await _db.Drivers
+                        .AsNoTracking()
+                        .Include(d => d.User)
+                        .FirstOrDefaultAsync(d => d.Id == dto.DriverId)
+                        ?? throw new KeyNotFoundException("Driver not found.");
+
+
+                var branchId = dto.CompanyBranchId;
+                var driverName = $"{driver.User.FirstName} {driver.User.LastName}";
+
+                var entity = new TimeOffRequest
+                {
+                    DriverId = dto.DriverId,
+                    CompanyBranchId = dto.CompanyBranchId,
+                    StartDate = dto.StartDate,
+                    EndDate = dto.EndDate,
+                    Reason = dto.Reason,
+                    Status = TimeOffStatus.Pending,
+                    IsActive = true,
+                    CreatedDate = DateTime.UtcNow,
+                    CategoryId = dto.CategoryId,
+                    CreatedBy = _auth.UserId
+                };
+
+                _db.TimeOffRequests.Add(entity);
+                await _db.SaveChangesAsync();
+
+                var obj = new TimeOffRequestDto
+                {
+                    Id = entity.Id,
+                    DriverId = entity.DriverId,
+                    CompanyBranchId = entity.CompanyBranchId,
+                    StartDate = entity.StartDate,
+                    EndDate = entity.EndDate,
+                    Reason = entity.Reason,
+                    Status = entity.Status,
+                    RequestedAt = entity.CreatedDate,
+                    CategoryId = entity.CategoryId,
+                    RequestedBy = driverName
+                };
+
+                resp.Success = true;
+                resp.Result = obj;
+
+
+                // notify branch admins
+                var branchAdmins = await _db.CompanyAdmins
+                    .Where(ca => ca.CompanyBranchId == branchId && ca.IsActive)
+                    .Select(ca => ca.UserId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .ToListAsync();
+
+                var notificationTitle = "Leave of absence request";
+                var notificationMessage = $"{driverName} requested a Leave Of Absence.";
+
+                foreach (var adminId in branchAdmins)
+                {
+                    await _notification.CreateAsync(
+                        adminId,
+                        notificationTitle,
+                        notificationMessage,
+                        NotificationType.Alert,
+                        new { requestId = dto.Id }
+                    );
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Error creating request");
+                resp.Message = "An unexpected error occurred while creating the request.";
+            }
+
+            return resp;
+
+
+
+
         }
 
         public async Task<TimeOffRequestDto?> GetRequestByIdAsync(long requestId)
@@ -168,6 +259,8 @@ namespace FleetManager.Business.Implementations.ScheduleModule
 
         public async Task ApproveRequestAsync(long requestId, string? adminComment = null)
         {
+            EnsureAdminOrOwner();
+
             var r = await _db.TimeOffRequests.FindAsync(requestId)
                   ?? throw new KeyNotFoundException("Time‑off request not found.");
 
@@ -176,10 +269,24 @@ namespace FleetManager.Business.Implementations.ScheduleModule
             r.ReviewedAt = DateTime.UtcNow;
             r.ReviewedBy = _auth.UserId;
             await _db.SaveChangesAsync();
+
+            // notify driver
+            var driverUserId = r.CreatedBy;
+            var notificationTitle = "Leave of absence response";
+            var notificationMessage = $"Your request for a leave has been granted.";
+
+            await _notification.CreateAsync(
+                driverUserId,
+                notificationTitle,
+                notificationMessage,
+                NotificationType.Success,
+                new { requestId = r.Id }
+            );
         }
 
         public async Task DenyRequestAsync(long requestId, string? adminComment = null)
         {
+            EnsureAdminOrOwner();
             var r = await _db.TimeOffRequests.FindAsync(requestId)
                   ?? throw new KeyNotFoundException("Time‑off request not found.");
 
@@ -188,6 +295,19 @@ namespace FleetManager.Business.Implementations.ScheduleModule
             r.ReviewedAt = DateTime.UtcNow;
             r.ReviewedBy = _auth.UserId;
             await _db.SaveChangesAsync();
+
+            // notify driver
+            var driverUserId = r.CreatedBy;
+            var notificationTitle = "Leave of absence response";
+            var notificationMessage = $"Your request for a leave has been denied.";
+
+            await _notification.CreateAsync(
+                driverUserId,
+                notificationTitle,
+                notificationMessage,
+                NotificationType.Error,
+                new { requestId = r.Id }
+            );
         }
 
 

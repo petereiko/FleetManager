@@ -1,4 +1,5 @@
 ﻿using FleetManager.Business.DataObjects.Schedule;
+using FleetManager.Business.UtilityModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace FleetManager.Business.Interfaces.ScheduleModule
 {
     public interface ITimeOffService
     {
-        Task<TimeOffRequestDto> CreateRequestAsync(TimeOffRequestDto dto);
+        Task<MessageResponse<TimeOffRequestDto>> CreateRequestAsync(TimeOffRequestDto dto);
         Task<IEnumerable<TimeOffRequestDto>> GetRequestsByDriverAsync(long driverId);
         Task<IEnumerable<TimeOffRequestDto>> GetAllPendingRequestsAsync(long? branchId);
         Task<TimeOffRequestDto?> GetRequestByIdAsync(long requestId);

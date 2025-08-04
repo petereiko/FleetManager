@@ -1,0 +1,385 @@
+﻿@using FleetManager.Business.ViewModels.Schedule
+@model TimeOffReviewViewModel
+
+<style>
+    .review-form-container {
+        padding: 1.5rem;
+    }
+
+    .request-details {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--primary-color, #667eea);
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .detail-row:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #4a5568;
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0;
+    }
+
+    .detail-value {
+        color: #2d3748;
+        flex: 1;
+        margin-bottom: 0;
+        line-height: 1.5;
+    }
+
+    .driver-name {
+        font-weight: 600;
+        color: var(--primary-color, #667eea);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .category-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--info-color, #4299e1);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .date-range {
+        background: #e6fffa;
+        color: #234e52;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border-left: 3px solid #38b2ac;
+        font-weight: 500;
+    }
+
+    .reason-text {
+        background: #fffaf0;
+        color: #744210;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 3px solid #ed8936;
+        font-style: italic;
+        line-height: 1.6;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color, #667eea);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #38a169, #2f855a);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        color: white;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #f56565, #e53e3e);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #e53e3e, #c53030);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+        color: white;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .text-danger {
+        color: #e53e3e !important;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .priority-indicator {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ed8936;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .request-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f0f9ff;
+        border-radius: 8px;
+        border-left: 3px solid #0ea5e9;
+    }
+
+    .request-id {
+        font-family: 'Courier New', monospace;
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+
+    .days-count {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+            @@media (max-width: 768px) {
+        .review-form-container {
+            padding: 1rem;
+        }
+        
+        .detail-row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .detail-label {
+            min-width: auto;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="review-form-container">
+    <form class="ajax-review-form" method="post" asp-action="Approve" asp-route-id="@Model.Request.Id">
+        @Html.AntiForgeryToken()
+        
+        <!-- Request Meta Information -->
+        <div class="request-meta">
+            <div class="d-flex align-items-center gap-3">
+                <span class="request-id">ID: #@Model.Request.Id</span>
+                <span class="days-count">
+                    <i class="fas fa-calendar-day"></i>
+                    @((Model.Request.EndDate - Model.Request.StartDate).Days + 1) day(s)
+                </span>
+            </div>
+            @{
+                var daysUntilStart = (Model.Request.StartDate - DateTime.Now).Days;
+                var isUrgent = daysUntilStart <= 7 && daysUntilStart >= 0;
+            }
+            @if (isUrgent)
+            {
+                <div class="d-flex align-items-center gap-2 text-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <small>Starts in @daysUntilStart day(s)</small>
+                </div>
+            }
+        </div>
+
+        <!-- Request Details Section -->
+        <div class="request-details">
+            <div class="detail-row">
+                <dt class="detail-label">
+                    <i class="fas fa-user-circle"></i>
+                    Driver
+                </dt>
+                <dd class="detail-value">
+                    <div class="driver-name">
+                        <i class="fas fa-id-badge"></i>
+                        @Model.Request.RequestedBy
+                    </div>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt class="detail-label">
+                    <i class="fas fa-tag"></i>
+                    Category
+                </dt>
+                <dd class="detail-value">
+                    <span class="category-tag">
+                        <i class="fas fa-folder"></i>
+                        @Model.Request.CategoryName
+                    </span>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt class="detail-label">
+                    <i class="fas fa-calendar-alt"></i>
+                    Period
+                </dt>
+                <dd class="detail-value">
+                    <div class="date-range">
+                        <i class="fas fa-calendar-check"></i>
+                        @Model.Request.StartDate.ToString("d MMM yyyy") – @Model.Request.EndDate.ToString("d MMM yyyy")
+                        <small class="d-block mt-1 text-muted">
+                            (@Model.Request.StartDate.ToString("dddd")) to (@Model.Request.EndDate.ToString("dddd"))
+                        </small>
+                    </div>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt class="detail-label">
+                    <i class="fas fa-comment-alt"></i>
+                    Reason
+                </dt>
+                <dd class="detail-value">
+                    <div class="reason-text">
+                        <i class="fas fa-quote-left"></i>
+                        @Model.Request.Reason
+                    </div>
+                </dd>
+            </div>
+        </div>
+
+        <!-- Admin Comment Section -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-pen-fancy"></i>
+                Administrative Review
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="AdminComment" class="form-label">
+                    <i class="fas fa-clipboard-list"></i>
+                    Comments & Notes
+                </label>
+                <textarea asp-for="AdminComment" 
+                         class="form-control" 
+                         placeholder="Add your comments, conditions, or notes about this request..."></textarea>
+                <span asp-validation-for="AdminComment" class="text-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                </span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check-circle"></i>
+                Approve Request
+            </button>
+            <button type="button" class="btn btn-danger deny-btn"
+                    data-action="@Url.Action("Deny", new { id = Model.Request.Id })">
+                <i class="fas fa-times-circle"></i>
+                Deny Request
+            </button>
+        </div>
+    </form>
+</div>
