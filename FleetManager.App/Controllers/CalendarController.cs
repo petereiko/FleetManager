@@ -51,7 +51,7 @@ namespace FleetManager.App.Controllers
                 {
                     TimeOffStatus.Pending => "orange",
                     TimeOffStatus.Approved => "green",
-                    TimeOffStatus.Denied => "gray",
+                    TimeOffStatus.Denied => "red",
                     _ => "blue"
                 }
             }))

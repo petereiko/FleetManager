@@ -1,10 +1,10 @@
 ﻿@using FleetManager.Business.DataObjects
 @using FleetManager.Business
+@using FleetManager.Business.Enums
 @model DriverDto
 @{
     ViewData["Title"] = $"{Model.FirstName} {Model.LastName} - Driver Details";
     var fullName = $"{Model.FirstName} {Model.LastName}";
-    var primaryPhoto = Model.Photos?.FirstOrDefault()?.FilePath ?? "/images/default-user.png";
 }
 
 <style>
@@ -22,7 +22,6 @@
         --primary-200: #f1f5f9;
         --primary-100: #f8fafc;
         --primary-50: #fefeff;
-        
         --accent-blue: #3b82f6;
         --accent-blue-light: #60a5fa;
         --accent-emerald: #10b981;
@@ -33,20 +32,17 @@
         --accent-red-light: #f87171;
         --accent-purple: #8b5cf6;
         --accent-purple-light: #a78bfa;
-        
         --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         --gradient-success: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         --gradient-warning: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        
         --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
         --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
         --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        
         --radius-sm: 0.5rem;
         --radius-md: 0.75rem;
         --radius-lg: 1rem;
@@ -81,16 +77,16 @@
         box-shadow: var(--shadow-2xl);
     }
 
-    .hero-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
-        pointer-events: none;
-    }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+            pointer-events: none;
+        }
 
     .hero-content {
         position: relative;
@@ -108,16 +104,16 @@
         opacity: 0.8;
     }
 
-    .breadcrumb-modern a {
-        color: var(--primary-300);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.3s ease;
-    }
+        .breadcrumb-modern a {
+            color: var(--primary-300);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
 
-    .breadcrumb-modern a:hover {
-        color: white;
-    }
+            .breadcrumb-modern a:hover {
+                color: white;
+            }
 
     .breadcrumb-separator {
         color: var(--primary-400);
@@ -143,25 +139,25 @@
         position: relative;
     }
 
-    .hero-avatar::after {
-        content: '';
-        position: absolute;
-        inset: -6px;
-        border-radius: 50%;
-        padding: 6px;
-        background: var(--gradient-accent);
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: subtract;
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask-composite: subtract;
-        opacity: 0.8;
-    }
+        .hero-avatar::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            padding: 6px;
+            background: var(--gradient-accent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: subtract;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: subtract;
+            opacity: 0.8;
+        }
 
-    .hero-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+        .hero-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
     .hero-info {
         flex: 1;
@@ -262,11 +258,11 @@
         box-shadow: var(--shadow-lg);
     }
 
-    .btn-primary-modern:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-xl);
-        color: white;
-    }
+        .btn-primary-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+            color: white;
+        }
 
     .btn-secondary-modern {
         background: rgba(255, 255, 255, 0.1);
@@ -275,11 +271,11 @@
         backdrop-filter: blur(10px);
     }
 
-    .btn-secondary-modern:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        transform: translateY(-1px);
-    }
+        .btn-secondary-modern:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-1px);
+        }
 
     /* Content Grid */
     .content-grid {
@@ -300,20 +296,20 @@
         transition: all 0.3s ease;
     }
 
-    .info-card-modern:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-2xl);
-    }
+        .info-card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-2xl);
+        }
 
-    .info-card-modern::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--gradient-primary);
-    }
+        .info-card-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
 
     .card-header-modern {
         display: flex;
@@ -357,9 +353,9 @@
         border-bottom: 1px solid var(--primary-100);
     }
 
-    .detail-row-modern:last-child {
-        border-bottom: none;
-    }
+        .detail-row-modern:last-child {
+            border-bottom: none;
+        }
 
     .detail-label-modern {
         font-size: 0.875rem;
@@ -376,20 +372,20 @@
         word-break: break-all;
     }
 
-    .detail-value-modern.monospace {
-        font-family: 'Monaco', 'Menlo', monospace;
-        letter-spacing: 0.5px;
-        background: var(--primary-50);
-        padding: 0.5rem 0.75rem;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--primary-200);
-    }
+        .detail-value-modern.monospace {
+            font-family: 'Monaco', 'Menlo', monospace;
+            letter-spacing: 0.5px;
+            background: var(--primary-50);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--primary-200);
+        }
 
-    .detail-value-modern.empty {
-        color: var(--primary-500);
-        font-style: italic;
-        font-weight: 400;
-    }
+        .detail-value-modern.empty {
+            color: var(--primary-500);
+            font-style: italic;
+            font-weight: 400;
+        }
 
     .license-status {
         display: inline-flex;
@@ -429,15 +425,15 @@
         position: relative;
     }
 
-    .full-width-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--gradient-secondary);
-    }
+        .full-width-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-secondary);
+        }
 
     .section-header-modern {
         padding: 2.5rem 2.5rem 0 2.5rem;
@@ -485,11 +481,11 @@
         group: hover;
     }
 
-    .media-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow-xl);
-        border-color: var(--accent-blue);
-    }
+        .media-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--accent-blue);
+        }
 
     .media-preview {
         width: 100%;
@@ -502,12 +498,12 @@
         justify-content: center;
     }
 
-    .media-preview img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
+        .media-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
 
     .media-card:hover .media-preview img {
         transform: scale(1.05);
@@ -556,6 +552,7 @@
             opacity: 1;
             transform: scale(1);
         }
+
         50% {
             opacity: 0.8;
             transform: scale(1.1);
@@ -567,7 +564,7 @@
         .content-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .gallery-grid {
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.5rem;
@@ -633,30 +630,27 @@
                     <span class="breadcrumb-separator">›</span>
                     <span>@fullName</span>
                 </nav>
-                
+
                 <div class="hero-main">
-                    <div class="hero-avatar">
-                        <img src="@primaryPhoto" alt="@fullName" />
-                    </div>
-                    
+
+
                     <div class="hero-info">
                         <h1 class="hero-title">@fullName</h1>
                         <p class="hero-subtitle">Professional Fleet Driver</p>
-                        
+
                         <div class="hero-badges">
                             <span class="status-badge-modern @(Model.IsActive ? "badge-active-modern" : "badge-inactive-modern")">
                                 <span class="status-indicator"></span>
                                 @(Model.IsActive ? "Active" : "Inactive")
                             </span>
-                            @if (!string.IsNullOrEmpty(Model.EmploymentStatus.GetDisplayName()))
-                            {
-                                <span class="status-badge-modern badge-employment-modern">
-                                    <i class="feather-briefcase"></i>
-                                    @Model.EmploymentStatus.GetDisplayName()
-                                </span>
-                            }
+
+                            <span class="status-badge-modern badge-employment-modern">
+                                <i class="feather-briefcase"></i>
+                                @(EnumHelper<EmploymentStatus>.GetDescription(Model.EmploymentStatus))
+                            </span>
+
                         </div>
-                        
+
                         <div class="hero-actions">
                             <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-modern btn-primary-modern">
                                 <i class="feather-edit"></i>
@@ -695,8 +689,8 @@
                     </div>
                     <div class="detail-row-modern">
                         <span class="detail-label-modern">Gender</span>
-                        <span class="detail-value-modern @(string.IsNullOrEmpty(Model.Gender.GetDisplayName()) ? "empty" : "")">
-                            @(Model.Gender.GetDisplayName() ?? "Not specified")
+                        <span class="detail-value-modern>
+                            @(EnumHelper<Gender>.GetDescription(Model.Gender))
                         </span>
                     </div>
                     <div class="detail-row-modern">
@@ -745,12 +739,13 @@
                         <span class="detail-label-modern">License Number</span>
                         <span class="detail-value-modern monospace @(string.IsNullOrEmpty(Model.LicenseNumber) ? "empty" : "")">
                             @(Model.LicenseNumber ?? "Not provided")
+                            Gender
                         </span>
                     </div>
                     <div class="detail-row-modern">
                         <span class="detail-label-modern">License Category</span>
-                        <span class="detail-value-modern @(string.IsNullOrEmpty(Model.LicenseCategory.GetDisplayName()) ? "empty" : "")">
-                            @(Model.LicenseCategory.GetDisplayName() ?? "Not specified")
+                        <span class="detail-value-modern">
+                            @(EnumHelper<LicenseCategory>.GetDescription(Model.LicenseCategory))
                         </span>
                     </div>
                     <div class="detail-row-modern">
@@ -759,9 +754,9 @@
                         {
                             var daysUntilExpiry = (Model.LicenseExpiryDate.Value - DateTime.Now).Days;
                             var statusClass = daysUntilExpiry < 0 ? "license-expired" :
-                                            daysUntilExpiry < 30 ? "license-warning" : "license-valid";
+                            daysUntilExpiry < 30 ? "license-warning" : "license-valid";
                             var statusIcon = daysUntilExpiry < 0 ? "alert-triangle" :
-                                           daysUntilExpiry < 30 ? "alert-circle" : "check-circle";
+                            daysUntilExpiry < 30 ? "alert-circle" : "check-circle";
 
                             <div class="detail-value-modern">
                                 <div class="license-status @statusClass">
@@ -799,14 +794,14 @@
                 <div class="detail-grid-modern">
                     <div class="detail-row-modern">
                         <span class="detail-label-modern">Employment Status</span>
-                        <span class="detail-value-modern @(string.IsNullOrEmpty(Model.EmploymentStatus.GetDisplayName()) ? "empty" : "")">
-                            @(Model.EmploymentStatus.GetDisplayName() ?? "Not specified")
+                        <span class="detail-value-modern">
+                            @(EnumHelper<EmploymentStatus>.GetDescription(Model.EmploymentStatus))
                         </span>
                     </div>
                     <div class="detail-row-modern">
                         <span class="detail-label-modern">Shift Status</span>
-                        <span class="detail-value-modern @(string.IsNullOrEmpty(Model.ShiftStatus.GetDisplayName()) ? "empty" : "")">
-                            @(Model.ShiftStatus.GetDisplayName() ?? "Not assigned")
+                        <span class="detail-value-modern">
+                            @(EnumHelper<ShiftStatus>.GetDescription(Model.ShiftStatus))
                         </span>
                     </div>
                     <div class="detail-row-modern">
@@ -820,33 +815,8 @@
         </div>
 
         <!-- Profile Photos Section -->
-        @if (Model.Photos?.Any() == true)
-        {
-            <div class="full-width-section">
-                <div class="section-header-modern">
-                    <div class="section-icon-modern">
-                        <i class="feather-image"></i>
-                    </div>
-                    <h3 class="section-title-modern">Driver Photos</h3>
-                </div>
-                <div class="gallery-grid">
-                    @foreach (var photo in Model.Photos)
-                    {
-                        <div class="media-card">
-                            <div class="media-preview">
-                                <img src="@photo.FilePath" alt="@photo.FileName" />
-                            </div>
-                            <div class="media-info">
-                                <p class="media-name">@photo.FileName</p>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-
         <!-- License Documents Section -->
-        @if (Model.Documents?.Any() == true)
+        @if (Model.DriverDocuments?.Any() == true)
         {
             <div class="full-width-section">
                 <div class="section-header-modern">
@@ -856,22 +826,25 @@
                     <h3 class="section-title-modern">License Documents</h3>
                 </div>
                 <div class="gallery-grid">
-                    @foreach (var doc in Model.Documents)
+                    @foreach (DriverDocumentDto doc in Model.DriverDocuments)
                     {
                         <div class="media-card">
                             <div class="media-preview">
-                                @if (doc.FilePath.EndsWith(".jpg") || doc.FilePath.EndsWith(".jpeg") ||
-                                   doc.FilePath.EndsWith(".png") || doc.FilePath.EndsWith(".gif"))
+                                @if (doc.FileName.EndsWith(".jpg") || doc.FileName.EndsWith(".jpeg") ||
+                                                        doc.FileName.EndsWith(".png") || doc.FileName.EndsWith(".gif"))
                                 {
-                                    <img src="@doc.FilePath" alt="@doc.FileName" />
+                                    <img src="@doc.FileName" alt="@doc.FileName" />
                                 }
                                 else
                                 {
-                                    <i class="feather-file-text media-icon"></i>
+                                    @* <i class="feather-file-text media-icon"></i> *@
+                                    <iframe src="@doc.FileName" width="200" height="250" />
                                 }
                             </div>
                             <div class="media-info">
-                                <p class="media-name">@doc.FileName</p>
+                                <p class="media-name">
+                                    @(EnumHelper<DriverDocumentType>.GetDescription(doc.DocumentType))
+                                </p>
                             </div>
                         </div>
                     }
@@ -879,7 +852,7 @@
             </div>
         }
 
-        @if ((Model.Photos?.Any() != true) && (Model.Documents?.Any() != true))
+        @if (Model.DriverDocuments.Count == 0)
         {
             <div class="full-width-section">
                 <div class="section-header-modern">

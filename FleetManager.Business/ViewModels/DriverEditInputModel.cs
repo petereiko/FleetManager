@@ -48,7 +48,7 @@ namespace FleetManager.Business.ViewModels
 
         [Required]
         [Display(Name = "Branch")]
-        public long CompanyBranchId { get; set; }
+        public long? CompanyBranchId { get; set; }
 
         [Required]
         public LicenseCategory LicenseCategory { get; set; }
@@ -65,6 +65,8 @@ namespace FleetManager.Business.ViewModels
 
         [Display(Name = "Profile Photo")]
         public IFormFile ProfilePhoto { get; set; }
+
+        public string? PassportFileName { get; set; }
 
         public DateTime UploadedDate {  get; set; }
 

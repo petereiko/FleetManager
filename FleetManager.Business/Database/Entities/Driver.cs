@@ -24,10 +24,12 @@ namespace FleetManager.Business.Database.Entities
         public LicenseCategory LicenseCategory { get; set; }
         public ShiftStatus ShiftStatus { get; set; } // Available,On Duty,Off Duty etc
         public DateTime? LastSeen { get; set; }
+        public string? PassportFileName { get;set; }
 
         public long? CompanyId { get; set; }
-        public virtual Company Company { get; set; }
-        //public virtual ICollection<DriverViolation> Violations { get; set; } = new List<DriverViolation>();
+        public virtual Company? Company { get; set; }
+        public virtual ICollection<DriverDocument> DriverDocuments { get; set; } = new HashSet<DriverDocument>();
+        public virtual ICollection<DriverViolation> Violations { get; set; } = new HashSet<DriverViolation>();
 
     }
 }

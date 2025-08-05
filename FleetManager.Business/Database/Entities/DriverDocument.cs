@@ -10,11 +10,9 @@ namespace FleetManager.Business.Database.Entities
     public class DriverDocument : BaseEntity
     {
         public long? DriverId { get; set; }
-        public virtual Driver Driver { get; set; }
+        public virtual Driver? Driver { get; set; }
 
         public DriverDocumentType DocumentType { get; set; }
-        public string FileName { get; set; }
-
-        public string FilePath { get; set; }
+        public string? FileName { get; set; }
     }
 }

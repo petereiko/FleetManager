@@ -1,9 +1,7 @@
 ﻿
 
-using System.Configuration;
-using System.Globalization;
-using DinkToPdf.Contracts;
 using DinkToPdf;
+using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DVLA.Business.UserModule;
 using FleetManager.Business;
@@ -28,6 +26,7 @@ using FleetManager.Business.Implementations.ManageDriverModule;
 using FleetManager.Business.Implementations.NotificationModule;
 using FleetManager.Business.Implementations.RentalModule;
 using FleetManager.Business.Implementations.ReportModule;
+using FleetManager.Business.Implementations.ScheduleModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
 using FleetManager.Business.Implementations.VendorModule;
@@ -35,6 +34,7 @@ using FleetManager.Business.Interfaces.ComapyBranchModule;
 using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.CompanyOnboardingModule;
 using FleetManager.Business.Interfaces.ContactDirectoryModule;
+using FleetManager.Business.Interfaces.DriverProfileModule;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.DutyOfCareModule;
 using FleetManager.Business.Interfaces.EmailModule;
@@ -45,6 +45,7 @@ using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.RentalModule;
 using FleetManager.Business.Interfaces.ReportModule;
+using FleetManager.Business.Interfaces.ScheduleModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
@@ -58,12 +59,12 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using PuppeteerSharp;
-using Microsoft.Extensions.DependencyInjection;
-using FleetManager.Business.Interfaces.ScheduleModule;
-using FleetManager.Business.Implementations.ScheduleModule;
+using System.Configuration;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -163,6 +164,7 @@ builder.Services.AddTransient<IBranchService, BranchService>();
 builder.Services.AddTransient<ICompanyAdminService, CompanyAdminService>();
 builder.Services.AddTransient<IAdminVehicleService, AdminVehicleService>();
 builder.Services.AddTransient<IManageDriverService, ManageDriverService>();
+builder.Services.AddTransient<IDriverProfileService, DriverProfileService>();
 builder.Services.AddTransient<IDriverVehicleService, DriverVehicleService>();
 builder.Services.AddTransient<IDriverDutyOfCareService, DriverDutyOfCareService>();
 builder.Services.AddTransient<IFuelLogService, FuelLogService>();
@@ -215,7 +217,7 @@ builder.Services.AddScoped<IRazorViewToStringRenderer, RazorViewToStringRenderer
 var browser = Puppeteer
     .LaunchAsync(new LaunchOptions { Headless = true })
     .GetAwaiter()
-    .GetResult(); 
+    .GetResult();
 builder.Services.AddSingleton(browser);
 
 // 3) Your PDF service

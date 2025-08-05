@@ -1,11 +1,13 @@
 ﻿using FleetManager.Business.Enums;
 using FleetManager.Business.Interfaces.ScheduleModule;
 using FleetManager.Business.ViewModels.Schedule;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FleetManager.App.Areas.Admin.Controllers
 {
     [Area("Admin")]
+
     public class TimeOffController : Controller
     {
         private readonly ITimeOffService _timeOff;
@@ -89,14 +91,14 @@ namespace FleetManager.App.Areas.Admin.Controllers
         //    }
         //}
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Approve(long id, TimeOffReviewViewModel vm)
+        [HttpGet]
+        public async Task<IActionResult> Approve(long id, string? comment)
         {
             if (!ModelState.IsValid)
                 return Json(new { success = false, message = "Invalid input." });
             try
             {
-                await _timeOff.ApproveRequestAsync(id, vm.AdminComment);
+                await _timeOff.ApproveRequestAsync(id, comment);
                 return Json(new
                 {
                     success = true,
@@ -112,16 +114,23 @@ namespace FleetManager.App.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Deny(long id, TimeOffReviewViewModel vm)
+        [HttpGet]
+        public async Task<IActionResult> Deny(long id, string? comment)
         {
+
             // even on ModelState errors, return Json
-            if (!ModelState.IsValid)
-                return Json(new { success = false, message = "Invalid input." });
+            if (string.IsNullOrWhiteSpace(comment))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Please provide a comment/reason before denying the request."
+                });
+            }
 
             try
             {
-                await _timeOff.DenyRequestAsync(id, vm.AdminComment);
+                await _timeOff.DenyRequestAsync(id, comment);
                 return Json(new
                 {
                     success = true,

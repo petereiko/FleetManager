@@ -28,7 +28,7 @@ namespace FleetManager.Business.DataObjects
         public ShiftStatus ShiftStatus { get; set; }
 
         public IFormFile LicensePhoto { get; set; }
-        public IFormFile ProfilePhoto { get; set; }
+        public IFormFile PassportPhoto { get; set; }
     }
 }
 

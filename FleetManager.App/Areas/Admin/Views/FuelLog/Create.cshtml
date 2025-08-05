@@ -395,7 +395,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize Flatpickr
-            flatpickr(".datetimepicker", { 
+            flatpickr(".datetimepicker", {
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "F j, Y",
@@ -408,13 +408,82 @@
             const costPerLiterElement = document.getElementById('costPerLiter');
             const summaryTotal = document.getElementById('summaryTotal');
 
+            // Currency formatting functions
+            function formatCurrency(value) {
+                // Remove all non-digit characters except decimal point
+                let numericValue = value.toString().replace(/[^\d.]/g, '');
+
+                // Ensure only one decimal point
+                const parts = numericValue.split('.');
+                if (parts.length > 2) {
+                    numericValue = parts[0] + '.' + parts.slice(1).join('');
+                }
+
+                // Limit to 2 decimal places
+                if (parts[1] && parts[1].length > 2) {
+                    numericValue = parseFloat(numericValue).toFixed(2);
+                }
+
+                // Split into integer and decimal parts
+                const [integerPart, decimalPart] = numericValue.split('.');
+
+                // Add commas to integer part
+                const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+                // Return formatted value
+                return decimalPart !== undefined ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+            }
+
+            function handleCostInput(e) {
+                const cursorPosition = e.target.selectionStart;
+                const oldValue = e.target.value;
+                const newValue = formatCurrency(oldValue);
+
+                // Only update if the value actually changed
+                if (oldValue !== newValue) {
+                    e.target.value = newValue;
+
+                    // Adjust cursor position to account for added commas
+                    const oldLength = oldValue.length;
+                    const newLength = newValue.length;
+                    const lengthDiff = newLength - oldLength;
+
+                    // Set cursor position
+                    const newCursorPosition = cursorPosition + lengthDiff;
+                    e.target.setSelectionRange(newCursorPosition, newCursorPosition);
+                }
+            }
+
+            // Add event listeners for cost input formatting
+            if (costInput) {
+                // Format on input (as user types)
+                costInput.addEventListener('input', handleCostInput);
+
+                // Format on blur (when user leaves the field)
+                costInput.addEventListener('blur', function(e) {
+                    const value = e.target.value.replace(/,/g, '');
+                    if (value && !isNaN(value)) {
+                        const numericValue = parseFloat(value);
+                        e.target.value = formatCurrency(numericValue.toFixed(2));
+                    }
+                });
+
+                // Handle paste events
+                costInput.addEventListener('paste', function(e) {
+                    setTimeout(() => {
+                        handleCostInput(e);
+                    }, 0);
+                });
+            }
+
             function updateCalculations() {
                 const volume = parseFloat(volumeInput.value) || 0;
-                const cost = parseFloat(costInput.value) || 0;
-                
+                // Remove commas before parsing the cost
+                const cost = parseFloat(costInput.value.replace(/,/g, '')) || 0;
+
                 if (volume > 0 && cost > 0) {
                     const costPerLiter = (cost / volume).toFixed(2);
-                    costPerLiterElement.textContent = `₦${costPerLiter} per liter`;
+                    costPerLiterElement.textContent = `₦${formatCurrency(costPerLiter)} per liter`;
                     costPerLiterElement.classList.remove('text-muted');
                     costPerLiterElement.classList.add('text-success', 'fw-medium');
                 } else {
@@ -422,8 +491,8 @@
                     costPerLiterElement.classList.remove('text-success', 'fw-medium');
                     costPerLiterElement.classList.add('text-muted');
                 }
-                
-                summaryTotal.textContent = cost > 0 ? `₦${cost.toFixed(2)}` : '₦0.00';
+
+                summaryTotal.textContent = cost > 0 ? `₦${formatCurrency(cost.toFixed(2))}` : '₦0.00';
             }
 
             volumeInput?.addEventListener('input', updateCalculations);
@@ -455,24 +524,25 @@
                 const driverSelect = document.querySelector('select[name="DriverId"]');
                 const vehicleSelect = document.querySelector('select[name="VehicleId"]');
                 const fuelTypeSelect = document.querySelector('select[name="FuelType"]');
-                
+
                 const preview = {
                     date: formData.get('Date'),
                     driver: driverSelect.selectedOptions[0]?.text || 'Not selected',
                     vehicle: vehicleSelect.selectedOptions[0]?.text || 'Not selected',
                     odometer: formData.get('Odometer') || '0',
                     volume: formData.get('Volume') || '0',
-                    cost: formData.get('Cost') || '0',
+                    // Remove commas when getting the cost value
+                    cost: formData.get('Cost').replace(/,/g, '') || '0',
                     fuelType: fuelTypeSelect.selectedOptions[0]?.text || 'Not selected',
                     notes: formData.get('Notes') || 'No notes provided',
                     receiptFile: document.getElementById('receiptFile').files[0]?.name || 'No receipt uploaded'
                 };
-                
+
                 // Calculate cost per liter
                 const volume = parseFloat(preview.volume);
                 const cost = parseFloat(preview.cost);
                 const costPerLiter = (volume > 0 && cost > 0) ? (cost / volume).toFixed(2) : '0.00';
-                
+
                 // Format date
                 const formattedDate = preview.date ? new Date(preview.date).toLocaleDateString('en-US', {
                     weekday: 'long',
@@ -480,20 +550,20 @@
                     month: 'long',
                     day: 'numeric'
                 }) : 'Not selected';
-                
-                // Populate modal
+
+                // Populate modal with formatted currency values
                 document.getElementById('previewDate').textContent = formattedDate;
                 document.getElementById('previewDriver').textContent = preview.driver;
                 document.getElementById('previewVehicle').textContent = preview.vehicle;
                 document.getElementById('previewOdometer').textContent = `${preview.odometer} km`;
                 document.getElementById('previewVolume').textContent = `${preview.volume} Liters`;
-                document.getElementById('previewCost').textContent = `₦${parseFloat(preview.cost).toFixed(2)}`;
-                document.getElementById('previewCostPerLiter').textContent = `₦${costPerLiter} per liter`;
+                document.getElementById('previewCost').textContent = `₦${formatCurrency(parseFloat(preview.cost).toFixed(2))}`;
+                document.getElementById('previewCostPerLiter').textContent = `₦${formatCurrency(costPerLiter)} per liter`;
                 document.getElementById('previewFuelType').textContent = preview.fuelType;
                 document.getElementById('previewNotes').textContent = preview.notes;
                 document.getElementById('previewReceipt').textContent = preview.receiptFile;
-                document.getElementById('previewSummaryTotal').textContent = `₦${parseFloat(preview.cost).toFixed(2)}`;
-                
+                document.getElementById('previewSummaryTotal').textContent = `₦${formatCurrency(parseFloat(preview.cost).toFixed(2))}`;
+
                 // Show modal
                 const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
                 previewModal.show();
@@ -504,7 +574,7 @@
             form?.addEventListener('submit', function(e) {
                 const requiredFields = form.querySelectorAll('[required], input[asp-for], select[asp-for]');
                 let isValid = true;
-                
+
                 requiredFields.forEach(field => {
                     if (!field.value.trim()) {
                         field.classList.add('is-invalid');
@@ -513,7 +583,7 @@
                         field.classList.remove('is-invalid');
                     }
                 });
-                
+
                 if (!isValid) {
                     e.preventDefault();
                     alert('Please fill in all required fields.');

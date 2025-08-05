@@ -6,6 +6,7 @@ using FleetManager.Business.Interfaces.EmailModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.UtilityModels;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -28,19 +29,22 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
         private readonly IEmailService _emailService;
         private readonly IAuthUser _authUser;
         private readonly ILogger<ManageDriverService> _logger;
+        private readonly IHostingEnvironment _hostEnvironment;
 
         public ManageDriverService(
             FleetManagerDbContext context,
             UserManager<ApplicationUser> userManager,
             IEmailService emailService,
             IAuthUser authUser,
-            ILogger<ManageDriverService> logger)
+            ILogger<ManageDriverService> logger,
+            IHostingEnvironment hostEnvironment)
         {
             _context = context;
             _userManager = userManager;
             _emailService = emailService;
             _authUser = authUser;
             _logger = logger;
+            _hostEnvironment = hostEnvironment;
         }
 
         private void EnsureAdminOrOwner()
@@ -115,6 +119,10 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                     return resp;
                 }
 
+                DriverDocument? savedImage = await SaveDriverFileAsync(null, dto.PassportPhoto, DriverDocumentType.LicensePhoto);
+                
+
+
                 // 5) persist Driver entity
                 var driver = new Driver
                 {
@@ -130,7 +138,8 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                     ShiftStatus = dto.ShiftStatus,
                     CreatedBy = createdByUserId,
                     CreatedDate = DateTime.UtcNow,
-                    IsActive = true
+                    IsActive = true,
+                    PassportFileName = savedImage.FileName
                 };
                 _context.Drivers.Add(driver);
                 await _context.SaveChangesAsync();
@@ -138,9 +147,8 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                 // 6) handle uploads
                 var docs = new List<DriverDocument>();
                 if (dto.LicensePhoto != null)
-                    docs.Add(await SaveDriverFileAsync(driver.Id, dto.LicensePhoto, "License"));
-                if (dto.ProfilePhoto != null)
-                    docs.Add(await SaveDriverFileAsync(driver.Id, dto.ProfilePhoto, "Profile"));
+                    docs.Add(await SaveDriverFileAsync(driver.Id, dto.LicensePhoto, DriverDocumentType.LicensePhoto));
+                
 
                 if (docs.Any())
                 {
@@ -257,37 +265,40 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
             // 1) load driver core info
             var d = await _context.Drivers
                 .AsNoTracking()
+                .Include(x=>x.DriverDocuments)
                 .FirstOrDefaultAsync(x => x.Id == id)
                 .ConfigureAwait(false);
 
             if (d == null) return null;
 
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == d.UserId);
+
             // 2) load related ASP-Identity user
             //    we assume ApplicationUser.Id == d.Id.ToString()
-            var userId = await _context.Users
-                .Where(u => u.CompanyBranchId == d.CompanyBranchId && u.Id == d.Id.ToString())
-                .Select(u => u.Id)
-                .FirstOrDefaultAsync()
-                .ConfigureAwait(false);
+            //var userId = await _context.Users
+            //    .Where(u => u.CompanyBranchId == d.CompanyBranchId && u.Id == d.Id.ToString())
+            //    .Select(u => u.Id)
+            //    .FirstOrDefaultAsync()
+            //    .ConfigureAwait(false);
 
-            var u = await _userManager.FindByIdAsync(userId)
-                .ConfigureAwait(false);
+            //var u = await _userManager.FindByIdAsync(userId)
+            //    .ConfigureAwait(false);
 
             // 3) load all driver documents (both license and profile photos)
-            var docs = await _context.DriverDocuments
-                .AsNoTracking()
-                .Where(doc => doc.DriverId == id)
-                .ToListAsync()
-                .ConfigureAwait(false);
+            //var docs = await _context.DriverDocuments
+            //    .AsNoTracking()
+            //    .Where(doc => doc.DriverId == id)
+            //    .ToListAsync()
+            //    .ConfigureAwait(false);
 
             // 4) map into DTO
             return new DriverDto
             {
                 Id = d.Id,
-                FirstName = u?.FirstName ?? string.Empty,
-                LastName = u?.LastName ?? string.Empty,
-                Email = u?.Email ?? string.Empty,
-                PhoneNumber = u?.PhoneNumber ?? string.Empty,
+                FirstName = user?.FirstName ?? string.Empty,
+                LastName = user?.LastName ?? string.Empty,
+                Email = user?.Email ?? string.Empty,
+                PhoneNumber = user?.PhoneNumber ?? string.Empty,
                 Address = d.Address,
                 DateOfBirth = d.DateOfBirth,
                 Gender = d.Gender,
@@ -301,25 +312,14 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                 CreatedDate = d.CreatedDate,
 
                 // split out your two doc‐types:
-                Documents = docs
-                  .Where(x => x.DocumentType == DriverDocumentType.LicensePhoto)
+                DriverDocuments = d.DriverDocuments
                   .Select(x => new DriverDocumentDto
                   {
                       Id = x.Id,
-                      FileName = x.FileName,
-                      FilePath = x.FilePath,
-                      UploadedDate=x.CreatedDate
-                  })
-                  .ToList(),
+                      FileName = _authUser.BaseUrl + "/Driverimages/License/" + x.FileName,
 
-                 Photos = docs
-                  .Where(x => x.DocumentType == DriverDocumentType.ProfilePhoto)
-                  .Select(x => new DriverDocumentDto
-                  {
-                      Id = x.Id,
-                      FileName = x.FileName,
-                      FilePath = x.FilePath,
-                      UploadedDate = x.CreatedDate
+                      UploadedDate = x.CreatedDate,
+                      DocumentType = x.DocumentType
                   })
                   .ToList()
             };
@@ -388,23 +388,12 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                     IsActive = x.Driver.IsActive,
                     CreatedDate = x.Driver.CreatedDate,
 
-                    Documents = docs
+                    DriverDocuments = docs
                         .Where(d => d.DocumentType == DriverDocumentType.LicensePhoto)
                         .Select(d => new DriverDocumentDto
                         {
                             Id = d.Id,
-                            FileName = d.FileName,
-                            FilePath = d.FilePath,
-                            UploadedDate = d.CreatedDate
-                        }).ToList(),
-
-                    Photos = docs
-                        .Where(d => d.DocumentType == DriverDocumentType.ProfilePhoto)
-                        .Select(d => new DriverDocumentDto
-                        {
-                            Id = d.Id,
-                            FileName = d.FileName,
-                            FilePath = d.FilePath,
+                            FileName = _authUser.BaseUrl + "/Driverimages/License/" + d.FileName,
                             UploadedDate = d.CreatedDate
                         }).ToList()
                 };
@@ -415,10 +404,15 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
 
         // helper to save file
         private async Task<DriverDocument> SaveDriverFileAsync(
-            long driverId, IFormFile file, string subfolder)
+            long? driverId, IFormFile? file, DriverDocumentType documentType)
         {
+            DriverDocument result = new();
+
+            if (file == null) return result;
+
+
             var uploadRoot = Path.Combine(Directory.GetCurrentDirectory(),
-                                          "wwwroot", "DriverImages", subfolder);
+                                          "wwwroot", "DriverImages", documentType == DriverDocumentType.PassportPhoto ? "Profile" : "License");
             Directory.CreateDirectory(uploadRoot);
 
             var unique = $"{Guid.NewGuid()}_{file.FileName}";
@@ -429,12 +423,9 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
             return new DriverDocument
             {
                 DriverId = driverId,
-                FileName = file.FileName,
+                FileName = unique,
                 CreatedDate = DateTime.UtcNow,
-                FilePath = $"/DriverImages/{subfolder}/{unique}",
-                DocumentType = subfolder == "Profile"
-                    ? DriverDocumentType.ProfilePhoto
-                    : DriverDocumentType.LicensePhoto
+                DocumentType = documentType
             };
         }
 
@@ -442,37 +433,38 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
         {
             EnsureAdminOrOwner();
 
+
             // Start from Drivers table
-            var q = from d in _context.Drivers.AsNoTracking()
-                    where !branchId.HasValue || d.CompanyBranchId == branchId.Value
-                    join u in _context.Users.AsNoTracking()
-                        on d.UserId equals u.Id
+            var driverQuery = from d in _context.Drivers.AsNoTracking()
+                              where !branchId.HasValue || d.CompanyBranchId == branchId.Value
+                              join u in _context.Users.AsNoTracking()
+                                  on d.UserId equals u.Id
 
-                    // Left join to DriverDocuments to get the profile photo
-                    join doc in _context.DriverDocuments.AsNoTracking()
-                        .Where(dd => dd.DocumentType == DriverDocumentType.ProfilePhoto)
-                        on d.Id equals doc.DriverId into docJoin
-                    from profilePhoto in docJoin.DefaultIfEmpty()
+                              // Left join to DriverDocuments to get the profile photo
+                              //join doc in _context.DriverDocuments.AsNoTracking()
+                              //    .Where(dd => dd.DocumentType == DriverDocumentType.ProfilePhoto)
+                              //    on d.Id equals doc.DriverId into docJoin
+                              //from profilePhoto in docJoin.DefaultIfEmpty()
 
-                    select new DriverListItemDto
-                    {
-                        Id = d.Id,
-                        FullName = (u.FirstName ?? "") + " " + (u.LastName ?? ""),
-                        LicenseNumber = d.LicenseNumber,
-                        ShiftStatus = d.ShiftStatus,
-                        EmploymentStatus = d.EmploymentStatus,
-                        Email = u.Email,
-                        Phone = u.PhoneNumber,
-                        IsActive = d.IsActive,
-                        CreatedDate = d.CreatedDate,
-                        VehicleAssigned = "No Vehicle Assigned Yet",
+                              select new DriverListItemDto
+                              {
+                                  Id = d.Id,
+                                  FullName = (u.FirstName ?? "") + " " + (u.LastName ?? ""),
+                                  LicenseNumber = d.LicenseNumber,
+                                  ShiftStatus = d.ShiftStatus,
+                                  EmploymentStatus = d.EmploymentStatus,
+                                  Email = u.Email,
+                                  Phone = u.PhoneNumber,
+                                  IsActive = d.IsActive,
+                                  CreatedDate = d.CreatedDate,
+                                  VehicleAssigned = "No Vehicle Assigned Yet",
 
-                        // 👇 Attach profile photo path if available
-                        PhotoPath = profilePhoto != null ? profilePhoto.FilePath : null
-                    };
+                                  // 👇 Attach profile photo path if available
+                                  PhotoPath = d.PassportFileName != null ? _authUser.BaseUrl + "/DriverImages/Profile/" + d.PassportFileName : null
+                              };
 
 
-            return q;
+            return driverQuery;
         }
 
 

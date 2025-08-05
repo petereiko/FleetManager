@@ -22,11 +22,11 @@
         border-bottom: 1px solid #e2e8f0;
     }
 
-    .detail-row:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
+        .detail-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
 
     .detail-label {
         font-weight: 600;
@@ -126,11 +126,11 @@
         min-height: 100px;
     }
 
-    .form-control:focus {
-        border-color: var(--primary-color, #667eea);
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        outline: none;
-    }
+        .form-control:focus {
+            border-color: var(--primary-color, #667eea);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
 
     .action-buttons {
         display: flex;
@@ -161,24 +161,24 @@
         color: white;
     }
 
-    .btn-success:hover {
-        background: linear-gradient(135deg, #38a169, #2f855a);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
-        color: white;
-    }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+            color: white;
+        }
 
     .btn-danger {
         background: linear-gradient(135deg, #f56565, #e53e3e);
         color: white;
     }
 
-    .btn-danger:hover {
-        background: linear-gradient(135deg, #e53e3e, #c53030);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
-        color: white;
-    }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+            color: white;
+        }
 
     .btn:disabled {
         opacity: 0.6;
@@ -240,24 +240,24 @@
         font-size: 0.875rem;
     }
 
-            @@media (max-width: 768px) {
+    @@media (max-width: 768px) {
         .review-form-container {
             padding: 1rem;
         }
-        
+
         .detail-row {
             flex-direction: column;
             gap: 0.5rem;
         }
-        
+
         .detail-label {
             min-width: auto;
         }
-        
+
         .action-buttons {
             flex-direction: column;
         }
-        
+
         .btn {
             width: 100%;
         }
@@ -265,9 +265,7 @@
 </style>
 
 <div class="review-form-container">
-    <form class="ajax-review-form" method="post" asp-action="Approve" asp-route-id="@Model.Request.Id">
-        @Html.AntiForgeryToken()
-        
+    <div id="form" class="ajax-review-form">
         <!-- Request Meta Information -->
         <div class="request-meta">
             <div class="d-flex align-items-center gap-3">
@@ -354,32 +352,34 @@
                 <i class="fas fa-pen-fancy"></i>
                 Administrative Review
             </div>
-            
+
             <div class="form-group">
                 <label asp-for="AdminComment" class="form-label">
                     <i class="fas fa-clipboard-list"></i>
                     Comments & Notes
                 </label>
-                <textarea asp-for="AdminComment" 
-                         class="form-control" 
-                         placeholder="Add your comments, conditions, or notes about this request..."></textarea>
-                <span asp-validation-for="AdminComment" class="text-danger">
+                <textarea asp-for="AdminComment"
+                          class="form-control"
+                          placeholder="Add your comments, conditions, or notes about this request..." ></textarea>
+                @* <span asp-validation-for="AdminComment" class="text-danger">
                     <i class="fas fa-exclamation-circle"></i>
+                </span> *@
+                <span class="text-danger" id="adminCommentError" style="display:none;">
+                    <i class="fas fa-exclamation-circle"></i> Comment is required to deny a request.
                 </span>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <button type="submit" class="btn btn-success">
+            <button type="button" onclick="ApproveRequest()" class="btn btn-success approve-btn">
                 <i class="fas fa-check-circle"></i>
                 Approve Request
             </button>
-            <button type="button" class="btn btn-danger deny-btn"
-                    data-action="@Url.Action("Deny", new { id = Model.Request.Id })">
+            <button type="button" onclick="DenyRequest()" class="btn btn-danger deny-btn" >
                 <i class="fas fa-times-circle"></i>
                 Deny Request
             </button>
         </div>
-    </form>
+    </div>
 </div>

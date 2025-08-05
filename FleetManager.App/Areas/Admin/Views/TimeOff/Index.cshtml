@@ -7,6 +7,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css" rel="stylesheet" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
+
 <style>
     :root {
         --primary-color: #667eea;
@@ -330,31 +331,39 @@
         }
 
     @@media (max-width: 768px) {
-        .page-title
-
-    {
-        font-size: 2rem;
-    }
-
-    .table-header {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-    }
-
-    .search-container {
-        max-width: none;
-    }
-
-    .custom-table {
-        font-size: 0.875rem;
-    }
-
-        .custom-table thead th,
-        .custom-table tbody td {
-            padding: 0.75rem 1rem;
+        .page-title {
+            font-size: 2rem;
         }
 
+        .table-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .search-container {
+            max-width: none;
+        }
+
+        .custom-table {
+            font-size: 0.875rem;
+        }
+
+            .custom-table thead th,
+            .custom-table tbody td {
+                padding: 0.75rem 1rem;
+            }
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+        background-color: #fff5f5;
+    }
+
+    .text-danger {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 4px;
     }
 </style>
 
@@ -488,10 +497,115 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.js"></script>
 <script>
 
-        $(function(){
-        // Initialize Modal
+    let requestId = null;
+    // Initialize Modal
         const reviewModalEl = document.getElementById('reviewModal');
         const reviewModal = new bootstrap.Modal(reviewModalEl);
+
+
+    function ApproveRequest (){
+            let comment = document.getElementById("AdminComment");
+            let id = requestId;
+            const $myform = $('#form');
+            const $submitBtn = $myform.find('[type="submit"]');
+            const originalText = $submitBtn.html();
+             // Add loading state
+            $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+            
+            // Disable deny button too
+            $myform.find('.deny-btn').prop('disabled', true);
+
+            const url = `@Url.Action("Approve")?id=${id}&comment=${comment}`;
+
+            $.ajax({
+                url:url,
+                type:'get',
+                dataType:'json',
+                success:function(resp){
+                    if (!resp.success) {
+                    throw new Error(resp.message || 'Request failed');
+                }
+                
+                Toastify({
+                    text: resp.message,
+                    duration: 4000,
+                    close: true,
+                    gravity: 'top',
+                    style: { background: "linear-gradient(to right, #48bb78, #38a169)" }
+                }).showToast();
+                $('#reviewModal').hide();
+                setTimeout(()=>window.location.reload(),3000);
+
+                },
+                error:function(err){
+                    handleError(err);
+                }
+            })
+
+        }
+
+        function DenyRequest (){
+
+            let commentField = document.getElementById("AdminComment");
+            let id = requestId;
+            const $myform = $('#form');
+            const $denyBtn = $myform.find('[type="button"]');
+            const originalText = $denyBtn.html();
+
+            
+            const errorContainer = document.getElementById('adminCommentError');
+
+            if (commentField.value.trim() === "") {
+                errorContainer.style.display = "block";
+                commentField.classList.add("is-invalid");
+                commentField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // Clear validation styles
+            errorContainer.style.display = "none";
+            commentField.classList.remove("is-invalid");
+
+
+
+
+             // Add loading state
+            $denyBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+            // Disable deny button too
+            $myform.find('.approve-btn').prop('disabled', true);
+
+            const url = `@Url.Action("Deny")?id=${id}&comment=${commentField.value}`;
+
+            $.ajax({
+                url:url,
+                type:'get',
+                dataType:'json',
+                success:function(resp){
+                    if (!resp.success) {
+                    throw new Error(resp.message || 'Request failed');
+                }
+
+                Toastify({
+                    text: resp.message,
+                    duration: 4000,
+                    close: true,
+                    gravity: 'top',
+                    style: { background: "linear-gradient(to right, #f56565, #e53e3e)" }
+                }).showToast();
+                $('#reviewModal').hide();
+                setTimeout(()=>window.location.reload(),3000);
+
+                },
+                error:function(err){
+                    handleError(err);
+                }
+            })
+
+        }
+        
+
+        $(function(){
 
         // Search Functionality
         $('#searchInput').on('input', function() {
@@ -505,6 +619,7 @@
         // Review Button Click
         $('.review-btn').on('click', function(){
             const id = $(this).data('id');
+            requestId = id;
             const $btn = $(this);
 
             // Add loading state
@@ -529,93 +644,9 @@
                 });
         });
 
-        // Form Submit (Approve) - FIXED WITH PROPER CSRF TOKEN
-        $('#reviewModal').on('submit', 'form.ajax-review-form', function(e){
-            e.preventDefault();
-            const $form = $(this);
-            const $submitBtn = $form.find('[type="submit"]');
-            const originalText = $submitBtn.html();
-
-            // Add loading state
-            $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
-
-            // Disable deny button too
-            $form.find('.deny-btn').prop('disabled', true);
-
-            // Get the CSRF token from the form itself (loaded dynamically)
-            const formData = $form.serialize();
-
-            $.ajax({
-                url: $form.attr('action'),
-                method: 'POST',
-                data: formData,
-                dataType: 'json'
-            })
-            .done(resp => {
-                if (!resp.success) {
-                    throw new Error(resp.message || 'Request failed');
-                }
-                reviewModal.hide();
-                updateRequestStatus(resp.requestId, resp.newStatus, 'approved');
-                Toastify({
-                    text: resp.message,
-                    duration: 4000,
-                    close: true,
-                    gravity: 'top',
-                    style: { background: "linear-gradient(to right, #48bb78, #38a169)" }
-                }).showToast();
-            })
-            .fail(handleError)
-            .always(() => {
-                $submitBtn.prop('disabled', false).html(originalText);
-                $form.find('.deny-btn').prop('disabled', false);
-            });
-        });
-
-        // Deny Button Click - FIXED WITH PROPER CSRF TOKEN
-        $('#reviewModal').on('click', '.deny-btn', function(){
-            const $btn = $(this);
-            const $form = $('form.ajax-review-form');
-            const originalText = $btn.html();
-
-            // Add loading state
-            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
-
-            // Disable approve button too
-            $form.find('[type="submit"]').prop('disabled', true);
-
-            // Get the CSRF token from the form itself (loaded dynamically)
-            const formData = $form.serialize();
-
-            $.ajax({
-                url: $btn.data('action'),
-                method: 'POST',
-                data: formData,
-                dataType: 'json'
-            })
-            .done(resp => {
-                if (!resp.success) {
-                    throw new Error(resp.message || 'Request failed');
-                }
-                reviewModal.hide();
-                updateRequestStatus(resp.requestId, resp.newStatus, 'denied');
-                Toastify({
-                    text: resp.message,
-                    duration: 4000,
-                    close: true,
-                    gravity: 'top',
-                    style: { background: "linear-gradient(to right, #f56565, #e53e3e)" }
-                }).showToast();
-            })
-            .fail(handleError)
-            .always(() => {
-                $btn.prop('disabled', false).html(originalText);
-                $form.find('[type="submit"]').prop('disabled', false);
-            });
-        });
-
         // Helper Functions
         function updateRequestStatus(requestId, newStatus, type) {
+
             const $statusCell = $(`#req-row-${requestId} .status-cell`);
             const iconClass = type === 'approved' ? 'fa-check-circle' : 'fa-times-circle';
             const statusClass = `status-${type}`;

@@ -184,7 +184,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
                     // New file properties:
                     LicensePhoto = i.LicensePhoto,
-                    ProfilePhoto = i.ProfilePhoto
+                    PassportPhoto = i.ProfilePhoto
                 };
 
                 var result = await _driverService.OnboardDriverAsync(dto, _authUser.UserId);
@@ -223,7 +223,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
                 
 
-                var dto = await _driverService.GetDriverByIdAsync(id);
+                DriverDto? dto = await _driverService.GetDriverByIdAsync(id);
                 if (dto == null) return NotFound();
 
                 var vm = new DriverEditViewModel();
@@ -246,10 +246,10 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     ShiftStatus = dto.ShiftStatus,
                     IsActive = dto.IsActive,
                     UploadedDate=dto.CreatedDate,
-
+                     PassportFileName= _authUser.BaseUrl+"/DriverImages/Profile/"+ dto.PassportFileName,
                     // existing photos/documents (for display in the edit view)
-                    ExistingLicensePhotos = dto.Documents,
-                    ExistingProfilePhotos = dto.Photos
+                    ExistingLicensePhotos = dto.DriverDocuments,
+                    //ExistingProfilePhotos = dto.Photos
                 };
 
                 // repopulate dropdowns
@@ -331,8 +331,8 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     IsActive = i.IsActive,
 
                     // allow replacing or adding new files
-                    NewLicensePhoto = i.LicensePhoto,
-                    NewProfilePhoto = i.ProfilePhoto
+                    //NewLicensePhoto = i.LicensePhoto,
+                    PassportFile = i.ProfilePhoto
                 };
 
                 var result = await _driverService.UpdateDriverAsync(dto, _authUser.UserId);

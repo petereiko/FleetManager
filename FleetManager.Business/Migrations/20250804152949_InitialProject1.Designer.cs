@@ -4,6 +4,7 @@ using FleetManager.Business;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FleetManager.Business.Migrations
 {
     [DbContext(typeof(FleetManagerDbContext))]
-    partial class FleetManagerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250804152949_InitialProject1")]
+    partial class InitialProject1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -415,9 +418,6 @@ namespace FleetManager.Business.Migrations
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PassportFileName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("ShiftStatus")
                         .HasColumnType("int");
 
@@ -455,6 +455,11 @@ namespace FleetManager.Business.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
@@ -2292,7 +2297,7 @@ namespace FleetManager.Business.Migrations
             modelBuilder.Entity("FleetManager.Business.Database.Entities.DriverDocument", b =>
                 {
                     b.HasOne("FleetManager.Business.Database.Entities.Driver", "Driver")
-                        .WithMany("DriverDocuments")
+                        .WithMany()
                         .HasForeignKey("DriverId");
 
                     b.Navigation("Driver");
@@ -2340,7 +2345,7 @@ namespace FleetManager.Business.Migrations
             modelBuilder.Entity("FleetManager.Business.Database.Entities.DriverViolation", b =>
                 {
                     b.HasOne("FleetManager.Business.Database.Entities.Driver", "Driver")
-                        .WithMany("Violations")
+                        .WithMany()
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2740,13 +2745,6 @@ namespace FleetManager.Business.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("FleetManager.Business.Database.Entities.Driver", b =>
-                {
-                    b.Navigation("DriverDocuments");
-
-                    b.Navigation("Violations");
                 });
 
             modelBuilder.Entity("FleetManager.Business.Database.Entities.MaintenanceTicket.Invoice", b =>

@@ -1,4 +1,5 @@
 ﻿using FleetManager.Business.Enums;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace FleetManager.Business.DataObjects
     public class DriverDocumentDto
     {
         public long Id { get; set; }
-        public string FileName { get; set; }
-        public string FilePath { get; set; }
-        public VehicleDocumentType DocumentType { get; set; }
+        public IFormFile FileData { get; set; }
+        public string? FileName { get; set; }
+        public DriverDocumentType DocumentType { get; set; }
         public DateTime UploadedDate { get; set; }
     }
 }

@@ -4,7 +4,6 @@
 @{
     ViewData["Title"] = $"{Model.FirstName} {Model.LastName} - Driver Profile";
     var fullName = $"{Model.FirstName} {Model.LastName}";
-    var primaryPhoto = Model.Photos?.FirstOrDefault()?.FilePath ?? "/images/default-user.png";
     var licenseExpiry = Model.LicenseExpiryDate.HasValue ? (Model.LicenseExpiryDate.Value - DateTime.Now).Days : (int?)null;
     var isLicenseExpired = licenseExpiry < 0;
     var isLicenseExpiring = licenseExpiry >= 0 && licenseExpiry <= 30;
@@ -764,9 +763,7 @@
             </nav>
 
             <div class="hero-main">
-                <div class="driver-avatar-hero">
-                    <img src="@primaryPhoto" alt="@fullName" />
-                </div>
+                
 
                 <div class="hero-info">
                     <h1>@fullName</h1>
@@ -847,7 +844,7 @@
                     <span class="stat-label">Documents</span>
                     <i class="feather-folder stat-icon"></i>
                 </div>
-                <div class="stat-value">@((Model.Documents?.Count ?? 0) + (Model.Photos?.Count ?? 0))</div>
+                <div class="stat-value">@((Model.DriverDocuments?.Count ?? 0))</div>
                 <div class="stat-description">Total uploaded files</div>
             </div>
 
@@ -1023,37 +1020,10 @@
         </div>
 
         <!-- Profile Photos Section -->
-        @if (Model.Photos?.Any() == true)
-        {
-            <div class="media-section slide-up">
-                <div class="media-header">
-                    <h3 class="media-title">
-                        <i class="feather-image" style="width: 24px; height: 24px;"></i>
-                        Profile Photos
-                    </h3>
-                    <span class="media-count">@Model.Photos.Count</span>
-                </div>
-                <div class="media-grid">
-                    @foreach (var photo in Model.Photos)
-                    {
-                        <div class="media-card">
-                            <div class="media-preview">
-                                <img src="@photo.FilePath" alt="@photo.FileName" loading="lazy" />
-                                <div class="media-overlay">
-                                    <i class="feather-eye" style="width: 24px; height: 24px; color: white;"></i>
-                                </div>
-                            </div>
-                            <div class="media-info">
-                                <p class="media-name">@photo.FileName</p>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
+        
 
         <!-- License Documents Section -->
-        @if (Model.Documents?.Any() == true)
+        @if (Model.DriverDocuments?.Any() == true)
         {
             <div class="media-section slide-up">
                 <div class="media-header">
@@ -1061,17 +1031,17 @@
                         <i class="feather-file-text" style="width: 24px; height: 24px;"></i>
                         License Documents
                     </h3>
-                    <span class="media-count">@Model.Documents.Count</span>
+                    <span class="media-count">@Model.DriverDocuments.Count</span>
                 </div>
                 <div class="media-grid">
-                    @foreach (var doc in Model.Documents)
+                    @foreach (var doc in Model.DriverDocuments)
                     {
                         <div class="media-card">
                             <div class="media-preview">
-                                @if (doc.FilePath.EndsWith(".jpg") || doc.FilePath.EndsWith(".jpeg") ||
-                               doc.FilePath.EndsWith(".png") || doc.FilePath.EndsWith(".gif"))
+                                @if (doc.FileName.EndsWith(".jpg") || doc.FileName.EndsWith(".jpeg") ||
+                                                        doc.FileName.EndsWith(".png") || doc.FileName.EndsWith(".gif"))
                                 {
-                                    <img src="@doc.FilePath" alt="@doc.FileName" loading="lazy" />
+                                    <img src="@doc.FileName" alt="@doc.FileName" loading="lazy" />
                                     <div class="media-overlay">
                                         <i class="feather-eye" style="width: 24px; height: 24px; color: white;"></i>
                                     </div>
@@ -1091,7 +1061,7 @@
         }
 
         <!-- Empty State for Documents -->
-        @if ((Model.Photos?.Any() != true) && (Model.Documents?.Any() != true))
+        @if ((Model.DriverDocuments?.Any() != true))
         {
             <div class="media-section slide-up">
                 <div class="media-header">

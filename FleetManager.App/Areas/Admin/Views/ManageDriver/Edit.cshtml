@@ -528,14 +528,14 @@
                                     {
                                         <div class="existing-file-preview">
                                             <div class="existing-file-info">
-                                                <img src="@doc.FilePath" alt="License Photo" class="file-thumbnail" />
+                                                <img src="@doc.FileName" alt="License Photo" class="file-thumbnail" />
                                                 <div class="file-details">
                                                     <span class="file-name">@doc.FileName</span>
                                                     <span class="file-meta">Uploaded: @doc.UploadedDate.ToString("MMM dd, yyyy")</span>
                                                 </div>
                                             </div>
                                             <div class="file-actions">
-                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewDocument('@doc.FilePath')">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewDocument('@doc.FileName')">
                                                     <i class="fas fa-eye"></i> View
                                                 </button>
                                             </div>
@@ -571,14 +571,14 @@
                                     {
                                         <div class="existing-file-preview">
                                             <div class="existing-file-info">
-                                                <img src="@photo.FilePath" alt="Driver Photo" class="file-thumbnail" />
+                                                <img src="@photo.FileName" alt="Driver Photo" class="file-thumbnail" />
                                                 <div class="file-details">
                                                     <span class="file-name">@photo.FileName</span>
                                                     <span class="file-meta">Uploaded: @photo.UploadedDate.ToString("MMM dd, yyyy")</span>
                                                 </div>
                                             </div>
                                             <div class="file-actions">
-                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewDocument('@photo.FilePath')">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewDocument('@photo.FileName')">
                                                     <i class="fas fa-eye"></i> View
                                                 </button>
                                             </div>
