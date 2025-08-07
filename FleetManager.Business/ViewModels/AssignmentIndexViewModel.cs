@@ -11,5 +11,7 @@ namespace FleetManager.Business.ViewModels
     {
         public long? DriverFilterId { get; set; }
         public List<DriverVehicleListItemDto> Assignments { get; set; } = new();
+        public List<AssignedVehicleViewModel> AssignedVehicles { get; set; }
+
     }
 }

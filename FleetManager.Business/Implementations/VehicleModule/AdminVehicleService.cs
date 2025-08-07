@@ -229,7 +229,7 @@ namespace FleetManager.Business.Implementations.VehicleModule
 
         public async Task<VehicleDto> GetVehicleByIdAsync(long id)
         {
-            EnsureAdminOrOwner();
+            //EnsureAdminOrOwner();
             var v = await _context.Vehicles.AsNoTracking().Include(x=>x.VehicleMake).Include(x=>x.VehicleModel).FirstOrDefaultAsync(x => x.Id == id);
             if (v == null) return null;
 
