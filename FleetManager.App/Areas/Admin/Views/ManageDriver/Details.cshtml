@@ -1,4 +1,4 @@
-﻿@using FleetManager.Business.DataObjects
+﻿@* @using FleetManager.Business.DataObjects
 @using FleetManager.Business
 @using FleetManager.Business.Enums
 @model DriverDto
@@ -838,7 +838,7 @@
                                 else
                                 {
                                     @* <i class="feather-file-text media-icon"></i> *@
-                                    <iframe src="@doc.FileName" width="200" height="250" />
+                                    @*@<iframe src="@doc.FileName" width="200" height="250" />
                                 }
                             </div>
                             <div class="media-info">
@@ -871,6 +871,7 @@
 </div>
 
 
+ *@
 
 
 
@@ -882,562 +883,588 @@
 
 
 
-
-
-@* 
 
 @using FleetManager.Business.DataObjects
 @using FleetManager.Business
+@using FleetManager.Business.Enums
 @model DriverDto
 @{
     ViewData["Title"] = $"{Model.FirstName} {Model.LastName} - Driver Details";
     var fullName = $"{Model.FirstName} {Model.LastName}";
-    var primaryPhoto = Model.Photos?.FirstOrDefault()?.FilePath ?? "/images/default-user.png";
 }
 
 <style>
-    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
     :root {
-        --primary-navy: #1a365d;
-        --primary-blue: #2b77ad;
-        --accent-gold: #d4af37;
-        --accent-green: #10b981;
-        --accent-red: #ef4444;
-        --accent-orange: #f59e0b;
-        --text-primary: #2d3748;
-        --text-secondary: #4a5568;
-        --text-muted: #718096;
-        --surface-white: #ffffff;
-        --surface-gray: #f7fafc;
-        --surface-dark: #edf2f7;
-        --border-light: #e2e8f0;
-        --border-medium: #cbd5e0;
-        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-        --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
-        --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-        --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
-        --radius-sm: 0.375rem;
-        --radius-md: 0.5rem;
-        --radius-lg: 0.75rem;
-        --radius-xl: 1rem;
-        --radius-2xl: 1.5rem;
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --secondary: #8b5cf6;
+        --accent: #06b6d4;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --dark: #1f2937;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        --white: #ffffff;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     }
 
-    * {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    body {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: var(--gray-800);
+        line-height: 1.6;
     }
 
-    .driver-details-page {
-        background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
-        min-height: 100vh;
-        padding: 2rem 0;
+    .driver-details-wrapper {
+        animation: fadeInUp 0.8s ease-out;
     }
 
-    .page-header {
-        background: var(--surface-white);
-        border-radius: var(--radius-xl);
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow-md);
-        border: 1px solid var(--border-light);
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-section {
+        background: var(--white);
+        border-bottom: 1px solid var(--gray-200);
         position: relative;
         overflow: hidden;
     }
 
-        .page-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-navy), var(--primary-blue), var(--accent-gold));
-        }
-
-    .breadcrumb {
-        background: none;
-        padding: 0;
-        margin: 0 0 1rem 0;
-        font-size: 0.875rem;
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
     }
 
-    .breadcrumb-item a {
-        color: var(--primary-blue);
-        text-decoration: none;
-        font-weight: 500;
+    .hero-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
     }
 
-    .page-title {
-        color: var(--text-primary);
-        font-weight: 700;
-        font-size: 2rem;
-        margin: 0;
-        letter-spacing: -0.025em;
-    }
-
-    .page-subtitle {
-        color: var(--text-muted);
-        font-size: 1rem;
-        margin: 0.5rem 0 0 0;
-    }
-
-    .action-buttons {
+    .breadcrumb-modern {
         display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--radius-lg);
-        font-weight: 600;
-        font-size: 0.875rem;
-        letter-spacing: 0.025em;
-        text-decoration: none;
-        display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border: none;
-        cursor: pointer;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        color: var(--gray-600);
     }
 
-    .btn-primary {
-        background: linear-gradient(135deg, var(--primary-blue), var(--primary-navy));
-        color: white;
-        box-shadow: var(--shadow-md);
+    .breadcrumb-modern a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.2s;
     }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-            color: white;
-        }
-
-    .btn-secondary {
-        background: var(--surface-gray);
-        color: var(--text-secondary);
-        border: 1px solid var(--border-light);
+    .breadcrumb-modern a:hover {
+        color: var(--primary-dark);
     }
 
-        .btn-secondary:hover {
-            background: var(--surface-dark);
-            color: var(--text-primary);
-            transform: translateY(-1px);
-        }
-
-    .driver-profile-section {
-        background: var(--surface-white);
-        border-radius: var(--radius-xl);
-        padding: 2.5rem;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow-md);
-        border: 1px solid var(--border-light);
-        position: relative;
+    .breadcrumb-separator {
+        color: var(--gray-400);
     }
 
-    .profile-header {
+    .hero-main {
         display: flex;
         align-items: center;
         gap: 2rem;
+    }
+
+    .hero-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--gradient-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        font-size: 2.5rem;
+        font-weight: 600;
+        box-shadow: var(--shadow-lg);
+        flex-shrink: 0;
+        animation: avatarPulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes avatarPulse {
+        0%, 100% { box-shadow: var(--shadow-lg); }
+        50% { box-shadow: var(--shadow-xl), 0 0 0 8px rgba(59, 130, 246, 0.1); }
+    }
+
+    .hero-info {
+        flex: 1;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin-bottom: 0.5rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 1.125rem;
+        color: var(--gray-600);
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-badges {
+        display: flex;
+        gap: 1rem;
         margin-bottom: 2rem;
         flex-wrap: wrap;
     }
 
-    .driver-avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        overflow: hidden;
-        border: 4px solid var(--border-light);
-        box-shadow: var(--shadow-lg);
-        flex-shrink: 0;
-        position: relative;
-    }
-
-        .driver-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    .profile-info {
-        flex: 1;
-        min-width: 250px;
-    }
-
-    .driver-name {
-        color: var(--text-primary);
-        font-weight: 700;
-        font-size: 2rem;
-        margin: 0 0 0.5rem 0;
-        letter-spacing: -0.025em;
-    }
-
-    .driver-title {
-        color: var(--text-muted);
-        font-size: 1.125rem;
-        font-weight: 500;
-        margin: 0 0 1rem 0;
-    }
-
-    .status-badges {
-        display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .status-badge {
+    .status-badge-modern {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        border-radius: 2rem;
+        border-radius: 50px;
         font-size: 0.875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        font-weight: 500;
+        transition: all 0.3s ease;
     }
 
-    .badge-active {
+    .badge-active-modern {
         background: rgba(16, 185, 129, 0.1);
-        color: var(--accent-green);
+        color: var(--success);
         border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
-    .badge-inactive {
+    .badge-inactive-modern {
         background: rgba(239, 68, 68, 0.1);
-        color: var(--accent-red);
+        color: var(--danger);
         border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
-    .badge-employment {
-        background: rgba(245, 158, 11, 0.1);
-        color: var(--accent-orange);
-        border: 1px solid rgba(245, 158, 11, 0.2);
+    .badge-employment-modern {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--primary);
+        border: 1px solid rgba(59, 130, 246, 0.2);
     }
 
-    .status-dot {
+    .status-indicator {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         background: currentColor;
-        animation: pulse 2s infinite;
+        animation: statusPulse 2s ease-in-out infinite;
     }
 
-    .details-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-bottom: 2rem;
+    @@keyframes statusPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
     }
 
-    .detail-card {
-        background: var(--surface-white);
-        border-radius: var(--radius-xl);
-        padding: 2rem;
-        box-shadow: var(--shadow-md);
-        border: 1px solid var(--border-light);
-        position: relative;
-    }
-
-    .card-header {
+    .hero-actions {
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border-light);
-    }
-
-    .card-icon {
-        width: 24px;
-        height: 24px;
-        color: var(--primary-blue);
-        flex-shrink: 0;
-    }
-
-    .card-title {
-        color: var(--text-primary);
-        font-weight: 600;
-        font-size: 1.125rem;
-        margin: 0;
-    }
-
-    .detail-list {
-        display: grid;
         gap: 1rem;
+        flex-wrap: wrap;
     }
 
-    .detail-item {
-        display: grid;
-        gap: 0.25rem;
-    }
-
-    .detail-label {
-        color: var(--text-muted);
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .detail-value {
-        color: var(--text-primary);
-        font-size: 1rem;
-        font-weight: 500;
-        word-break: break-all;
-    }
-
-        .detail-value.monospace {
-            font-family: 'Monaco', 'Menlo', monospace;
-            letter-spacing: 0.5px;
-        }
-
-        .detail-value.empty {
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-    .license-expiry {
+    .btn-modern {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
     }
 
-    .expiry-warning {
-        color: var(--accent-orange);
-    }
-
-    .expiry-expired {
-        color: var(--accent-red);
-    }
-
-    .expiry-good {
-        color: var(--accent-green);
-    }
-
-    .documents-section {
-        background: var(--surface-white);
-        border-radius: var(--radius-xl);
-        padding: 2rem;
+    .btn-primary-modern {
+        background: var(--gradient-primary);
+        color: var(--white);
         box-shadow: var(--shadow-md);
-        border: 1px solid var(--border-light);
-        margin-bottom: 2rem;
     }
 
-    .section-header {
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: var(--white);
+    }
+
+    .btn-secondary-modern {
+        background: var(--white);
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+    }
+
+    .btn-secondary-modern:hover {
+        background: var(--gray-50);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: var(--gray-700);
+    }
+
+    .content-grid {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+    }
+
+    .info-card-modern {
+        background: var(--white);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        border: 1px solid var(--gray-200);
+    }
+
+    .info-card-modern:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .card-header-modern {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+        border-bottom: 1px solid var(--gray-200);
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border-light);
-    }
-
-    .section-title {
-        color: var(--text-primary);
-        font-weight: 600;
-        font-size: 1.25rem;
-        margin: 0;
-    }
-
-    .documents-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 1rem;
     }
 
-    .document-card {
-        background: var(--surface-gray);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        padding: 1rem;
-        text-align: center;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .document-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-    .document-preview {
-        width: 100%;
-        height: 120px;
-        border-radius: var(--radius-md);
-        overflow: hidden;
-        margin-bottom: 0.75rem;
-        background: var(--surface-dark);
+    .card-icon-modern {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--gradient-primary);
         display: flex;
         align-items: center;
         justify-content: center;
+        color: var(--white);
     }
 
-        .document-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    .document-icon {
-        width: 32px;
-        height: 32px;
-        color: var(--text-muted);
-    }
-
-    .document-name {
-        color: var(--text-primary);
-        font-size: 0.875rem;
-        font-weight: 500;
+    .card-title-modern {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
         margin: 0;
-        word-break: break-all;
     }
 
-    .empty-documents {
+    .detail-grid-modern {
+        padding: 1.5rem;
+    }
+
+    .detail-row-modern {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--gray-100);
+        align-items: start;
+    }
+
+    .detail-row-modern:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label-modern {
+        font-weight: 500;
+        color: var(--gray-600);
+        font-size: 0.875rem;
+    }
+
+    .detail-value-modern {
+        color: var(--gray-900);
+        font-weight: 500;
+    }
+
+    .detail-value-modern.empty {
+        color: var(--gray-400);
+        font-style: italic;
+    }
+
+    .detail-value-modern.monospace {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        background: var(--gray-100);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+
+    .license-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+    }
+
+    .license-valid {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .license-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .license-expired {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .full-width-section {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .section-header-modern {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: var(--white);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+    }
+
+    .section-icon-modern {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--gradient-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+    }
+
+    .section-title-modern {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .media-card {
+        background: var(--white);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        border: 1px solid var(--gray-200);
+    }
+
+    .media-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .media-preview {
+        height: 200px;
+        background: var(--gray-100);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .media-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .media-card:hover .media-preview img {
+        transform: scale(1.05);
+    }
+
+    .media-preview iframe {
+        border: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    .media-info {
+        padding: 1rem;
+    }
+
+    .media-name {
+        font-weight: 500;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .empty-state {
         text-align: center;
-        padding: 3rem 1rem;
-        color: var(--text-muted);
+        padding: 4rem 2rem;
+        background: var(--white);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
     }
 
-        .empty-documents i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-text {
+        font-size: 1.125rem;
+        color: var(--gray-600);
+        margin: 0;
+    }
 
     @@media (max-width: 768px) {
-        .driver-details-page
+        .hero-content {
+            padding: 1rem;
+        }
 
-    {
-        padding: 1rem 0;
-    }
+        .hero-main {
+            flex-direction: column;
+            text-align: center;
+        }
 
-    .page-header {
-        padding: 1.5rem;
-    }
+        .hero-title {
+            font-size: 2rem;
+        }
 
-    .profile-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 1.5rem;
-    }
+        .content-grid {
+            grid-template-columns: 1fr;
+            padding: 0 1rem;
+        }
 
-    .driver-avatar {
-        width: 100px;
-        height: 100px;
-    }
+        .detail-row-modern {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
 
-    .driver-name {
-        font-size: 1.75rem;
-    }
-
-    .details-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .detail-card {
-        padding: 1.5rem;
-    }
-
-    .action-buttons {
-        justify-content: center;
-    }
-
+        .full-width-section {
+            padding: 0 1rem;
+        }
     }
 </style>
 
-<div class="driver-details-page">
-    <div class="content container-fluid">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item">
-                                <a asp-action="Index" asp-controller="Dashboard">Dashboard</a>
-                            </li>
-                            <li class="breadcrumb-item">
-                                <a asp-action="Index" asp-controller="Driver">Drivers</a>
-                            </li>
-                            <li class="breadcrumb-item active">@fullName</li>
-                        </ol>
-                    </nav>
-                    <h1 class="page-title">Driver Profile</h1>
-                    <p class="page-subtitle">Comprehensive driver information and documentation</p>
-                </div>
-                <div class="col-lg-4 text-end">
-                    <div class="action-buttons">
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
-                            <i class="feather-edit"></i> Edit Profile
-                        </a>
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="feather-arrow-left"></i> Back to List
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="driver-details-wrapper">
+    <div class="container-fluid">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <nav class="breadcrumb-modern">
+                    <a asp-action="Index" asp-controller="Dashboard">Dashboard</a>
+                    <span class="breadcrumb-separator">›</span>
+                    <a asp-action="Index" asp-controller="Driver">Drivers</a>
+                    <span class="breadcrumb-separator">›</span>
+                    <span>@fullName</span>
+                </nav>
 
-        <!-- Driver Profile Section -->
-        <div class="driver-profile-section">
-            <div class="profile-header">
-                <div class="driver-avatar">
-                    <img src="@primaryPhoto" alt="@fullName" />
-                </div>
-                <div class="profile-info">
-                    <h2 class="driver-name">@fullName</h2>
-                    <p class="driver-title">Professional Driver</p>
-                    <div class="status-badges">
-                        <span class="status-badge @(Model.IsActive ? "badge-active" : "badge-inactive")">
-                            <span class="status-dot"></span>
-                            @(Model.IsActive ? "Active" : "Inactive")
-                        </span>
-                        @if (!string.IsNullOrEmpty(Model.EmploymentStatus.GetDisplayName()))
-                        {
-                            <span class="status-badge badge-employment">
-                                <i class="feather-briefcase"></i>
-                                @Model.EmploymentStatus
+                <div class="hero-main">
+                    <div class="hero-avatar">
+                        @Model.FirstName.Substring(0, 1)@Model.LastName.Substring(0, 1)
+                    </div>
+
+                    <div class="hero-info">
+                        <h1 class="hero-title">@fullName</h1>
+                        <p class="hero-subtitle">Professional Fleet Driver</p>
+
+                        <div class="hero-badges">
+                            <span class="status-badge-modern @(Model.IsActive ? "badge-active-modern" : "badge-inactive-modern")">
+                                <span class="status-indicator"></span>
+                                @(Model.IsActive ? "Active" : "Inactive")
                             </span>
-                        }
+
+                            <span class="status-badge-modern badge-employment-modern">
+                                <i class="feather-briefcase"></i>
+                                @(EnumHelper<EmploymentStatus>.GetDescription(Model.EmploymentStatus))
+                            </span>
+                        </div>
+
+                        <div class="hero-actions">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-modern btn-primary-modern">
+                                <i class="feather-edit"></i>
+                                Edit Profile
+                            </a>
+                            <a asp-action="Index" class="btn-modern btn-secondary-modern">
+                                <i class="feather-arrow-left"></i>
+                                Back to List
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Details Grid -->
-        <div class="details-grid">
+        <!-- Content Grid -->
+        <div class="content-grid">
             <!-- Personal Information -->
-            <div class="detail-card">
-                <div class="card-header">
-                    <i class="feather-user card-icon"></i>
-                    <h3 class="card-title">Personal Information</h3>
-                </div>
-                <div class="detail-list">
-                    <div class="detail-item">
-                        <span class="detail-label">Full Name</span>
-                        <span class="detail-value">@fullName</span>
+            <div class="info-card-modern">
+                <div class="card-header-modern">
+                    <div class="card-icon-modern">
+                        <i data-feather="user"></i>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Date of Birth</span>
-                        <span class="detail-value">
+                    <h3 class="card-title-modern">Personal Information</h3>
+                </div>
+                <div class="detail-grid-modern">
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Full Name</span>
+                        <span class="detail-value-modern">@fullName</span>
+                    </div>
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Date of Birth</span>
+                        <span class="detail-value-modern">
                             @(Model.DateOfBirth.ToString("MMMM dd, yyyy") ?? "Not specified")
                         </span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Gender</span>
-                        <span class="detail-value @(string.IsNullOrEmpty(Model.Gender.GetDisplayName()) ? "empty" : "")">
-                            @(Model.Gender.GetDisplayName() ?? "Not specified")
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Gender</span>
+                        <span class="detail-value-modern">
+                            @(EnumHelper<Gender>.GetDescription(Model.Gender))
                         </span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Address</span>
-                        <span class="detail-value @(string.IsNullOrEmpty(Model.Address) ? "empty" : "")">
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Address</span>
+                        <span class="detail-value-modern @(string.IsNullOrEmpty(Model.Address) ? "empty" : "")">
                             @(Model.Address ?? "Not provided")
                         </span>
                     </div>
@@ -1445,101 +1472,123 @@
             </div>
 
             <!-- Contact Information -->
-            <div class="detail-card">
-                <div class="card-header">
-                    <i class="feather-phone card-icon"></i>
-                    <h3 class="card-title">Contact Information</h3>
+            <div class="info-card-modern">
+                <div class="card-header-modern">
+                    <div class="card-icon-modern">
+                        <i data-feather="phone"></i>
+                    </div>
+                    <h3 class="card-title-modern">Contact Information</h3>
                 </div>
-                <div class="detail-list">
-                    <div class="detail-item">
-                        <span class="detail-label">Email Address</span>
-                        <span class="detail-value @(string.IsNullOrEmpty(Model.Email) ? "empty" : "")">
-                            @(Model.Email ?? "Not provided")
+                <div class="detail-grid-modern">
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Email Address</span>
+                        <span class="detail-value-modern @(string.IsNullOrEmpty(Model.Email) ? "empty" : "")">
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+                                <a href="mailto:@Model.Email" style="color: var(--primary); text-decoration: none;">@Model.Email</a>
+                            }
+                            else
+                            {
+                                @("Not provided")
+                            }
                         </span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Phone Number</span>
-                        <span class="detail-value @(string.IsNullOrEmpty(Model.PhoneNumber) ? "empty" : "")">
-                            @(Model.PhoneNumber ?? "Not provided")
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Phone Number</span>
+                        <span class="detail-value-modern @(string.IsNullOrEmpty(Model.PhoneNumber) ? "empty" : "")">
+                            @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                            {
+                                <a href="tel:@Model.PhoneNumber" style="color: var(--primary); text-decoration: none;">@Model.PhoneNumber</a>
+                            }
+                            else
+                            {
+                                @("Not provided")
+                            }
                         </span>
                     </div>
                 </div>
             </div>
 
             <!-- License Information -->
-            <div class="detail-card">
-                <div class="card-header">
-                    <i class="feather-credit-card card-icon"></i>
-                    <h3 class="card-title">License Information</h3>
+            <div class="info-card-modern">
+                <div class="card-header-modern">
+                    <div class="card-icon-modern">
+                        <i data-feather="credit-card"></i>
+                    </div>
+                    <h3 class="card-title-modern">License Information</h3>
                 </div>
-                <div class="detail-list">
-                    <div class="detail-item">
-                        <span class="detail-label">License Number</span>
-                        <span class="detail-value monospace @(string.IsNullOrEmpty(Model.LicenseNumber) ? "empty" : "")">
+                <div class="detail-grid-modern">
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">License Number</span>
+                        <span class="detail-value-modern monospace @(string.IsNullOrEmpty(Model.LicenseNumber) ? "empty" : "")">
                             @(Model.LicenseNumber ?? "Not provided")
                         </span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">License Category</span>
-                        <span class="detail-value @(string.IsNullOrEmpty(Model.LicenseCategory.GetDisplayName()) ? "empty" : "")">
-                            @(Model.LicenseCategory.GetDisplayName() ?? "Not specified")
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">License Category</span>
+                        <span class="detail-value-modern">
+                            @(EnumHelper<LicenseCategory>.GetDescription(Model.LicenseCategory))
                         </span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Expiry Date</span>
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Expiry Date</span>
                         @if (Model.LicenseExpiryDate.HasValue)
                         {
                             var daysUntilExpiry = (Model.LicenseExpiryDate.Value - DateTime.Now).Days;
-                            var expiryClass = daysUntilExpiry < 0 ? "expiry-expired" :
-                            daysUntilExpiry < 30 ? "expiry-warning" : "expiry-good";
-                            var expiryIcon = daysUntilExpiry < 0 ? "alert-triangle" :
-                            daysUntilExpiry < 30 ? "alert-circle" : "check-circle";
+                            var statusClass = daysUntilExpiry < 0 ? "license-expired" :
+                                            daysUntilExpiry < 30 ? "license-warning" : "license-valid";
+                            var statusIcon = daysUntilExpiry < 0 ? "alert-triangle" :
+                                           daysUntilExpiry < 30 ? "alert-circle" : "check-circle";
 
-                            <span class="detail-value">
-                                <span class="license-expiry @expiryClass">
-                                    <i class="feather-@expiryIcon"></i>
-                                    @Model.LicenseExpiryDate.Value.ToString("MMMM dd, yyyy")
-                                    @if (daysUntilExpiry < 0)
-                                    {
-                                        <small>(Expired @Math.Abs(daysUntilExpiry) days ago)</small>
-                                    }
-                                    else if (daysUntilExpiry < 30)
-                                    {
-                                        <small>(Expires in @daysUntilExpiry days)</small>
-                                    }
-                                </span>
-                            </span>
+                            <div class="detail-value-modern">
+                                <div class="license-status @statusClass">
+                                    <i data-feather="@statusIcon"></i>
+                                    <div>
+                                        <div>@Model.LicenseExpiryDate.Value.ToString("MMMM dd, yyyy")</div>
+                                        @if (daysUntilExpiry < 0)
+                                        {
+                                            <small>Expired @Math.Abs(daysUntilExpiry) days ago</small>
+                                        }
+                                        else if (daysUntilExpiry < 30)
+                                        {
+                                            <small>Expires in @daysUntilExpiry days</small>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
                         }
                         else
                         {
-                            <span class="detail-value empty">Not provided</span>
+                            <span class="detail-value-modern empty">Not provided</span>
                         }
                     </div>
                 </div>
             </div>
 
             <!-- Employment Information -->
-            <div class="detail-card">
-                <div class="card-header">
-                    <i class="feather-briefcase card-icon"></i>
-                    <h3 class="card-title">Employment Details</h3>
+            <div class="info-card-modern">
+                <div class="card-header-modern">
+                    <div class="card-icon-modern">
+                        <i data-feather="briefcase"></i>
+                    </div>
+                    <h3 class="card-title-modern">Employment Details</h3>
                 </div>
-                <div class="detail-list">
-                    <div class="detail-item">
-                        <span class="detail-label">Employment Status</span>
-                        <span class="detail-value @(string.IsNullOrEmpty(Model.EmploymentStatus.GetDisplayName()) ? "empty" : "")">
-                            @(Model.EmploymentStatus.GetDisplayName() ?? "Not specified")
+                <div class="detail-grid-modern">
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Employment Status</span>
+                        <span class="detail-value-modern">
+                            @(EnumHelper<EmploymentStatus>.GetDescription(Model.EmploymentStatus))
                         </span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Shift Status</span>
-                        <span class="detail-value @(string.IsNullOrEmpty(Model.ShiftStatus.GetDisplayName()) ? "empty" : "")">
-                            @(Model.ShiftStatus.GetDisplayName() ?? "Not assigned")
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Shift Status</span>
+                        <span class="detail-value-modern">
+                            @(EnumHelper<ShiftStatus>.GetDescription(Model.ShiftStatus))
                         </span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Join Date</span>
-                        <span class="detail-value">
+                    <div class="detail-row-modern">
+                        <span class="detail-label-modern">Join Date</span>
+                        <span class="detail-value-modern">
                             @Model.CreatedDate.ToString("MMMM dd, yyyy")
                         </span>
                     </div>
@@ -1547,70 +1596,112 @@
             </div>
         </div>
 
-        <!-- Profile Photos Section -->
-        @if (Model.Photos?.Any() == true)
-        {
-            <div class="documents-section">
-                <div class="section-header">
-                    <i class="feather-image card-icon"></i>
-                    <h3 class="section-title">Profile Photos</h3>
-                </div>
-                <div class="documents-grid">
-                    @foreach (var photo in Model.Photos)
-                    {
-                        <div class="document-card">
-                            <div class="document-preview">
-                                <img src="@photo.FilePath" alt="@photo.FileName" />
-                            </div>
-                            <p class="document-name">@photo.FileName</p>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-
         <!-- License Documents Section -->
-        @if (Model.Documents?.Any() == true)
+        @if (Model.DriverDocuments?.Any() == true)
         {
-            <div class="documents-section">
-                <div class="section-header">
-                    <i class="feather-file-text card-icon"></i>
-                    <h3 class="section-title">License Documents</h3>
+            <div class="full-width-section">
+                <div class="section-header-modern">
+                    <div class="section-icon-modern">
+                        <i data-feather="file-text"></i>
+                    </div>
+                    <h3 class="section-title-modern">License Documents</h3>
                 </div>
-                <div class="documents-grid">
-                    @foreach (var doc in Model.Documents)
+                <div class="gallery-grid">
+                    @foreach (DriverDocumentDto doc in Model.DriverDocuments)
                     {
-                        <div class="document-card">
-                            <div class="document-preview">
-                                @if (doc.FilePath.EndsWith(".jpg") || doc.FilePath.EndsWith(".jpeg") ||
-                               doc.FilePath.EndsWith(".png") || doc.FilePath.EndsWith(".gif"))
+                        <div class="media-card">
+                            <div class="media-preview">
+                                @if (doc.FileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || 
+                                     doc.FileName.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                     doc.FileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || 
+                                     doc.FileName.EndsWith(".gif", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <img src="@doc.FilePath" alt="@doc.FileName" />
+                                    <img src="@doc.FileName" alt="@doc.FileName" />
                                 }
                                 else
                                 {
-                                    <i class="feather-file-text document-icon"></i>
+                                    <iframe src="@doc.FileName" width="200" height="250"></iframe>
                                 }
                             </div>
-                            <p class="document-name">@doc.FileName</p>
+                            <div class="media-info">
+                                <p class="media-name">
+                                    @(EnumHelper<DriverDocumentType>.GetDescription(doc.DocumentType))
+                                </p>
+                            </div>
                         </div>
                     }
                 </div>
             </div>
         }
 
-        @if ((Model.Photos?.Any() != true) && (Model.Documents?.Any() != true))
+        @if (Model.DriverDocuments?.Count == 0)
         {
-            <div class="documents-section">
-                <div class="section-header">
-                    <i class="feather-folder card-icon"></i>
-                    <h3 class="section-title">Documents & Photos</h3>
+            <div class="full-width-section">
+                <div class="section-header-modern">
+                    <div class="section-icon-modern">
+                        <i data-feather="folder"></i>
+                    </div>
+                    <h3 class="section-title-modern">Documents & Photos</h3>
                 </div>
-                <div class="empty-documents">
-                    <i class="feather-folder-plus"></i>
-                    <p>No documents or photos have been uploaded for this driver yet.</p>
+                <div class="empty-state">
+                    <i data-feather="folder-plus" class="empty-state-icon"></i>
+                    <p class="empty-state-text">No documents or photos have been uploaded for this driver yet.</p>
                 </div>
             </div>
         }
     </div>
-</div> *@
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+<script>
+    // Initialize Feather icons
+    feather.replace();
+    
+    // Add smooth scroll behavior for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+
+    // Add loading states for buttons
+    document.querySelectorAll('.btn-modern').forEach(button => {
+        button.addEventListener('click', function() {
+            if (this.classList.contains('btn-primary-modern')) {
+                this.style.opacity = '0.8';
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.opacity = '';
+                    this.style.transform = '';
+                }, 200);
+            }
+        });
+    });
+
+    // Add intersection observer for fade-in animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe cards for animation
+    document.querySelectorAll('.info-card-modern, .media-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+</script>

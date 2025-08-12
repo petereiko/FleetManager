@@ -4,148 +4,549 @@
     ViewData["Title"] = "Vehicle Assignments";
 }
 
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    // safely cast your ViewBag entry to the known type
+    var driverFilter = ViewBag.DriverFilter as IEnumerable<SelectListItem>;
+    // grab the one that’s selected, if any
+    var selectedText = driverFilter?
+        .FirstOrDefault(d => d.Selected)
+        ?.Text;
+}
 
 <style>
-    .assignment-card {
-        transition: all 0.3s ease;
-        border-left: 4px solid #007bff;
+    :root {
+        --primary-color: #2563eb;
+        --primary-hover: #1d4ed8;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
     }
 
-        .assignment-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    body {
+        background-color: var(--gray-50);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
+
+    .page-header {
+        background: white;
+        border-bottom: 1px solid var(--gray-200);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .page-subtitle {
+        color: var(--gray-500);
+        font-size: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+    }
+
+        .stat-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-    .assignment-active {
-        border-left-color: #28a745;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
     }
 
-    .assignment-expired {
-        border-left-color: #dc3545;
-        background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    .stat-label {
+        color: var(--gray-500);
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 0.25rem;
     }
 
-    .assignment-upcoming {
-        border-left-color: #ffc107;
-        background: linear-gradient(135deg, #fffbf0 0%, #fef3cd 100%);
+    .stat-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
     }
 
-    .status-badge {
+        .stat-icon.total {
+            background-color: #dbeafe;
+            color: var(--primary-color);
+        }
+
+        .stat-icon.active {
+            background-color: #d1fae5;
+            color: var(--success-color);
+        }
+
+        .stat-icon.upcoming {
+            background-color: #fef3c7;
+            color: var(--warning-color);
+        }
+
+        .stat-icon.expired {
+            background-color: #fee2e2;
+            color: var(--danger-color);
+        }
+
+    .filter-section {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .assignments-section {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 3rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        overflow-y: visible;
+        max-height: none;
+    }
+
+    .section-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .assignments-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .assignments-table th {
+            background: var(--gray-50);
+            padding: 0.75rem 1.5rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--gray-200);
+            white-space: nowrap;
+        }
+
+        .assignments-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 0.875rem;
+        }
+
+        .assignments-table tr:hover {
+            background-color: var(--gray-50);
+        }
+
+    .assignment-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
+    }
+
+    .status-active {
+        background-color: #d1fae5;
+        color: var(--success-color);
+    }
+
+    .status-upcoming {
+        background-color: #fef3c7;
+        color: var(--warning-color);
+    }
+
+    .status-expired {
+        background-color: #fee2e2;
+        color: var(--danger-color);
+    }
+
+    .driver-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
     .driver-avatar {
-        width: 40px;
-        height: 40px;
+        width: 2rem;
+        height: 2rem;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-color);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-weight: bold;
-        font-size: 14px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        flex-shrink: 0;
     }
 
-    .vehicle-icon {
-        width: 35px;
-        height: 35px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    .driver-name {
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    .vehicle-info {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
+        flex-direction: column;
+        gap: 0.25rem;
     }
 
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        text-align: center;
+    .vehicle-model {
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    .vehicle-plate {
+        color: var(--gray-500);
+        font-size: 0.75rem;
+    }
+
+    .date-info {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+    }
+
+    .actions-dropdown {
         position: relative;
-        overflow: hidden;
+        z-index: 1;
     }
 
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            color: white;
         }
 
-    .filter-card {
+    .btn-outline {
+        background-color: white;
+        color: var(--gray-700);
+        border-color: var(--gray-300);
+    }
+
+        .btn-outline:hover {
+            background-color: var(--gray-50);
+            color: var(--gray-900);
+        }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        z-index: 1050;
+        min-width: 12rem;
         background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        padding: 0.5rem 0;
+        margin-top: 0.25rem;
+        display: none;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        color: var(--gray-700);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: background-color 0.2s ease;
+    }
+
+        .dropdown-item:hover {
+            background-color: var(--gray-50);
+            color: var(--gray-900);
+        }
+
+        .dropdown-item.text-danger {
+            color: var(--danger-color);
+        }
+
+            .dropdown-item.text-danger:hover {
+                background-color: #fef2f2;
+                color: var(--danger-color);
+            }
+
+    .dropdown-divider {
+        height: 1px;
+        background-color: var(--gray-200);
+        border: none;
+        margin: 0.5rem 0;
     }
 
     .empty-state {
         text-align: center;
-        padding: 3rem;
-        color: #6c757d;
+        padding: 4rem 2rem;
+        color: var(--gray-500);
     }
 
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.3;
+    .empty-icon {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        background: var(--gray-100);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--gray-400);
+    }
+
+    .empty-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 0.5rem;
+    }
+
+    .alert {
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alert-success {
+        background-color: #f0fdf4;
+        border-color: #bbf7d0;
+        color: var(--success-color);
+    }
+
+    .alert-danger {
+        background-color: #fef2f2;
+        border-color: #fecaca;
+        color: var(--danger-color);
+    }
+
+    .form-select, .form-control {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--gray-300);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .form-select:focus, .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-    .btn-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        color: white;
-        transition: all 0.3s ease;
+    .form-label {
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
     }
 
-        .btn-gradient:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
-            color: white;
+    /* Custom Modal Styles */
+    .custom-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .custom-modal.show {
+            display: flex;
+        }
+
+    .modal-content {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.95);
+        transition: transform 0.2s ease;
+    }
+
+    .custom-modal.show .modal-content {
+        transform: scale(1);
+    }
+
+    .modal-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        background-color: #fee2e2;
+        color: var(--danger-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .modal-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .modal-text {
+        color: var(--gray-500);
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+    }
+
+    @@media (max-width: 768px) {
+        .container
+
+    {
+        padding: 0 0.5rem;
+    }
+
+    .assignments-table {
+        font-size: 0.75rem;
+    }
+
+        .assignments-table th,
+        .assignments-table td {
+            padding: 0.5rem;
         }
 
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem 0;
-        margin-bottom: 2rem;
-        border-radius: 0 0 25px 25px;
-    }
-    /* Fix dropdown z-index issue */
-    .dropdown-menu {
-        z-index: 1050 !important;
+        padding: 1rem 0;
     }
 
-    .assignment-card .dropdown {
-        position: relative;
-        z-index: 10;
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .assignments-table {
+        min-width: 800px;
+    }
+
     }
 </style>
 
-
 <div class="page-header">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="mb-2">
-                    <i class="fas fa-car-side me-3"></i>Vehicle Assignment Management
+                <h1 class="page-title">
+                    <i class="fas fa-car-side me-3"></i>Vehicle Assignments
                 </h1>
-                <p class="mb-0 opacity-75">Manage driver-vehicle assignments efficiently</p>
+                <p class="page-subtitle">Manage driver-vehicle assignments efficiently</p>
             </div>
             <div class="col-md-4 text-end">
-                <a asp-action="Create" class="btn btn-light btn-lg">
+                <a asp-action="Create" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>New Assignment
                 </a>
             </div>
@@ -156,611 +557,305 @@
 <div class="container">
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span>@TempData["Success"]</span>
+            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.remove()"></button>
         </div>
     }
 
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>@TempData["Error"]</span>
+            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.remove()"></button>
         </div>
     }
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h3 class="mb-0">@Model.Assignments.Count()</h3>
-                        <small class="opacity-75">Total Assignments</small>
-                    </div>
-                    <i class="fas fa-clipboard-list fa-2x opacity-75"></i>
-                </div>
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fas fa-clipboard-list"></i>
             </div>
+            <div class="stat-value">@Model.Assignments.Count()</div>
+            <div class="stat-label">Total Assignments</div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="stats-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h3 class="mb-0">@Model.Assignments.Count(a => a.StartDate <= DateTime.Now && (a.EndDate == null || a.EndDate >= DateTime.Now))</h3>
-                        <small class="opacity-75">Active Now</small>
-                    </div>
-                    <i class="fas fa-play-circle fa-2x opacity-75"></i>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon active">
+                <i class="fas fa-play-circle"></i>
             </div>
+            <div class="stat-value">@Model.Assignments.Count(a => a.StartDate <= DateTime.Now && (a.EndDate == null || a.EndDate >= DateTime.Now))</div>
+            <div class="stat-label">Active Now</div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="stats-card" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h3 class="mb-0">@Model.Assignments.Count(a => a.StartDate > DateTime.Now)</h3>
-                        <small class="opacity-75">Upcoming</small>
-                    </div>
-                    <i class="fas fa-clock fa-2x opacity-75"></i>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon upcoming">
+                <i class="fas fa-clock"></i>
             </div>
+            <div class="stat-value">@Model.Assignments.Count(a => a.StartDate > DateTime.Now)</div>
+            <div class="stat-label">Upcoming</div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="stats-card" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h3 class="mb-0">@Model.Assignments.Count(a => a.EndDate.HasValue && a.EndDate < DateTime.Now)</h3>
-                        <small class="opacity-75">Expired</small>
-                    </div>
-                    <i class="fas fa-history fa-2x opacity-75"></i>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon expired">
+                <i class="fas fa-history"></i>
             </div>
+            <div class="stat-value">@Model.Assignments.Count(a => a.EndDate.HasValue && a.EndDate < DateTime.Now)</div>
+            <div class="stat-label">Expired</div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="filter-card">
-                <form method="get" class="row align-items-end">
-                    <div class="col-md-6">
-                        <label for="driverId" class="form-label fw-bold">
-                            <i class="fas fa-user me-1"></i>Filter by Driver
-                        </label>
-                        <select name="driverId" id="driverId" class="form-select form-select-lg" onchange="this.form.submit()">
-                            <option value="">All Drivers</option>
-                            @foreach (var driver in ViewBag.DriverFilter as List<SelectListItem>)
-                            {
-                                <option value="@driver.Value" selected="@(driver.Selected ? "selected" : null)">@driver.Text</option>
-                            }
-
-
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-outline-secondary btn-lg w-100" onclick="window.location.href='@Url.Action("Index")'">
-                            <i class="fas fa-times me-2"></i>Clear Filter
-                        </button>
-                    </div>
-                    <div class="col-md-3">
-                        <a asp-action="Create" class="btn btn-gradient btn-lg w-100">
-                            <i class="fas fa-plus me-2"></i>New Assignment
-                        </a>
-                    </div>
-                </form>
+    <div class="filter-section">
+        <form method="get" class="row align-items-end g-3">
+            <div class="col-md-6">
+                <label for="driverId" class="form-label">
+                    <i class="fas fa-user me-1"></i>Filter by Driver
+                </label>
+                <select name="driverId" id="driverId" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Drivers</option>
+                    @foreach (var driver in ViewBag.DriverFilter as List<SelectListItem>)
+                    {
+                        <option value="@driver.Value" selected="@(driver.Selected ? "selected" : null)">@driver.Text</option>
+                    }
+                </select>
             </div>
-        </div>
+            <div class="col-md-3">
+                <button type="button" class="btn btn-outline w-100" onclick="window.location.href='@Url.Action("Index")'">
+                    <i class="fas fa-times me-2"></i>Clear Filter
+                </button>
+            </div>
+            <div class="col-md-3">
+                <a asp-action="Create" class="btn btn-primary w-100">
+                    <i class="fas fa-plus me-2"></i>New Assignment
+                </a>
+            </div>
+        </form>
     </div>
 
     <!-- Assignments List -->
-    @if (Model.Assignments?.Any() == true)
-    {
-        <div class="row">
-            @foreach (var assignment in Model.Assignments.OrderBy(a => a.StartDate))
-            {
-                var isActive = assignment.StartDate <= DateTime.Now && (assignment.EndDate == null || assignment.EndDate >= DateTime.Now);
-                var isExpired = assignment.EndDate.HasValue && assignment.EndDate < DateTime.Now;
-                var isUpcoming = assignment.StartDate > DateTime.Now;
+    <div class="assignments-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-list me-2"></i>Assignment List
+                @if (Model.DriverFilterId.HasValue)
+                {
+                    <small class="text-muted">(@selectedText)</small>
+                }
+            </h2>
+        </div>
 
-                var cardClass = isActive ? "assignment-active" : (isExpired ? "assignment-expired" : (isUpcoming ? "assignment-upcoming" : ""));
-                var statusBadge = isActive ? "success" : (isExpired ? "danger" : (isUpcoming ? "warning" : "secondary"));
-                var statusText = isActive ? "Active" : (isExpired ? "Expired" : (isUpcoming ? "Upcoming" : "Unknown"));
+        @if (Model.Assignments?.Any() == true)
+        {
+            <div class="table-container">
+                <table class="assignments-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Driver</th>
+                            <th>Vehicle</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Duration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var assignment in Model.Assignments.OrderBy(a => a.StartDate))
+                        {
+                            var isActive = assignment.StartDate <= DateTime.Now && (assignment.EndDate == null || assignment.EndDate >= DateTime.Now);
+                            var isExpired = assignment.EndDate.HasValue && assignment.EndDate < DateTime.Now;
+                            var isUpcoming = assignment.StartDate > DateTime.Now;
 
-                <div class="col-lg-6 col-xl-4 mb-4">
-                    <div class="card assignment-card @cardClass h-100">
-                        <div class="card-header bg-transparent border-0 pb-0">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <span class="badge bg-@statusBadge status-badge">@statusText</span>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li>
+                            var statusClass = isActive ? "status-active" : (isExpired ? "status-expired" : "status-upcoming");
+                            var statusText = isActive ? "Active" : (isExpired ? "Expired" : "Upcoming");
+
+                            var duration = assignment.EndDate.HasValue
+                            ? (assignment.EndDate.Value - assignment.StartDate).Days + " days"
+                            : "Ongoing";
+
+                            <tr>
+                                <td>
+                                    <span class="assignment-status @statusClass">
+                                        @statusText
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="driver-info">
+                                        <div class="driver-avatar">
+                                            @(assignment.DriverName?.Substring(0, 1).ToUpper() ?? "?")
+                                        </div>
+                                        <div class="driver-name">@assignment.DriverName</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="vehicle-info">
+                                        <div class="vehicle-model">@assignment.VehicleMakeModel</div>
+                                        <div class="vehicle-plate">@assignment.PlateNo</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="date-info">@assignment.StartDate.ToString("dd MMM yyyy")</div>
+                                </td>
+                                <td>
+                                    <div class="date-info">@(assignment.EndDate?.ToString("dd MMM yyyy") ?? "—")</div>
+                                </td>
+                                <td>
+                                    <div class="date-info">@duration</div>
+                                </td>
+                                <td>
+                                    <div class="actions-dropdown">
+                                        <button class="btn btn-outline btn-sm dropdown-toggle" type="button" onclick="toggleDropdown(this)">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
                                             <a class="dropdown-item" asp-controller="ManageAssignment" asp-action="Edit" asp-route-id="@assignment.Id">
                                                 <i class="fas fa-edit me-2"></i>Edit Assignment
                                             </a>
-                                        </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form method="post" asp-controller="ManageAssignment" asp-action="Delete" asp-route-id="@assignment.Id" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to unassign this vehicle?')">
-                                                    <i class="fas fa-trash me-2"></i>Unassign Vehicle
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <!-- Driver Info -->
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="driver-avatar me-3">
-                                    @(assignment.DriverName?.Substring(0, 1).ToUpper() ?? "?")
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">@assignment.DriverName</h6>
-                                    <small class="text-muted">Driver</small>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle Info -->
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="vehicle-icon me-3">
-                                    <i class="fas fa-car"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">@assignment.VehicleMakeModel</h6>
-                                    <small class="text-muted">@assignment.PlateNo </small>
-                                </div>
-                            </div>
-
-                            <!-- Date Range -->
-                            <div class="border-top pt-3">
-                                <div class="row text-center">
-                                    <div class="col-6">
-                                        <small class="text-muted d-block">Start Date</small>
-                                        <strong>@assignment.StartDate.ToString("dd MMM yyyy")</strong>
+                                            <hr class="dropdown-divider">
+                                            <button type="button" class="dropdown-item text-danger" onclick="showConfirmModal('@assignment.Id', '@assignment.DriverName', '@assignment.VehicleMakeModel')">
+                                                <i class="fas fa-unlink me-2"></i>Unassign Vehicle
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="col-6">
-                                        <small class="text-muted d-block">End Date</small>
-                                        <strong>@(assignment.EndDate?.ToString("dd MMM yyyy") ?? "Ongoing")</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent border-0">
-                            <div class="btn-group w-100" role="group">
-                                <a asp-controller="ManageAssignment" asp-action="Edit" asp-route-id="@assignment.Id" class="btn btn-outline-primary">
-                                    <i class="fas fa-edit me-1"></i>Edit
-                                </a>
-                                <form method="post" asp-controller="ManageAssignment" asp-action="Delete" asp-route-id="@assignment.Id" class="d-inline flex-fill">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Are you sure you want to unassign this vehicle?')">
-                                        <i class="fas fa-unlink me-1"></i>Unassign
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="empty-state">
-            <i class="fas fa-car-side"></i>
-            <h3>No Vehicle Assignments Found</h3>
-            <p class="mb-4">
-                @if (Model.DriverFilterId.HasValue)
-                {
-                    <span>No assignments found for the selected driver.</span>
-                }
-                else
-                {
-                    <span>Start by creating your first vehicle assignment.</span>
-                }
-            </p>
-            <a asp-action="Create" class="btn btn-gradient btn-lg">
-                <i class="fas fa-plus me-2"></i>Create First Assignment
-            </a>
-        </div>
-    }
-</div>
-
-@section Scripts {
-    <script>
-        // Auto-refresh page every 30 seconds if there are active assignments
-        @if (Model.Assignments?.Any(a => a.StartDate <= DateTime.Now && (a.EndDate == null || a.EndDate >= DateTime.Now)) == true)
-        {
-            <text>
-                setTimeout(function() {
-                    window.location.reload();
-                }, 30000);
-            </text>
-        }
-
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    </script>
-}
-
-
-
-
-
-
-
-
-@* @using FleetManager.Business.ViewModels
-@model AssignmentIndexViewModel
-@{
-    ViewData["Title"] = "Vehicle Assignments";
-}
-
-
-    <style>
-        .assignment-card {
-            transition: all 0.3s ease;
-            border-left: 4px solid #007bff;
-        }
-        .assignment-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        .assignment-active {
-            border-left-color: #28a745;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        }
-        .assignment-expired {
-            border-left-color: #dc3545;
-            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
-        }
-        .assignment-upcoming {
-            border-left-color: #ffc107;
-            background: linear-gradient(135deg, #fffbf0 0%, #fef3cd 100%);
-        }
-        .status-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .driver-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .vehicle-icon {
-            width: 35px;
-            height: 35px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        .filter-card {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-            border: 1px solid #e2e8f0;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #6c757d;
-        }
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.3;
-        }
-        .btn-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            color: white;
-            transition: all 0.3s ease;
-        }
-        .btn-gradient:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-        .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            border-radius: 0 0 25px 25px;
-        }
-    </style>
-
-
-<div class="page-header">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="mb-2">
-                    <i class="fas fa-car-side me-3"></i>Vehicle Assignment Management
-                </h1>
-                <p class="mb-0 opacity-75">Manage driver-vehicle assignments efficiently</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-            <div class="col-md-4 text-end">
-                <a asp-action="Create" class="btn btn-light btn-lg">
-                    <i class="fas fa-plus me-2"></i>New Assignment
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-car-side"></i>
+                </div>
+                <h3 class="empty-title">No Vehicle Assignments Found</h3>
+                <p class="mb-4">
+                    @if (Model.DriverFilterId.HasValue)
+                    {
+                        <span>No assignments found for the selected driver.</span>
+                    }
+                    else
+                    {
+                        <span>Start by creating your first vehicle assignment.</span>
+                    }
+                </p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create First Assignment
                 </a>
             </div>
+        }
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="custom-modal">
+    <div class="modal-content">
+        <div class="modal-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 class="modal-title">Confirm Unassignment</h3>
+        <p class="modal-text">Are you sure you want to unassign <strong id="modalDriverName"></strong> from <strong id="modalVehicleName"></strong>?</p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-outline" onclick="hideConfirmModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" style="background-color: var(--danger-color); border-color: var(--danger-color);" onclick="confirmUnassign()">Unassign</button>
         </div>
     </div>
 </div>
 
-<div class="container">
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h3 class="mb-0">@Model.Assignments.Count()</h3>
-                        <small class="opacity-75">Total Assignments</small>
-                    </div>
-                    <i class="fas fa-clipboard-list fa-2x opacity-75"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stats-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h3 class="mb-0">@Model.Assignments.Count(a => a.StartDate <= DateTime.Now && (a.EndDate == null || a.EndDate >= DateTime.Now))</h3>
-                        <small class="opacity-75">Active Now</small>
-                    </div>
-                    <i class="fas fa-play-circle fa-2x opacity-75"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stats-card" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h3 class="mb-0">@Model.Assignments.Count(a => a.StartDate > DateTime.Now)</h3>
-                        <small class="opacity-75">Upcoming</small>
-                    </div>
-                    <i class="fas fa-clock fa-2x opacity-75"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stats-card" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h3 class="mb-0">@Model.Assignments.Count(a => a.EndDate.HasValue && a.EndDate < DateTime.Now)</h3>
-                        <small class="opacity-75">Expired</small>
-                    </div>
-                    <i class="fas fa-history fa-2x opacity-75"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="filter-card">
-                <form method="get" class="row align-items-end">
-                    <div class="col-md-6">
-                        <label for="driverId" class="form-label fw-bold">
-                            <i class="fas fa-user me-1"></i>Filter by Driver
-                        </label>
-                        <select name="driverId" id="driverId" class="form-select form-select-lg" onchange="this.form.submit()">
-                            <option value="">All Drivers</option>
-                            @foreach (var driver in ViewBag.DriverFilter as List<SelectListItem>)
-                            {
-                                <option value="@driver.Value" selected="@(driver.Selected ? "selected" : null)">@driver.Text</option>
-                            }
-
-
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-outline-secondary btn-lg w-100" onclick="window.location.href='@Url.Action("Index")'">
-                            <i class="fas fa-times me-2"></i>Clear Filter
-                        </button>
-                    </div>
-                    <div class="col-md-3">
-                        <a asp-action="Create" class="btn btn-gradient btn-lg w-100">
-                            <i class="fas fa-plus me-2"></i>New Assignment
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Assignments List -->
-    @if (Model.Assignments?.Any() == true)
-    {
-        <div class="row">
-            @foreach (var assignment in Model.Assignments.OrderBy(a => a.StartDate))
-            {
-                var isActive = assignment.StartDate <= DateTime.Now && (assignment.EndDate == null || assignment.EndDate >= DateTime.Now);
-                var isExpired = assignment.EndDate.HasValue && assignment.EndDate < DateTime.Now;
-                var isUpcoming = assignment.StartDate > DateTime.Now;
-                
-                var cardClass = isActive ? "assignment-active" : (isExpired ? "assignment-expired" : (isUpcoming ? "assignment-upcoming" : ""));
-                var statusBadge = isActive ? "success" : (isExpired ? "danger" : (isUpcoming ? "warning" : "secondary"));
-                var statusText = isActive ? "Active" : (isExpired ? "Expired" : (isUpcoming ? "Upcoming" : "Unknown"));
-
-                <div class="col-lg-6 col-xl-4 mb-4">
-                    <div class="card assignment-card @cardClass h-100">
-                        <div class="card-header bg-transparent border-0 pb-0">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <span class="badge bg-@statusBadge status-badge">@statusText</span>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@assignment.Id">
-                                            <i class="fas fa-edit me-2"></i>Edit Assignment
-                                        </a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form method="post" asp-action="Delete" asp-route-id="@assignment.Id" class="d-inline" onsubmit="return confirm('Are you sure you want to unassign this vehicle?')">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="dropdown-item text-danger">
-                                                    <i class="fas fa-trash me-2"></i>Unassign Vehicle
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <!-- Driver Info -->
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="driver-avatar me-3">
-                                    @(assignment.DriverName?.Substring(0, 1).ToUpper() ?? "?")
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">@assignment.DriverName</h6>
-                                    <small class="text-muted">Driver</small>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle Info -->
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="vehicle-icon me-3">
-                                    <i class="fas fa-car"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">@assignment.VehicleMakeModel</h6>
-                                    <small class="text-muted">@assignment.PlateNo </small>
-                                </div>
-                            </div>
-
-                            <!-- Date Range -->
-                            <div class="border-top pt-3">
-                                <div class="row text-center">
-                                    <div class="col-6">
-                                        <small class="text-muted d-block">Start Date</small>
-                                        <strong>@assignment.StartDate.ToString("dd MMM yyyy")</strong>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted d-block">End Date</small>
-                                        <strong>@(assignment.EndDate?.ToString("dd MMM yyyy") ?? "Ongoing")</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent border-0">
-                            <div class="btn-group w-100" role="group">
-                                <a asp-action="Edit" asp-route-id="@assignment.Id" class="btn btn-outline-primary">
-                                    <i class="fas fa-edit me-1"></i>Edit
-                                </a>
-                                <form method="post" asp-action="Delete" asp-route-id="@assignment.Id" class="d-inline flex-fill" onsubmit="return confirm('Are you sure you want to unassign this vehicle?')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-danger w-100">
-                                        <i class="fas fa-unlink me-1"></i>Unassign
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="empty-state">
-            <i class="fas fa-car-side"></i>
-            <h3>No Vehicle Assignments Found</h3>
-            <p class="mb-4">
-                @if (Model.DriverFilterId.HasValue)
-                {
-                    <span>No assignments found for the selected driver.</span>
-                }
-                else
-                {
-                    <span>Start by creating your first vehicle assignment.</span>
-                }
-            </p>
-            <a asp-action="Create" class="btn btn-gradient btn-lg">
-                <i class="fas fa-plus me-2"></i>Create First Assignment
-            </a>
-        </div>
-    }
-</div>
+<form id="unassignForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
 
 @section Scripts {
     <script>
-        // Auto-refresh page every 30 seconds if there are active assignments
+        let currentAssignmentId = null;
+
+        // Dropdown functionality with better positioning
+        function toggleDropdown(button) {
+            const dropdown = button.nextElementSibling;
+            const isShown = dropdown.classList.contains('show');
+
+            // Close all dropdowns
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+
+            // Toggle current dropdown
+            if (!isShown) {
+                dropdown.classList.add('show');
+
+                // Adjust dropdown position if it would go off-screen
+                const rect = dropdown.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+
+                if (rect.bottom > viewportHeight - 50) {
+                    dropdown.style.top = 'auto';
+                    dropdown.style.bottom = '100%';
+                    dropdown.style.marginBottom = '0.25rem';
+                    dropdown.style.marginTop = '0';
+                } else {
+                    dropdown.style.top = '100%';
+                    dropdown.style.bottom = 'auto';
+                    dropdown.style.marginTop = '0.25rem';
+                    dropdown.style.marginBottom = '0';
+                }
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.actions-dropdown')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+
+        // Modal functionality
+        function showConfirmModal(assignmentId, driverName, vehicleName) {
+            currentAssignmentId = assignmentId;
+            document.getElementById('modalDriverName').textContent = driverName;
+            document.getElementById('modalVehicleName').textContent = vehicleName;
+            document.getElementById('confirmModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            document.body.style.overflow = '';
+            currentAssignmentId = null;
+        }
+
+        function confirmUnassign() {
+            if (currentAssignmentId) {
+                const form = document.getElementById('unassignForm');
+                form.action = '@Url.Action("Delete", "ManageAssignment")/' + currentAssignmentId;
+                form.submit();
+            }
+        }
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideConfirmModal();
+            }
+        });
+
+        // Auto-refresh for active assignments
         @if (Model.Assignments?.Any(a => a.StartDate <= DateTime.Now && (a.EndDate == null || a.EndDate >= DateTime.Now)) == true)
         {
             <text>
-            setTimeout(function() {
-                window.location.reload();
-            }, 30000);
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 300000); // 5 minutes instead of 30 seconds
             </text>
         }
-
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
     </script>
-} *@
+}
+
+
+
+

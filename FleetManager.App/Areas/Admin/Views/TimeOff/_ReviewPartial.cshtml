@@ -1,4 +1,4 @@
-﻿@using FleetManager.Business.ViewModels.Schedule
+﻿@* @using FleetManager.Business.ViewModels.Schedule
 @model TimeOffReviewViewModel
 
 <style>
@@ -361,9 +361,7 @@
                 <textarea asp-for="AdminComment"
                           class="form-control"
                           placeholder="Add your comments, conditions, or notes about this request..." ></textarea>
-                @* <span asp-validation-for="AdminComment" class="text-danger">
-                    <i class="fas fa-exclamation-circle"></i>
-                </span> *@
+                
                 <span class="text-danger" id="adminCommentError" style="display:none;">
                     <i class="fas fa-exclamation-circle"></i> Comment is required to deny a request.
                 </span>
@@ -383,3 +381,596 @@
         </div>
     </div>
 </div>
+ *@
+
+
+
+
+
+
+        @using FleetManager.Business.ViewModels.Schedule
+@model TimeOffReviewViewModel
+
+<style>
+    .review-form-container {
+        padding: 1.5rem;
+    }
+
+    .request-details {
+        background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--success-color, #48bb78);
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+    .detail-label {
+        font-weight: 600;
+        color: #4a5568;
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0;
+    }
+
+    .detail-value {
+        color: #2d3748;
+        flex: 1;
+        margin-bottom: 0;
+        line-height: 1.5;
+    }
+
+    .driver-name {
+        font-weight: 600;
+        color: var(--success-color, #48bb78);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .category-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--info-color, #4299e1);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .date-range {
+        background: #e6fffa;
+        color: #234e52;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border-left: 3px solid #38b2ac;
+        font-weight: 500;
+    }
+
+    .reason-text {
+        background: #fffaf0;
+        color: #744210;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 3px solid #ed8936;
+        font-style: italic;
+        line-height: 1.6;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+        .form-control:focus {
+            border-color: var(--success-color, #48bb78);
+            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
+            outline: none;
+        }
+
+        .form-control:disabled {
+            background-color: #f9fafb;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        color: white;
+    }
+
+        .btn-success:hover:not(:disabled) {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+            color: white;
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #f56565, #e53e3e);
+        color: white;
+    }
+
+        .btn-danger:hover:not(:disabled) {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+            color: white;
+        }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #6b7280, #4b5563);
+        color: white;
+    }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #4b5563, #374151);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+            color: white;
+        }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .text-danger {
+        color: #e53e3e !important;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .request-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f0fff4;
+        border-radius: 8px;
+        border-left: 3px solid #48bb78;
+    }
+
+    .request-id {
+        font-family: 'Courier New', monospace;
+        background: #065f46;
+        color: #d1fae5;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+
+    .days-count {
+        background: #dcfce7;
+        color: #166534;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-indicator {
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        color: #276749;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .status-indicator.expired {
+            background: #fef5e7;
+            border-color: #fed7aa;
+            color: #c05621;
+        }
+
+    .approval-info {
+        background: #f0f9ff;
+        border-left: 3px solid #0ea5e9;
+        padding: 1rem;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 1rem;
+    }
+
+    .approval-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .approved-by {
+        font-weight: 600;
+        color: #0369a1;
+    }
+
+    .approved-at {
+        color: #0284c7;
+        font-size: 0.875rem;
+    }
+
+    .existing-comment {
+        background: #fffbeb;
+        border-left: 3px solid #f59e0b;
+        padding: 1rem;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 1rem;
+        font-style: italic;
+        color: #92400e;
+    }
+
+    .readonly-notice {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    @@media (max-width: 768px) {
+        .review-form-container
+
+    {
+        padding: 1rem;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .detail-label {
+        min-width: auto;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .approval-details {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    }
+</style>
+
+<div class="review-form-container">
+    <div id="form" class="ajax-review-form">
+        <!-- Request Meta Information -->
+        <div class="request-meta">
+            <div class="d-flex align-items-center gap-3">
+                <span class="request-id">ID: #@Model.Request.Id</span>
+                <span class="days-count">
+                    <i class="fas fa-calendar-day"></i>
+                    @((Model.Request.EndDate - Model.Request.StartDate).Days + 1) day(s)
+                </span>
+            </div>
+            @{
+                var isPastRequest = Model.Request.EndDate < DateTime.Now.Date;
+                var isActive = Model.Request.StartDate <= DateTime.Now.Date && Model.Request.EndDate >= DateTime.Now.Date;
+                var canModify = Model.Request.StartDate > DateTime.Now.Date;
+            }
+            <div class="d-flex align-items-center gap-2">
+                <span class="status-indicator @(isPastRequest ? "expired" : "")">
+                    <i class="fas @(isPastRequest ? "fa-history" : isActive ? "fa-play-circle" : "fa-clock")"></i>
+                    @(isPastRequest ? "Expired" : isActive ? "Active" : "Upcoming")
+                </span>
+            </div>
+        </div>
+
+        <!-- Approval Information -->
+        @if (Model.Request.ReviewedAt.HasValue)
+        {
+            <div class="approval-info">
+                <div class="approval-details">
+                    <div>
+                        <div class="approved-by">
+                            <i class="fas fa-user-check"></i>
+                            Approved by: @Model.Request.ReviewedByName
+                        </div>
+                        <div class="approved-at">
+                            <i class="fas fa-calendar-check"></i>
+                            @Model.Request.ReviewedAt?.ToString("d MMM yyyy 'at' HH:mm")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Request Details Section -->
+        <div class="request-details">
+            <div class="detail-row">
+                <dt class="detail-label">
+                    <i class="fas fa-user-circle"></i>
+                    Driver
+                </dt>
+                <dd class="detail-value">
+                    <div class="driver-name">
+                        <i class="fas fa-id-badge"></i>
+                        @Model.Request.RequestedBy
+                    </div>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt class="detail-label">
+                    <i class="fas fa-tag"></i>
+                    Category
+                </dt>
+                <dd class="detail-value">
+                    <span class="category-tag">
+                        <i class="fas fa-folder"></i>
+                        @Model.Request.CategoryName
+                    </span>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt class="detail-label">
+                    <i class="fas fa-calendar-alt"></i>
+                    Period
+                </dt>
+                <dd class="detail-value">
+                    <div class="date-range">
+                        <i class="fas fa-calendar-check"></i>
+                        @Model.Request.StartDate.ToString("d MMM yyyy") – @Model.Request.EndDate.ToString("d MMM yyyy")
+                        <small class="d-block mt-1 text-muted">
+                            (@Model.Request.StartDate.ToString("dddd")) to (@Model.Request.EndDate.ToString("dddd"))
+                        </small>
+                    </div>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt class="detail-label">
+                    <i class="fas fa-comment-alt"></i>
+                    Reason
+                </dt>
+                <dd class="detail-value">
+                    <div class="reason-text">
+                        <i class="fas fa-quote-left"></i>
+                        @Model.Request.Reason
+                    </div>
+                </dd>
+            </div>
+        </div>
+
+        <!-- Existing Admin Comment (if any) -->
+        @if (!string.IsNullOrEmpty(Model.AdminComment))
+        {
+            <div class="existing-comment">
+                <strong><i class="fas fa-clipboard-list"></i> Previous Admin Comment:</strong><br />
+                @Model.AdminComment
+            </div>
+        }
+
+        <!-- Admin Comment Section -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-pen-fancy"></i>
+                Administrative Review
+            </div>
+
+            @if (canModify)
+            {
+                <div class="form-group">
+                    <label asp-for="AdminComment" class="form-label">
+                        <i class="fas fa-clipboard-list"></i>
+                        Additional Comments & Notes
+                    </label>
+                    <textarea asp-for="AdminComment"
+                              class="form-control"
+                              placeholder="Add additional comments, modifications, or notes about this request...">@Model.AdminComment</textarea>
+
+                    <span class="text-danger" id="adminCommentError" style="display:none;">
+                        <i class="fas fa-exclamation-circle"></i> Comment is required to deny a request.
+                    </span>
+                </div>
+            }
+            else
+            {
+                <div class="readonly-notice">
+                    <i class="fas fa-info-circle"></i>
+                    This request cannot be modified as it has already @(isPastRequest ? "expired" : "started").
+                    @if (isPastRequest)
+                    {
+                        <div class="mt-2">
+                            <strong>This record can be safely deleted if no longer needed.</strong>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            @if (canModify)
+            {
+                <button type="button" onclick="ApproveRequest()" class="btn btn-success approve-btn">
+                    <i class="fas fa-check-circle"></i>
+                    Update Approval
+                </button>
+                <button type="button" onclick="DenyRequest()" class="btn btn-danger deny-btn">
+                    <i class="fas fa-times-circle"></i>
+                    Revoke Approval
+                </button>
+            }
+            else if (isPastRequest)
+            {
+                <button type="button" onclick="DeleteRequest(@Model.Request.Id)" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i>
+                    Delete Record
+                </button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-secondary" disabled>
+                    <i class="fas fa-lock"></i>
+                    Request Active - Cannot Modify
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function DeleteRequest(id) {
+        if (!confirm('Are you sure you want to permanently delete this record? This action cannot be undone.')) {
+            return;
+        }
+
+        const $btn = $('.btn-danger');
+        const originalText = $btn.html();
+
+        // Add loading state
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Deleting...');
+
+        $.ajax({
+            url: `@Url.Action("Delete")?id=${id}`,
+            type: 'POST',
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            dataType: 'json',
+            success: function(resp) {
+                if (!resp.success) {
+                    throw new Error(resp.message || 'Delete failed');
+                }
+
+                Toastify({
+                    text: resp.message,
+                    duration: 4000,
+                    close: true,
+                    gravity: 'top',
+                    style: { background: "linear-gradient(to right, #48bb78, #38a169)" }
+                }).showToast();
+
+                $('#reviewModal').modal('hide');
+                setTimeout(() => window.location.reload(), 2000);
+            },
+            error: function(err) {
+                console.error('Error:', err);
+                let msg = "Server error occurred";
+
+                if (err.responseJSON && err.responseJSON.message) {
+                    msg = err.responseJSON.message;
+                } else if (err.responseText) {
+                    try {
+                        const response = JSON.parse(err.responseText);
+                        msg = response.message || msg;
+                    } catch (e) {
+                        msg = err.responseText;
+                    }
+                } else if (err.message) {
+                    msg = err.message;
+                }
+
+                Toastify({
+                    text: msg,
+                    duration: 5000,
+                    close: true,
+                    gravity: 'top',
+                    style: { background: "linear-gradient(to right, #b71c1c, #f44336)" }
+                }).showToast();
+
+                $btn.prop('disabled', false).html(originalText);
+            }
+        });
+    }
+</script>

@@ -37,6 +37,48 @@ namespace FleetManager.App.Areas.Admin.Controllers
             }
         }
 
+        // GET: /Admin/TimeOff
+        [HttpGet]
+        public async Task<IActionResult> Approved()
+        {
+            try
+            {
+                var approvedRequests = await _timeOff.GetAllApprovedRequestsAsync();
+                var viewModel = new TimeOffApprovedListViewModel
+                {
+                    ApprovedRequests = approvedRequests.OrderByDescending(r => r.ReviewedAt).ToList()
+                };
+
+                return View(viewModel); // Use the new view name
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading approved requests");
+                TempData["Error"] = "Failed to load approved requests.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        // GET: /Admin/TimeOff
+        public async Task<IActionResult> Denied()
+        {
+            try
+            {
+                var rejected = await _timeOff.GetAllRejectedRequestsAsync(null);
+                var vm = new TimeOffDeniedListViewModel 
+                { 
+                    DeniedRequests = rejected.OrderByDescending(r => r.ReviewedAt).ToList()
+                };
+                return View(vm);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading denied time‑off requests");
+                TempData["Error"] = "Failed to load approved requests.";
+                return RedirectToAction("Index");
+            }
+        }
+
         // GET: /Admin/TimeOff/Review/5
         [HttpGet]
         public async Task<IActionResult> Review(long id)
@@ -148,7 +190,66 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
 
 
+        // ─── POST: Delete time-off record ───────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(long id)
+        {
+            try
+            {
+                // First, get the request to ensure it exists and can be deleted
+                var request = await _timeOff.GetRequestByIdAsync(id);
+                if (request == null)
+                {
+                    return Json(new { success = false, message = "Request not found." });
+                }
 
+                // Check if the request is eligible for deletion (should be expired/past)
+                if (request.EndDate >= DateTime.Now.Date)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Cannot delete active or future approved requests. Only expired requests can be deleted."
+                    });
+                }
+
+                // Perform the deletion
+                var result = await _timeOff.DeleteAsync(id);
+
+                if (result.Success)
+                {
+                    _logger.LogInformation("Approved time-off request #{Id} for {Driver} deleted by {User}",
+                        id, request.RequestedBy, User.Identity.Name);
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Record deleted successfully.",
+                        requestId = id,
+                        driverName = request.RequestedBy,
+                        dateRange = $"{request.StartDate:d MMM yyyy} - {request.EndDate:d MMM yyyy}"
+                    });
+                }
+                else
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Failed to delete the record. Please try again."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting approved request #{Id}", id);
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred while deleting the record. Please contact support if the problem persists."
+                });
+            }
+        }
         // ─── CATEGORY CRUD ─────────────────────────────────────────────────────
 
         // GET: /Admin/TimeOff/Categories

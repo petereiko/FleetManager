@@ -14,6 +14,9 @@ namespace FleetManager.Business.Interfaces.ScheduleModule
         Task<MessageResponse<TimeOffRequestDto>> CreateRequestAsync(TimeOffRequestDto dto);
         Task<IEnumerable<TimeOffRequestDto>> GetRequestsByDriverAsync(long driverId);
         Task<IEnumerable<TimeOffRequestDto>> GetAllPendingRequestsAsync(long? branchId);
+        Task<IEnumerable<TimeOffRequestDto>> GetAllApprovedRequestsAsync(long? branchId = null);
+        Task<IEnumerable<TimeOffRequestDto>> GetAllRejectedRequestsAsync(long? branchId = null);
+        Task<MessageResponse> DeleteAsync(long id);
         Task<TimeOffRequestDto?> GetRequestByIdAsync(long requestId);
         Task ApproveRequestAsync(long requestId, string? adminComment = null);
         Task DenyRequestAsync(long requestId, string? adminComment = null);

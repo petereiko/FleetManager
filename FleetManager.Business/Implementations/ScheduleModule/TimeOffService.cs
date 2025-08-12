@@ -257,6 +257,101 @@ namespace FleetManager.Business.Implementations.ScheduleModule
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<TimeOffRequestDto>> GetAllApprovedRequestsAsync(long? branchId = null)
+        {
+            var b = branchId ?? _auth.CompanyBranchId;
+
+            var q = from r in _db.TimeOffRequests.AsNoTracking()
+                    where r.Status == TimeOffStatus.Approved
+                       && r.CompanyBranchId == b
+                    join d in _db.Drivers.AsNoTracking() on r.DriverId equals d.Id
+                    join u in _db.Users.AsNoTracking() on d.UserId equals u.Id
+                    join cat in _db.TimeOffCategories.AsNoTracking() on r.CategoryId equals cat.Id
+                    select new TimeOffRequestDto
+                    {
+                        Id = r.Id,
+                        CompanyBranchId = r.CompanyBranchId,
+                        DriverId = r.DriverId,
+                        CategoryId = r.CategoryId,
+                        CategoryName = cat.Name,
+                        StartDate = r.StartDate,
+                        EndDate = r.EndDate,
+                        Reason = r.Reason,
+                        Status = r.Status,
+                        AdminNotes = r.AdminNotes,
+                        RequestedBy = $"{u.FirstName} {u.LastName}",
+                        RequestedAt = r.CreatedDate,
+                          
+                        
+                    };
+
+            return await q
+                .OrderByDescending(r => r.StartDate)
+                .ToListAsync();
+        }
+
+
+        public async Task<IEnumerable<TimeOffRequestDto>> GetAllRejectedRequestsAsync(long? branchId = null)
+        {
+            var b = branchId ?? _auth.CompanyBranchId;
+
+            var q = from r in _db.TimeOffRequests.AsNoTracking()
+                    where r.Status == TimeOffStatus.Denied
+                       && r.CompanyBranchId == b
+                    join d in _db.Drivers.AsNoTracking() on r.DriverId equals d.Id
+                    join u in _db.Users.AsNoTracking() on d.UserId equals u.Id
+                    join cat in _db.TimeOffCategories.AsNoTracking() on r.CategoryId equals cat.Id
+                    select new TimeOffRequestDto
+                    {
+                        Id = r.Id,
+                        CompanyBranchId = r.CompanyBranchId,
+                        DriverId = r.DriverId,
+                        CategoryId = r.CategoryId,
+                        CategoryName = cat.Name,
+                        StartDate = r.StartDate,
+                        EndDate = r.EndDate,
+                        Reason = r.Reason,
+                        Status = r.Status,
+                        AdminNotes = r.AdminNotes,
+                        RequestedBy = $"{u.FirstName} {u.LastName}",
+                        RequestedAt = r.CreatedDate
+                        // leave Reviewed fields null until approved/denied
+                    };
+
+            return await q
+                .OrderByDescending(r => r.StartDate)
+                .ToListAsync();
+        }
+
+        public async Task<MessageResponse> DeleteAsync(long id)
+        {
+            EnsureAdminOrOwner();
+            var resp = new MessageResponse();
+
+            try
+            {
+                var entity = await _db.TimeOffRequests.FindAsync(id).ConfigureAwait(false);
+                if (entity == null)
+                {
+                    resp.Message = "Request not found.";
+                    return resp;
+                }
+
+                _db.TimeOffRequests.Remove(entity);
+                await _db.SaveChangesAsync().ConfigureAwait(false);
+
+                resp.Success = true;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Error deleting request record Id {Id}", id);
+                resp.Message = "An unexpected error occurred while deleting the record.";
+            }
+
+            return resp;
+        }
+
+
         public async Task ApproveRequestAsync(long requestId, string? adminComment = null)
         {
             EnsureAdminOrOwner();
