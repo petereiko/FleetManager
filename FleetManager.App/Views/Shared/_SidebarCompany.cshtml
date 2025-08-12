@@ -1,10 +1,45 @@
 ﻿@* /Views/Shared/_SidebarCompany.cshtml *@
 @using Microsoft.AspNetCore.Mvc.Rendering
 
+<style>
+    .line-section {
+        margin: 40px 0;
+        padding: 30px 0;
+    }
+
+    .line-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #2c3e50;
+        text-align: center;
+    }
+
+    /* Modern Thin Lines */
+    .hr-thin-modern {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #667eea, transparent);
+        border: none;
+    }
+
+    .hr-double-thin {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+        .hr-double-thin::before,
+        .hr-double-thin::after {
+            content: '';
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+        }
+</style>
+
 <div class="sidebar-inner slimscroll">
     <div id="sidebar-menu" class="sidebar-menu">
         <ul>
-            <li class="menu-title">Manage Your Company</li>
+            <li class="menu-title">&nbsp;</li>
 
             <li>
                 <a asp-area="Company" asp-controller="Dashboard" asp-action="Index">
@@ -53,6 +88,9 @@
             </li>
 
         </ul>
+        <hr class="hr-thin-modern">
+        <br>
+        @* <div class="hr-double-thin"></div> *@
         <div class="logout-btn">
             <a asp-controller="Account" asp-action="Logout" asp-area="">
                 <span class="menu-side">

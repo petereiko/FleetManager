@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FleetManager.Business.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FleetManager.App.Areas.Company.Controllers
 {
@@ -7,7 +8,14 @@ namespace FleetManager.App.Areas.Company.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            CompanyOwnerDashboardViewModel viewModel = new CompanyOwnerDashboardViewModel
+            {
+                AdminCount = 10,
+                BranchCount = 10,
+                DriverCount = 30,
+                VehicleCount = 40,
+            };
+            return View(viewModel);
         }
     }
 }

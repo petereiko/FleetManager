@@ -1,4 +1,5 @@
-﻿using FleetManager.Business;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using FleetManager.Business;
 using FleetManager.Business.Interfaces.UserModule;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -24,16 +25,24 @@ namespace FleetManager.Business.Implementations.UserModule
 
         private ClaimsPrincipal User => _accessor.HttpContext?.User;
 
+        //identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
+        //    identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
+        //    identity.AddClaim(new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? ""));
+        //    identity.AddClaim(new Claim(ClaimTypes.Name, user.UserName));
+        //    identity.AddClaim(new Claim(ClaimTypes.Actor, $"{user.LastName} {user.FirstName}"));
+        //    identity.AddClaim(new Claim(ClaimTypes.Role, commaSeparatedRoles));
+
         public string Email => _accessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value!;
         public string UserId => _accessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
-        public string Roles => _accessor.HttpContext?.User?.FindFirst("Roles")?.Value!;
-        public string FullName => _accessor.HttpContext?.User?.FindFirst("FullName")?.Value!;
+        public string Roles => _accessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value!;
+        public string FullName => _accessor.HttpContext?.User?.FindFirst(ClaimTypes.Actor)?.Value!;
+        public string FirstName => _accessor.HttpContext?.User?.FindFirst(ClaimTypes.PrimarySid)?.Value!;
 
         public long? CompanyId
         {
             get
             {
-                var companyClaim = User?.FindFirst("CompanyId")?.Value;
+                var companyClaim = User?.FindFirst(ClaimTypes.Country)?.Value;
                 return long.TryParse(companyClaim, out var id) ? id : null;
             }
         }
@@ -42,7 +51,7 @@ namespace FleetManager.Business.Implementations.UserModule
         {
             get
             {
-                var branchClaim = User?.FindFirst("CompanyBranchId")?.Value;
+                var branchClaim = User?.FindFirst(ClaimTypes.Locality)?.Value;
                 return long.TryParse(branchClaim, out var id) ? id : null;
             }
         }

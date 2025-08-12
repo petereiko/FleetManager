@@ -26,6 +26,8 @@ namespace FleetManager.Business.ViewModels
         public string? ContactPersonName { get; set; }
         public string? ContactPersonPhone { get; set; }
         public string? ContactPersonEmail { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; } = string.Empty;
         public string? Website { get; set; }
         public string? LogoUrl { get; set; }
         public bool IsVerified { get; set; }

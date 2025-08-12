@@ -54,7 +54,7 @@ namespace FleetManager.App.Controllers
 
         #region Login
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -89,42 +89,59 @@ namespace FleetManager.App.Controllers
                 return RedirectToAction("ResetPassword", new { id = user.Id, token });
             }
 
-            bool correctPassword = await _userManager.CheckPasswordAsync(user, model.Password);
-            if (!correctPassword && model.Password != _configuration["AppConstants:Asiri"])
+            var signInResult = await _signInManager.PasswordSignInAsync(user, model.Password!, model.RememberMe, false);
+
+            if (signInResult.Succeeded)
             {
-                model.Errors.Add("Invalid Email/Password");
+                TempData["SuccessMessage"] = "Login successful.";
+
+                var roles = await _userManager.GetRolesAsync(user);
+
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
+                if (roles.Contains("Super Admin"))
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                }
+                else if (roles.Contains("Company Owner"))
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "Company" });
+                }
+                else if (roles.Contains("Company Admin"))
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                }
+                else if (roles.Contains("Driver"))
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "User" });
+                }
+                else if (roles.Contains("Vendor"))
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "Vendor" });
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "No recognized role assigned. Contact support.";
+                    return RedirectToAction("Login");
+                }
+            }
+            else if (signInResult.IsLockedOut)
+            {
+                model.Errors.Add("You have been locked out");
                 return View(model);
             }
-
-            await CookieHere(user, model.RememberMe);
-            TempData["SuccessMessage"] = "Login successful.";
-
-            // Default redirects based on role
-            var roles = await _userManager.GetRolesAsync(user);
-            if (roles.Contains("Super Admin"))
+            else if (signInResult.IsNotAllowed)
             {
-                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-            }
-            else if (roles.Contains("Company Owner"))
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "Company" });
-            }
-            else if (roles.Contains("Company Admin"))
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-            }
-            else if (roles.Contains("Driver"))
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "User" });
-            }
-            else if (roles.Contains("Vendor"))
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "Vendor" });
+                model.Errors.Add("Not allowed at this time");
+                return View(model);
             }
             else
             {
-                TempData["ErrorMessage"] = "No recognized role assigned. Contact support.";
-                return RedirectToAction("Login");
+                model.Errors.Add("Invalid Email/Password");
+                return View(model);
             }
         }
 

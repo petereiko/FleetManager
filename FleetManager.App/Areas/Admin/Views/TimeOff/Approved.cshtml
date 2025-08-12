@@ -1,4 +1,5 @@
-﻿@using FleetManager.Business.ViewModels.Schedule
+﻿@using FleetManager.Business.DataObjects.Schedule
+@using FleetManager.Business.ViewModels.Schedule
 @model TimeOffApprovedListViewModel
 @{
     ViewData["Title"] = "Approved Time-Off Requests";
@@ -494,20 +495,21 @@
 
             @if (Model.ApprovedRequests.Any())
             {
+                <div class="table-responsive">
                 <table class="table custom-table" id="requestsTable">
                     <thead>
                         <tr>
                             <th><i class="fas fa-user"></i> Driver</th>
                             <th><i class="fas fa-tag"></i> Category</th>
                             <th><i class="fas fa-calendar-alt"></i> Dates</th>
-                            <th><i class="fas fa-comment"></i> Reason</th>
+                            @* <th><i class="fas fa-comment"></i> Reason</th> *@
                             <th><i class="fas fa-clock"></i> Requested</th>
                             <th><i class="fas fa-info-circle"></i> Status</th>
                             <th><i class="fas fa-cogs"></i> Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var r in Model.ApprovedRequests.OrderByDescending(x => x.ReviewedAt))
+                        @foreach (TimeOffRequestDto r in Model.ApprovedRequests.OrderByDescending(x => x.ReviewedAt))
                         {
                             var isPastRequest = r.EndDate < DateTime.Now.Date;
                             <tr id="req-row-@r.Id" class="@(isPastRequest ? "past-request" : "")">
@@ -532,16 +534,16 @@
                                         </span>
                                     }
                                 </td>
-                                <td class="reason-text" title="@r.Reason">
+                                @* <td class="reason-text" title="@r.Reason">
                                     @r.Reason
                                     @if (!string.IsNullOrEmpty(r.AdminNotes))
                                     {
                                         <div class="admin-comment">
                                             <i class="fas fa-clipboard-list"></i>
-                                            <strong>Admin:</strong> @r.AdminNotes
+                                            <strong>Admin:</strong> 
                                         </div>
                                     }
-                                </td>
+                                </td> *@
                                 <td>
                                     <div class="approved-at">
                                         <i class="fas fa-calendar-check" style="margin-right: 0.5rem;"></i>
@@ -577,6 +579,7 @@
                         }
                     </tbody>
                 </table>
+                </div>
             }
             else
             {

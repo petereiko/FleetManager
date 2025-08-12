@@ -77,6 +77,8 @@ namespace FleetManager.Business.Implementations.CompanyModule
                     return response;
                 }
 
+                var contactPerson = model.FirstName + " " + model.LastName;
+
                 var company = new Company
                 {
                     Name = model.Name!,
@@ -86,7 +88,7 @@ namespace FleetManager.Business.Implementations.CompanyModule
                     State = model.State,
                     Email = model.Email!,
                     PhoneNumber = model.PhoneNumber!,
-                    ContactPersonName = model.ContactPersonName,
+                    ContactPersonName = contactPerson,
                     ContactPersonPhone = model.ContactPersonPhone,
                     ContactPersonEmail = model.ContactPersonEmail,
                     Website = model.Website,
@@ -128,6 +130,8 @@ namespace FleetManager.Business.Implementations.CompanyModule
                     UserName = model.Email,
                     Email = model.Email,
                     PhoneNumber = model.PhoneNumber,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
                     IsActive = true,
                     CreatedDate = DateTime.UtcNow,
                     IsFirstLogin = true,
@@ -161,7 +165,7 @@ namespace FleetManager.Business.Implementations.CompanyModule
                 // 5. Email confirmation
                 string confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = WebUtility.UrlEncode(confirmationToken);
-                string url = $"{_authUser.BaseUrl}/Company/User/ConfirmEmail?encodedToken={encodedToken}&userId={user.Id}";
+                string url = $"{_authUser.BaseUrl}/Account/ConfirmEmail?encodedToken={encodedToken}&userId={user.Id}";
 
 
                 string message = $@"

@@ -4,6 +4,7 @@ using DinkToPdf;
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DVLA.Business.UserModule;
+using FleetManager.App;
 using FleetManager.Business;
 using FleetManager.Business.Database.IdentityModels;
 using FleetManager.Business.DataObjects.ReportsDto;
@@ -65,6 +66,7 @@ using Microsoft.Extensions.Options;
 using PuppeteerSharp;
 using System.Configuration;
 using System.Globalization;
+using System.Threading;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,40 +105,58 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 .AddRoleStore<RoleStore<ApplicationRole, FleetManagerDbContext, string, ApplicationUserRole, IdentityRoleClaim<string>>>()
 .AddDefaultTokenProviders();
 
+
+var tempProvider = builder.Services.BuildServiceProvider();
 // Add authentication services
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+using (var scope = tempProvider.CreateScope())
+{
+
+    builder.Services.ConfigureApplicationCookie(options =>
     {
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(540);
+        options.SlidingExpiration = true;
         options.Cookie.Name = "AuthDemo.Cookie";
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Account/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-        options.SlidingExpiration = true;
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Use HTTPS
-
-
-
-        // 👇 Custom redirect logic
-        options.Events = new CookieAuthenticationEvents
-        {
-            OnRedirectToLogin = context =>
-            {
-                var isExpired = context.Request.Cookies["AuthDemo.Cookie"] != null;
-
-                // If cookie exists but the session is invalid (likely expired)
-                if (isExpired && !context.HttpContext.User.Identity.IsAuthenticated)
-                {
-                    context.Response.Redirect("/Account/SessionExpired");
-                    return Task.CompletedTask;
-                }
-
-                context.Response.Redirect(context.RedirectUri); // default behavior
-                return Task.CompletedTask;
-            }
-        };
     });
+}
+
+
+// Add authentication services
+//builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+//    .AddCookie(options =>
+//    {
+//        options.Cookie.Name = "AuthDemo.Cookie";
+//        options.LoginPath = "/Account/Login";
+//        options.LogoutPath = "/Account/Logout";
+//        options.AccessDeniedPath = "/Account/AccessDenied";
+//        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+//        options.SlidingExpiration = true;
+//        options.Cookie.HttpOnly = true;
+//        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Use HTTPS
+
+
+
+//        // 👇 Custom redirect logic
+//        options.Events = new CookieAuthenticationEvents
+//        {
+//            OnRedirectToLogin = context =>
+//            {
+//                var isExpired = context.Request.Cookies["AuthDemo.Cookie"] != null;
+
+//                // If cookie exists but the session is invalid (likely expired)
+//                if (isExpired && !context.HttpContext.User.Identity.IsAuthenticated)
+//                {
+//                    context.Response.Redirect("/Account/SessionExpired");
+//                    return Task.CompletedTask;
+//                }
+
+//                context.Response.Redirect(context.RedirectUri); // default behavior
+//                return Task.CompletedTask;
+//            }
+//        };
+//    });
 builder.Services.AddAuthorization();
 
 builder.Services.AddHttpContextAccessor();
@@ -150,12 +170,16 @@ builder.Services.AddScoped<SignInManager<ApplicationUser>>();
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(10); // Set session duration
+    options.IdleTimeout = TimeSpan.FromMinutes(540); // Set session duration
     options.Cookie.HttpOnly = true; // Make the cookie HTTP only
     options.Cookie.IsEssential = true; // Make the cookie essential
 });
+
+
 builder.Services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<IActionContextAccessor, ActionContextAccessor>();
+
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomClaimsPrincipalFactory>();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<IUserService, UserService>();
@@ -183,24 +207,9 @@ builder.Services.AddTransient<IPublicHolidayService, PublicHolidayService>();
 
 
 //builder.Services.AddSingleton<IGoogleRoutesService, FakeRoutesService>();
-
-//builder.Services.AddTransient<IApplicantService, ApplicantService>();
-//builder.Services.AddTransient<IVisualAssessmentResultRepository, VisualAssessmentResultService>();
-//builder.Services.AddTransient<ILocationService, LocationService>();
-//builder.Services.AddTransient<IOptometristService, OptometristService>();
-//builder.Services.AddTransient<ISlotRepository, SlotRepository>();
-//builder.Services.AddTransient<ISlotUsageRepository, SlotUsageRepository>();
-//builder.Services.AddTransient<IReportRepository, ReportService>();
-//builder.Services.AddScoped(typeof(IRepositoryQuery<>), typeof(GenericRepository<>));
-//builder.Services.AddTransient<IAuditRepo, AuditRepo>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
-//builder.Services.AddTransient<IAnalyticRepository, AnalyticRepository>();
-//builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
-//builder.Services.AddTransient<IPaymentService, PaymentService>();
-//builder.Services.AddTransient<ISmsRepository, SmsRepository>();
 builder.Services.AddTransient<IAuditRepo, AuditRepo>();
 builder.Services.AddTransient<IAuthUser, AuthUser>();
-//builder.Services.AddTransient<ITempPasswordService, TempPasswordService>();
 builder.Services.AddTransient<BackgroundJobService>();
 
 

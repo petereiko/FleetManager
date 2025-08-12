@@ -12,6 +12,7 @@ using System.Net;
 namespace FleetManager.App.Areas.Company.Controllers
 {
     [Authorize]
+    [Area("Company")]
     public class UserController : Controller
     {
         private readonly ICompanyManagementService _companyService;
@@ -30,6 +31,7 @@ namespace FleetManager.App.Areas.Company.Controllers
             return View();
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult Create()
         {
@@ -38,6 +40,7 @@ namespace FleetManager.App.Areas.Company.Controllers
 
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Create(CompanyRegistrationViewModel model)
         {
             if (!ModelState.IsValid)
