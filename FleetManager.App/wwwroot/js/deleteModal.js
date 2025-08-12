@@ -1,16 +1,54 @@
-﻿(function () {
-    document.addEventListener('click', function (e) {
-        var btn = e.target.closest('.delete-btn');
-        if (!btn) return;
+﻿
 
-        e.preventDefault();
-        var id = btn.getAttribute('data-item-id'),
-            name = btn.getAttribute('data-item-name'),
-            modal = new bootstrap.Modal(document.getElementById('deleteModal'));
 
-        document.getElementById('deleteItemId').value = id;
-        document.getElementById('deleteItemName').textContent = name;
-        // the form’s action was rendered from the Partial’s model
+
+class DeleteModal {
+    constructor(text, action, controller,area, id) {
+        this.text = text;
+        this.action = action;
+        this.controller = controller;
+        this.id = id;
+        this.area = area;
+    }
+
+    openDeleteModal() {
+        const element = document.getElementById('deleteGenericModal');
+        const modal = new bootstrap.Modal(element);
+        document.getElementById('deleteRecordId').value = this.id;
+        document.getElementById('deleteRecordName').textContent = this.text;
+
+        document.getElementById('action').value = this.action;
+        document.getElementById('controller').value = this.controller;
+
         modal.show();
-    }, false);
-})();
+    }
+
+    confirmDelete() {
+        $.ajax({
+            url: `/${this.area}/${this.controller}/${this.action}/${this.id}`,
+            type: 'get',
+            dataType: 'json',
+            success: function (response) {
+                if (response.success) {
+                    showToast(response.message, 'success');
+                } else {
+                    showToast(response.message, 'danger');
+                }
+
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+            },
+            error: function (err) {
+                showToast(err.responseText, 'danger');
+            }
+        });
+    }
+}
+
+
+
+
+
+
+

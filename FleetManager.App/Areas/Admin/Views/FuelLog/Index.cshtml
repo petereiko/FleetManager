@@ -5,6 +5,7 @@
     var totalCost = Model?.Sum(x => x.Cost) ?? 0;
     var totalVolume = Model?.Sum(x => x.Volume) ?? 0;
     var logCount = Model?.Count() ?? 0;
+    Layout = "_Layout";
 }
 
 <style>
@@ -126,6 +127,9 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.5/sweetalert2.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
 
+
+
+
 <div class="content">
     <!-- Page Header with Statistics -->
     <div class="row mb-4">
@@ -230,9 +234,27 @@
                         <button type="button" class="btn btn-outline-secondary flex-fill" id="clearFilters">
                             <i class="feather-x me-1"></i>Clear
                         </button>
-                        <button type="button" class="btn btn-outline-secondary flex-fill">
+                        @* <button type="button" class="btn btn-outline-secondary flex-fill">
                             <i class="feather-download me-1"></i>Export
-                        </button>
+                        </button> *@
+                        <!-- Replace your existing export button with this -->
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-outline-secondary flex-fill dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="feather-download me-1"></i>Export
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li>
+                                    <button class="dropdown-item d-flex align-items-center" onclick="exportToExcel()">
+                                        <i class="feather-file-text me-2 text-success"></i>Export to Excel
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item d-flex align-items-center" onclick="exportToPDF()">
+                                        <i class="feather-file-text me-2 text-danger"></i>Export to PDF
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -260,6 +282,9 @@
             </div>
         </div>
         <div class="card-body p-0">
+
+            
+
             @if (Model != null && Model.Any())
             {
                 <div class="table-container">
@@ -305,8 +330,12 @@
                             </tr>
                         </thead>
                         <tbody>
+
+
+
                             @foreach (var log in Model)
                             {
+
                                 <tr class="border-bottom fuel-log-row" 
                                     data-date="@log.Date.ToString("yyyy-MM-dd")"
                                     data-driver="@log.DriverName?.ToLower()"
@@ -365,7 +394,7 @@
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <div class="dropdown">
+                                         <div class="dropdown">
                                             <button class="btn btn-light btn-sm dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
                                                 <i class="feather-more-vertical"></i>
                                             </button>
@@ -382,12 +411,29 @@
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <button class="dropdown-item d-flex align-items-center text-danger delete-btn" data-id="@log.Id" data-driver="@log.DriverName" data-vehicle="@log.VehicleDescription">
+                                                    <button class="dropdown-item d-flex align-items-center text-danger delete-btn" onclick="DeleteRecord('@log.Id','@log.DriverName','@log.VehicleDescription')" data-id="@log.Id" data-driver="@log.DriverName" data-vehicle="@log.VehicleDescription">
                                                         <i class="feather-trash-2 me-2"></i>Delete Log
                                                     </button>
                                                 </li>
                                             </ul>
                                         </div>
+                                        @* <div class="dropdown">
+                                            <button type="button" class="btn btn-light btn-sm dropdown-toggle shadow-sm" data-bs-toggle="dropdown-menu" aria-expanded="false">
+                                                <i class="feather-download me-1"></i>Export
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                                <li>
+                                                    <button class="dropdown-item d-flex align-items-center" onclick="exportToExcel()">
+                                                        <i class="feather-file-text me-2 text-success"></i>Export to Excel
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item d-flex align-items-center" onclick="exportToPDF()">
+                                                        <i class="feather-file-text me-2 text-danger"></i>Export to PDF
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div> *@
                                     </td>
                                 </tr>
                             }
@@ -448,6 +494,15 @@
 <!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.5/sweetalert2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<!-- Bootstrap 5 JavaScript Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Export Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -632,55 +687,439 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Delete confirmation functionality
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const logId = this.dataset.id;
-            const driverName = this.dataset.driver;
-            const vehicleDesc = this.dataset.vehicle;
-            
-            Swal.fire({
-                title: 'Delete Fuel Log?',
-                html: `
-                    <div class="text-start mt-3">
-                        <p class="mb-2"><strong>Driver:</strong> ${driverName}</p>
-                        <p class="mb-2"><strong>Vehicle:</strong> ${vehicleDesc}</p>
-                        <p class="text-danger mb-0"><small>This action cannot be undone.</small></p>
-                    </div>
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="feather-trash-2 me-1"></i> Yes, Delete',
-                cancelButtonText: '<i class="feather-x me-1"></i> Cancel',
-                reverseButtons: true,
-                customClass: {
-                    popup: 'swal2-border-radius'
+    // document.querySelectorAll('.delete-btn').forEach(btn => {
+    //     btn.addEventListener('click', function() {
+    //         const logId = this.dataset.id;
+    //         const driverName = this.dataset.driver;
+    //         const vehicleDesc = this.dataset.vehicle;
+
+
+    //                deleteModal.openDeleteModal("Fuel Log", "Delete", "FuelLog", logId);
+                   
+    //        //deleteModal.confirmDelete("action", "controller", 4);
+                
+
+    //         // Swal.fire({
+    //         //     title: 'Delete Fuel Log?',
+    //         //     html: `
+    //         //         <div class="text-start mt-3">
+    //         //             <p class="mb-2"><strong>Driver:</strong> ${driverName}</p>
+    //         //             <p class="mb-2"><strong>Vehicle:</strong> ${vehicleDesc}</p>
+    //         //             <p class="text-danger mb-0"><small>This action cannot be undone.</small></p>
+    //         //         </div>
+    //         //     `,
+    //         //     icon: 'warning',
+    //         //     showCancelButton: true,
+    //         //     confirmButtonColor: '#dc3545',
+    //         //     cancelButtonColor: '#6c757d',
+    //         //     confirmButtonText: '<i class="feather-trash-2 me-1"></i> Yes, Delete',
+    //         //     cancelButtonText: '<i class="feather-x me-1"></i> Cancel',
+    //         //     reverseButtons: true,
+    //         //     customClass: {
+    //         //         popup: 'swal2-border-radius'
+    //         //     }
+    //         // }).then((result) => {
+    //         //     if (result.isConfirmed) {
+    //         //         // Create and submit form
+    //         //         const form = document.createElement('form');
+    //         //         form.method = 'POST';
+    //         //         form.action = `@Url.Action("Delete", "FuelLog")/${logId}`;
+                    
+    //         //         // Add CSRF token if available
+    //         //         const token = document.querySelector('input[name="__RequestVerificationToken"]');
+    //         //         if (token) {
+    //         //             const hiddenToken = document.createElement('input');
+    //         //             hiddenToken.type = 'hidden';
+    //         //             hiddenToken.name = '__RequestVerificationToken';
+    //         //             hiddenToken.value = token.value;
+    //         //             form.appendChild(hiddenToken);
+    //         //         }
+                    
+    //         //         document.body.appendChild(form);
+    //         //         form.submit();
+    //         //     }
+    //         // });
+    //     });
+    // });
+
+        // Excel Export Function
+    
+
+
+});
+
+let _logId=0;
+
+              function DeleteRecord(logId, logDriverName, logVehicleDescription) {
+                  _logId=logId;
+            const modal = new DeleteModal("Fuel Log", "Delete", "FuelLog", "Admin", logId);
+        modal.openDeleteModal();
+    }
+
+
+    function ConfirmDelete(){
+             
+                     const modal = new DeleteModal("Fuel Log", "Delete", "FuelLog", "Admin", _logId);
+                     console.log(_logId);
+                      modal.confirmDelete();
+             
+    }
+
+    function exportToExcel() {
+            debugger
+            try {
+                // Get visible table rows (respects current filters)
+                const table = document.getElementById('fuelLogsTable');
+                const visibleRows = Array.from(table.querySelectorAll('tbody tr')).filter(row =>
+                    window.getComputedStyle(row).display !== 'none'
+                );
+
+                if (visibleRows.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Data to Export',
+                        text: 'Please ensure there are visible records to export.'
+                    });
+                    return;
                 }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Create and submit form
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `@Url.Action("Delete", "FuelLog")/${logId}`;
-                    
-                    // Add CSRF token if available
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
-                    if (token) {
-                        const hiddenToken = document.createElement('input');
-                        hiddenToken.type = 'hidden';
-                        hiddenToken.name = '__RequestVerificationToken';
-                        hiddenToken.value = token.value;
-                        form.appendChild(hiddenToken);
+
+                // Prepare data array
+                const data = [];
+
+                // Add header row
+                data.push([
+                    'Date', 'Day', 'Driver', 'Vehicle', 'Plate No', 'Odometer (km)',
+                    'Volume (L)', 'Cost (₦)', 'Price per Liter (₦)', 'Fuel Type'
+                ]);
+
+                // Add data rows from visible table rows
+                visibleRows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        const dateCell = cells[0];
+                        const driverCell = cells[1];
+                        const vehicleCell = cells[2];
+                        const odometerCell = cells[3];
+                        const volumeCell = cells[4];
+                        const costCell = cells[5];
+                        const fuelTypeCell = cells[6];
+
+                        const rowData = [
+                            dateCell.querySelector('.fw-medium').textContent.trim(), // Date
+                            dateCell.querySelector('small').textContent.trim(), // Day
+                            driverCell.querySelector('.fw-medium').textContent.trim(), // Driver
+                            vehicleCell.querySelector('.fw-medium').textContent.trim(), // Vehicle
+                            vehicleCell.querySelector('small').textContent.trim(), // Plate No
+                            odometerCell.textContent.replace(' km', '').replace(/,/g, '').trim(), // Odometer
+                            volumeCell.querySelector('.fw-medium').textContent.trim(), // Volume
+                            costCell.querySelector('.fw-bold').textContent.replace('₦', '').replace(/,/g, '').trim(), // Cost
+                            costCell.querySelector('small').textContent.replace('/L', '').trim(), // Price per liter
+                            fuelTypeCell.querySelector('.badge').textContent.trim() // Fuel Type
+                        ];
+                        data.push(rowData);
                     }
-                    
-                    document.body.appendChild(form);
-                    form.submit();
+                });
+
+                // Calculate summary from current filtered data
+                let totalCost = 0;
+                let totalVolume = 0;
+                visibleRows.forEach(row => {
+                    const cost = parseFloat(row.dataset.cost || 0);
+                    const volume = parseFloat(row.dataset.volume || 0);
+                    totalCost += cost;
+                    totalVolume += volume;
+                });
+
+                // Add summary section
+                data.push([]); // Empty row
+                data.push(['=== SUMMARY ===', '', '', '', '', '', '', '', '', '']);
+                data.push(['Total Entries:', data.length - 3, '', '', '', '', '', '', '', '']);
+                data.push(['Total Volume:', '', '', '', '', totalVolume.toFixed(2) + ' L', '', '', '', '']);
+                data.push(['Total Cost:', '', '', '', '', '', '₦' + totalCost.toLocaleString('en-US', {minimumFractionDigits: 2}), '', '', '']);
+                data.push(['Average Cost per Liter:', '', '', '', '', '', '₦' + (totalCost / totalVolume).toFixed(2), '', '', '']);
+                data.push(['Export Date:', new Date().toLocaleString(), '', '', '', '', '', '', '', '']);
+
+                // Create workbook and worksheet
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(data);
+
+                // Set column widths
+                ws['!cols'] = [
+                    { wch: 12 }, // Date
+                    { wch: 10 }, // Day
+                    { wch: 18 }, // Driver
+                    { wch: 25 }, // Vehicle
+                    { wch: 12 }, // Plate No
+                    { wch: 15 }, // Odometer
+                    { wch: 12 }, // Volume
+                    { wch: 15 }, // Cost
+                    { wch: 15 }, // Price per liter
+                    { wch: 12 }  // Fuel Type
+                ];
+
+                // Style header row
+                const headerRange = XLSX.utils.decode_range(ws['!ref']);
+                for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (!ws[cellAddress]) continue;
+                    ws[cellAddress].s = {
+                        font: { bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "4472C4" } },
+                        alignment: { horizontal: "center" }
+                    };
+                }
+
+                // Add worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, ws, "Fuel Logs");
+
+                // Generate filename with current date
+                const filename = `Fuel_Logs_${new Date().toISOString().split('T')[0]}.xlsx`;
+                XLSX.writeFile(wb, filename);
+
+                // Show success notification
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Excel Export Complete!',
+                    text: `File saved as ${filename}`,
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+
+            } catch (error) {
+                console.error('Excel Export error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Export Failed',
+                    text: 'There was an error exporting to Excel. Please try again.',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+
+        // PDF Export Function
+        function exportToPDF() {
+            debugger
+            try {
+                const { jsPDF } = window.jspdf;
+
+                // Get visible table rows (respects current filters)
+                const table = document.getElementById('fuelLogsTable');
+                const visibleRows = Array.from(table.querySelectorAll('tbody tr')).filter(row =>
+                    window.getComputedStyle(row).display !== 'none'
+                );
+
+                if (visibleRows.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Data to Export',
+                        text: 'Please ensure there are visible records to export.'
+                    });
+                    return;
+                }
+
+                // Create PDF document in landscape orientation for better table fit
+                const doc = new jsPDF('l', 'mm', 'a4');
+
+                // Add header and company info
+                doc.setFontSize(22);
+                doc.setTextColor(40, 40, 40);
+                doc.text('Fleet Fuel Logs & Expenses Report', 20, 25);
+
+                doc.setFontSize(12);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 35);
+                doc.text(`Total Records: ${visibleRows.length}`, 20, 42);
+
+                // Get current filter information if any
+                const filterResults = document.getElementById('filterResults');
+                if (filterResults && filterResults.style.display !== 'none') {
+                    const filterText = document.getElementById('filterCriteria').textContent;
+                    doc.text(`Filters: ${filterText}`, 20, 49);
+                }
+
+                // Prepare table data
+                const tableData = [];
+                visibleRows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        const dateCell = cells[0];
+                        const driverCell = cells[1];
+                        const vehicleCell = cells[2];
+                        const odometerCell = cells[3];
+                        const volumeCell = cells[4];
+                        const costCell = cells[5];
+                        const fuelTypeCell = cells[6];
+
+                        tableData.push([
+                            dateCell.querySelector('.fw-medium').textContent.trim(), // Date
+                            driverCell.querySelector('.fw-medium').textContent.trim(), // Driver
+                            vehicleCell.querySelector('.fw-medium').textContent.trim() + '\n' +
+                            vehicleCell.querySelector('small').textContent.trim(), // Vehicle + Plate
+                            odometerCell.textContent.replace(' km', '').trim(), // Odometer
+                            volumeCell.querySelector('.fw-medium').textContent.trim() + ' L', // Volume
+                            costCell.querySelector('.fw-bold').textContent.trim(), // Cost
+                            costCell.querySelector('small').textContent.replace('/L', '').trim(), // Price per liter
+                            fuelTypeCell.querySelector('.badge').textContent.trim() // Fuel Type
+                        ]);
+                    }
+                });
+
+                // Calculate totals from filtered data
+                let totalCost = 0;
+                let totalVolume = 0;
+                visibleRows.forEach(row => {
+                    totalCost += parseFloat(row.dataset.cost || 0);
+                    totalVolume += parseFloat(row.dataset.volume || 0);
+                });
+
+                // Create the main data table
+                doc.autoTable({
+                    head: [['Date', 'Driver', 'Vehicle/Plate', 'Odometer', 'Volume', 'Cost', 'Price/L', 'Fuel Type']],
+                    body: tableData,
+                    startY: filterResults && filterResults.style.display !== 'none' ? 58 : 52,
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 3,
+                        overflow: 'linebreak',
+                        halign: 'left'
+                    },
+                    headStyles: {
+                        fillColor: [68, 114, 196],
+                        textColor: 255,
+                        fontStyle: 'bold',
+                        halign: 'center',
+                        fontSize: 10
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 249, 250]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 28 }, // Date
+                        1: { cellWidth: 35 }, // Driver
+                        2: { cellWidth: 50 }, // Vehicle/Plate
+                        3: { cellWidth: 25, halign: 'right' }, // Odometer
+                        4: { cellWidth: 22, halign: 'right' }, // Volume
+                        5: { cellWidth: 30, halign: 'right' }, // Cost
+                        6: { cellWidth: 22, halign: 'right' }, // Price per liter
+                        7: { cellWidth: 25, halign: 'center' } // Fuel Type
+                    },
+                    margin: { left: 20, right: 20 },
+                    didDrawPage: function(data) {
+                        // Add page footer
+                        const pageCount = doc.internal.getNumberOfPages();
+                        const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+
+                        doc.setFontSize(8);
+                        doc.setTextColor(150);
+                        doc.text(`Page ${currentPage} of ${pageCount}`, 20, doc.internal.pageSize.height - 10);
+                        doc.text('Fleet Manager - Fuel Logs Report', doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 10);
+                    }
+                });
+
+                // Add summary section
+                const finalY = doc.lastAutoTable.finalY + 15;
+
+                // Summary title
+                doc.setFontSize(16);
+                doc.setTextColor(40, 40, 40);
+                doc.text('Report Summary', 20, finalY);
+
+                // Summary details
+                doc.setFontSize(11);
+                doc.setTextColor(80, 80, 80);
+                const summaryData = [
+                    ['Total Fuel Log Entries:', visibleRows.length.toString()],
+                    ['Total Fuel Volume:', `${totalVolume.toFixed(2)} Liters`],
+                    ['Total Fuel Cost:', `₦${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2})}`],
+                    ['Average Cost per Liter:', `₦${(totalCost / totalVolume).toFixed(2)}`],
+                    ['Date Range:', getDateRange(visibleRows)]
+                ];
+
+                // Create summary table
+                doc.autoTable({
+                    body: summaryData,
+                    startY: finalY + 8,
+                    styles: {
+                        fontSize: 11,
+                        cellPadding: 4
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 50, fontStyle: 'bold', fillColor: [245, 245, 245] },
+                        1: { cellWidth: 60, halign: 'left' }
+                    },
+                    margin: { left: 20 }
+                });
+
+                // Generate filename and save
+                const filename = `Fuel_Logs_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+                doc.save(filename);
+
+                // Show success notification
+                Swal.fire({
+                    icon: 'success',
+                    title: 'PDF Export Complete!',
+                    text: `File saved as ${filename}`,
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+
+            } catch (error) {
+                console.error('PDF Export error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Export Failed',
+                    text: 'There was an error exporting to PDF. Please try again.',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+
+        // Helper function to get date range from visible rows
+        function getDateRange(visibleRows) {
+            if (visibleRows.length === 0) return 'No data';
+
+            const dates = visibleRows.map(row => new Date(row.dataset.date)).sort((a, b) => a - b);
+            const startDate = dates[0].toLocaleDateString();
+            const endDate = dates[dates.length - 1].toLocaleDateString();
+
+            return startDate === endDate ? startDate : `${startDate} to ${endDate}`;
+        }
+
+        // Enhanced export with loading states
+        function showExportLoading(type) {
+            Swal.fire({
+                title: `Exporting to ${type}...`,
+                html: 'Please wait while we prepare your file',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
-        });
-    });
-});
+        }
+
+        // Override the export functions to show loading
+        const originalExportToExcel = exportToExcel;
+        const originalExportToPDF = exportToPDF;
+
+        exportToExcel = function() {
+            showExportLoading('Excel');
+            setTimeout(() => {
+                Swal.close();
+                originalExportToExcel();
+            }, 500);
+        };
+
+        exportToPDF = function() {
+            showExportLoading('PDF');
+            setTimeout(() => {
+                Swal.close();
+                originalExportToPDF();
+            }, 500);
+        };
+
+
 </script>
 
 

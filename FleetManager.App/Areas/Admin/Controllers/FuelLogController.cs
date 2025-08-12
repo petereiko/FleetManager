@@ -271,17 +271,18 @@ namespace FleetManager.App.Areas.Admin.Controllers
         }
 
         // ─── DELETE ──────────────────────────────────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpGet]
         public async Task<IActionResult> Delete(long id)
         {
             try
             {
                 var result = await _fuelLogService.DeleteAsync(id);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.Message;
-                else
-                    TempData["SuccessMessage"] = "Fuel log deleted successfully.";
-                return RedirectToAction(nameof(Index));
+                return Json(result);
+
+                //    TempData["ErrorMessage"] = result.Message;
+                //else
+                //    TempData["SuccessMessage"] = "Fuel log deleted successfully.";
+                //return RedirectToAction(nameof(Index));
             }
             catch (UnauthorizedAccessException)
             {
