@@ -363,7 +363,7 @@
                             <div class="col-md-4 form-group">
                                 <label asp-for="@Model.Input.CompanyBranchId" class="required-field">Assigned Branch</label>
                                 <div class="input-wrapper">
-                                    <select asp-for="@Model.Input.CompanyBranchId" class="form-control" asp-items="Model.Branches" data-required="true">
+                                    <select asp-for="@Model.Input.CompanyBranchId" class="form-control" asp-items="Model.Branches" data-required="true" disabled>
                                         <option value="">-- Select Branch --</option>
                                     </select>
                                     <div class="validation-icon"></div>

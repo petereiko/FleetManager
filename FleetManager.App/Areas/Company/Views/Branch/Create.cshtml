@@ -1,6 +1,497 @@
 ﻿@using FleetManager.Business.DataObjects
 @model CompanyBranchDto
 
+<style>
+    .head-office-modal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .head-office-modal .modal-header {
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        color: white;
+        padding: 25px 30px 20px;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .head-office-modal .modal-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        backdrop-filter: blur(10px);
+    }
+
+        .head-office-modal .modal-icon i {
+            font-size: 1.8rem;
+            color: white;
+        }
+
+    .head-office-modal .modal-title-content {
+        flex: 1;
+    }
+
+    .head-office-modal .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+        color: white;
+    }
+
+    .head-office-modal .modal-subtitle {
+        font-size: 0.95rem;
+        margin: 0;
+        opacity: 0.9;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .head-office-modal .modal-body {
+        padding: 30px;
+        background: #f8fafc;
+    }
+
+    .alert-content {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .warning-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+        .warning-icon i {
+            font-size: 1.3rem;
+            color: white;
+        }
+
+    .alert-text {
+        flex: 1;
+    }
+
+        .alert-text h6 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .alert-text p {
+            color: #64748b;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+    .alert-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px 0;
+    }
+
+        .alert-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            color: #475569;
+            font-weight: 500;
+        }
+
+            .alert-list li i {
+                color: #3b82f6;
+                font-size: 0.9rem;
+            }
+
+    .consequence-note {
+        background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+        padding: 15px;
+        border-radius: 12px;
+        border-left: 4px solid #3b82f6;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+        .consequence-note i {
+            color: #3b82f6;
+            font-size: 1.1rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .consequence-note span {
+            color: #1e40af;
+            font-weight: 500;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+    .head-office-modal .modal-footer {
+        padding: 20px 30px 30px;
+        border: none;
+        background: #f8fafc;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+    }
+
+    .head-office-modal .btn {
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        font-size: 0.95rem;
+    }
+
+    .head-office-modal .btn-secondary {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+        .head-office-modal .btn-secondary:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+    .head-office-modal .btn-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+        .head-office-modal .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+    /* Animation for modal */
+    .modal.fade .modal-dialog {
+        transition: transform 0.4s ease-out, opacity 0.3s ease-out;
+        transform: translate(0, -50px) scale(0.95);
+    }
+
+    .modal.show .modal-dialog {
+        transform: translate(0, 0) scale(1);
+    }
+
+    /* Pulse animation for checkbox when checked */
+    @@keyframes pulseCheck {
+        0% {
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+        }
+    }
+
+    .head-office-checked {
+        animation: pulseCheck 0.6s ease-out;
+    }
+</style>
+
+
+<div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row">
+            <div class="col-sm-12">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Branches</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">Add Branch</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-heading">
+                                    <h4>Add Branch</h4>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Name">Branch Name <span class="login-danger">*</span></label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter branch name" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Address">Address <span class="login-danger">*</span></label>
+                                    <input asp-for="Address" class="form-control" placeholder="Enter address" />
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Phone">Phone <span class="login-danger">*</span></label>
+                                    <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Email">Email</label>
+                                    <input asp-for="Email" class="form-control" placeholder="Enter email" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="ManagerName">Manager Name</label>
+                                    <input asp-for="ManagerName" class="form-control" placeholder="Enter manager name" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="ManagerPhone">Manager Phone</label>
+                                    <input asp-for="ManagerPhone" class="form-control" placeholder="Enter manager phone" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="ManagerEmail">Manager Email</label>
+                                    <input asp-for="ManagerEmail" class="form-control" placeholder="Enter manager email" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-check mt-4">
+                                    <input asp-for="IsHeadOffice" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsHeadOffice" class="form-check-label">Is Head Office</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="StateId">State <span class="login-danger">*</span></label>
+                                    <select asp-for="StateId" id="StateId" class="form-control" asp-items="ViewBag.States">
+                                        <option value="">-- Select State --</option>
+                                    </select>
+                                    <span asp-validation-for="StateId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="input-block local-forms">
+                                    <label asp-for="LgaId">LGA <span class="login-danger">*</span></label>
+                                    <select asp-for="LgaId" id="LgaId" class="form-control" disabled>
+                                        <option value="">-- Select LGA --</option>
+                                    </select>
+                                    <span asp-validation-for="LgaId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+
+                            <div class="col-12">
+                                <div class="input-block local-forms">
+                                    <label asp-for="Notes">Notes</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Leave Additional Notes">Optional!</textarea>
+                                </div>
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-primary submit-form me-2">Submit</button>
+                                <a asp-action="Index" class="btn btn-secondary cancel-form">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Head Office Alert Modal -->
+<div class="modal fade" id="headOfficeModal" tabindex="-1" aria-labelledby="headOfficeModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content head-office-modal">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="modal-title-content">
+                    <h5 class="modal-title" id="headOfficeModalLabel">Set New Head Office</h5>
+                    <p class="modal-subtitle">Important: This action will affect your organization structure</p>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="alert-content">
+                    <div class="warning-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-text">
+                        <h6>Are you sure you want to set this branch as the Head Office?</h6>
+                        <p>By selecting "Is Head Office" for this branch:</p>
+                        <ul class="alert-list">
+                            <li><i class="fas fa-arrow-right"></i> Any existing Head Office will be automatically deactivated</li>
+                            <li><i class="fas fa-arrow-right"></i> This branch will become the new primary Head Office</li>
+                            <li><i class="fas fa-arrow-right"></i> All organizational hierarchy will be updated accordingly</li>
+                        </ul>
+                        <div class="consequence-note">
+                            <i class="fas fa-info-circle"></i>
+                            <span>This change will take effect immediately and cannot be undone from this form.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelHeadOffice">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" id="confirmHeadOffice">
+                    <i class="fas fa-check me-1"></i>Yes, Set as Head Office
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        // Existing LGA loading script
+        document.getElementById("StateId").addEventListener("change", function () {
+            var stateId = this.value;
+            var lgaDropdown = document.getElementById("LgaId");
+
+            // Clear and disable initially
+            lgaDropdown.innerHTML = '<option value="">-- Select LGA --</option>';
+            lgaDropdown.disabled = true;
+
+            if (stateId) {
+                fetch(`/Company/Branch/GetLgasByState?stateId=${stateId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(function (lga) {
+                            var option = document.createElement("option");
+                            option.value = lga.id;
+                            option.text = lga.name;
+                            lgaDropdown.appendChild(option);
+                        });
+                        lgaDropdown.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error("Error fetching LGAs:", error);
+                    });
+            }
+        });
+
+        // Head Office Alert Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const headOfficeCheckbox = document.getElementById('IsHeadOffice');
+            const headOfficeModal = new bootstrap.Modal(document.getElementById('headOfficeModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+
+            let isConfirmed = false;
+
+            // Handle checkbox change
+            headOfficeCheckbox.addEventListener('change', function(e) {
+                if (this.checked && !isConfirmed) {
+                    // Prevent the change temporarily
+                    this.checked = false;
+
+                    // Show the modal
+                    headOfficeModal.show();
+                }
+            });
+
+            // Handle modal confirmation
+            document.getElementById('confirmHeadOffice').addEventListener('click', function() {
+                isConfirmed = true;
+                headOfficeCheckbox.checked = true;
+                headOfficeCheckbox.classList.add('head-office-checked');
+
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    headOfficeCheckbox.classList.remove('head-office-checked');
+                }, 600);
+
+                headOfficeModal.hide();
+
+                // Reset confirmation flag after a short delay
+                setTimeout(() => {
+                    isConfirmed = false;
+                }, 100);
+            });
+
+            // Handle modal cancellation
+            document.getElementById('cancelHeadOffice').addEventListener('click', function() {
+                headOfficeCheckbox.checked = false;
+                headOfficeModal.hide();
+            });
+
+            // Handle modal close with X button or escape key
+            document.getElementById('headOfficeModal').addEventListener('hidden.bs.modal', function() {
+                if (!headOfficeCheckbox.checked) {
+                    isConfirmed = false;
+                }
+            });
+        });
+    </script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects
+@model CompanyBranchDto
+
 <div class="content">
 
     <!-- Page Header -->
@@ -150,3 +641,4 @@
     </script>
 
 }
+ *@

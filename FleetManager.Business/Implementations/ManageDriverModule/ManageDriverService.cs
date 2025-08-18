@@ -119,7 +119,7 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                     return resp;
                 }
 
-                DriverDocument? savedImage = await SaveDriverFileAsync(null, dto.PassportPhoto, DriverDocumentType.LicensePhoto);
+                DriverDocument? savedImage = await SaveDriverFileAsync(null, dto.PassportPhoto, DriverDocumentType.PassportPhoto);
                 
 
 
@@ -199,8 +199,15 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                     resp.Message = "Driver not found.";
                     return resp;
                 }
+                string newPassportFileName = "";
+                if (dto.PassportFile != null)
+                {
+                    DriverDocument? savedImage = await SaveDriverFileAsync(null, dto.PassportFile, DriverDocumentType.PassportPhoto);
+                    newPassportFileName = savedImage.FileName;
+                }
 
                 // map changes
+                entity.PassportFileName = dto.PassportFileName == null ? entity.PassportFileName : newPassportFileName;
                 entity.Address = dto.Address;
                 entity.DateOfBirth = dto.DateOfBirth;
                 entity.Gender = dto.Gender;
@@ -213,9 +220,15 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
 
                 entity.ModifiedBy = modifiedByUserId;
                 entity.ModifiedDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
 
-                await _context.SaveChangesAsync().ConfigureAwait(false);
-                await tx.CommitAsync().ConfigureAwait(false);
+                if (dto.LicensePhoto != null)
+                {
+                    DriverDocument? savedImage = await SaveDriverFileAsync(null, dto.PassportFile, DriverDocumentType.PassportPhoto);
+                    newPassportFileName = savedImage.FileName;
+                }
+
+                await tx.CommitAsync();
 
                 resp.Success = true;
                 resp.Result = dto;
@@ -310,6 +323,7 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                 ShiftStatus = d.ShiftStatus,
                 IsActive = d.IsActive,
                 CreatedDate = d.CreatedDate,
+                 PassportFileName = _authUser.BaseUrl+"/driverimages/profile/"+ d.PassportFileName,
 
                 // split out your two doc‐types:
                 DriverDocuments = d.DriverDocuments

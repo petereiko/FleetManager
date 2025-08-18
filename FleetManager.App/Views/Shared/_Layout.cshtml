@@ -90,7 +90,7 @@
     <!-- Feathericon CSS -->
     <link rel="stylesheet" href="~/assets/css/feather.css">
 
-    
+
 
 
 
@@ -186,6 +186,428 @@
             padding: 20px;
             color: #999;
         }
+
+
+        <!-- Footer -->
+
+        .fleetmanager-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            z-index: 999;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Adjust for sidebar */
+        body:not(.slide-nav) .fleetmanager-footer {
+            left: 250px;
+        }
+
+        body.slide-nav .fleetmanager-footer {
+            left: 0;
+        }
+
+        /* Mobile responsiveness */
+        @@media (max-width: 991px) {
+            .fleetmanager-footer
+
+        {
+            left: 0 !important;
+        }
+
+        }
+
+        .footer-toggle {
+            position: absolute;
+            top: -45px;
+            right: 30px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 20px 20px 0 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.25);
+            user-select: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: none;
+        }
+
+            .footer-toggle:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.3);
+                background: linear-gradient(135deg, #163458 0%, #1f4788 100%);
+            }
+
+        .footer-toggle-text {
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #footerToggleIcon {
+            transition: transform 0.3s ease;
+            font-size: 14px;
+        }
+
+        .footer-minimized #footerToggleIcon {
+            transform: rotate(180deg);
+        }
+
+        .footer-content {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .footer-minimized .footer-content {
+            max-height: 0;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 30px 20px;
+        }
+
+        .footer-section {
+            height: 100%;
+        }
+
+        .footer-brand-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-description {
+            color: #e8f2ff;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer-title {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 20px;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+            .footer-title::after {
+                content: '';
+                position: absolute;
+                bottom: -8px;
+                left: 0;
+                width: 30px;
+                height: 2px;
+                background: linear-gradient(90deg, #ffffff, rgba(255, 255, 255, 0.3));
+                border-radius: 2px;
+            }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            .footer-links li {
+                margin-bottom: 12px;
+            }
+
+            .footer-links a {
+                color: #e8f2ff;
+                text-decoration: none;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                padding: 5px 0;
+                border-radius: 4px;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            }
+
+                .footer-links a:hover {
+                    color: #ffffff;
+                    background: rgba(255, 255, 255, 0.15);
+                    padding-left: 8px;
+                    transform: translateX(4px);
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                }
+
+                .footer-links a i {
+                    width: 20px;
+                    margin-right: 10px;
+                    font-size: 12px;
+                    color: #b3d9ff;
+                }
+
+        .footer-social {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            color: #ffffff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+            .social-link:hover {
+                background: rgba(255, 255, 255, 0.25);
+                color: #ffffff;
+                transform: translateY(-3px) scale(1.1);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+            .contact-item:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .contact-item i {
+                color: #b3d9ff;
+                font-size: 16px;
+                margin-top: 2px;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            }
+
+            .contact-item div {
+                flex: 1;
+            }
+
+            .contact-item strong {
+                display: block;
+                color: #ffffff;
+                font-size: 13px;
+                font-weight: 600;
+                margin-bottom: 2px;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            }
+
+            .contact-item span {
+                color: #e8f2ff;
+                font-size: 13px;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            }
+
+        .footer-bottom {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .copyright {
+            color: #e8f2ff;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+            .copyright strong {
+                color: #ffffff;
+                font-weight: 700;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            }
+
+        .footer-legal {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+            .footer-legal a {
+                color: #e8f2ff;
+                text-decoration: none;
+                font-size: 13px;
+                padding: 6px 12px;
+                border-radius: 20px;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                text-transform: uppercase;
+                font-weight: 500;
+                letter-spacing: 0.3px;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            }
+
+                .footer-legal a:hover {
+                    color: #ffffff;
+                    background: rgba(255, 255, 255, 0.15);
+                    border-color: rgba(255, 255, 255, 0.3);
+                    transform: translateY(-1px);
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                }
+
+        /* Animation states */
+        .footer-minimized .footer-content {
+            max-height: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        .footer-minimized .footer-toggle {
+            background: rgba(102, 126, 234, 0.9);
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .footer-container
+
+        {
+            padding: 30px 20px 15px;
+        }
+
+        .footer-legal {
+            justify-content: flex-start;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+            .footer-legal a {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+
+        .contact-info {
+            gap: 10px;
+        }
+
+        .contact-item {
+            padding: 10px;
+        }
+
+        .footer-toggle {
+            right: 20px;
+            padding: 6px 12px;
+        }
+
+        .footer-toggle-text {
+            display: none;
+        }
+
+        }
+
+        @@media (max-width: 576px) {
+            .footer-social
+
+        {
+            justify-content: center;
+        }
+
+        .footer-legal {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .social-link {
+            width: 35px;
+            height: 35px;
+        }
+
+        }
+
+        /* Ensure main content has bottom padding when footer is visible */
+        .page-wrapper {
+            transition: padding-bottom 0.4s ease;
+        }
+
+        .footer-visible .page-wrapper {
+            padding-bottom: 350px;
+        }
+
+        .footer-minimized.footer-visible .page-wrapper {
+            padding-bottom: 0;
+        }
+
+        /* Professional loading animation */
+        @@keyframes footerSlideUp {
+            from
+
+        {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        }
+
+        .fleetmanager-footer {
+            animation: footerSlideUp 0.6s ease-out;
+        }
+
+        /* Glass morphism effect */
+        .footer-section {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+            .footer-section:hover {
+                background: rgba(255, 255, 255, 0.08);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+
     </style>
 </head>
 
@@ -205,7 +627,7 @@
                     <a class="btn"><img src="~/assets/img/icons/search-normal.svg" alt=""></a>
                 </form>
             </div>
-             
+
             <ul class="nav user-menu float-end">
                 <li class="nav-item dropdown d-none d-md-block">
                     <a href="#" class="dropdown-toggle nav-link position-relative" data-bs-toggle="dropdown" id="notificationDropdown">
@@ -387,6 +809,148 @@
             </div>
         </div>
     </div>
+
+
+
+    <!-- FleetManager Professional Footer -->
+    <footer class="fleetmanager-footer" id="mainFooter">
+        <!-- Footer Toggle Button -->
+        <div class="footer-toggle" id="footerToggle">
+            <i class="fas fa-chevron-up" id="footerToggleIcon"></i>
+            <span class="footer-toggle-text">Footer</span>
+        </div>
+
+        <!-- Footer Content -->
+        <div class="footer-content" id="footerContent">
+            <div class="footer-container">
+                <div class="row">
+                    <!-- Company Info Section -->
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="footer-section">
+                            <div class="footer-brand mb-3">
+                                <div class="d-flex align-items-center">
+                                    <img src="~/assets/img/logo.png" width="28" height="28" alt="FleetGuard Logo" class="me-2">
+                                    <span class="footer-brand-text">@companyName</span>
+                                </div>
+                            </div>
+                            <p class="footer-description">
+                                Professional fleet management solution providing real-time tracking,
+                                maintenance scheduling, and comprehensive analytics for optimal operations.
+                            </p>
+                            <div class="footer-social">
+                                <a href="#" class="social-link" title="Facebook">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                                <a href="#" class="social-link" title="Twitter">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="social-link" title="LinkedIn">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <a href="#" class="social-link" title="YouTube">
+                                    <i class="fab fa-youtube"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Services Section -->
+                    <div class="col-lg-2 col-md-6 mb-4">
+                        <div class="footer-section">
+                            <h6 class="footer-title">Services</h6>
+                            <ul class="footer-links">
+                                <li><a href="#"><i class="fas fa-car-side"></i>Fleet Tracking</a></li>
+                                <li><a href="#"><i class="fas fa-route"></i>Route Optimization</a></li>
+                                <li><a href="#"><i class="fas fa-tools"></i>Maintenance</a></li>
+                                <li><a href="#"><i class="fas fa-gas-pump"></i>Fuel Management</a></li>
+                                <li><a href="#"><i class="fas fa-chart-bar"></i>Analytics</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Resources Section -->
+                    <div class="col-lg-2 col-md-6 mb-4">
+                        <div class="footer-section">
+                            <h6 class="footer-title">Resources</h6>
+                            <ul class="footer-links">
+                                <li><a href="#"><i class="fas fa-question-circle"></i>Help Center</a></li>
+                                <li><a href="#"><i class="fas fa-book"></i>Documentation</a></li>
+                                <li><a href="#"><i class="fas fa-video"></i>Video Tutorials</a></li>
+                                <li><a href="#"><i class="fas fa-download"></i>Downloads</a></li>
+                                <li><a href="#"><i class="fas fa-comments"></i>Community</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Support Section -->
+                    <div class="col-lg-2 col-md-6 mb-4">
+                        <div class="footer-section">
+                            <h6 class="footer-title">Support</h6>
+                            <ul class="footer-links">
+                                <li><a href="#"><i class="fas fa-headset"></i>Contact Support</a></li>
+                                <li><a href="#"><i class="fas fa-bug"></i>Report Issues</a></li>
+                                <li><a href="#"><i class="fas fa-lightbulb"></i>Feature Requests</a></li>
+                                <li><a href="#"><i class="fas fa-graduation-cap"></i>Training</a></li>
+                                <li><a href="#"><i class="fas fa-life-ring"></i>Live Chat</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Contact Section -->
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="footer-section">
+                            <h6 class="footer-title">Get In Touch</h6>
+                            <div class="contact-info">
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <div>
+                                        <strong>Email Support</strong>
+                                        <span>support@fleetguard.com</span>
+                                    </div>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-phone"></i>
+                                    <div>
+                                        <strong>Phone Support</strong>
+                                        <span>+1 (555) 123-4567</span>
+                                    </div>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-clock"></i>
+                                    <div>
+                                        <strong>Business Hours</strong>
+                                        <span>Mon-Fri: 8:00 AM - 6:00 PM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Bottom -->
+                <div class="footer-bottom">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="copyright">
+                                <span>© @DateTime.Now.Year <strong>@companyName</strong>. All rights reserved.</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="footer-legal">
+                                <a href="#">Privacy Policy</a>
+                                <a href="#">Terms of Service</a>
+                                <a href="#">Cookie Policy</a>
+                                <a href="#">Security</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+
     <div class="sidebar-overlay" data-reff=""></div>
 
     <audio id="notification-sound" src="/sounds/notify.mp3" preload="auto"></audio>
@@ -413,7 +977,7 @@
                     <div class="d-inline">
                         <input type="hidden" name="id" id="deleteRecordId" />
                         <input type="hidden" id="action" />
-                        <input type="hidden" id="controller"  />
+                        <input type="hidden" id="controller" />
                         <button id="confirm-delete" onclick="ConfirmDelete()" type="button" class="btn btn-danger">
                             <i class="fas fa-trash me-1"></i>Delete Record
                         </button>
@@ -423,6 +987,87 @@
         </div>
     </div>
 
+
+    <!-- Footer JavaScript -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const footer = document.getElementById('mainFooter');
+            const footerToggle = document.getElementById('footerToggle');
+            const footerContent = document.getElementById('footerContent');
+            const footerToggleIcon = document.getElementById('footerToggleIcon');
+            const pageWrapper = document.querySelector('.page-wrapper');
+
+            // Initialize footer state
+            let isMinimized = localStorage.getItem('footerMinimized') === 'true';
+
+            // Set initial state
+            if (isMinimized) {
+                footer.classList.add('footer-minimized');
+                footerToggleIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                document.body.classList.remove('footer-visible');
+            } else {
+                document.body.classList.add('footer-visible');
+            }
+
+            // Toggle functionality
+            footerToggle.addEventListener('click', function() {
+                isMinimized = !isMinimized;
+
+                if (isMinimized) {
+                    footer.classList.add('footer-minimized');
+                    footerToggleIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                    document.body.classList.remove('footer-visible');
+                } else {
+                    footer.classList.remove('footer-minimized');
+                    footerToggleIcon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                    document.body.classList.add('footer-visible');
+                }
+
+                // Save state
+                localStorage.setItem('footerMinimized', isMinimized);
+            });
+
+            // Handle sidebar toggle
+            const toggleBtn = document.getElementById('toggle_btn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    // Small delay to let sidebar animation complete
+                    setTimeout(() => {
+                        footer.style.transition = 'left 0.3s ease';
+                    }, 50);
+                });
+            }
+
+            // Smooth scroll to top when footer links are clicked
+            const footerLinks = footer.querySelectorAll('a[href="#"]');
+            footerLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            // Add subtle parallax effect on scroll
+            let ticking = false;
+            function updateFooterParallax() {
+                const scrolled = window.pageYOffset;
+                const parallax = scrolled * 0.1;
+                footer.style.transform = `translateY(${Math.min(parallax, 10)}px)`;
+                ticking = false;
+            }
+
+            window.addEventListener('scroll', function() {
+                if (!ticking && !isMinimized) {
+                    requestAnimationFrame(updateFooterParallax);
+                    ticking = true;
+                }
+            });
+        });
+    </script>
 
 
     <!-- Alert auto-hide script -->
@@ -478,7 +1123,7 @@
 
 
 
-     
+
 
 
     <!-- Google Maps Web Components (Required for gmpx-placeautocomplete to work) -->
@@ -863,6 +1508,7 @@
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 
 </html>
 

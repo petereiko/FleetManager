@@ -61,10 +61,10 @@ namespace FleetManager.Business.ViewModels
 
         // New file‐upload properties:
         [Display(Name = "Driver's License Photo")]
-        public IFormFile LicensePhoto { get; set; }
+        public IFormFile? LicensePhoto { get; set; }
 
         [Display(Name = "Profile Photo")]
-        public IFormFile ProfilePhoto { get; set; }
+        public IFormFile? ProfilePhoto { get; set; }
 
         public string? PassportFileName { get; set; }
 

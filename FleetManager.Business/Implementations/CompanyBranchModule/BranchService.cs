@@ -1,6 +1,7 @@
 ﻿using FleetManager.Business.Database.Entities;
 using FleetManager.Business.DataObjects;
 using FleetManager.Business.Interfaces.ComapyBranchModule;
+using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.UtilityModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -17,33 +18,29 @@ namespace FleetManager.Business.Implementations.CompanyBranchModule
     {
         private readonly FleetManagerDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAuthUser _authUser;
 
-        public BranchService(FleetManagerDbContext context, IHttpContextAccessor httpContextAccessor)
+        public BranchService(FleetManagerDbContext context, IHttpContextAccessor httpContextAccessor, IAuthUser authUser)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
-        }
-
-        private long? GetCompanyId()
-        {
-            var email = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
-            var user = _context.Users.FirstOrDefault(u => u.Email == email);
-            return user?.CompanyId;
+            _authUser = authUser;
         }
 
         public async Task<IEnumerable<CompanyBranchDto>> GetBranchesForCompanyAsync()
         {
-            var companyId = GetCompanyId();
-            if (companyId == null) return Enumerable.Empty<CompanyBranchDto>();
+            if (_authUser.CompanyId == null) return Enumerable.Empty<CompanyBranchDto>();
 
-            return await _context.CompanyBranches
+            var list = await _context.CompanyBranches
                 .AsNoTracking()
-                .Where(b => b.CompanyId == companyId)
+                .Where(b => b.CompanyId == _authUser.CompanyId)
+                .OrderByDescending(b => b.IsHeadOffice)    // handle nullable bool safely
+                .ThenBy(b => b.Name)                                // secondary sort
                 .Include(b => b.State)
                 .Include(b => b.Lga)
                 .Select(b => new CompanyBranchDto
                 {
-                    CompanyId=b.CompanyId,
+                    CompanyId = b.CompanyId,
                     Id = b.Id,
                     Name = b.Name,
                     Address = b.Address,
@@ -58,7 +55,10 @@ namespace FleetManager.Business.Implementations.CompanyBranchModule
                     LgaId = b.LgaId,
                     StateName = b.State != null ? b.State.Name : "",
                     LgaName = b.Lga != null ? b.Lga.Name : ""
-                }).ToListAsync();
+                })
+                .ToListAsync();
+
+            return list;
         }
 
         public async Task<CompanyBranchDto?> GetBranchByIdAsync(long id)
@@ -85,8 +85,7 @@ namespace FleetManager.Business.Implementations.CompanyBranchModule
 
         public async Task<MessageResponse> AddBranchAsync(CompanyBranchDto dto)
         {
-            var companyId = GetCompanyId();
-            if (companyId == null) return new() { Message = "Company not found." };
+            if (_authUser.CompanyId == null) return new() { Message = "Company not found." };
 
             var entity = new CompanyBranch
             {
@@ -101,8 +100,19 @@ namespace FleetManager.Business.Implementations.CompanyBranchModule
                 Notes = dto.Notes,
                 StateId = dto.StateId,
                 LgaId = dto.LgaId,
-                CompanyId = companyId
+                CompanyId = _authUser.CompanyId
             };
+
+            if (dto.IsHeadOffice)
+            {
+                //Deactivate all other branches that has head office
+                var currentBranches = _context.CompanyBranches.Where(x => x.CompanyId == _authUser.CompanyId);
+                foreach (var branch in currentBranches) 
+                {
+                    branch.IsHeadOffice = false;
+                }
+                _context.CompanyBranches.UpdateRange(currentBranches);
+            }
 
             _context.CompanyBranches.Add(entity);
             await _context.SaveChangesAsync();
@@ -126,9 +136,22 @@ namespace FleetManager.Business.Implementations.CompanyBranchModule
             branch.Notes = dto.Notes;
             branch.StateId = dto.StateId;
             branch.LgaId = dto.LgaId;
-
-            _context.CompanyBranches.Update(branch);
             await _context.SaveChangesAsync();
+
+            if (dto.IsHeadOffice)
+            {
+                //Deactivate all other branches that has head office
+                var currentBranches = _context.CompanyBranches.Where(x => x.CompanyId == _authUser.CompanyId && x.Id != branch.Id);
+                foreach (var selectedBranch in currentBranches)
+                {
+                    selectedBranch.IsHeadOffice = false;
+                }
+                _context.CompanyBranches.UpdateRange(currentBranches);
+                await _context.SaveChangesAsync();
+            }
+
+            
+            
 
             return new() { Success = true, Message = "Branch updated successfully." };
         }

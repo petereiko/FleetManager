@@ -160,6 +160,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 var branches = await _branchService.GetBranchesForCompanyAsync();
                 vm.Branches = branches.Select(b => new SelectListItem(b.Name, b.Id.ToString()));
                 await PopulateSelectsAsync(vm);
+                var branch = _authUser.CompanyBranchId; 
 
                 if (!ModelState.IsValid)
                     return View(vm);
@@ -178,7 +179,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     EmploymentStatus = i.EmploymentStatus,
                     LicenseNumber = i.LicenseNumber,
                     LicenseExpiryDate = i.LicenseExpiryDate,
-                    CompanyBranchId = i.CompanyBranchId,
+                    //CompanyBranchId = branch.Value,
                     LicenseCategory = i.LicenseCategory,
                     ShiftStatus = i.ShiftStatus,
 
@@ -281,6 +282,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 vm.Genders = _driverService.GetGenderOptions();
                 vm.EmploymentStatuses = _driverService.GetEmploymentStatusOptions();
                 vm.ShiftStatuses = _driverService.GetShiftStatusOptions();
+                vm.LicenseCategories = _driverService.GetLicenseCategoryOptions();
 
                 return View(vm);
             }
@@ -306,6 +308,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 vm.Genders = _driverService.GetGenderOptions();
                 vm.EmploymentStatuses = _driverService.GetEmploymentStatusOptions();
                 vm.ShiftStatuses = _driverService.GetShiftStatusOptions();
+                vm.LicenseCategories= _driverService.GetLicenseCategoryOptions();
 
                 if (!ModelState.IsValid)
                     return View(vm);

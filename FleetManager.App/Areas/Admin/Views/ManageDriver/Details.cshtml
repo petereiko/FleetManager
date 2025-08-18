@@ -1401,7 +1401,8 @@
 
                 <div class="hero-main">
                     <div class="hero-avatar">
-                        @Model.FirstName.Substring(0, 1)@Model.LastName.Substring(0, 1)
+                        <img src="@(Model.PassportFileName ?? "/driverimages/profile/default-avatar.jpg")"
+                             alt="@Model.FullName" width="120" height="120" style="border-radius:120px" />
                     </div>
 
                     <div class="hero-info">

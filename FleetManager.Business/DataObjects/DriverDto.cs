@@ -30,6 +30,7 @@ namespace FleetManager.Business.DataObjects
         public DateTime CreatedDate { get; set; }
         public List<DriverDocumentDto> DriverDocuments { get; set; } = new();
         public IFormFile? PassportFile { get; set; }
+        public IFormFile? LicensePhoto { get; set; }
         public string? PassportFileName { get; set; }
     }
 

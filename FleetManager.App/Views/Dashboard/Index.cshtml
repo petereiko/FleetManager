@@ -2,6 +2,684 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var userName = $"{user.FirstName}";
+}
+<div class="content">
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="row">
+			<div class="col-sm-12">
+				<ul class="breadcrumb">
+					<li class="breadcrumb-item"><a href="index.html">Dashboard </a></li>
+					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+					<li class="breadcrumb-item active">Driver Dashboard</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<!-- /Page Header -->
+
+	<div class="good-morning-blk">
+		<div class="row">
+			<div class="col-md-6">
+				<div class="morning-user">
+					<!-- Dynamic message to userName shows here -->
+				</div>
+			</div>
+			<div class="col-md-6 position-blk">
+				<div class="morning-img">
+					<img src="~/assets/img/morning-img-03.png" alt="">
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Driver Statistics Cards -->
+	<div class="row">
+		<div class="col-xl-3 col-sm-6 col-12">
+			<div class="card">
+				<div class="card-body">
+					<div class="dash-widget-header">
+						<span class="dash-widget-icon text-primary border-primary">
+							<i class="fe fe-truck"></i>
+						</span>
+						<div class="dash-count">
+							<h3>2,847</h3>
+						</div>
+					</div>
+					<div class="dash-widget-info">
+						<h6 class="text-muted">Total Miles Driven</h6>
+						<div class="progress progress-sm">
+							<div class="progress-bar bg-primary w-75"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 col-12">
+			<div class="card">
+				<div class="card-body">
+					<div class="dash-widget-header">
+						<span class="dash-widget-icon text-success">
+							<i class="fe fe-clock"></i>
+						</span>
+						<div class="dash-count">
+							<h3>168.5</h3>
+						</div>
+					</div>
+					<div class="dash-widget-info">
+						<h6 class="text-muted">Hours This Month</h6>
+						<div class="progress progress-sm">
+							<div class="progress-bar bg-success w-68"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 col-12">
+			<div class="card">
+				<div class="card-body">
+					<div class="dash-widget-header">
+						<span class="dash-widget-icon text-danger border-danger">
+							<i class="fe fe-target"></i>
+						</span>
+						<div class="dash-count">
+							<h3>97.8%</h3>
+						</div>
+					</div>
+					<div class="dash-widget-info">
+						<h6 class="text-muted">Safety Score</h6>
+						<div class="progress progress-sm">
+							<div class="progress-bar bg-danger w-98"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 col-12">
+			<div class="card">
+				<div class="card-body">
+					<div class="dash-widget-header">
+						<span class="dash-widget-icon text-warning border-warning">
+							<i class="fe fe-check-circle"></i>
+						</span>
+						<div class="dash-count">
+							<h3>43</h3>
+						</div>
+					</div>
+					<div class="dash-widget-info">
+						<h6 class="text-muted">Deliveries Completed</h6>
+						<div class="progress progress-sm">
+							<div class="progress-bar bg-warning w-86"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Vehicle Status & Performance Charts -->
+	<div class="row">
+		<!-- Vehicle Information -->
+		<div class="col-md-6 col-lg-4">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Assigned Vehicle</h5>
+				</div>
+				<div class="card-body">
+					<div class="vehicle-info">
+						<div class="vehicle-details">
+							<h6>Freightliner Cascadia</h6>
+							<p class="text-muted mb-1">Fleet ID: FLT-2847</p>
+							<p class="text-muted mb-1">License: ABC-123-TX</p>
+							<p class="text-muted mb-3">Mileage: 287,549 miles</p>
+						</div>
+						<div class="vehicle-status">
+							<div class="status-item d-flex justify-content-between">
+								<span>Fuel Level</span>
+								<span class="text-success">78%</span>
+							</div>
+							<div class="progress progress-xs mb-3">
+								<div class="progress-bar bg-success" style="width: 78%"></div>
+							</div>
+							<div class="status-item d-flex justify-content-between">
+								<span>Engine Health</span>
+								<span class="text-warning">Good</span>
+							</div>
+							<div class="progress progress-xs mb-3">
+								<div class="progress-bar bg-warning" style="width: 85%"></div>
+							</div>
+							<div class="status-item d-flex justify-content-between">
+								<span>Tire Condition</span>
+								<span class="text-success">Excellent</span>
+							</div>
+							<div class="progress progress-xs">
+								<div class="progress-bar bg-success" style="width: 95%"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Weekly Performance Chart -->
+		<div class="col-md-6 col-lg-8">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Weekly Performance</h5>
+				</div>
+				<div class="card-body">
+					<canvas id="weeklyChart" height="250"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Today's Schedule & Fuel Efficiency -->
+	<div class="row">
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Today's Schedule</h5>
+				</div>
+				<div class="card-body">
+					<div class="schedule-list">
+						<div class="schedule-item d-flex align-items-center mb-3 p-3 border-left-success">
+							<div class="schedule-time">
+								<span class="badge badge-success">08:00</span>
+							</div>
+							<div class="schedule-content ml-3">
+								<h6 class="mb-1">Warehouse Pickup</h6>
+								<p class="text-muted mb-0">Load freight from Distribution Center A</p>
+								<small class="text-muted">Dallas, TX - 1247 Industrial Blvd</small>
+							</div>
+						</div>
+						<div class="schedule-item d-flex align-items-center mb-3 p-3 border-left-primary">
+							<div class="schedule-time">
+								<span class="badge badge-primary">12:30</span>
+							</div>
+							<div class="schedule-content ml-3">
+								<h6 class="mb-1">Delivery Stop 1</h6>
+								<p class="text-muted mb-0">Client: TechCorp Industries</p>
+								<small class="text-muted">Houston, TX - 5642 Business Park Dr</small>
+							</div>
+						</div>
+						<div class="schedule-item d-flex align-items-center mb-3 p-3 border-left-warning">
+							<div class="schedule-time">
+								<span class="badge badge-warning">15:45</span>
+							</div>
+							<div class="schedule-content ml-3">
+								<h6 class="mb-1">Delivery Stop 2</h6>
+								<p class="text-muted mb-0">Client: MegaMart Distribution</p>
+								<small class="text-muted">Austin, TX - 2891 Commerce Way</small>
+							</div>
+						</div>
+						<div class="schedule-item d-flex align-items-center p-3 border-left-info">
+							<div class="schedule-time">
+								<span class="badge badge-info">18:00</span>
+							</div>
+							<div class="schedule-content ml-3">
+								<h6 class="mb-1">Return to Base</h6>
+								<p class="text-muted mb-0">End of shift - Vehicle inspection</p>
+								<small class="text-muted">Dallas, TX - Fleet Terminal</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Recent Activities</h5>
+				</div>
+				<div class="card-body">
+					<div class="activity-list">
+						<div class="activity-item d-flex align-items-start mb-3">
+							<div class="activity-icon bg-success">
+								<i class="fe fe-check-circle text-white"></i>
+							</div>
+							<div class="activity-content ml-3">
+								<h6 class="mb-1">Delivery Completed</h6>
+								<p class="text-muted mb-0">Successfully delivered to MegaMart Distribution</p>
+								<small class="text-muted">2 hours ago</small>
+							</div>
+						</div>
+						<div class="activity-item d-flex align-items-start mb-3">
+							<div class="activity-icon bg-primary">
+								<i class="fe fe-truck text-white"></i>
+							</div>
+							<div class="activity-content ml-3">
+								<h6 class="mb-1">Route Started</h6>
+								<p class="text-muted mb-0">Began delivery route from Dallas Distribution Center</p>
+								<small class="text-muted">6 hours ago</small>
+							</div>
+						</div>
+						<div class="activity-item d-flex align-items-start mb-3">
+							<div class="activity-icon bg-warning">
+								<i class="fe fe-alert-triangle text-white"></i>
+							</div>
+							<div class="activity-content ml-3">
+								<h6 class="mb-1">Fuel Stop</h6>
+								<p class="text-muted mb-0">Refueled at Flying J Travel Center - I-35 South</p>
+								<small class="text-muted">4 hours ago</small>
+							</div>
+						</div>
+						<div class="activity-item d-flex align-items-start">
+							<div class="activity-icon bg-info">
+								<i class="fe fe-message-square text-white"></i>
+							</div>
+							<div class="activity-content ml-3">
+								<h6 class="mb-1">Message from Dispatch</h6>
+								<p class="text-muted mb-0">"Weather alert for I-45 corridor - exercise caution"</p>
+								<small class="text-muted">1 hour ago</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+@* 		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Fuel Efficiency Trend</h5>
+				</div>
+				<div class="card-body">
+					<canvas id="fuelChart" height="300"></canvas>
+					<div class="mt-3">
+						<div class="row text-center">
+							<div class="col-4">
+								<h4 class="text-primary">6.2</h4>
+								<p class="text-muted mb-0">Current MPG</p>
+							</div>
+							<div class="col-4">
+								<h4 class="text-success">6.8</h4>
+								<p class="text-muted mb-0">Fleet Average</p>
+							</div>
+							<div class="col-4">
+								<h4 class="text-warning">5.9</h4>
+								<p class="text-muted mb-0">Last Month</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+ *@	</div>
+
+	<!-- Recent Activities & Safety Metrics -->
+	<div class="row">
+		<div class="col-md-8">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Recent Activities</h5>
+				</div>
+				<div class="card-body">
+					<div class="activity-list">
+						<div class="activity-item d-flex align-items-start mb-3">
+							<div class="activity-icon bg-success">
+								<i class="fe fe-check-circle text-white"></i>
+							</div>
+							<div class="activity-content ml-3">
+								<h6 class="mb-1">Delivery Completed</h6>
+								<p class="text-muted mb-0">Successfully delivered to MegaMart Distribution</p>
+								<small class="text-muted">2 hours ago</small>
+							</div>
+						</div>
+						<div class="activity-item d-flex align-items-start mb-3">
+							<div class="activity-icon bg-primary">
+								<i class="fe fe-truck text-white"></i>
+							</div>
+							<div class="activity-content ml-3">
+								<h6 class="mb-1">Route Started</h6>
+								<p class="text-muted mb-0">Began delivery route from Dallas Distribution Center</p>
+								<small class="text-muted">6 hours ago</small>
+							</div>
+						</div>
+						<div class="activity-item d-flex align-items-start mb-3">
+							<div class="activity-icon bg-warning">
+								<i class="fe fe-alert-triangle text-white"></i>
+							</div>
+							<div class="activity-content ml-3">
+								<h6 class="mb-1">Fuel Stop</h6>
+								<p class="text-muted mb-0">Refueled at Flying J Travel Center - I-35 South</p>
+								<small class="text-muted">4 hours ago</small>
+							</div>
+						</div>
+						<div class="activity-item d-flex align-items-start">
+							<div class="activity-icon bg-info">
+								<i class="fe fe-message-square text-white"></i>
+							</div>
+							<div class="activity-content ml-3">
+								<h6 class="mb-1">Message from Dispatch</h6>
+								<p class="text-muted mb-0">"Weather alert for I-45 corridor - exercise caution"</p>
+								<small class="text-muted">1 hour ago</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Safety Metrics</h5>
+				</div>
+				<div class="card-body">
+					<div class="safety-metrics">
+						<div class="metric-item mb-4">
+							<div class="d-flex justify-content-between mb-2">
+								<span>Safe Driving Score</span>
+								<span class="text-success font-weight-bold">97.8%</span>
+							</div>
+							<div class="progress progress-sm">
+								<div class="progress-bar bg-success" style="width: 97.8%"></div>
+							</div>
+						</div>
+
+						<div class="metric-item mb-4">
+							<div class="d-flex justify-content-between mb-2">
+								<span>Speed Compliance</span>
+								<span class="text-primary font-weight-bold">94.2%</span>
+							</div>
+							<div class="progress progress-sm">
+								<div class="progress-bar bg-primary" style="width: 94.2%"></div>
+							</div>
+						</div>
+
+						<div class="metric-item mb-4">
+							<div class="d-flex justify-content-between mb-2">
+								<span>On-Time Delivery</span>
+								<span class="text-warning font-weight-bold">89.5%</span>
+							</div>
+							<div class="progress progress-sm">
+								<div class="progress-bar bg-warning" style="width: 89.5%"></div>
+							</div>
+						</div>
+
+						<div class="safety-stats mt-4">
+							<div class="row text-center">
+								<div class="col-6 border-right">
+									<h4 class="text-success">142</h4>
+									<p class="text-muted mb-0">Days Accident Free</p>
+								</div>
+								<div class="col-6">
+									<h4 class="text-primary">0</h4>
+									<p class="text-muted mb-0">Violations</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Monthly Performance Summary -->
+	<div class="row">
+		<div class="col-12">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Monthly Performance Summary</h5>
+				</div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-lg-8">
+							<canvas id="monthlyChart" height="200"></canvas>
+						</div>
+						<div class="col-lg-4">
+							<div class="performance-summary">
+								<h6 class="mb-3">Key Achievements This Month</h6>
+								<div class="achievement-item d-flex align-items-center mb-3">
+									<div class="achievement-icon bg-success mr-3">
+										<i class="fe fe-award text-white"></i>
+									</div>
+									<div>
+										<h6 class="mb-0">Safety Champion</h6>
+										<small class="text-muted">Zero safety incidents</small>
+									</div>
+								</div>
+								<div class="achievement-item d-flex align-items-center mb-3">
+									<div class="achievement-icon bg-primary mr-3">
+										<i class="fe fe-clock text-white"></i>
+									</div>
+									<div>
+										<h6 class="mb-0">On-Time Excellence</h6>
+										<small class="text-muted">95% delivery punctuality</small>
+									</div>
+								</div>
+								<div class="achievement-item d-flex align-items-center">
+									<div class="achievement-icon bg-warning mr-3">
+										<i class="fe fe-trending-up text-white"></i>
+									</div>
+									<div>
+										<h6 class="mb-0">Efficiency Improved</h6>
+										<small class="text-muted">Fuel efficiency up 8%</small>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+	(function(){
+	  const name = "@userName";          // injected by Razor
+	  const hour = new Date().getHours();
+	  let greeting, subMessage;
+	  if (hour < 12) {
+		greeting   = "Good Morning";
+		subMessage = "Ready for another safe day on the road. Drive smart, deliver excellence!";
+	  } else if (hour < 17) {
+		greeting   = "Good Afternoon";
+		subMessage = "Keeping the wheels turning! Stay focused and safe out there.";
+	  } else {
+		greeting   = "Good Evening";
+		subMessage = "Another productive day completed. Rest well for tomorrow's journey.";
+	  }
+	  const container = document.querySelector('.morning-user');
+	  container.innerHTML = `
+		<h2>${greeting}, <span>${name}</span></h2>
+		<p>${subMessage}</p>
+	  `;
+	})();
+
+	// Weekly Performance Chart
+	document.addEventListener('DOMContentLoaded', function() {
+		const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+		new Chart(weeklyCtx, {
+			type: 'line',
+			data: {
+				labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+				datasets: [{
+					label: 'Miles Driven',
+					data: [420, 380, 450, 390, 470, 320, 0],
+					borderColor: '#007bff',
+					backgroundColor: 'rgba(0, 123, 255, 0.1)',
+					tension: 0.4
+				}, {
+					label: 'Hours Worked',
+					data: [10.5, 9.2, 11.0, 8.8, 10.8, 7.5, 0],
+					borderColor: '#28a745',
+					backgroundColor: 'rgba(40, 167, 69, 0.1)',
+					tension: 0.4,
+					yAxisID: 'y1'
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				scales: {
+					y: {
+						type: 'linear',
+						display: true,
+						position: 'left',
+						title: { display: true, text: 'Miles' }
+					},
+					y1: {
+						type: 'linear',
+						display: true,
+						position: 'right',
+						title: { display: true, text: 'Hours' },
+						grid: { drawOnChartArea: false }
+					}
+				}
+			}
+		});
+
+		// Fuel Efficiency Chart
+		const fuelCtx = document.getElementById('fuelChart').getContext('2d');
+		new Chart(fuelCtx, {
+			type: 'bar',
+			data: {
+				labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+				datasets: [{
+					label: 'MPG',
+					data: [5.8, 6.1, 6.4, 6.2],
+					backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#007bff'],
+					borderRadius: 5
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				scales: {
+					y: {
+						beginAtZero: true,
+						max: 8,
+						title: { display: true, text: 'Miles per Gallon' }
+					}
+				}
+			}
+		});
+
+		// Monthly Performance Chart
+		const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+		new Chart(monthlyCtx, {
+			type: 'doughnut',
+			data: {
+				labels: ['Completed', 'In Progress', 'Scheduled'],
+				datasets: [{
+					data: [43, 5, 12],
+					backgroundColor: ['#28a745', '#ffc107', '#6c757d'],
+					borderWidth: 0
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					legend: {
+						position: 'bottom'
+					}
+				}
+			}
+		});
+	});
+</script>
+
+<style>
+	.border-left-success {
+		border-left: 4px solid #28a745 !important;
+	}
+
+	.border-left-primary {
+		border-left: 4px solid #007bff !important;
+	}
+
+	.border-left-warning {
+		border-left: 4px solid #ffc107 !important;
+	}
+
+	.border-left-info {
+		border-left: 4px solid #17a2b8 !important;
+	}
+
+	.activity-icon {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.achievement-icon {
+		width: 35px;
+		height: 35px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.progress-xs {
+		height: 3px;
+	}
+
+	.vehicle-info {
+		text-align: center;
+	}
+
+	.schedule-time {
+		flex-shrink: 0;
+	}
+
+	.card {
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		border: none;
+		border-radius: 8px;
+	}
+
+	.dash-widget-icon {
+		width: 60px;
+		height: 60px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 24px;
+	}
+
+	.dash-widget-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.Database.IdentityModels
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 
 @{
 	var user = await UserManager.GetUserAsync(User);
@@ -86,3 +764,4 @@
 	  `;
 	})();
 </script>
+ *@

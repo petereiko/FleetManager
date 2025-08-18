@@ -312,49 +312,19 @@ namespace FleetManager.Business.Implementations.CompanyModule
         #endregion
 
         public UserViewModel GetUserData()
-        {
-            var httpContext = _contextAccessor.HttpContext;
-            if (httpContext == null || !httpContext.User.Identity.IsAuthenticated)
-                throw new InvalidOperationException("User is not authenticated.");
-
-            var user = httpContext.User;
-            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                ?? throw new InvalidOperationException("Missing NameIdentifier claim.");
-            var email = user.FindFirst(ClaimTypes.Email)?.Value
-                ?? throw new InvalidOperationException("Missing Email claim.");
-            var fullName = user.FindFirst("FullName")?.Value ?? "";
-
-            // --- Required CompanyId ---
-            var companyClaim = user.FindFirst("CompanyId")?.Value
-                ?? throw new InvalidOperationException("Missing CompanyId claim.");
-            if (!long.TryParse(companyClaim, out var companyId))
-                throw new InvalidOperationException($"Invalid CompanyId claim value: '{companyClaim}'.");
-
-            // Optional BranchId
-            long? branchId = null;
-            var branchClaim = user.FindFirst("CompanyBranchId")?.Value;
-            if (!string.IsNullOrEmpty(branchClaim))
-            {
-                if (long.TryParse(branchClaim, out var bid))
-                    branchId = bid;
-                else
-                    throw new InvalidOperationException($"Invalid CompanyBranchId claim value: '{branchClaim}'.");
-            }
-
-            // Roles → CheckBoxListItemDto
-            var rolesClaim = user.FindFirst("Roles")?.Value ?? "";
-            var rolesList = rolesClaim
+        { 
+            var rolesList = _authUser.Roles
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(r => new CheckBoxListItemDto { Id = r, Name = r, IsChecked = true })
                 .ToList();
 
             return new UserViewModel
             {
-                UserId = userId,
-                Email = email,
-                FullName = fullName,
-                CompanyId = companyId,           // now non-nullable
-                CompanyBranchId = branchId,
+                UserId = _authUser.UserId,
+                Email = _authUser.Email,
+                FullName = _authUser.FullName,
+                CompanyId = _authUser.CompanyId.GetValueOrDefault(),           // now non-nullable
+                CompanyBranchId = _authUser.CompanyBranchId,
                 Roles = rolesList
             };
         }
