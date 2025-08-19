@@ -20,6 +20,7 @@ namespace FleetManager.Business.Database.Entities
         public virtual VendorCategory? Category { get; set; }
 
         public string? Services { get; set; }
+        public virtual ICollection<ContactRating> Ratings { get; set; } = new List<ContactRating>();
     }
 
 }

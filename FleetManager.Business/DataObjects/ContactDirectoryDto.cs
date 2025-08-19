@@ -23,6 +23,9 @@ namespace FleetManager.Business.DataObjects
 
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate {  get; set; }
+        public double AverageRating { get; set; }
+        public int RatingCount { get; set; }
     }
-
 }
+
+

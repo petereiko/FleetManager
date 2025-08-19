@@ -149,12 +149,15 @@ namespace FleetManager.Business.Implementations.ContactDirectoryModule
         public async Task<ContactDirectoryDto?> GetContactByIdAsync(long id)
         {
             EnsureAdminOrOwner();
+
             var contact = await _context.ContactDirectories
-                .AsNoTracking()
-                .Include(c => c.Category)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                        .AsNoTracking()
+                        .Include(c => c.Category)
+                        .FirstOrDefaultAsync(c => c.Id == id);
 
             if (contact == null) return null;
+
+            var (avg, count, _) = await GetRatingStatsAsync(id);
 
             return new ContactDirectoryDto
             {
@@ -168,41 +171,217 @@ namespace FleetManager.Business.Implementations.ContactDirectoryModule
                 CategoryName = contact.Category?.Name,
                 Services = contact.Services,
                 IsActive = contact.IsActive,
-                CreatedDate = contact.CreatedDate
+                CreatedDate = contact.CreatedDate,
+                AverageRating = Math.Round(avg, 2),
+                RatingCount = count
             };
         }
 
         public async Task<List<ContactDirectoryDto>> GetAllContactsAsync()
         {
             EnsureAdminOrOwner();
-            var bId =  _authUser.CompanyBranchId
-                       ?? throw new InvalidOperationException("BranchId missing");
+            var bId = _authUser.CompanyBranchId ?? throw new InvalidOperationException("BranchId missing");
 
             var contacts = await _context.ContactDirectories
                                 .AsNoTracking()
                                 .Include(c => c.Category)
-                                .Include(c => c.CompanyBranch)
                                 .Where(c => c.CompanyBranchId == bId)
                                 .OrderByDescending(c => c.CreatedDate)
                                 .ToListAsync();
 
-            return contacts
-                .Select(c => new ContactDirectoryDto
+            // get ratings grouped
+            var contactIds = contacts.Select(c => c.Id).ToList();
+
+            var ratingGroups = await _context.Set<ContactRating>()
+                                  .Where(r => contactIds.Contains(r.ContactDirectoryId))
+                                  .GroupBy(r => r.ContactDirectoryId)
+                                  .Select(g => new { ContactId = g.Key, Avg = g.Average(x => x.Rating), Count = g.Count() })
+                                  .ToListAsync();
+
+            var ratingDict = ratingGroups.ToDictionary(x => x.ContactId, x => (avg: x.Avg, count: x.Count));
+
+            return contacts.Select(c =>
             {
-                Id = c.Id,
-                ContactName = c.ContactName,
-                Email = c.Email,
-                PhoneNumber = c.PhoneNumber,
-                Address = c.Address,
-                VendorName = c.VendorName,
-                CategoryId = c.CategoryId,
-                CategoryName = c.Category?.Name,
-                Services = c.Services,
-                IsActive = c.IsActive,
-                CreatedDate = c.CreatedDate
+                ratingDict.TryGetValue(c.Id, out var stats);
+                var avg = stats == default ? 0 : stats.avg;
+                var count = stats == default ? 0 : stats.count;
+
+                return new ContactDirectoryDto
+                {
+                    Id = c.Id,
+                    ContactName = c.ContactName,
+                    Email = c.Email,
+                    PhoneNumber = c.PhoneNumber,
+                    Address = c.Address,
+                    VendorName = c.VendorName,
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.Category?.Name,
+                    Services = c.Services,
+                    IsActive = c.IsActive,
+                    CreatedDate = c.CreatedDate,
+                    AverageRating = Math.Round(avg, 2),
+                    RatingCount = count
+                };
             }).ToList();
         }
 
+        public async Task<MessageResponse<ContactRatingResultDto>> AddOrUpdateRatingAsync(ContactRatingDto dto)
+        {
+            // allow any authenticated user to rate; if you want to restrict, use EnsureAdminOrOwner()
+            var resp = new MessageResponse<ContactRatingResultDto>();
+
+            if (string.IsNullOrWhiteSpace(_authUser.UserId))
+            {
+                resp.Message = "User must be authenticated to rate.";
+                return resp;
+            }
+
+            if (dto.Rating < 1 || dto.Rating > 5)
+            {
+                resp.Message = "Rating must be between 1 and 5.";
+                return resp;
+            }
+
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // ensure contact exists and belongs to the user's branch if needed
+                var contact = await _context.ContactDirectories
+                                    .FirstOrDefaultAsync(c => c.Id == dto.ContactId);
+                if (contact == null)
+                {
+                    resp.Message = "Contact not found.";
+                    return resp;
+                }
+
+                // optional: ensure same branch or same company, depending on rules
+                // if (contact.CompanyBranchId != _authUser.CompanyBranchId) { ... }
+
+                var existing = await _context.Set<ContactRating>()
+                                    .SingleOrDefaultAsync(r => r.ContactDirectoryId == dto.ContactId
+                                                               && r.UserId == _authUser.UserId);
+
+                if (existing != null)
+                {
+                    existing.Rating = dto.Rating;
+                    existing.Comment = dto.Comment;
+                    existing.CompanyBranchId = _authUser.CompanyBranchId;
+                    existing.ModifiedBy = _authUser.UserId;
+                    existing.ModifiedDate = DateTime.UtcNow;
+                }
+                else
+                {
+                    var newRating = new ContactRating
+                    {
+                        ContactDirectoryId = dto.ContactId,
+                        Rating = dto.Rating,
+                        Comment = dto.Comment,
+                        CompanyBranchId = _authUser.CompanyBranchId,
+                        UserId = _authUser.UserId!,
+                        UserDisplayName = _authUser.FullName, // if you have it
+                        CreatedBy = _authUser.UserId,
+                        CreatedDate = DateTime.UtcNow
+                    };
+                    _context.Set<ContactRating>().Add(newRating);
+                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                // compute updated stats (single query)
+                var stats = await _context.Set<ContactRating>()
+                             .Where(r => r.ContactDirectoryId == dto.ContactId)
+                             .GroupBy(r => r.ContactDirectoryId)
+                             .Select(g => new
+                             {
+                                 Avg = g.Average(x => x.Rating),
+                                 Count = g.Count()
+                             }).FirstOrDefaultAsync();
+
+                resp.Success = true;
+                resp.Result = new ContactRatingResultDto
+                {
+                    ContactId = dto.ContactId,
+                    AverageRating = stats?.Avg ?? 0,
+                    RatingCount = stats?.Count ?? 0
+                };
+
+                return resp;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "AddOrUpdateRatingAsync failed");
+                resp.Message = "Failed to save rating.";
+                return resp;
+            }
+        }
+
+        public async Task<MessageResponse<ContactRatingResultDto>> RemoveMyRatingAsync(long contactId)
+        {
+            var resp = new MessageResponse<ContactRatingResultDto>();
+            if (string.IsNullOrWhiteSpace(_authUser.UserId))
+            {
+                resp.Message = "User must be authenticated.";
+                return resp;
+            }
+
+            try
+            {
+                var existing = await _context.Set<ContactRating>()
+                    .SingleOrDefaultAsync(r => r.ContactDirectoryId == contactId && r.UserId == _authUser.UserId);
+
+                if (existing == null)
+                {
+                    resp.Message = "No rating to remove.";
+                    return resp;
+                }
+
+                _context.Set<ContactRating>().Remove(existing);
+                await _context.SaveChangesAsync();
+
+                var stats = await _context.Set<ContactRating>()
+                             .Where(r => r.ContactDirectoryId == contactId)
+                             .GroupBy(r => r.ContactDirectoryId)
+                             .Select(g => new { Avg = g.Average(x => x.Rating), Count = g.Count() })
+                             .FirstOrDefaultAsync();
+
+                resp.Success = true;
+                resp.Result = new ContactRatingResultDto
+                {
+                    ContactId = contactId,
+                    AverageRating = stats?.Avg ?? 0,
+                    RatingCount = stats?.Count ?? 0
+                };
+
+                return resp;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "RemoveMyRatingAsync failed");
+                resp.Message = "Failed to remove rating.";
+                return resp;
+            }
+        }
+
+        public async Task<(double avg, int count, Dictionary<int, int> distribution)> GetRatingStatsAsync(long contactId)
+        {
+            // distribution and average in one pass
+            var ratings = await _context.Set<ContactRating>()
+                                .Where(r => r.ContactDirectoryId == contactId)
+                                .GroupBy(r => r.Rating)
+                                .Select(g => new { Rating = g.Key, Count = g.Count() })
+                                .ToListAsync();
+
+            var total = ratings.Sum(r => r.Count);
+            var weightedSum = ratings.Sum(r => r.Rating * r.Count);
+            var avg = total == 0 ? 0 : (double)weightedSum / total;
+
+            var distribution = ratings.ToDictionary(x => x.Rating, x => x.Count);
+            // ensure keys 1..5 exist
+            for (int i = 1; i <= 5; i++) if (!distribution.ContainsKey(i)) distribution[i] = 0;
+
+            return (avg, total, distribution);
+        }
 
 
 

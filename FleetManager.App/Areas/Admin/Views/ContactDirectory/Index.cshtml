@@ -36,6 +36,1100 @@
         user-select: none;
     }
 
+        .sortable:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+    .sort-icon {
+        margin-left: 5px;
+        opacity: 0.5;
+        font-size: 0.8rem;
+    }
+
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .btn-group .btn {
+        border-radius: 0.25rem;
+        margin-right: 2px;
+    }
+
+        .btn-group .btn:last-child {
+            margin-right: 0;
+        }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    /* Enhanced Rating Styles */
+    .rating-summary {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 8px;
+        padding: 2px 6px;
+        background: rgba(255, 193, 7, 0.1);
+        border-radius: 12px;
+        font-size: 0.8rem;
+    }
+
+    .rating-stars {
+        display: inline-flex;
+        margin-right: 4px;
+    }
+
+    .rating-star {
+        color: #ddd;
+        font-size: 12px;
+        margin-right: 1px;
+    }
+
+        .rating-star.filled {
+            color: #ffc107;
+        }
+
+        .rating-star.partial {
+            background: linear-gradient(90deg, #ffc107 var(--fill-percentage), #ddd var(--fill-percentage));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+    .rating-average {
+        font-weight: 600;
+        color: #333;
+        margin-right: 2px;
+    }
+
+    .rating-count {
+        color: #666;
+        font-size: 0.75rem;
+    }
+
+    .no-rating {
+        color: #999;
+        font-style: italic;
+        font-size: 0.8rem;
+    }
+
+    /* Enhanced Rate Button */
+    .rate-btn {
+        background: linear-gradient(45deg, #ffc107, #ffb300);
+        border: none;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .rate-btn:hover {
+            background: linear-gradient(45deg, #ffb300, #ff8f00);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 193, 7, 0.4);
+            color: white;
+        }
+
+        .rate-btn::before {
+            content: '⭐';
+            margin-right: 4px;
+        }
+
+        .rate-btn:hover::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: ripple 0.6s ease-out;
+        }
+
+    @@keyframes ripple {
+        to
+
+    {
+        width: 100%;
+        height: 100%;
+    }
+
+    }
+
+    /* Card Rating Enhancements */
+    .card-rating {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .card-rating-stars {
+        display: flex;
+        align-items: center;
+    }
+
+    .card-rating-info {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    /* Rating Modal Button Enhancement */
+    .rating-modal-trigger {
+        transition: all 0.3s ease;
+    }
+
+        .rating-modal-trigger:hover {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            transform: scale(1.05);
+        }
+
+    /* Statistics Cards Enhancement */
+    .stats-card {
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+        .stats-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card.primary-border {
+            border-left-color: #007bff;
+        }
+
+        .stats-card.success-border {
+            border-left-color: #28a745;
+        }
+
+        .stats-card.info-border {
+            border-left-color: #17a2b8;
+        }
+
+        .stats-card.warning-border {
+            border-left-color: #ffc107;
+        }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="fas fa-address-book me-2"></i>Contact Directory
+            </h2>
+            <p class="text-muted mb-0">Manage your business contacts and vendor information</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Create" class="btn btn-success btn-lg shadow-sm">
+                <i class="fas fa-plus me-2"></i>Add New Contact
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="input-group">
+                <span class="input-group-text bg-light">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control" id="searchInput" placeholder="Search contacts by name, vendor, category, or email...">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="categoryFilter">
+                <option value="">All Categories</option>
+                @foreach (var category in Model.Select(c => c.CategoryName).Distinct().OrderBy(c => c))
+                {
+                    <option value="@category">@category</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white stats-card primary-border">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Contacts</h6>
+                            <h3 class="mb-0">@Model.Count()</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white stats-card success-border">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Active Contacts</h6>
+                            <h3 class="mb-0">@Model.Count(c => c.IsActive)</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white stats-card info-border">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Vendors</h6>
+                            <h3 class="mb-0">@Model.Select(c => c.VendorName).Distinct().Count()</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-building fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white stats-card warning-border">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Categories</h6>
+                            <h3 class="mb-0">@Model.Select(c => c.CategoryName).Distinct().Count()</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-tags fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contacts Table -->
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Contact List
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" id="tableView">
+                            <i class="fas fa-table"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="cardView">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <!-- Table View -->
+            <div id="tableContainer" class="table-responsive">
+                <table class="table table-hover mb-0" id="contactsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="sortable" data-sort="contact">
+                                <i class="fas fa-user me-1"></i>Contact Name
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-sort="vendor">
+                                <i class="fas fa-building me-1"></i>Vendor
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="sortable" data-sort="category">
+                                <i class="fas fa-tag me-1"></i>Category
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th><i class="fas fa-phone me-1"></i>Phone</th>
+                            <th><i class="fas fa-envelope me-1"></i>Email</th>
+                            @* <th><i class="fas fa-map-marker-alt me-1"></i>Location</th> *@
+                            <th><i class="fas fa-star me-1"></i>Rating</th>
+                            <th class="text-center"><i class="fas fa-signal me-1"></i>Status</th>
+                            <th class="text-center" width="150">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var contact in Model.OrderBy(c => c.ContactName))
+                        {
+                            <tr class="contact-row" data-contact="@contact.ContactName?.ToLower()"
+                                data-vendor="@contact.VendorName?.ToLower()"
+                                data-category="@contact.CategoryName?.ToLower()"
+                                data-email="@contact.Email?.ToLower()">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            @(contact.ContactName?.Substring(0, 1).ToUpper() ?? "?")
+                                        </div>
+                                        <div>
+                                            <strong>@contact.ContactName</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">@contact.VendorName</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@contact.CategoryName</span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(contact.PhoneNumber))
+                                    {
+                                        <a href="tel:@contact.PhoneNumber" class="text-decoration-none">
+                                            <i class="fas fa-phone me-1"></i>@contact.PhoneNumber
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(contact.Email))
+                                    {
+                                        <a href="mailto:@contact.Email" class="text-decoration-none">
+                                            <i class="fas fa-envelope me-1"></i>@contact.Email
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                @* <td>
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        @(contact.Address?.Length > 30 ? contact.Address.Substring(0, 30) + "..." : contact.Address)
+                                    </small>
+                                </td> *@
+                                <td>
+                                    <div class="rating-summary" id="rating-summary-@contact.Id">
+                                        @if (contact.AverageRating > 0)
+                                        {
+                                            <div class="rating-stars" data-rating="@contact.AverageRating">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <i class="rating-star fas fa-star"></i>
+                                                }
+                                            </div>
+                                            <span class="rating-average">@contact.AverageRating.ToString("F1")</span>
+                                            <span class="rating-count">(@contact.RatingCount)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-rating">Not rated</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    @if (contact.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-pause-circle me-1"></i>Inactive
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-outline-info rating-modal-trigger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#detailsModal"
+                                                data-url="@Url.Action("Details", new { id = contact.Id })"
+                                                data-bs-toggle="tooltip"
+                                                title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a asp-action="Edit" asp-route-id="@contact.Id"
+                                           class="btn btn-outline-primary"
+                                           data-bs-toggle="tooltip"
+                                           title="Edit Contact">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm rate-btn"
+                                                data-id="@contact.Id"
+                                                data-bs-toggle="tooltip"
+                                                title="Rate this contact">
+                                            Rate
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-outline-danger delete-btn"
+                                                data-contact-id="@contact.Id"
+                                                data-contact-name="@contact.ContactName"
+                                                data-bs-toggle="tooltip"
+                                                title="Delete Contact">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Card View (Initially Hidden) -->
+            <div id="cardContainer" style="display: none;" class="p-3">
+                <div class="row" id="contactCards">
+                    @foreach (var contact in Model.OrderBy(c => c.ContactName))
+                    {
+                        <div class="col-md-6 col-lg-4 mb-3 contact-card"
+                             data-contact="@contact.ContactName?.ToLower()"
+                             data-vendor="@contact.VendorName?.ToLower()"
+                             data-category="@contact.CategoryName?.ToLower()"
+                             data-email="@contact.Email?.ToLower()">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="avatar-circle-lg">
+                                            @(contact.ContactName?.Substring(0, 1).ToUpper() ?? "?")
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                    type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <button class="dropdown-item"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#detailsModal"
+                                                            data-url="@Url.Action("Details", new { id = contact.Id })">
+                                                        <i class="fas fa-eye me-2"></i>View Details
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" asp-action="Edit" asp-route-id="@contact.Id">
+                                                        <i class="fas fa-edit me-2"></i>Edit
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item rate-btn"
+                                                            data-id="@contact.Id">
+                                                        <i class="fas fa-star me-2"></i>Rate Contact
+                                                    </button>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger delete-btn"
+                                                            data-contact-id="@contact.Id"
+                                                            data-contact-name="@contact.ContactName">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <h6 class="card-title">@contact.ContactName</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-building me-1"></i>@contact.VendorName
+                                        </small><br>
+                                        <span class="badge bg-secondary">@contact.CategoryName</span>
+                                    </p>
+                                    <div class="mb-2">
+                                        @if (!string.IsNullOrEmpty(contact.PhoneNumber))
+                                        {
+                                            <div class="mb-1">
+                                                <a href="tel:@contact.PhoneNumber" class="text-decoration-none">
+                                                    <i class="fas fa-phone me-1"></i>@contact.PhoneNumber
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(contact.Email))
+                                        {
+                                            <div class="mb-1">
+                                                <a href="mailto:@contact.Email" class="text-decoration-none">
+                                                    <i class="fas fa-envelope me-1"></i>@contact.Email
+                                                </a>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Card Rating Section -->
+                                    <div class="card-rating">
+                                        <div class="card-rating-stars">
+                                            @if (contact.AverageRating > 0)
+                                            {
+                                                <div class="rating-stars me-2" data-rating="@contact.AverageRating">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        <i class="rating-star fas fa-star"></i>
+                                                    }
+                                                </div>
+                                                <span class="card-rating-info">
+                                                    @contact.AverageRating.ToString("F1") (@contact.RatingCount)
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="no-rating">Not rated yet</span>
+                                            }
+                                        </div>
+                                        <button class="btn btn-sm rate-btn px-3"
+                                                data-id="@contact.Id">
+                                            Rate
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        @if (contact.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause-circle me-1"></i>Inactive
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="text-center py-5" style="display: none;">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No contacts found</h4>
+        <p class="text-muted">Try adjusting your search criteria or filters</p>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="detailsModalLabel">
+                    <i class="fas fa-user me-2"></i>Contact Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rate Modal Container -->
+<div id="modalContainer"></div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the contact <strong id="deleteContactName"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" class="d-inline">
+                    <input type="hidden" name="id" id="deleteContactId" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete Contact
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Initialize star ratings display
+        function initializeStarRatings() {
+            document.querySelectorAll('.rating-stars').forEach(function(starContainer) {
+                const rating = parseFloat(starContainer.dataset.rating);
+                const stars = starContainer.querySelectorAll('.rating-star');
+
+                stars.forEach(function(star, index) {
+                    const starValue = index + 1;
+                    star.classList.remove('filled', 'partial');
+
+                    if (rating >= starValue) {
+                        star.classList.add('filled');
+                    } else if (rating > starValue - 1) {
+                        // Partial star
+                        const fillPercentage = ((rating - (starValue - 1)) * 100).toFixed(0);
+                        star.classList.add('partial');
+                        star.style.setProperty('--fill-percentage', fillPercentage + '%');
+                    }
+                });
+            });
+        }
+
+        // Initialize ratings on page load
+        initializeStarRatings();
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const tableRows = document.querySelectorAll('.contact-row');
+        const contactCards = document.querySelectorAll('.contact-card');
+        const emptyState = document.getElementById('emptyState');
+        const tableContainer = document.getElementById('tableContainer');
+        const cardContainer = document.getElementById('cardContainer');
+
+        function filterContacts() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+            let visibleCount = 0;
+
+            // Filter table rows
+            tableRows.forEach(row => {
+                const contactName = row.dataset.contact || '';
+                const vendorName = row.dataset.vendor || '';
+                const categoryName = row.dataset.category || '';
+                const email = row.dataset.email || '';
+
+                const matchesSearch = contactName.includes(searchTerm) ||
+                                    vendorName.includes(searchTerm) ||
+                                    categoryName.includes(searchTerm) ||
+                                    email.includes(searchTerm);
+
+                const matchesCategory = !selectedCategory || categoryName === selectedCategory.toLowerCase();
+
+                if (matchesSearch && matchesCategory) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Filter cards
+            contactCards.forEach(card => {
+                const contactName = card.dataset.contact || '';
+                const vendorName = card.dataset.vendor || '';
+                const categoryName = card.dataset.category || '';
+                const email = card.dataset.email || '';
+
+                const matchesSearch = contactName.includes(searchTerm) ||
+                                    vendorName.includes(searchTerm) ||
+                                    categoryName.includes(searchTerm) ||
+                                    email.includes(searchTerm);
+
+                const matchesCategory = !selectedCategory || categoryName === selectedCategory.toLowerCase();
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide empty state
+            if (visibleCount === 0) {
+                emptyState.style.display = 'block';
+                tableContainer.style.display = 'none';
+                cardContainer.style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                if (document.getElementById('tableView').classList.contains('active')) {
+                    tableContainer.style.display = 'block';
+                    cardContainer.style.display = 'none';
+                } else {
+                    tableContainer.style.display = 'none';
+                    cardContainer.style.display = 'block';
+                }
+            }
+        }
+
+        searchInput.addEventListener('input', filterContacts);
+        categoryFilter.addEventListener('change', filterContacts);
+
+        // View toggle
+        document.getElementById('tableView').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('cardView').classList.remove('active');
+            tableContainer.style.display = 'block';
+            cardContainer.style.display = 'none';
+        });
+
+        document.getElementById('cardView').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('tableView').classList.remove('active');
+            tableContainer.style.display = 'none';
+            cardContainer.style.display = 'block';
+        });
+
+        // Table sorting
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', function() {
+                const sortType = this.dataset.sort;
+                const table = document.getElementById('contactsTable');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                const isAscending = this.classList.contains('sort-asc');
+
+                // Remove all sort classes
+                document.querySelectorAll('.sortable').forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+
+                // Add appropriate sort class
+                if (isAscending) {
+                    this.classList.add('sort-desc');
+                } else {
+                    this.classList.add('sort-asc');
+                }
+
+                rows.sort((a, b) => {
+                    let aValue, bValue;
+
+                    switch(sortType) {
+                        case 'contact':
+                            aValue = a.dataset.contact || '';
+                            bValue = b.dataset.contact || '';
+                            break;
+                        case 'vendor':
+                            aValue = a.dataset.vendor || '';
+                            bValue = b.dataset.vendor || '';
+                            break;
+                        case 'category':
+                            aValue = a.dataset.category || '';
+                            bValue = b.dataset.category || '';
+                            break;
+                        default:
+                            return 0;
+                    }
+
+                    if (isAscending) {
+                        return bValue.localeCompare(aValue);
+                    } else {
+                        return aValue.localeCompare(bValue);
+                    }
+                });
+
+                // Re-append sorted rows
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+
+        // Details modal
+        const detailsModal = document.getElementById('detailsModal');
+        detailsModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const url = button.getAttribute('data-url');
+            const body = detailsModal.querySelector('.modal-body');
+
+            body.innerHTML = `
+                <div class="d-flex justify-content-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+
+            fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    body.innerHTML = html;
+                    body.classList.add('fade-in');
+                })
+                .catch(error => {
+                    body.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Error loading contact details. Please try again.
+                        </div>
+                    `;
+                });
+        });
+
+        // Delete confirmation
+        const deleteModal = document.getElementById('deleteModal');
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const contactId = this.dataset.contactId;
+                const contactName = this.dataset.contactName;
+
+                document.getElementById('deleteContactId').value = contactId;
+                document.getElementById('deleteContactName').textContent = contactName;
+                document.getElementById('deleteForm').action = '@Url.Action("Delete")';
+
+                new bootstrap.Modal(deleteModal).show();
+            });
+        });
+
+        // Enhanced Ratings Implementation
+        (function () {
+            // Guard so script does nothing on unrelated pages (optional)
+            if ($('.rate-btn').length === 0 && $('#modalContainer').length === 0) {
+                return;
+            }
+
+            // Open modal by loading the partial
+            $(document).on('click', '.rate-btn', function (e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+
+                // Add loading animation to button
+                var $btn = $(this);
+                var originalText = $btn.html();
+                $btn.html('<i class="fas fa-spinner fa-spin me-1"></i>Loading...');
+                $btn.prop('disabled', true);
+
+                // Replace existing modal content (prevents duplicates)
+                $.get('/Admin/ContactDirectory/Rate/' + id)
+                    .done(function (html) {
+                        $('#modalContainer').html(html);
+
+                        // Initialize and show bootstrap modal
+                        var modalEl = document.getElementById('ratingModal');
+                        if (!modalEl) return;
+                        var bsModal = new bootstrap.Modal(modalEl);
+                        bsModal.show();
+
+                        // Optional: focus first star for accessibility
+                        var firstInput = modalEl.querySelector('input[name="Rating"]');
+                        if (firstInput) firstInput.focus();
+                    })
+                    .fail(function () {
+                        // Show error toast or alert
+                        alert('Failed to load rating modal. Please try again.');
+                    })
+                    .always(function() {
+                        // Restore button
+                        $btn.html(originalText);
+                        $btn.prop('disabled', false);
+                    });
+            });
+
+            // Submit rating via ajax (delegated)
+            $(document).on('submit', '#ratingForm', function (e) {
+                e.preventDefault();
+                var $form = $(this);
+                var url = $form.attr('action');
+                var data = $form.serialize(); // includes __RequestVerificationToken
+
+                $.post(url, data)
+                    .done(function (res) {
+                        if (!res || !res.success) {
+                            alert(res?.message ?? 'Failed to save rating.');
+                            return;
+                        }
+
+                        // Update UI: average and count in both table and cards
+                        var id = res.contactId;
+                        if (id) {
+                            var $summary = $('#rating-summary-' + id);
+                            if ($summary.length) {
+                                // Update table rating display
+                                if (res.average > 0) {
+                                    $summary.html(`
+                                        <div class="rating-stars" data-rating="${res.average}">
+                                            ${Array(5).fill().map((_, i) => '<i class="rating-star fas fa-star"></i>').join('')}
+                                        </div>
+                                        <span class="rating-average">${(res.average || 0).toFixed(1)}</span>
+                                        <span class="rating-count">(${res.count || 0})</span>
+                                    `);
+                                } else {
+                                    $summary.html('<span class="no-rating">Not rated</span>');
+                                }
+
+                                // Re-initialize star display for updated elements
+                                initializeStarRatings();
+                            }
+
+                            // Update card rating display
+                            $(`[data-id="${id}"]`).closest('.contact-card').find('.card-rating-stars').each(function() {
+                                var $cardStars = $(this);
+                                if (res.average > 0) {
+                                    $cardStars.html(`
+                                        <div class="rating-stars me-2" data-rating="${res.average}">
+                                            ${Array(5).fill().map((_, i) => '<i class="rating-star fas fa-star"></i>').join('')}
+                                        </div>
+                                        <span class="card-rating-info">
+                                            ${(res.average || 0).toFixed(1)} (${res.count || 0})
+                                        </span>
+                                    `);
+                                } else {
+                                    $cardStars.html('<span class="no-rating">Not rated yet</span>');
+                                }
+
+                                // Re-initialize star display for updated card elements
+                                initializeStarRatings();
+                            });
+                        }
+
+                        // Hide modal with success animation
+                        var modalEl = document.getElementById('ratingModal');
+                        if (modalEl) {
+                            var bs = bootstrap.Modal.getInstance(modalEl);
+                            if (bs) bs.hide();
+                        }
+
+                        // Show success message
+                        showSuccessMessage(res.message ?? 'Rating saved successfully!');
+                    })
+                    .fail(function () {
+                        alert('Error saving rating. Please try again.');
+                    });
+            });
+
+            // Optional success message function
+            function showSuccessMessage(message) {
+                // Create and show a temporary success alert
+                var alertHtml = `
+                    <div class="alert alert-success alert-dismissible fade show position-fixed"
+                         style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;"
+                         role="alert">
+                        <i class="fas fa-check-circle me-2"></i>${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                $('body').append(alertHtml);
+
+                // Auto-dismiss after 3 seconds
+                setTimeout(function() {
+                    $('.alert-success').alert('close');
+                }, 3000);
+            }
+        })();
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects;
+@model IEnumerable<ContactDirectoryDto>
+@{
+    ViewData["Title"] = "Contact Directory";
+}
+
+<style>
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    .avatar-circle-lg {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+
     .sortable:hover {
         background-color: rgba(255, 255, 255, 0.1);
     }
@@ -246,6 +1340,9 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-dark">@contact.VendorName</span>
+                                    <span class="rating-summary" id="rating-summary-@contact.Id">
+                                        <strong class="avg">@contact.AverageRating</strong> (<span class="count">@contact.RatingCount</span>)
+                                    </span>
                                 </td>
                                 <td>
                                     <span class="badge bg-secondary">@contact.CategoryName</span>
@@ -310,6 +1407,10 @@
                                            title="Edit Contact">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        <a href="javascript:void(0)"
+                                           class="btn btn-sm btn-outline-primary rate-btn"
+                                           data-id="@contact.Id">Rate</a>
+
                                         <button type="button" 
                                                 class="btn btn-outline-danger delete-btn"
                                                 data-contact-id="@contact.Id"
@@ -450,6 +1551,9 @@
         </div>
     </div>
 </div>
+
+<!-- Rate Modal -->
+<div id="modalContainer"></div>
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -682,5 +1786,112 @@
                 new bootstrap.Modal(deleteModal).show();
             });
         });
+
+
+
+
+        //Ratings Implementation
+
+            (function () {
+      // guard so script does nothing on unrelated pages (optional)
+      if ($('.rate-btn').length === 0 && $('#modalContainer').length === 0) {
+        // No rating UI on this page; do nothing.
+        return;
+      }
+
+      // open modal by loading the partial
+      $(document).on('click', '.rate-btn', function (e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+
+        // replace existing modal content (prevents duplicates)
+        $.get('/Admin/ContactDirectory/Rate/' + id)
+          .done(function (html) {
+            $('#modalContainer').html(html);
+
+            // initialize and show bootstrap modal
+            var modalEl = document.getElementById('ratingModal');
+            if (!modalEl) return;
+            var bsModal = new bootstrap.Modal(modalEl);
+            bsModal.show();
+
+            // Optional: focus first star or textarea for accessibility
+            var firstInput = modalEl.querySelector('input[name="Rating"]');
+            if (firstInput) firstInput.focus();
+          })
+          .fail(function () {
+            // small friendly error feedback
+            alert('Failed to load rating modal. Please try again.');
+          });
+      });
+
+      // submit rating via ajax (delegated)
+      $(document).on('submit', '#ratingForm', function (e) {
+        e.preventDefault();
+        var $form = $(this);
+        var url = $form.attr('action');
+        var data = $form.serialize(); // includes __RequestVerificationToken
+
+        $.post(url, data)
+          .done(function (res) {
+            if (!res || !res.success) {
+              alert(res?.message ?? 'Failed to save rating.');
+              return;
+            }
+
+            // update UI: average and count
+            var id = res.contactId;
+            if (id) {
+              var $summary = $('#rating-summary-' + id);
+              if ($summary.length) {
+                $summary.find('.avg').text((res.average ?? 0).toFixed(2));
+                $summary.find('.count').text(res.count ?? 0);
+              }
+            }
+
+            // hide modal
+            var modalEl = document.getElementById('ratingModal');
+            if (modalEl) {
+              var bs = bootstrap.Modal.getInstance(modalEl);
+              if (bs) bs.hide();
+            }
+
+            // nice: show a small success toast (implement showToast if you want)
+            // showToast(res.message ?? 'Rating saved');
+          })
+          .fail(function () {
+            alert('Error saving rating. Please try again.');
+          });
+      });
+
+      // optional: remove rating button handling
+      $(document).on('click', '.remove-rating-btn', function (e) {
+        e.preventDefault();
+        var contactId = $(this).data('id');
+        var token = $('input[name="__RequestVerificationToken"]').first().val();
+
+        $.post('/Admin/ContactDirectory/RemoveRating',
+          { contactId: contactId, __RequestVerificationToken: token })
+          .done(function (res) {
+            if (!res || !res.success) {
+              alert(res?.message ?? 'Failed to remove rating.');
+              return;
+            }
+
+            var id = res.contactId;
+            if (id) {
+              var $summary = $('#rating-summary-' + id);
+              if ($summary.length) {
+                $summary.find('.avg').text((res.average ?? 0).toFixed(2));
+                $summary.find('.count').text(res.count ?? 0);
+              }
+            }
+          })
+          .fail(function () {
+            alert('Failed to remove rating. Please try again.');
+          });
+      });
+
+    })();
     });
-</script>
+</script> *@

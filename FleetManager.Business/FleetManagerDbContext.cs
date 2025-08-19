@@ -59,6 +59,7 @@ namespace FleetManager.Business
         public DbSet<CompanyBranch> CompanyBranches { get; set; }
         public DbSet<CompanyAdmin> CompanyAdmins { get; set; }
         public DbSet<ContactDirectory> ContactDirectories { get; set; }
+        public DbSet<ContactRating> ContactRatings { get; set; }
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<DriverDocument> DriverDocuments { get; set; }
         public DbSet<DriverVehicle> DriverVehicles { get; set; }

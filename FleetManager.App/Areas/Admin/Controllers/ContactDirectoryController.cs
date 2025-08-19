@@ -109,6 +109,70 @@ namespace FleetManager.App.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // -------------------------
+        // RATING ACTIONS (AJAX)
+        // -------------------------
+
+        // GET: /Vendor/ContactDirectory/Rate/5
+        // returns a partial view with a small rating modal
+        public async Task<IActionResult> Rate(long id)
+        {
+            var dto = await _service.GetContactByIdAsync(id);
+            if (dto == null) return NotFound();
+
+            // The partial should contain a small form to pick 1-5 stars.
+            return PartialView("_RateModal", dto);
+        }
+
+        // POST: /Vendor/ContactDirectory/SubmitRating (AJAX)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitRating(ContactRatingDto dto)
+        {
+            // DTO should include ContactId (or ContactId field name used in your DTO)
+            var resp = await _service.AddOrUpdateRatingAsync(dto);
+
+            if (!resp.Success)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = resp.Message
+                });
+            }
+
+            return Json(new
+            {
+                success = true,
+                message = resp.Message ?? "Rating saved",
+                contactId = resp.Result?.ContactId,
+                average = resp.Result?.AverageRating,
+                count = resp.Result?.RatingCount
+            });
+        }
+
+        // POST: /Vendor/ContactDirectory/RemoveRating (AJAX)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveRating(long contactId)
+        {
+            var resp = await _service.RemoveMyRatingAsync(contactId);
+
+            if (!resp.Success)
+            {
+                return Json(new { success = false, message = resp.Message });
+            }
+
+            return Json(new
+            {
+                success = true,
+                message = resp.Message ?? "Rating removed",
+                contactId = resp.Result?.ContactId,
+                average = resp.Result?.AverageRating,
+                count = resp.Result?.RatingCount
+            });
+        }
+
+
+
         private void PopulateCategories()
         {
             var list = _service.GetCategoryOptions();
