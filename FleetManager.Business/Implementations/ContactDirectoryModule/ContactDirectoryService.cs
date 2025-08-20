@@ -157,7 +157,9 @@ namespace FleetManager.Business.Implementations.ContactDirectoryModule
 
             if (contact == null) return null;
 
-            var (avg, count, _) = await GetRatingStatsAsync(id);
+            var stats = await GetRatingStatsAsync(id);
+            var avg = stats?.AverageRating ?? 0;
+            var count = stats?.RatingCount ?? 0;
 
             return new ContactDirectoryDto
             {
@@ -363,25 +365,53 @@ namespace FleetManager.Business.Implementations.ContactDirectoryModule
             }
         }
 
-        public async Task<(double avg, int count, Dictionary<int, int> distribution)> GetRatingStatsAsync(long contactId)
+
+
+        public async Task<ContactRatingResultDto> GetRatingStatsAsync(long contactId)
         {
-            // distribution and average in one pass
-            var ratings = await _context.Set<ContactRating>()
-                                .Where(r => r.ContactDirectoryId == contactId)
-                                .GroupBy(r => r.Rating)
-                                .Select(g => new { Rating = g.Key, Count = g.Count() })
-                                .ToListAsync();
+            var groups = await _context.Set<ContactRating>()
+                           .Where(r => r.ContactDirectoryId == contactId)
+                           .GroupBy(r => r.Rating)
+                           .Select(g => new { Rating = g.Key, Count = g.Count() })
+                           .ToListAsync();
 
-            var total = ratings.Sum(r => r.Count);
-            var weightedSum = ratings.Sum(r => r.Rating * r.Count);
-            var avg = total == 0 ? 0 : (double)weightedSum / total;
+            var total = groups.Sum(g => g.Count);
+            var weighted = groups.Sum(g => g.Rating * g.Count);
+            var average = total == 0 ? 0 : (double)weighted / total;
 
-            var distribution = ratings.ToDictionary(x => x.Rating, x => x.Count);
-            // ensure keys 1..5 exist
-            for (int i = 1; i <= 5; i++) if (!distribution.ContainsKey(i)) distribution[i] = 0;
+            var dist = groups.ToDictionary(g => g.Rating, g => g.Count);
+            for (int i = 1; i <= 5; i++) if (!dist.ContainsKey(i)) dist[i] = 0;
 
-            return (avg, total, distribution);
+            return new ContactRatingResultDto
+            {
+                ContactId = contactId,
+                AverageRating = Math.Round(average, 2),
+                RatingCount = total,
+                RatingDistribution = dist
+            };
         }
+
+
+
+        //public async Task<(double avg, int count, Dictionary<int, int> distribution)> GetRatingStatsAsync(long contactId)
+        //{
+        //    // distribution and average in one pass
+        //    var ratings = await _context.Set<ContactRating>()
+        //                        .Where(r => r.ContactDirectoryId == contactId)
+        //                        .GroupBy(r => r.Rating)
+        //                        .Select(g => new { Rating = g.Key, Count = g.Count() })
+        //                        .ToListAsync();
+
+        //    var total = ratings.Sum(r => r.Count);
+        //    var weightedSum = ratings.Sum(r => r.Rating * r.Count);
+        //    var avg = total == 0 ? 0 : (double)weightedSum / total;
+
+        //    var distribution = ratings.ToDictionary(x => x.Rating, x => x.Count);
+        //    // ensure keys 1..5 exist
+        //    for (int i = 1; i <= 5; i++) if (!distribution.ContainsKey(i)) distribution[i] = 0;
+
+        //    return (avg, total, distribution);
+        //}
 
 
 

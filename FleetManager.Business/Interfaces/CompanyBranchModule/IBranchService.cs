@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FleetManager.Business.Interfaces.ComapyBranchModule
+namespace FleetManager.Business.Interfaces.CompanyBranchModule
 {
     public interface IBranchService
     {

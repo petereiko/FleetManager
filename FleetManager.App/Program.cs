@@ -13,6 +13,7 @@ using FleetManager.Business.GoogleRoutesApi.Interfaces;
 using FleetManager.Business.GoogleRoutesApi.Services;
 using FleetManager.Business.Hubs;
 using FleetManager.Business.Implementations;
+using FleetManager.Business.Implementations.AdminDashboardService;
 using FleetManager.Business.Implementations.CompanyBranchModule;
 using FleetManager.Business.Implementations.CompanyModule;
 using FleetManager.Business.Implementations.CompanyOnboardingModule;
@@ -31,7 +32,8 @@ using FleetManager.Business.Implementations.ScheduleModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
 using FleetManager.Business.Implementations.VendorModule;
-using FleetManager.Business.Interfaces.ComapyBranchModule;
+using FleetManager.Business.Interfaces.AdminDashboardModule;
+using FleetManager.Business.Interfaces.CompanyBranchModule;
 using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.CompanyOnboardingModule;
 using FleetManager.Business.Interfaces.ContactDirectoryModule;
@@ -203,6 +205,7 @@ builder.Services.AddTransient<IMaintenanceService, MaintenanceService>();
 builder.Services.AddTransient<ITimeOffService, TimeOffService>();
 builder.Services.AddTransient<ITimeOffCategoryService, TimeOffCategoryService>();
 builder.Services.AddTransient<IPublicHolidayService, PublicHolidayService>();
+builder.Services.AddTransient<IAdminDashboardService, AdminDashboardService>();
 
 
 

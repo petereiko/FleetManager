@@ -1,7 +1,7 @@
 ﻿using FleetManager.Business.Database.IdentityModels;
 using FleetManager.Business.DataObjects;
 using FleetManager.Business.Implementations.CompanyModule;
-using FleetManager.Business.Interfaces.ComapyBranchModule;
+using FleetManager.Business.Interfaces.CompanyBranchModule;
 using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.CompanyOnboardingModule;
 using FleetManager.Business.Interfaces.UserModule;

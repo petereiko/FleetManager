@@ -704,6 +704,9 @@
     </div>
 </div>
 
+
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize tooltips
@@ -712,10 +715,10 @@
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
 
-        // Initialize star ratings display
+        // Initialize star ratings display (for Index / cards)
         function initializeStarRatings() {
             document.querySelectorAll('.rating-stars').forEach(function(starContainer) {
-                const rating = parseFloat(starContainer.dataset.rating);
+                const rating = parseFloat(starContainer.dataset.rating || 0);
                 const stars = starContainer.querySelectorAll('.rating-star');
 
                 stars.forEach(function(star, index) {
@@ -734,7 +737,114 @@
             });
         }
 
-        // Initialize ratings on page load
+        // expose detail-specific rating helpers globally so AJAX partials can call them
+        window.ContactRating = window.ContactRating || {};
+
+        // initializeDetailsStarRatings - for details view stars (keeps classes same as your partial)
+        window.ContactRating.initializeDetailsStarRatings = function() {
+            document.querySelectorAll('.rating-stars-large, .rating-stars').forEach(function(starContainer) {
+                const rating = parseFloat(starContainer.dataset.rating || 0);
+                const stars = starContainer.querySelectorAll('.rating-star-large, .rating-star');
+
+                stars.forEach(function(star, index) {
+                    const starValue = index + 1;
+                    star.classList.remove('filled', 'partial');
+
+                    if (rating >= starValue) {
+                        star.classList.add('filled');
+                    } else if (rating > starValue - 1) {
+                        // Partial star
+                        const fillPercentage = ((rating - (starValue - 1)) * 100).toFixed(0);
+                        star.classList.add('partial');
+                        star.style.setProperty('--fill-percentage', fillPercentage + '%');
+                    }
+                });
+            });
+        };
+
+        // build the rating breakdown HTML and update the UI
+        window.ContactRating.renderRatingBreakdown = function(contactId, data) {
+            var total = data.count || 0;
+            var distribution = data.distribution || {};
+            var container = document.getElementById('rating-breakdown-content-' + contactId);
+            if (!container) return;
+
+            var html = '';
+            for (var stars = 5; stars >= 1; stars--) {
+                var count = distribution[stars] || distribution[String(stars)] || 0;
+                var percentage = total === 0 ? 0 : Math.round((count / total) * 100);
+
+                html += '<div class="rating-bar">';
+                html +=     '<div class="rating-bar-label">' + stars + ' ★</div>';
+                html +=     '<div class="rating-bar-progress">';
+                html +=         '<div class="rating-bar-fill" style="width: ' + percentage + '%"></div>';
+                html +=     '</div>';
+                html +=     '<div class="rating-bar-count">' + count + '</div>';
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+
+            // update the average and count displays in the details partial if present
+            var avgEl = document.querySelector('.rating-average-large');
+            if (avgEl) avgEl.textContent = (Number(data.average || 0)).toFixed(1);
+
+            var countEl = document.querySelector('.rating-count-large');
+            if (countEl) {
+                var s = (total !== 1) ? 's' : '';
+                countEl.textContent = 'Based on ' + total + ' review' + s;
+            }
+
+            // set data-rating on star containers and re-run star initializer
+            document.querySelectorAll('.rating-stars-large, .rating-stars').forEach(function(starContainer) {
+                starContainer.setAttribute('data-rating', data.average ?? 0);
+            });
+            window.ContactRating.initializeDetailsStarRatings();
+
+            // animate bars in this partial
+            setTimeout(function () {
+                document.querySelectorAll('#rating-breakdown-content-' + contactId + ' .rating-bar-fill')
+                    .forEach(function (bar) {
+                        var w = bar.style.width;
+                        bar.style.width = w;
+                    });
+            }, 100);
+        };
+
+        // fetch rating breakdown JSON (Admin area endpoint) and call renderRatingBreakdown
+        window.ContactRating.loadRatingBreakdown = function(contactId) {
+            if (!contactId) return;
+            // force Admin area endpoint
+            var url = '/Admin/ContactDirectory/GetRatingBreakdown?id=' + encodeURIComponent(contactId);
+
+            console.log('[ContactRating] loading breakdown for', contactId);
+            fetch(url, { credentials: 'same-origin' })
+                .then(function(res) {
+                    if (!res.ok) {
+                        return res.text().then(function(text) {
+                            console.error('[ContactRating] server error', res.status, text);
+                            throw new Error('Server returned ' + res.status);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(function(data) {
+                    if (data && data.error) {
+                        console.error('[ContactRating] error payload', data);
+                        var container = document.getElementById('rating-breakdown-content-' + contactId);
+                        if (container) container.innerHTML = '<div class="text-danger py-2">' + (data.message || 'Unable to load rating breakdown.') + '</div>';
+                        return;
+                    }
+                    window.ContactRating.renderRatingBreakdown(contactId, data);
+                })
+                .catch(function(err) {
+                    console.error('[ContactRating] failed to load breakdown for', contactId, err);
+                    var container = document.getElementById('rating-breakdown-content-' + contactId);
+                    if (container) container.innerHTML = '<div class="text-danger py-2">Unable to load rating breakdown.</div>';
+                });
+        };
+
+        // Initialize ratings on page load (for Index list/cards)
         initializeStarRatings();
 
         // Search functionality
@@ -747,8 +857,8 @@
         const cardContainer = document.getElementById('cardContainer');
 
         function filterContacts() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const selectedCategory = categoryFilter.value;
+            const searchTerm = (searchInput && searchInput.value || '').toLowerCase();
+            const selectedCategory = categoryFilter ? categoryFilter.value : '';
             let visibleCount = 0;
 
             // Filter table rows
@@ -795,45 +905,53 @@
             });
 
             // Show/hide empty state
-            if (visibleCount === 0) {
-                emptyState.style.display = 'block';
-                tableContainer.style.display = 'none';
-                cardContainer.style.display = 'none';
-            } else {
-                emptyState.style.display = 'none';
-                if (document.getElementById('tableView').classList.contains('active')) {
-                    tableContainer.style.display = 'block';
-                    cardContainer.style.display = 'none';
+            if (emptyState) {
+                if (visibleCount === 0) {
+                    emptyState.style.display = 'block';
+                    if (tableContainer) tableContainer.style.display = 'none';
+                    if (cardContainer) cardContainer.style.display = 'none';
                 } else {
-                    tableContainer.style.display = 'none';
-                    cardContainer.style.display = 'block';
+                    emptyState.style.display = 'none';
+                    if (document.getElementById('tableView').classList.contains('active')) {
+                        if (tableContainer) tableContainer.style.display = 'block';
+                        if (cardContainer) cardContainer.style.display = 'none';
+                    } else {
+                        if (tableContainer) tableContainer.style.display = 'none';
+                        if (cardContainer) cardContainer.style.display = 'block';
+                    }
                 }
             }
         }
 
-        searchInput.addEventListener('input', filterContacts);
-        categoryFilter.addEventListener('change', filterContacts);
+        if (searchInput) searchInput.addEventListener('input', filterContacts);
+        if (categoryFilter) categoryFilter.addEventListener('change', filterContacts);
 
         // View toggle
-        document.getElementById('tableView').addEventListener('click', function() {
-            this.classList.add('active');
-            document.getElementById('cardView').classList.remove('active');
-            tableContainer.style.display = 'block';
-            cardContainer.style.display = 'none';
-        });
-
-        document.getElementById('cardView').addEventListener('click', function() {
-            this.classList.add('active');
-            document.getElementById('tableView').classList.remove('active');
-            tableContainer.style.display = 'none';
-            cardContainer.style.display = 'block';
-        });
+        var tableViewBtn = document.getElementById('tableView');
+        var cardViewBtn = document.getElementById('cardView');
+        if (tableViewBtn) {
+            tableViewBtn.addEventListener('click', function() {
+                this.classList.add('active');
+                if (cardViewBtn) cardViewBtn.classList.remove('active');
+                if (tableContainer) tableContainer.style.display = 'block';
+                if (cardContainer) cardContainer.style.display = 'none';
+            });
+        }
+        if (cardViewBtn) {
+            cardViewBtn.addEventListener('click', function() {
+                this.classList.add('active');
+                if (tableViewBtn) tableViewBtn.classList.remove('active');
+                if (tableContainer) tableContainer.style.display = 'none';
+                if (cardContainer) cardContainer.style.display = 'block';
+            });
+        }
 
         // Table sorting
         document.querySelectorAll('.sortable').forEach(header => {
             header.addEventListener('click', function() {
                 const sortType = this.dataset.sort;
                 const table = document.getElementById('contactsTable');
+                if (!table) return;
                 const tbody = table.querySelector('tbody');
                 const rows = Array.from(tbody.querySelectorAll('tr'));
 
@@ -852,7 +970,7 @@
                 }
 
                 rows.sort((a, b) => {
-                    let aValue, bValue;
+                    let aValue = '', bValue = '';
 
                     switch(sortType) {
                         case 'contact':
@@ -885,51 +1003,76 @@
 
         // Details modal
         const detailsModal = document.getElementById('detailsModal');
-        detailsModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const url = button.getAttribute('data-url');
-            const body = detailsModal.querySelector('.modal-body');
+        if (detailsModal) {
+            detailsModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const url = button.getAttribute('data-url');
+                const body = detailsModal.querySelector('.modal-body');
 
-            body.innerHTML = `
-                <div class="d-flex justify-content-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            `;
-
-            fetch(url)
-                .then(response => response.text())
-                .then(html => {
-                    body.innerHTML = html;
-                    body.classList.add('fade-in');
-                })
-                .catch(error => {
-                    body.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Error loading contact details. Please try again.
+                body.innerHTML = `
+                    <div class="d-flex justify-content-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                    `;
-                });
-        });
+                    </div>
+                `;
+
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        body.innerHTML = html;
+                        body.classList.add('fade-in');
+
+                        // after injecting HTML, initialize any star visuals and load breakdown if present
+                        try {
+                            if (window.ContactRating && typeof window.ContactRating.initializeDetailsStarRatings === 'function') {
+                                window.ContactRating.initializeDetailsStarRatings();
+                            }
+
+                            // if the partial includes a .rating-breakdown with data-contact-id, load its data
+                            var rbEl = body.querySelector('.rating-breakdown');
+                            var contactId = rbEl ? (rbEl.dataset.contactId || rbEl.getAttribute('data-contact-id')) : null;
+                            if (contactId && window.ContactRating && typeof window.ContactRating.loadRatingBreakdown === 'function') {
+                                window.ContactRating.loadRatingBreakdown(contactId);
+                            }
+                        } catch (e) {
+                            console.error('Post-load initialization failed:', e);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to load details partial:', error);
+                        body.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Error loading contact details. Please try again.
+                            </div>
+                        `;
+                    });
+            });
+        }
 
         // Delete confirmation
         const deleteModal = document.getElementById('deleteModal');
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const contactId = this.dataset.contactId;
-                const contactName = this.dataset.contactName;
+        if (deleteModal) {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const contactId = this.dataset.contactId;
+                    const contactName = this.dataset.contactName;
 
-                document.getElementById('deleteContactId').value = contactId;
-                document.getElementById('deleteContactName').textContent = contactName;
-                document.getElementById('deleteForm').action = '@Url.Action("Delete")';
+                    var idInput = document.getElementById('deleteContactId');
+                    var nameSpan = document.getElementById('deleteContactName');
+                    var form = document.getElementById('deleteForm');
 
-                new bootstrap.Modal(deleteModal).show();
+                    if (idInput) idInput.value = contactId;
+                    if (nameSpan) nameSpan.textContent = contactName;
+                    if (form) form.action = '@Url.Action("Delete")';
+
+                    new bootstrap.Modal(deleteModal).show();
+                });
             });
-        });
+        }
 
-        // Enhanced Ratings Implementation
+        // Enhanced Ratings Implementation (modal open + submit)
         (function () {
             // Guard so script does nothing on unrelated pages (optional)
             if ($('.rate-btn').length === 0 && $('#modalContainer').length === 0) {
@@ -1010,7 +1153,7 @@
                             }
 
                             // Update card rating display
-                            $(`[data-id="${id}"]`).closest('.contact-card').find('.card-rating-stars').each(function() {
+                            $('[data-id="' + id + '"]').closest('.contact-card').find('.card-rating-stars').each(function() {
                                 var $cardStars = $(this);
                                 if (res.average > 0) {
                                     $cardStars.html(`
@@ -1028,6 +1171,19 @@
                                 // Re-initialize star display for updated card elements
                                 initializeStarRatings();
                             });
+
+                            // If details modal is open and showing this contact, reload breakdown in-place
+                            try {
+                                var detailsBody = document.querySelector('#detailsModal .modal-body');
+                                if (detailsBody && detailsBody.querySelector('.rating-breakdown')) {
+                                    // re-load breakdown for this contact id (no full page reload)
+                                    if (window.ContactRating && typeof window.ContactRating.loadRatingBreakdown === 'function') {
+                                        window.ContactRating.loadRatingBreakdown(id);
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Failed to refresh details breakdown after rating submit', e);
+                            }
                         }
 
                         // Hide modal with success animation

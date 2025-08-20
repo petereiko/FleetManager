@@ -1,5 +1,5 @@
 ﻿using FleetManager.Business.DataObjects;
-using FleetManager.Business.Interfaces.ComapyBranchModule;
+using FleetManager.Business.Interfaces.CompanyBranchModule;
 using FleetManager.Business.Interfaces.CompanyModule;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

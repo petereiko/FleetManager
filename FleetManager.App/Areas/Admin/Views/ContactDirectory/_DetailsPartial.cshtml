@@ -74,6 +74,977 @@
         100% { transform: scale(1); }
     }
 
+    /* Enhanced Rating Styles for Details View */
+    .rating-section {
+        background: linear-gradient(135deg, #fff5cd 0%, #fff8e1 100%);
+        border-radius: 15px;
+        padding: 25px;
+        border: 2px solid #ffeaa7;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .rating-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255, 193, 7, 0.1) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .rating-header {
+        text-align: center;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .rating-header h5 {
+        color: #b8860b;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .current-rating-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .rating-stars-large {
+        display: flex;
+        gap: 5px;
+        margin-right: 15px;
+    }
+
+    .rating-star-large {
+        font-size: 24px;
+        color: #ddd;
+        transition: all 0.3s ease;
+    }
+
+    .rating-star-large.filled {
+        color: #ffc107;
+        text-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+    }
+
+    .rating-star-large.partial {
+        background: linear-gradient(90deg, #ffc107 var(--fill-percentage), #ddd var(--fill-percentage));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .rating-info-large {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .rating-average-large {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        line-height: 1;
+    }
+
+    .rating-count-large {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 2px;
+    }
+
+    .rating-breakdown {
+        margin-top: 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .rating-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .rating-bar-label {
+        width: 60px;
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .rating-bar-progress {
+        flex: 1;
+        height: 6px;
+        background: #e9ecef;
+        border-radius: 3px;
+        margin: 0 10px;
+        overflow: hidden;
+    }
+
+    .rating-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ffc107, #ffb300);
+        border-radius: 3px;
+        transition: width 0.8s ease;
+    }
+
+    .rating-bar-count {
+        width: 30px;
+        text-align: right;
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .no-rating-state {
+        text-align: center;
+        padding: 30px;
+        color: #6c757d;
+        position: relative;
+        z-index: 2;
+    }
+
+    .no-rating-state i {
+        font-size: 48px;
+        opacity: 0.3;
+        margin-bottom: 15px;
+    }
+
+    .rate-contact-btn {
+        background: linear-gradient(45deg, #ffc107, #ffb300);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 10px 25px;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        position: relative;
+        z-index: 2;
+    }
+
+    .rate-contact-btn:hover {
+        background: linear-gradient(45deg, #ffb300, #ff8f00);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
+        color: white;
+    }
+
+    .rate-contact-btn::before {
+        content: '⭐';
+        margin-right: 8px;
+        font-size: 1.1rem;
+    }
+
+    .rating-actions {
+        text-align: center;
+        margin-top: 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    @@media print {
+        .btn, .card-header, .rating-actions {
+            display: none !important;
+        }
+        
+        .card {
+            border: 1px solid #dee2e6 !important;
+            box-shadow: none !important;
+        }
+
+        .rating-section {
+            background: white !important;
+            border: 1px solid #ddd !important;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .rating-stars-large {
+            gap: 3px;
+        }
+
+        .rating-star-large {
+            font-size: 20px;
+        }
+
+        .rating-average-large {
+            font-size: 1.6rem;
+        }
+
+        .current-rating-display {
+            flex-direction: column;
+        }
+
+        .rating-stars-large {
+            margin-right: 0;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+
+<div class="container-fluid p-0">
+    <!-- Contact Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="avatar-circle-xl me-3">
+                    @(Model.ContactName?.Substring(0, 1).ToUpper() ?? "?")
+                </div>
+                <div>
+                    <h4 class="mb-1">@Model.ContactName</h4>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-building me-1"></i>@Model.VendorName
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="mb-2">
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check-circle me-1"></i>Active Contact
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary fs-6">
+                        <i class="fas fa-pause-circle me-1"></i>Inactive Contact
+                    </span>
+                }
+            </div>
+            <div class="btn-group">
+                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit me-1"></i>Edit
+                </a>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-star me-2"></i>Contact Rating & Reviews
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="rating-section">
+                        @if (Model.AverageRating > 0)
+                        {
+                            <div class="rating-header">
+                                <h5><i class="fas fa-chart-line me-2"></i>Overall Rating</h5>
+                            </div>
+                            
+                            <div class="current-rating-display">
+                                <div class="rating-stars-large" data-rating="@Model.AverageRating">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="rating-star-large fas fa-star"></i>
+                                    }
+                                </div>
+                                <div class="rating-info-large">
+                                    <div class="rating-average-large">@Model.AverageRating.ToString("F1")</div>
+                                    <div class="rating-count-large">
+                                        Based on @Model.RatingCount review@(Model.RatingCount != 1 ? "s" : "")
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rating Breakdown (Simulated - you can implement actual breakdown) -->
+
+
+                            <div class="rating-breakdown" data-contact-id="@Model.Id">
+                                <h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Rating Breakdown</h6>
+
+                                <!-- placeholder that will be populated by JS -->
+                                <div id="rating-breakdown-content-@Model.Id">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin me-2"></i> Loading breakdown...
+                                    </div>
+                                </div>
+                            </div>
+                            @* <div class="rating-breakdown">
+                                <h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Rating Breakdown</h6>
+                                @{
+                                    // Simulate rating distribution based on average
+                                    var rating = Model.AverageRating;
+                                    var total = Model.RatingCount;
+                                }
+                                
+                                @for (int stars = 5; stars >= 1; stars--)
+                                {
+                                    
+                                        // Simple simulation - you should replace with actual data
+                                        var percentage = stars == (int)Math.Round(rating) ? 60 : 
+                                                       Math.Abs(stars - rating) <= 1 ? 20 : 5;
+                                        var count = (int)(total * percentage / 100);
+                                    
+                                    <div class="rating-bar">
+                                        <div class="rating-bar-label">@stars ★</div>
+                                        <div class="rating-bar-progress">
+                                            <div class="rating-bar-fill" style="width: @percentage%"></div>
+                                        </div>
+                                        <div class="rating-bar-count">@count</div>
+                                    </div>
+                                }
+                            </div> *@
+                        }
+                        else
+                        {
+                            <div class="no-rating-state">
+                                <i class="fas fa-star-half-alt"></i>
+                                <h5>No ratings yet</h5>
+                                <p class="mb-0">Be the first to rate this contact</p>
+                            </div>
+                        }
+                        
+                        <div class="rating-actions">
+                            <button class="btn rate-contact-btn rate-btn" data-id="@Model.Id">
+                                Rate This Contact
+                            </button>
+                            @if (Model.AverageRating > 0)
+                            {
+                                <button class="btn btn-outline-secondary ms-2" onclick="toggleRatingDetails()">
+                                    <i class="fas fa-list me-1"></i>View All Reviews
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information Cards -->
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Basic Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">
+                            <i class="fas fa-id-card me-1"></i>Full Name
+                        </dt>
+                        <dd class="col-sm-7">
+                            @(Model.ContactName ?? "Not specified")
+                        </dd>
+
+                        <dt class="col-sm-5 text-muted">
+                            <i class="fas fa-building me-1"></i>Vendor
+                        </dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-light text-dark">@Model.VendorName</span>
+                        </dd>
+
+                        <dt class="col-sm-5 text-muted">
+                            <i class="fas fa-tag me-1"></i>Category
+                        </dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-secondary">@Model.CategoryName</span>
+                        </dd>
+
+                        <dt class="col-sm-5 text-muted">
+                            <i class="fas fa-info-circle me-1"></i>Status
+                        </dt>
+                        <dd class="col-sm-7">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-pause-circle me-1"></i>Inactive
+                                </span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Details -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-address-book me-2"></i>Contact Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">
+                            <i class="fas fa-phone me-1"></i>Phone
+                        </dt>
+                        <dd class="col-sm-7">
+                            @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                            {
+                                <a href="tel:@Model.PhoneNumber" class="text-decoration-none">
+                                    <i class="fas fa-phone me-1"></i>@Model.PhoneNumber
+                                </a>
+                                <button class="btn btn-sm btn-outline-primary ms-2" 
+                                        onclick="copyToClipboard('@Model.PhoneNumber')"
+                                        title="Copy phone number">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not provided</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-5 text-muted">
+                            <i class="fas fa-envelope me-1"></i>Email
+                        </dt>
+                        <dd class="col-sm-7">
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+                                <a href="mailto:@Model.Email" class="text-decoration-none">
+                                    <i class="fas fa-envelope me-1"></i>@Model.Email
+                                </a>
+                                <button class="btn btn-sm btn-outline-primary ms-2" 
+                                        onclick="copyToClipboard('@Model.Email')"
+                                        title="Copy email address">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not provided</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Information -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i>Location Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-2 text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i>Address
+                        </dt>
+                        <dd class="col-sm-10">
+                            @if (!string.IsNullOrEmpty(Model.Address))
+                            {
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <span>@Model.Address</span>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" 
+                                                onclick="copyToClipboard('@Model.Address')"
+                                                title="Copy address">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <a href="https://maps.google.com?q=@Uri.EscapeDataString(Model.Address)" 
+                                           target="_blank" 
+                                           class="btn btn-outline-success"
+                                           title="Open in Google Maps">
+                                            <i class="fas fa-map"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Address not provided</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Section -->
+    @if (!string.IsNullOrEmpty(Model.Services))
+    {
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>Services Offered
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="bg-light p-3 rounded">
+                            <p class="mb-0">@Model.Services</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Communication</h6>
+                            <div class="d-grid gap-2">
+                                @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                {
+                                    <a href="tel:@Model.PhoneNumber" class="btn btn-outline-success">
+                                        <i class="fas fa-phone me-2"></i>Call @Model.ContactName
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Email))
+                                {
+                                    <a href="mailto:@Model.Email" class="btn btn-outline-primary">
+                                        <i class="fas fa-envelope me-2"></i>Send Email
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                {
+                                    <a href="sms:@Model.PhoneNumber" class="btn btn-outline-info">
+                                        <i class="fas fa-sms me-2"></i>Send SMS
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Management</h6>
+                            <div class="d-grid gap-2">
+                                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit me-2"></i>Edit Contact
+                                </a>
+                                <button class="btn btn-outline-secondary" onclick="printContact()">
+                                    <i class="fas fa-print me-2"></i>Print Contact
+                                </button>
+                                <button class="btn btn-outline-info" onclick="exportContact()">
+                                    <i class="fas fa-download me-2"></i>Export vCard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize star ratings display for details view
+            function initializeDetailsStarRatings() {
+                document.querySelectorAll('.rating-stars-large').forEach(function(starContainer) {
+                    const rating = parseFloat(starContainer.dataset.rating);
+                    const stars = starContainer.querySelectorAll('.rating-star-large');
+
+                    stars.forEach(function(star, index) {
+                        const starValue = index + 1;
+                        star.classList.remove('filled', 'partial');
+
+                        if (rating >= starValue) {
+                            star.classList.add('filled');
+                        } else if (rating > starValue - 1) {
+                            // Partial star
+                            const fillPercentage = ((rating - (starValue - 1)) * 100).toFixed(0);
+                            star.classList.add('partial');
+                            star.style.setProperty('--fill-percentage', fillPercentage + '%');
+                        }
+                    });
+                });
+            }
+
+            // Initialize ratings on load
+            initializeDetailsStarRatings();
+
+            // Animate rating bars
+            setTimeout(() => {
+                document.querySelectorAll('.rating-bar-fill').forEach(bar => {
+                    bar.style.width = bar.style.width;
+                });
+            }, 500);
+
+            // -------------------------
+            // REAL RATING BREAKDOWN CODE
+            // Inserted here so it runs after star init & bar animation
+            // -------------------------
+
+            debugger;
+
+                function renderRatingBreakdown(contactId, data) {
+        var total = data.count || 0;
+        var distribution = data.distribution || {};
+        var container = document.getElementById('rating-breakdown-content-' + contactId);
+        if (!container) return;
+
+        var html = '';
+        for (var stars = 5; stars >= 1; stars--) {
+            var count = distribution[stars] || distribution[String(stars)] || 0;
+            var percentage = total === 0 ? 0 : Math.round((count / total) * 100);
+
+            html += '<div class="rating-bar">';
+            html +=     '<div class="rating-bar-label">' + stars + ' ★</div>';
+            html +=     '<div class="rating-bar-progress">';
+            html +=         '<div class="rating-bar-fill" style="width: ' + percentage + '%"></div>';
+            html +=     '</div>';
+            html +=     '<div class="rating-bar-count">' + count + '</div>';
+            html += '</div>';
+        }
+
+        container.innerHTML = html;
+
+        // update the average and count displays
+        var avgEl = document.querySelector('.rating-average-large');
+        if (avgEl) avgEl.textContent = (Number(data.average || 0)).toFixed(1);
+
+        var countEl = document.querySelector('.rating-count-large');
+        if (countEl) {
+            var s = (total !== 1) ? 's' : '';
+            countEl.textContent = 'Based on ' + total + ' review' + s;
+        }
+
+        // update stars and animate bars
+        var starContainer = document.querySelector('.rating-stars-large');
+        if (starContainer) {
+            starContainer.setAttribute('data-rating', data.average ?? 0);
+            initializeDetailsStarRatings();
+        }
+
+        setTimeout(function () {
+            document.querySelectorAll('#rating-breakdown-content-' + contactId + ' .rating-bar-fill')
+                .forEach(function (bar) {
+                    var w = bar.style.width;
+                    bar.style.width = w;
+                });
+        }, 100);
+    }
+
+            function loadRatingBreakdown(contactId) {
+                // Force the Admin URL (no area guessing)
+                var url = '/Admin/ContactDirectory/GetRatingBreakdown?id=' + contactId;
+
+                fetch(url, { credentials: 'same-origin' })
+                    .then(function (res) {
+                        if (!res.ok) return res.text().then(text => { throw new Error('HTTP ' + res.status + ' — ' + text); });
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        if (data && data.error) {
+                            // server returned structured error
+                            var container = document.getElementById('rating-breakdown-content-' + contactId);
+                            if (container) container.innerHTML = '<div class="text-danger py-2">' + (data.message || 'Unable to load rating breakdown.') + '</div>';
+                            console.error('GetRatingBreakdown error payload:', data);
+                            return;
+                        }
+                        renderRatingBreakdown(contactId, data);
+                    })
+                    .catch(function (err) {
+                        console.error('Failed to load rating breakdown for contact ' + contactId + ':', err);
+                        var container = document.getElementById('rating-breakdown-content-' + contactId);
+                        if (container) {
+                            container.innerHTML = '<div class="text-danger py-2">Unable to load rating breakdown.</div>';
+                        }
+                    });
+            }
+
+
+            // load breakdown for this contact (call here after init)
+            try {
+                loadRatingBreakdown(@Model.Id);
+            } catch (e) {
+                console.error(e);
+            }
+
+            // -------------------------
+            // END rating breakdown code
+            // -------------------------
+        });
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Create a temporary success message
+                const button = event.target.closest('button');
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.classList.add('copy-success');
+
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                    button.classList.remove('copy-success');
+                }, 1000);
+
+                // Show toast notification if available
+                if (typeof Swal !== 'undefined') {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Copied to clipboard!'
+                    });
+                }
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+        function printContact() {
+            window.print();
+        }
+
+        function exportContact() {
+            // Create vCard format
+            const vcard = `BEGIN:VCARD
+    VERSION:3.0
+    FN:@Model.ContactName
+    ORG:@Model.VendorName
+    TEL:@Model.PhoneNumber
+    EMAIL:@Model.Email
+    ADR:;;@Model.Address;;;;
+    NOTE:@Model.Services
+    CATEGORIES:@Model.CategoryName
+    END:VCARD`;
+
+            const blob = new Blob([vcard], { type: 'text/vcard' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '@(Model.ContactName?.Replace(" ", "_") ?? "contact").vcf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function toggleRatingDetails() {
+            // This function can be expanded to show/hide detailed rating information
+            const breakdown = document.querySelector('.rating-breakdown');
+            if (breakdown.style.display === 'none') {
+                breakdown.style.display = 'block';
+            } else {
+                breakdown.style.display = 'none';
+            }
+        }
+
+        // Rating modal integration - this will work with the existing rating system
+        $(document).ready(function() {
+            // Handle rating button click in details view
+            $(document).on('click', '.rate-btn', function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+
+                // Add loading state
+                var $btn = $(this);
+                var originalText = $btn.html();
+                $btn.html('<i class="fas fa-spinner fa-spin me-1"></i>Loading...');
+                $btn.prop('disabled', true);
+
+                // Load rating modal
+                $.get('/Admin/ContactDirectory/Rate/' + id)
+                    .done(function(html) {
+                        // If modal container exists in parent window, use it
+                        if (window.parent && window.parent.$('#modalContainer').length) {
+                            window.parent.$('#modalContainer').html(html);
+                            var modalEl = window.parent.document.getElementById('ratingModal');
+                            if (modalEl) {
+                                var bsModal = new window.parent.bootstrap.Modal(modalEl);
+                                bsModal.show();
+                            }
+                        } else {
+                            // Create temporary modal container for details view
+                            if (!$('#detailsModalContainer').length) {
+                                $('body').append('<div id="detailsModalContainer"></div>');
+                            }
+                            $('#detailsModalContainer').html(html);
+                            var modalEl = document.getElementById('ratingModal');
+                            if (modalEl) {
+                                var bsModal = new bootstrap.Modal(modalEl);
+                                bsModal.show();
+                            }
+                        }
+                    })
+                    .fail(function() {
+                        alert('Failed to load rating modal. Please try again.');
+                    })
+                    .always(function() {
+                        $btn.html(originalText);
+                        $btn.prop('disabled', false);
+                    });
+            });
+
+            // Handle rating form submission in details view
+            $(document).on('submit', '#ratingForm', function(e) {
+                e.preventDefault();
+                var $form = $(this);
+                var url = $form.attr('action');
+                var data = $form.serialize();
+
+                $.post(url, data)
+                    .done(function(res) {
+                        if (!res || !res.success) {
+                            alert(res?.message ?? 'Failed to save rating.');
+                            return;
+                        }
+
+                        // Update the rating display in details view
+                        if (res.average > 0) {
+                            // Update or create rating section
+                            location.reload(); // Simple refresh to show updated ratings
+                        }
+
+                        // Hide modal
+                        var modalEl = document.getElementById('ratingModal');
+                        if (modalEl) {
+                            var bs = bootstrap.Modal.getInstance(modalEl);
+                            if (bs) bs.hide();
+                        }
+
+                        // Show success message
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Rating Saved!',
+                                text: res.message ?? 'Your rating has been saved successfully.',
+                                timer: 3000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            alert(res.message ?? 'Rating saved successfully!');
+                        }
+                    })
+                    .fail(function() {
+                        alert('Error saving rating. Please try again.');
+                    });
+            });
+        });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects;
+@model ContactDirectoryDto
+
+<style>
+    .avatar-circle-xl {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+        transition: transform 0.2s ease;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        border-bottom: none;
+        font-weight: 500;
+    }
+
+    .btn-group .btn {
+        border-radius: 0.25rem;
+        margin-right: 2px;
+    }
+
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+
+    dt {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    dd {
+        margin-bottom: 0.5rem;
+    }
+
+    .text-muted {
+        color: #6c757d !important;
+    }
+
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+
+    .copy-success {
+        animation: copySuccess 0.3s ease;
+    }
+
+    @@keyframes copySuccess {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
     @@media print {
         .btn, .card-header {
             display: none !important;
@@ -436,4 +1407,4 @@ END:VCARD`;
             });
         }
     }
-</script>
+</script> *@

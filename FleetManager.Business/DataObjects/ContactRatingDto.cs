@@ -19,6 +19,6 @@ namespace FleetManager.Business.DataObjects
         public double AverageRating { get; set; }
         public int RatingCount { get; set; }
         // optional: distribution
-        public Dictionary<int, int>? RatingDistribution { get; set; }
+        public Dictionary<int, int> RatingDistribution { get; set; } = new();
     }
 }

@@ -2,7 +2,7 @@
 using FleetManager.Business.DataObjects;
 using FleetManager.Business.DataObjects.VehicleDto;
 using FleetManager.Business.Enums;
-using FleetManager.Business.Interfaces.ComapyBranchModule;
+using FleetManager.Business.Interfaces.CompanyBranchModule;
 using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.ViewModels;
