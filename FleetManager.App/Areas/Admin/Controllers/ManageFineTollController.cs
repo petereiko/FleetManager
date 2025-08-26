@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace FleetManager.App.Areas.Admin.Controllers
 {
@@ -35,6 +36,21 @@ namespace FleetManager.App.Areas.Admin.Controllers
         {
             try
             {
+                ViewBag.ExportConfig = new
+                {
+                    CompanyName = "TechFlow Solutions Ltd",
+                    CompanyAddress = "45 Victoria Island, Lagos, Nigeria",
+                    CompanyPhone = "+234 901 234 5678",
+                    CompanyEmail = "reports@techflow.com.ng",
+                    UserName = User.Identity.Name,
+                    UserRole = string.Join(", ", ((ClaimsIdentity)User.Identity).Claims
+                    .Where(c => c.Type == ClaimTypes.Role)
+                    .Select(c => c.Value)),
+                    ExportedBy = _authUser.FullName
+                };
+
+
+
                 var roles = (_authUser.Roles ?? "")
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(r => r.Trim());

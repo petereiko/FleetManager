@@ -43,7 +43,15 @@
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        /* Add responsive table wrapper */
+        overflow-x: auto;
     }
+
+        .custom-table table {
+            /* Ensure minimum table width to prevent cramping */
+            min-width: 1200px;
+            margin-bottom: 0;
+        }
 
         .custom-table thead {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -57,6 +65,7 @@
                 text-transform: uppercase;
                 font-size: 0.875rem;
                 letter-spacing: 0.5px;
+                white-space: nowrap;
             }
 
         .custom-table tbody tr {
@@ -73,6 +82,7 @@
             padding: 1rem;
             vertical-align: middle;
             border: none;
+            white-space: nowrap;
         }
 
     .status-badge {
@@ -150,6 +160,13 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+    /* Status select specific styling */
+    .status-select {
+        min-width: 120px;
+        width: auto;
+        font-size: 0.875rem;
+    }
+
     .search-input {
         border: 2px solid #e5e7eb;
         border-radius: 25px;
@@ -217,6 +234,72 @@
         font-weight: 700;
         color: #1f2937;
     }
+
+    /* Export controls styling */
+    .export-controls {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .export-title {
+        margin-bottom: 1rem;
+        color: #374151;
+        font-weight: 600;
+    }
+
+    .export-btn {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .export-btn-excel {
+        background: #10b981;
+        border-color: #10b981;
+        color: white;
+    }
+
+    .export-btn-excel:hover {
+        background: #059669;
+        border-color: #059669;
+        color: white;
+    }
+
+    .export-btn-pdf {
+        background: #ef4444;
+        border-color: #ef4444;
+        color: white;
+    }
+
+    .export-btn-pdf:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+        color: white;
+    }
+
+    .export-btn-csv {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+    }
+
+    .export-btn-csv:hover {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: white;
+    }
+
+    /* Action column styling */
+    .actions-column {
+        width: 120px;
+        text-align: center;
+    }
 </style>
 
 <div class="page-header">
@@ -249,7 +332,7 @@
     </div>
 </div>
 
-<div class="container">
+<div class="container-fluid">
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success-custom alert-custom">
@@ -272,8 +355,8 @@
                         <i class="fas fa-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
                     </div>
                     <div>
-                        <div class="h4 mb-0" id="pendingCount">@Model.Count(x => x.Status == "Pending")</div>
-                        <small class="text-muted">Pending</small>
+                        <div class="h4 mb-0" id="unpaidCount">@Model.Count(x => x.Status == "Unpaid")</div>
+                        <small class="text-muted">Unpaid</small>
                     </div>
                 </div>
             </div>
@@ -291,19 +374,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center">
-                    <div class="stats-icon me-3">
-                        <i class="fas fa-clock text-danger" style="font-size: 2rem;"></i>
-                    </div>
-                    <div>
-                        <div class="h4 mb-0" id="overdueCount">@Model.Count(x => x.Status == "Overdue")</div>
-                        <small class="text-muted">Overdue</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -344,9 +415,8 @@
                 </label>
                 <select id="statusFilter" class="form-select custom-select">
                     <option value="">All Status</option>
-                    <option value="Pending">Pending</option>
+                    <option value="Unpaid">Unpaid</option>
                     <option value="Paid">Paid</option>
-                    <option value="Overdue">Overdue</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -370,6 +440,25 @@
         </div>
     </div>
 
+    <!-- Export Controls -->
+    <div class="export-controls">
+        <h4 class="export-title">
+            <i class="fas fa-download"></i>
+            Export Table Data
+        </h4>
+        <div class="d-flex flex-wrap">
+            <button class="btn export-btn export-btn-excel" onclick="TableExporter && TableExporter.exportToExcel('.exportable-table', 'fines_and_tolls')">
+                <i class="fas fa-file-excel me-2"></i>Export to Excel
+            </button>
+            <button class="btn export-btn export-btn-pdf" onclick="TableExporter && TableExporter.exportToPDF('.exportable-table', 'fines_and_tolls')">
+                <i class="fas fa-file-pdf me-2"></i>Export to PDF
+            </button>
+            <button class="btn export-btn export-btn-csv" onclick="TableExporter && TableExporter.exportToCSV('.exportable-table', 'fines_and_tolls')">
+                <i class="fas fa-file-csv me-2"></i>Export to CSV
+            </button>
+        </div>
+    </div>
+
     <!-- Loading Spinner -->
     <div class="loading-spinner" id="loadingSpinner">
         <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
@@ -377,42 +466,42 @@
     </div>
 
     <!-- Data Table -->
-    <div class="custom-table">
+    <div class="custom-table exportable-table">
         <table class="table table-hover mb-0" id="dataTable">
             <thead>
                 <tr>
-                    <th>
+                    <th style="width: 120px;">
                         <i class="fas fa-calendar-alt me-1"></i>
                         Date
                         <i class="fas fa-sort ms-1 sort-icon" data-column="date"></i>
                     </th>
-                    <th>
+                    <th style="width: 200px;">
                         <i class="fas fa-user me-1"></i>
                         Driver
                         <i class="fas fa-sort ms-1 sort-icon" data-column="driver"></i>
                     </th>
-                    <th>
+                    <th style="width: 100px;">
                         <i class="fas fa-tag me-1"></i>
                         Type
                     </th>
-                    <th>
+                    <th style="width: 250px;">
                         <i class="fas fa-file-alt me-1"></i>
                         Title
                     </th>
-                    <th>
+                    <th style="width: 200px;">
                         <i class="fas fa-car me-1"></i>
                         Vehicle
                     </th>
-                    <th>
+                    <th style="width: 120px;">
                         <i class="fas fa-money-bill me-1"></i>
                         Amount
                         <i class="fas fa-sort ms-1 sort-icon" data-column="amount"></i>
                     </th>
-                    <th>
+                    <th style="width: 140px;">
                         <i class="fas fa-flag me-1"></i>
                         Status
                     </th>
-                    <th>
+                    <th class="actions-column" style="width: 120px;">
                         <i class="fas fa-cogs me-1"></i>
                         Actions
                     </th>
@@ -435,7 +524,7 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <div class="avatar-circle me-2">
+                                <div class="me-2">
                                     <i class="fas fa-user"></i>
                                 </div>
                                 <div>
@@ -450,12 +539,12 @@
                             </span>
                         </td>
                         <td>
-                            <div class="fw-bold">@item.Title</div>
+                            <div class="fw-bold" title="@item.Title">@item.Title</div>
                         </td>
                         <td>
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-car text-muted me-2"></i>
-                                <span>@item.VehicleDescription</span>
+                                <span title="@item.VehicleDescription">@item.VehicleDescription</span>
                             </div>
                         </td>
                         <td>
@@ -464,7 +553,7 @@
                             </div>
                         </td>
                         <td>
-                            <select class="form-select custom-select status-select" style="width: auto; min-width: 120px;">
+                            <select class="form-select status-select" data-id="@item.Id" data-original-status="@item.Status">
                                 @foreach (var opt in item.StatusOptions)
                                 {
                                     if (opt.Text == item.Status)
@@ -478,10 +567,9 @@
                                 }
                             </select>
                         </td>
-                        <td>
-                            <button class="btn btn-view btn-modern btn-sm view-details me-1" title="View Details">
-                                <i class="fas fa-eye me-1"></i>
-                                View
+                        <td class="actions-column">
+                            <button class="btn btn-view btn-modern btn-sm view-details" data-id="@item.Id" title="View Details">
+                                <i class="fas fa-eye"></i>
                             </button>
                         </td>
                     </tr>
@@ -537,7 +625,25 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-        $(function() {
+        // Export configuration (if ViewBag.ExportConfig exists)
+        if (typeof ViewBag !== 'undefined' && ViewBag.ExportConfig) {
+            window.exportConfig = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+                companyName = ViewBag.ExportConfig.CompanyName,
+                companyAddress = ViewBag.ExportConfig.CompanyAddress,
+                companyPhone = ViewBag.ExportConfig.CompanyPhone,
+                companyEmail = ViewBag.ExportConfig.CompanyEmail,
+                userName = ViewBag.ExportConfig.UserName,
+                userRole = ViewBag.ExportConfig.UserRole,
+                exportedBy = ViewBag.ExportConfig.ExportedBy
+            }));
+
+            // Apply config to TableExporter if it exists
+            if (window.TableExporter && typeof TableExporter.setConfig === 'function') {
+                TableExporter.setConfig(window.exportConfig);
+            }
+        }
+
+        $(document).ready(function() {
             // Initialize Flatpickr for date inputs
             flatpickr("#fromDate", {
                 dateFormat: "Y-m-d"
@@ -574,7 +680,7 @@
 
                     // Search filter
                     if (searchTerm) {
-                        const searchableText = ${rowData.driver} ${rowData.title} ${rowData.vehicle};
+                        const searchableText = `${rowData.driver} ${rowData.title} ${rowData.vehicle}`;
                         visible = visible && searchableText.includes(searchTerm);
                     }
 
@@ -683,9 +789,10 @@
                 });
             });
 
-            // View details in modal via AJAX
-            $('.view-details').click(function() {
-                const id = $(this).closest('tr').data('id');
+            // View details in modal via AJAX - Fixed event delegation
+            $(document).on('click', '.view-details', function(e) {
+                e.preventDefault();
+                const id = $(this).data('id');
                 $('#loadingSpinner').show();
 
                 $('#detailsContainer').load('@Url.Action("Details", "ManageFineToll")?id=' + id, function(response, status) {
@@ -698,35 +805,58 @@
                 });
             });
 
-            // Inline status change via AJAX POST
-            $('.status-select').change(function() {
+            // Inline status change via AJAX POST - Fixed event delegation
+            $(document).on('change', '.status-select', function() {
                 const row = $(this).closest('tr');
-                const id = row.data('id');
+                const id = $(this).data('id');
                 const newStatus = $(this).val();
-                const originalStatus = $(this).data('original-status') || $(this).find('option:selected').text();
+                const originalStatus = $(this).data('original-status');
+                const selectElement = $(this);
 
-                // Store original status for rollback
-                $(this).data('original-status', originalStatus);
+                // Show loading state
+                selectElement.prop('disabled', true);
+
+                // Create CSRF token if available
+                let token = $('input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    token = $('meta[name="__RequestVerificationToken"]').attr('content');
+                }
 
                 $.ajax({
                     url: '@Url.Action("UpdateStatus", "ManageFineToll")',
                     type: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    data: { id: id, status: newStatus },
-                    success: function() {
+                    headers: { 
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'RequestVerificationToken': token
+                    },
+                    data: { 
+                        id: id, 
+                        status: newStatus,
+                        __RequestVerificationToken: token
+                    },
+                    success: function(response) {
                         // Show success toast
                         showToast('Status updated successfully', 'success');
 
                         // Update row data attribute
                         row.data('status', newStatus.toLowerCase());
+                        
+                        // Update original status
+                        selectElement.data('original-status', newStatus);
 
                         // Update stats
                         updateStats();
                     },
-                    error: function() {
+                    error: function(xhr, status, error) {
+                        console.error('Status update error:', xhr.responseText);
+                        
                         // Rollback to original status
-                        $(this).val(originalStatus);
+                        selectElement.val(originalStatus);
                         showToast('Error updating status. Please try again.', 'error');
+                    },
+                    complete: function() {
+                        // Re-enable the select
+                        selectElement.prop('disabled', false);
                     }
                 });
             });
@@ -736,12 +866,12 @@
                 const toastClass = type === 'success' ? 'alert-success-custom' : 'alert-danger';
                 const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
 
-                const toast = $(
+                const toast = $(`
                     <div class="alert ${toastClass} alert-custom toast-notification" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
                         <i class="fas ${icon} me-2"></i>
                         ${message}
                     </div>
-                );
+                `);
 
                 $('body').append(toast);
 
@@ -754,29 +884,47 @@
 
             // Update statistics
             function updateStats() {
-                const visibleRows = $('#tableBody tr:visible');
-                let pendingCount = 0, paidCount = 0, overdueCount = 0;
+                const allRows = $('#tableBody tr');
+                let unpaidCount = 0, paidCount = 0;
 
-                visibleRows.each(function() {
+                allRows.each(function() {
                     const status = $(this).data('status');
                     switch(status) {
-                        case 'pending': pendingCount++; break;
+                        case 'pending': unpaidCount++; break;
                         case 'paid': paidCount++; break;
-                        case 'overdue': overdueCount++; break;
                     }
                 });
 
-                $('#pendingCount').text(pendingCount);
+                $('#unpaidCount').text(unpaidCount);
                 $('#paidCount').text(paidCount);
-                $('#overdueCount').text(overdueCount);
+                
             }
 
             // Initialize tooltips
             $('[title]').tooltip();
+
+            // Ensure table is properly sized on load
+            setTimeout(function() {
+                $(window).trigger('resize');
+            }, 100);
+        });
+
+        // Handle window resize for responsive table
+        $(window).on('resize', function() {
+            $('.custom-table').each(function() {
+                const table = $(this);
+                const tableWidth = table.find('table').width();
+                const containerWidth = table.width();
+                
+                if (tableWidth > containerWidth) {
+                    table.addClass('table-responsive');
+                } else {
+                    table.removeClass('table-responsive');
+                }
+            });
         });
     </script>
 }
-
 
 
 
