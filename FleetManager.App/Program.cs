@@ -15,6 +15,7 @@ using FleetManager.Business.Hubs;
 using FleetManager.Business.Implementations;
 using FleetManager.Business.Implementations.AdminDashboardService;
 using FleetManager.Business.Implementations.CompanyBranchModule;
+using FleetManager.Business.Implementations.CompanyDashboardModule;
 using FleetManager.Business.Implementations.CompanyModule;
 using FleetManager.Business.Implementations.CompanyOnboardingModule;
 using FleetManager.Business.Implementations.ContactDirectoryModule;
@@ -34,6 +35,7 @@ using FleetManager.Business.Implementations.VehicleModule;
 using FleetManager.Business.Implementations.VendorModule;
 using FleetManager.Business.Interfaces.AdminDashboardModule;
 using FleetManager.Business.Interfaces.CompanyBranchModule;
+using FleetManager.Business.Interfaces.CompanyDashboardModule;
 using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.CompanyOnboardingModule;
 using FleetManager.Business.Interfaces.ContactDirectoryModule;
@@ -206,6 +208,7 @@ builder.Services.AddTransient<ITimeOffService, TimeOffService>();
 builder.Services.AddTransient<ITimeOffCategoryService, TimeOffCategoryService>();
 builder.Services.AddTransient<IPublicHolidayService, PublicHolidayService>();
 builder.Services.AddTransient<IAdminDashboardService, AdminDashboardService>();
+builder.Services.AddTransient<ICompanyOwnerDashboardService, CompanyOwnerDashboardService>();
 
 
 

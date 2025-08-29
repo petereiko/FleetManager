@@ -73,7 +73,9 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                     EndDate = dto.EndDate,
                     CreatedBy = createdBy,
                     CreatedDate = DateTime.UtcNow,
-                    IsActive = true
+                    IsActive = true,
+                    //CompanyId = _authUser.CompanyId,
+                    //CompanyBranchId = _authUser.CompanyBranchId
                 };
 
                 _context.Add(entity);

@@ -135,6 +135,7 @@ namespace FleetManager.Business.Implementations.ManageDriverModule
                     LicenseExpiryDate = dto.LicenseExpiryDate,
                     CompanyBranchId = dto.CompanyBranchId,
                     LicenseCategory = dto.LicenseCategory,
+                    CompanyId = branch.CompanyId,
                     ShiftStatus = dto.ShiftStatus,
                     CreatedBy = createdByUserId,
                     CreatedDate = DateTime.UtcNow,

@@ -15,5 +15,9 @@ namespace FleetManager.Business.Database.Entities
         public virtual Vehicle? Vehicle { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        //public long? CompanyId { get; set; }
+        //public virtual Company? Company { get; set; }
+        //public long? CompanyBranchId { get; set; }
+        //public virtual CompanyBranch CompanyBranch { get; set; }
     }
 }

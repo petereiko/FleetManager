@@ -20,7 +20,7 @@ namespace FleetManager.Business.Implementations.AdminDashboardService
         private readonly IMemoryCache _cache;
         private readonly ILogger<AdminDashboardService> _logger;
         private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(30);
-
+        
         public AdminDashboardService(FleetManagerDbContext db, IMemoryCache cache, ILogger<AdminDashboardService> logger)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));

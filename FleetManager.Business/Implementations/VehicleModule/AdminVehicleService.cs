@@ -80,6 +80,7 @@ namespace FleetManager.Business.Implementations.VehicleModule
                     VehicleStatus = dto.VehicleStatus,
                     VehicleType = dto.VehicleType,
                     CreatedDate = DateTime.UtcNow,
+                    CompanyId = _authUser.CompanyId,
                     CreatedBy = createdByUserId,
                     IsActive = true
                 };
