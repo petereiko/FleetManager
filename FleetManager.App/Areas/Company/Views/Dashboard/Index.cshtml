@@ -7,6 +7,1479 @@
 @inject IAuthUser _authUser;
 @model CompanyOwnerDashboardDto
 @{
+    ViewData["Title"] = "Fleet Manager - Company Owner Dashboard";
+    // Currency formatting helper
+    Func<decimal, string> ngn = (amt) => string.Format(new System.Globalization.CultureInfo("en-NG"), "₦{0:N0}", amt);
+    // Percentage calculation helper
+    Func<int, int, double> percent = (value, total) => total > 0 ? Math.Round((double)value / total * 100, 1) : 0;
+    // Safe null check for model properties
+    var branches = Model?.Branches ?? new List<BranchSummaryDto>();
+    var totals = Model?.Totals ?? new TotalsDto();
+    var allBranches = Model?.AllBranches ?? new List<BranchListItemDto>();
+}
+
+<style>
+    .dashboard-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+
+    .metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .metric-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .status-active {
+        background-color: #28a745;
+    }
+
+    .status-maintenance {
+        background-color: #ffc107;
+    }
+
+    .status-inactive {
+        background-color: #dc3545;
+    }
+
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e9ecef;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745, #20c997);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+
+    .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .table-custom {
+        margin-bottom: 0;
+    }
+
+        .table-custom th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            border: none;
+            padding: 15px;
+        }
+
+        .table-custom td {
+            padding: 12px 15px;
+            border-top: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+    .alert-item {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 4px solid #f39c12;
+    }
+
+    .alert-high {
+        border-left-color: #e74c3c;
+        background: #ffebee;
+    }
+
+    .alert-medium {
+        border-left-color: #f39c12;
+        background: #fff3cd;
+    }
+
+    .alert-low {
+        border-left-color: #27ae60;
+        background: #e8f5e8;
+    }
+
+    .revenue-card {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .expense-card {
+        background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .maintenance-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+    }
+
+    /* Loading and Error States */
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .chart-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+        flex-direction: column;
+        color: #6c757d;
+    }
+
+    .chart-error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+        flex-direction: column;
+        color: #dc3545;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    @@keyframes spin {
+        0%
+
+    {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        border-radius: 8px;
+    }
+
+    .dash-widget {
+        position: relative;
+    }
+
+    .manage-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        border-radius: 4px;
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 10px;
+        padding: 8px;
+        background: #f8d7da;
+        border-radius: 4px;
+    }
+
+    .branch-header {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #e9ecef;
+    }
+
+    .cache-indicator {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #28a745;
+        color: white;
+        margin-left: 10px;
+    }
+
+    .filtered-indicator {
+        background: #17a2b8;
+    }
+</style>
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                <li class="breadcrumb-item active">
+                    Company Dashboard
+                    @if (Model?.CacheHit == true)
+                    {
+                        <span class="cache-indicator">Cached</span>
+                    }
+                    @if (Model?.IsFiltered == true)
+                    {
+                        <span class="cache-indicator filtered-indicator">Filtered</span>
+                    }
+                </li>
+            </ul>
+        </div>
+        <div class="d-flex align-items-center">
+            <button id="refreshDashboardBtn" class="btn btn-outline-primary btn-sm me-2">
+                <span class="refresh-text">Refresh Data</span>
+                <span class="loading-spinner d-none"></span>
+            </button>
+            <div class="d-inline-block ms-2">
+                <select id="branchSelect" class="form-select form-select-sm" style="min-width: 150px;">
+                    <option value="">All branches</option>
+                    @foreach (var branch in allBranches)
+                    {
+                        <option value="@branch.BranchId">@branch.BranchName</option>
+                    }
+                </select>
+            </div>
+            <a asp-action="Index" asp-controller="Branch" class="btn btn-primary btn-sm ms-2">Manage Branches</a>
+        </div>
+    </div>
+
+    <!-- Data Generation Info -->
+    @if (Model != null)
+    {
+        <div class="branch-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Company ID:</strong> @Model.CompanyId |
+                    <strong>Generated:</strong> @Model.GeneratedAt.ToString("MMM dd, yyyy HH:mm") (@Model.TimeZoneId) |
+                    <strong>Showing:</strong> @(Model.IsFiltered == true ? "Single Branch View" : "All Branches")
+                </div>
+                <small class="text-muted">
+                    Branches: @Model.BranchCount |
+                    Total Vehicles: @Model.VehicleCount |
+                    Assigned: @totals.AssignedVehicles
+                </small>
+            </div>
+        </div>
+    }
+
+    <div class="good-morning-blk">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="morning-user">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="col-md-6 position-blk">
+                <div class="morning-img">
+                    <img src="~/assets/img/morning-img-01.png" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Statistics Row -->
+    <div class="row">
+        <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
+            <div class="dash-widget">
+                <a asp-action="Index" asp-controller="Branch" class="btn btn-outline-primary btn-sm manage-btn">Manage</a>
+                <div class="dash-boxs comman-flex-center">
+                    <img src="~/assets/img/icons/profile-add.svg" alt="">
+                </div>
+                <div class="dash-content dash-count">
+                    <h6>Branches</h6>
+                    <h2><span id="branchCount" class="counter-up">@(Model?.BranchCount ?? 0)</span></h2>
+                    <p><small class="text-muted">@(branches.Count()) visible</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
+            <div class="dash-widget">
+                <a asp-action="Index" asp-controller="OnboardAdmin" class="btn btn-outline-primary btn-sm manage-btn">Manage</a>
+                <div class="dash-boxs comman-flex-center">
+                    <img src="~/assets/img/icons/profile-add.svg" alt="">
+                </div>
+                <div class="dash-content dash-count">
+                    <h6>Company Admins</h6>
+                    <h2><span id="adminCount" class="counter-up">@(Model?.AdminCount ?? 0)</span></h2>
+                    <p><small class="text-muted">Active administrators</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
+            <div class="dash-widget">
+                <div class="dash-boxs comman-flex-center">
+                    <img src="assets/img/icons/scissor.svg" alt="">
+                </div>
+                <div class="dash-content dash-count">
+                    <h6>Vehicles</h6>
+                    <h2><span id="vehicleCount" class="counter-up">@(Model?.VehicleCount ?? 0)</span></h2>
+                    <p><small class="text-muted">@totals.AssignedVehicles assigned</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
+            <div class="dash-widget">
+                <div class="dash-boxs comman-flex-center">
+                    <img src="assets/img/icons/empty-wallet.svg" alt="">
+                </div>
+                <div class="dash-content dash-count">
+                    <h6>Drivers</h6>
+                    <h2><span id="driverCount" class="counter-up">@(Model?.DriverCount ?? 0)</span></h2>
+                    <p><small class="text-muted">Total drivers</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Overview -->
+    <div class="row my-3">
+        <div class="col-md-4">
+            <div class="revenue-card">
+                <div class="metric-label">Total Spend</div>
+                <div id="monthlyExpenditure" class="metric-value">@ngn(totals.TotalSpend)</div>
+                <small id="monthlyExpenditureDelta" class="text-light">
+                    Fuel: @ngn(totals.FuelSpend) | Maintenance: @ngn(totals.MaintenanceSpend) | Fines: @ngn(totals.FinesSpend)
+                </small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="expense-card">
+                <div class="metric-label">Fuel Expenses</div>
+                <div id="monthlyExpenses" class="metric-value">@ngn(totals.FuelSpend)</div>
+                <small id="monthlyExpensesDelta" class="text-light">
+                    @{
+                        var fuelPercent = totals.TotalSpend > 0 ? Math.Round((totals.FuelSpend / totals.TotalSpend) * 100, 1) : 0;
+                    }
+                    @fuelPercent% of total spend
+                </small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="maintenance-card">
+                <div class="metric-label">Maintenance Expenses</div>
+                <div id="monthlyRecurrent" class="metric-value">@ngn(totals.MaintenanceSpend)</div>
+                <small id="monthlyRecurrentDelta" class="text-light">
+                    @{
+                        var maintPercent = totals.TotalSpend > 0 ? Math.Round((totals.MaintenanceSpend / totals.TotalSpend) * 100, 1) : 0;
+                    }
+                    @maintPercent% of total spend
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="dashboard-card">
+                <h5 class="mb-3">Monthly Expenses Trend</h5>
+                <div class="chart-container" style="height:320px;" id="performanceChartContainer">
+                    <div class="chart-loading" id="performanceLoading">
+                        <div class="loading-spinner"></div>
+                        <p class="mt-2">Loading expense data...</p>
+                    </div>
+                    <div class="chart-error d-none" id="performanceError">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p>Failed to load expense data</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="retryChart('performance')">Retry</button>
+                    </div>
+                    <canvas id="performanceChart" class="d-none"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <h5 class="mb-3">Vehicle Status Distribution</h5>
+                <div class="chart-container" style="height:320px;" id="statusChartContainer">
+                    <div class="chart-loading" id="statusLoading">
+                        <div class="loading-spinner"></div>
+                        <p class="mt-2">Loading status data...</p>
+                    </div>
+                    <div class="chart-error d-none" id="statusError">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p>Failed to load status data</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="retryChart('status')">Retry</button>
+                    </div>
+                    <canvas id="statusChart" class="d-none"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branch Performance Section -->
+    <div class="row my-3">
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5 class="mb-3">
+                    Branch Performance Metrics
+                    @if (Model?.IsFiltered == true)
+                    {
+                        <small class="text-muted">(Filtered View)</small>
+                    }
+                </h5>
+                <div id="branchPerformanceList">
+                    @if (branches.Any())
+                    {
+                        @foreach (var branch in branches.Take(6))
+                        {
+                            var perfPercent = (int)Math.Round(branch.PerformancePercentage);
+                            var utilizationRate = branch.TotalVehicles > 0 ? Math.Round(((double)branch.AssignedVehicleCount / branch.TotalVehicles) * 100, 1) : 0;
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="fw-bold">@branch.BranchName</span>
+                                    <span class="text-muted">@perfPercent% performance</span>
+                                </div>
+                                <div class="progress-bar-custom">
+                                    <div class="progress-fill" style="width: @perfPercent%"></div>
+                                </div>
+                                <div class="mt-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="text-muted">
+                                            <strong>Utilization:</strong> @branch.AssignedVehicleCount/@branch.TotalVehicles vehicles (@utilizationRate%)
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="text-muted">
+                                            <strong>Total Spend:</strong> @ngn(branch.TotalSpend)
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="text-muted">
+                                            <strong>Manager:</strong> @(branch.ManagerName ?? "Not assigned")
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <strong>Active Drivers:</strong> @branch.ActiveDrivers/@branch.TotalDrivers |
+                                            <strong>Open Tickets:</strong> @branch.OpenMaintenanceTickets
+                                            @if (branch.OverdueMaintenanceTickets > 0)
+                                            {
+                                                <span class="text-danger">(@branch.OverdueMaintenanceTickets overdue)</span>
+                                            }
+                                        </small>
+                                        <button class="btn btn-sm btn-outline-secondary view-branch" data-branch="@branch.BranchId">Details</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted">No branches to display.</div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5 class="mb-3">Expenses by Branch</h5>
+                <div class="chart-container" style="height:320px;" id="branchRevenueContainer">
+                    <div class="chart-loading" id="branchRevenueLoading">
+                        <div class="loading-spinner"></div>
+                        <p class="mt-2">Loading branch data...</p>
+                    </div>
+                    <div class="chart-error d-none" id="branchRevenueError">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p>Failed to load branch data</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="retryChart('branchRevenue')">Retry</button>
+                    </div>
+                    <canvas id="branchRevenueChart" class="d-none"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branch Summary Table -->
+    @if (branches.Any())
+    {
+        <div class="row my-3">
+            <div class="col-md-12">
+                <div class="dashboard-card">
+                    <h5 class="mb-3">Branch Summary Table</h5>
+                    <div class="table-responsive">
+                        <table class="table table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Branch</th>
+                                    <th>Manager</th>
+                                    <th>Admin</th>
+                                    <th>Drivers</th>
+                                    <th>Vehicles</th>
+                                    <th>Utilization</th>
+                                    <th>Open Tickets</th>
+                                    <th>Vendors</th>
+                                    <th>Total Spend</th>
+                                    <th>Performance</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var branch in branches)
+                                {
+                                    var utilizationRate = branch.TotalVehicles > 0 ? Math.Round(((double)branch.AssignedVehicleCount / branch.TotalVehicles) * 100, 1) : 0;
+                                    var perfPercent = (int)Math.Round(branch.PerformancePercentage);
+                                    <tr>
+                                        <td><strong>@branch.BranchName</strong></td>
+                                        <td>@(branch.ManagerName ?? "—")</td>
+                                        <td>@(branch.CompanyAdminName ?? "—")</td>
+                                        <td>@branch.ActiveDrivers/@branch.TotalDrivers</td>
+                                        <td>@branch.AssignedVehicleCount/@branch.TotalVehicles</td>
+                                        <td>
+                                            <div class="progress-bar-custom" style="width: 60px; height: 6px;">
+                                                <div class="progress-fill" style="width: @utilizationRate%"></div>
+                                            </div>
+                                            <small>@utilizationRate%</small>
+                                        </td>
+                                        <td>
+                                            @branch.OpenMaintenanceTickets
+                                            @if (branch.OverdueMaintenanceTickets > 0)
+                                            {
+                                                <span class="badge bg-danger badge-sm">@branch.OverdueMaintenanceTickets overdue</span>
+                                            }
+                                        </td>
+                                        <td>@branch.VendorsCount</td>
+                                        <td>@ngn(branch.TotalSpend)</td>
+                                        <td>
+                                            <div class="progress-bar-custom" style="width: 60px; height: 6px;">
+                                                <div class="progress-fill" style="width: @perfPercent%"></div>
+                                            </div>
+                                            <small>@perfPercent%</small>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary view-branch" data-branch="@branch.BranchId">Details</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Recent Activities Table -->
+    <div class="row my-3">
+        <div class="col-md-8">
+            <div class="dashboard-card">
+                <h5 class="mb-3">Recent Activities</h5>
+                <div class="table-responsive">
+                    <table id="recentActivitiesTable" class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th>Vehicle</th>
+                                <th>Driver</th>
+                                <th>Activity Type</th>
+                                <th>Amount/Volume</th>
+                                <th>Date</th>
+                                <th>Branch</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    <div class="loading-spinner me-2"></div>
+                                    Loading recent activities...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="activitiesError" class="error-message d-none">
+                    Failed to load recent activities. <button class="btn btn-sm btn-link p-0" onclick="loadRecentActivities()">Retry</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <h5 class="mb-3">Key Alerts & Notifications</h5>
+                <div id="alertsContainer">
+                    @if (branches.Any(b => b.OverdueMaintenanceTickets > 0))
+                    {
+                        @foreach (var branch in branches.Where(b => b.OverdueMaintenanceTickets > 0))
+                        {
+                            <div class="alert-item alert-high">
+                                <strong>Overdue Maintenance:</strong> @branch.BranchName has @branch.OverdueMaintenanceTickets overdue ticket(s)
+                                <small class="d-block text-muted">Requires immediate attention</small>
+                            </div>
+                        }
+                    }
+
+                    @if (branches.Any(b => b.TotalVehicles > 0 && (b.AssignedVehicleCount / (double)b.TotalVehicles) < 0.5))
+                    {
+                        @foreach (var branch in branches.Where(b => b.TotalVehicles > 0 && (b.AssignedVehicleCount / (double)b.TotalVehicles) < 0.5))
+                        {
+                            <div class="alert-item alert-medium">
+                                <strong>Low Utilization:</strong> @branch.BranchName has low vehicle utilization (@Math.Round((branch.AssignedVehicleCount / (double)branch.TotalVehicles) * 100, 1)%)
+                                <small class="d-block text-muted">Consider reviewing vehicle assignments</small>
+                            </div>
+                        }
+                    }
+
+                    @if (branches.Sum(b => b.TotalSpend) > 0)
+                    {
+                        var highSpendBranch = branches.OrderByDescending(b => b.TotalSpend).FirstOrDefault();
+                        if (highSpendBranch != null && highSpendBranch.TotalSpend > 0)
+                        {
+                            <div class="alert-item alert-low">
+                                <strong>Highest Spending Branch:</strong> @highSpendBranch.BranchName (@ngn(highSpendBranch.TotalSpend))
+                                <small class="d-block text-muted">Monitor for cost optimization opportunities</small>
+                            </div>
+                        }
+                    }
+
+                    @if (!branches.Any(b => b.OverdueMaintenanceTickets > 0) && !branches.Any(b => b.TotalVehicles > 0 && (b.AssignedVehicleCount / (double)b.TotalVehicles) < 0.5))
+                    {
+                        <div class="alert-item alert-low">
+                            <strong>All Systems Good:</strong> No critical alerts at this time
+                            <small class="d-block text-muted">Fleet operations running smoothly</small>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Branch Detail Modal -->
+<div class="modal fade" id="branchDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="branchDetailTitle">Branch Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="branchDetailBody">
+                <div class="text-center">
+                    <div class="loading-spinner me-2"></div>
+                    Loading branch details...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<script>
+        (function () {
+          // Server-provided initial dashboard DTO
+          const initialDashboard = @Html.Raw(JsonSerializer.Serialize(Model ?? new CompanyOwnerDashboardDto()));
+          const currentUserFirstName = '@(_authUser?.FirstName ?? "")';
+
+          // Global state
+          let charts = {
+            performance: null,
+            branchRevenue: null,
+            status: null,
+            utilization: null
+          };
+
+          let currentBranchId = null;
+          let isRefreshing = false;
+
+          // Helpers
+          function formatCurrency(v) {
+            try {
+              return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(v || 0);
+            } catch (e) {
+              return '₦' + (v || 0).toLocaleString();
+            }
+          }
+
+          function get(obj, key) {
+            if (!obj) return undefined;
+            if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
+            const camel = key.charAt(0).toLowerCase() + key.slice(1);
+            if (Object.prototype.hasOwnProperty.call(obj, camel)) return obj[camel];
+            const pascal = key.charAt(0).toUpperCase() + key.slice(1);
+            if (Object.prototype.hasOwnProperty.call(obj, pascal)) return obj[pascal];
+            return undefined;
+          }
+
+          // Loading UI helpers
+          function showLoading(name) {
+            document.getElementById(`${name}Loading`)?.classList.remove('d-none');
+            document.getElementById(`${name}Chart`)?.classList.add('d-none');
+            document.getElementById(`${name}Error`)?.classList.add('d-none');
+          }
+          function hideLoading(name) {
+            document.getElementById(`${name}Loading`)?.classList.add('d-none');
+            document.getElementById(`${name}Chart`)?.classList.remove('d-none');
+          }
+          function showError(name) {
+            document.getElementById(`${name}Loading`)?.classList.add('d-none');
+            document.getElementById(`${name}Chart`)?.classList.add('d-none');
+            document.getElementById(`${name}Error`)?.classList.remove('d-none');
+          }
+          function setRefreshLoading(loading) {
+            const btn = document.getElementById('refreshDashboardBtn');
+            if (!btn) return;
+            const text = btn.querySelector('.refresh-text');
+            const spinner = btn.querySelector('.loading-spinner');
+            if (loading) {
+              text.classList.add('d-none');
+              spinner.classList.remove('d-none');
+              btn.disabled = true;
+              isRefreshing = true;
+            } else {
+              text.classList.remove('d-none');
+              spinner.classList.add('d-none');
+              btn.disabled = false;
+              isRefreshing = false;
+            }
+          }
+
+          // Greeting
+          function setGreeting() {
+            const name = currentUserFirstName || '';
+            const hour = new Date().getHours();
+            let greeting, subMessage;
+
+            if (hour < 12) {
+              greeting = "Good Morning";
+              subMessage = "Ready to lead your fleet to new heights today?";
+            } else if (hour < 17) {
+              greeting = "Good Afternoon";
+              subMessage = "Hope your strategic vision is coming together smoothly!";
+            } else {
+              greeting = "Good Evening";
+              subMessage = "Take a moment to review today's fleet achievements.";
+            }
+
+            const container = document.querySelector('.morning-user');
+            if (container) {
+              container.innerHTML = `
+                <h2>${greeting}${name ? ', ' + name : ''}</h2>
+                <p>${subMessage}</p>
+              `;
+            }
+          }
+
+          // -------- Chart initialization functions --------
+          function initBranchRevenueChart(branches) {
+            showLoading('branchRevenue');
+
+            try {
+              const branchLabels = (branches || []).map(b => get(b, 'branchName') || 'Branch');
+              const branchExpenses = (branches || []).map(b => get(b, 'totalSpend') || get(b, 'TotalSpend') || 0);
+
+              const ctx = document.getElementById('branchRevenueChart')?.getContext('2d');
+              if (!ctx) { showError('branchRevenue'); return; }
+
+              if (charts.branchRevenue) charts.branchRevenue.destroy();
+
+              charts.branchRevenue = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                  labels: branchLabels,
+                  datasets: [{
+                    label: 'Total Expenses (₦)',
+                    data: branchExpenses,
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    borderSkipped: false
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) { return `Expenses: ${formatCurrency(context.parsed.y)}`; }
+                      }
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: { callback: function(value) { return formatCurrency(value); } }
+                    },
+                    x: {
+                      ticks: {
+                        maxRotation: 45,
+                        minRotation: 0
+                      }
+                    }
+                  }
+                }
+              });
+
+              hideLoading('branchRevenue');
+            } catch (err) {
+              console.error('Branch revenue chart error:', err);
+              showError('branchRevenue');
+            }
+          }
+
+          function initStatusChart(dashboardData) {
+            showLoading('status');
+
+            try {
+              const statusDistribution = dashboardData?.vehicleStatusDistribution || {};
+              const labels = [];
+              const data = [];
+              const colors = [];
+              const colorMap = {
+                'Active': '#28a745',
+                'Inactive': '#dc3545',
+                'Maintenance': '#ffc107',
+                'UnderMaintenance': '#ffc107',
+                'Unassigned': '#6c757d',
+                'Available': '#17a2b8',
+                'OutOfService': '#e74c3c'
+              };
+
+              for (const [status, count] of Object.entries(statusDistribution)) {
+                if (count > 0) {
+                  labels.push(status);
+                  data.push(count);
+                  colors.push(colorMap[status] || '#6c757d');
+                }
+              }
+
+              if (data.length === 0) {
+                labels.push('No Data');
+                data.push(1);
+                colors.push('#e9ecef');
+              }
+
+              const ctx = document.getElementById('statusChart')?.getContext('2d');
+              if (!ctx) { showError('status'); return; }
+
+              if (charts.status) charts.status.destroy();
+
+              charts.status = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                  labels,
+                  datasets: [{
+                    data,
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        padding: 10,
+                        usePointStyle: true,
+                        generateLabels: function(chart) {
+                          const data = chart.data;
+                          if (data.labels.length && data.datasets.length) {
+                            return data.labels.map((label, i) => {
+                              const dataset = data.datasets[0];
+                              const value = dataset.data[i];
+                              return {
+                                text: `${label}: ${value}`,
+                                fillStyle: dataset.backgroundColor[i],
+                                strokeStyle: dataset.backgroundColor[i],
+                                lineWidth: 0,
+                                pointStyle: 'circle',
+                                hidden: false,
+                                index: i
+                              };
+                            });
+                          }
+                          return [];
+                        }
+                      }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          const label = context.label || '';
+                          const value = context.parsed;
+                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = ((value / total) * 100).toFixed(1);
+                          return `${label}: ${value} (${percentage}%)`;
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+
+              hideLoading('status');
+            } catch (err) {
+              console.error('Status chart error:', err);
+              showError('status');
+            }
+          }
+
+          // -------- Data loading functions --------
+          async function loadPerformanceChart(branchId) {
+            showLoading('performance');
+            try {
+              const url = `/Company/Dashboard/ExpensesByMonth?branchId=${encodeURIComponent(branchId || '')}`;
+              const response = await fetch(url);
+              if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+              const result = await response.json();
+              if (!result.success) throw new Error(result.error || 'Failed to load data');
+
+              const expenses = result.data || [];
+              const labels = expenses.map(m => {
+                const year = get(m, 'year') || get(m, 'Year') || new Date().getFullYear();
+                const month = get(m, 'month') || get(m, 'Month') || 1;
+                const monthNames = ['', 'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                return `${monthNames[month]} ${year}`;
+              });
+              const values = expenses.map(m => get(m, 'value') || get(m, 'Value') || 0);
+              const secondaryValues = expenses.map(m => get(m, 'secondaryValue') || get(m, 'SecondaryValue') || 0);
+
+              const ctx = document.getElementById('performanceChart')?.getContext('2d');
+              if (!ctx) throw new Error('Chart canvas not found');
+
+              if (charts.performance) charts.performance.destroy();
+
+              charts.performance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                  labels: labels.length ? labels : ['No Data'],
+                  datasets: [{
+                    label: 'Total Expenses (₦)',
+                    data: values.length ? values : [0],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                  }, {
+                    label: 'Fuel Expenses (₦)',
+                    data: secondaryValues.length ? secondaryValues : [0],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: false,
+                    tension: 0.3
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: { callback: (v) => formatCurrency(v) }
+                    }
+                  },
+                  plugins: {
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`
+                      }
+                    }
+                  }
+                }
+              });
+
+              hideLoading('performance');
+            } catch (err) {
+              console.error('Error loading performance chart:', err);
+              showError('performance');
+            }
+          }
+
+          // Load Recent Activities
+          async function loadRecentActivitiesForBranch(branchId) {
+            const tbody = document.querySelector('#recentActivitiesTable tbody');
+            const errorDiv = document.getElementById('activitiesError');
+
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted"><div class="loading-spinner me-2"></div>Loading recent activities...</td></tr>`;
+            errorDiv.classList.add('d-none');
+
+            try {
+              const url = `/Company/Dashboard/RecentActivities?branchId=${encodeURIComponent(branchId || '')}&size=10`;
+              const response = await fetch(url);
+              if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+              const result = await response.json();
+              if (!result.success) throw new Error(result.error || 'Failed to load activities');
+
+              const data = result.data;
+              const activities = [];
+
+              // Combine fuel logs and maintenance tickets
+              if (data.recentFuel && Array.isArray(data.recentFuel)) {
+                data.recentFuel.forEach(f => {
+                  activities.push({
+                    ...f,
+                    activityType: 'Fuel',
+                    amount: get(f, 'cost') || 0,
+                    volume: get(f, 'volume') || 0
+                  });
+                });
+              }
+
+              if (data.recentTickets && Array.isArray(data.recentTickets)) {
+                data.recentTickets.forEach(t => {
+                  activities.push({
+                    ...t,
+                    activityType: 'Maintenance',
+                    amount: get(t, 'estimatedCost') || get(t, 'invoiceAmount') || 0,
+                    volume: null
+                  });
+                });
+              }
+
+              // Sort by date (most recent first)
+              activities.sort((a, b) => {
+                const dateA = new Date(get(a, 'date') || get(a, 'createdDate') || 0);
+                const dateB = new Date(get(b, 'date') || get(b, 'createdDate') || 0);
+                return dateB - dateA;
+              });
+
+              populateRecentActivities(activities);
+            } catch (err) {
+              console.error('Error loading recent activities:', err);
+              tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No recent activities available</td></tr>';
+              errorDiv.classList.remove('d-none');
+            }
+          }
+
+          function populateRecentActivities(rows) {
+            const tbody = document.querySelector('#recentActivitiesTable tbody');
+            if (!rows || rows.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No recent activities available</td></tr>';
+              return;
+            }
+
+            tbody.innerHTML = '';
+            for (const r of rows.slice(0, 15)) {
+              const vehicleId = get(r, 'vehiclePlateNo') || `#${get(r, 'vehicleId') || ''}`;
+              const driver = get(r, 'driverName') || (get(r, 'driverId') ? ('Driver ' + get(r, 'driverId')) : '—');
+              const activityType = get(r, 'activityType') || 'Activity';
+              const amount = get(r, 'amount') || 0;
+              const volume = get(r, 'volume');
+              const date = new Date(get(r, 'date') || get(r, 'createdDate') || Date.now()).toLocaleDateString();
+              const branch = get(r, 'branchName') || '—';
+
+              let amountDisplay = '';
+              if (activityType === 'Fuel') {
+                amountDisplay = volume ? `${volume}L / ${formatCurrency(amount)}` : formatCurrency(amount);
+              } else {
+                amountDisplay = formatCurrency(amount);
+              }
+
+              tbody.innerHTML += `
+                <tr>
+                  <td><strong>${vehicleId}</strong></td>
+                  <td>${driver}</td>
+                  <td><span class="badge bg-${activityType === 'Fuel' ? 'primary' : 'warning'}">${activityType}</span></td>
+                  <td>${amountDisplay}</td>
+                  <td>${date}</td>
+                  <td>${branch}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary view-branch" data-branch="${get(r, 'branchId') || get(r, 'companyBranchId') || ''}">View Branch</button>
+                  </td>
+                </tr>`;
+            }
+          }
+
+          // Apply DTO to UI
+          function applyDtoToUi(dto) {
+            if (!dto) return;
+
+            // Update counters
+            document.getElementById('branchCount').textContent = dto.branchCount ?? 0;
+            document.getElementById('adminCount').textContent = dto.adminCount ?? 0;
+            document.getElementById('vehicleCount').textContent = dto.vehicleCount ?? 0;
+            document.getElementById('driverCount').textContent = dto.driverCount ?? 0;
+
+            // Update financial metrics
+            const totals = dto.totals || {};
+            document.getElementById('monthlyExpenditure').textContent = formatCurrency(totals.totalSpend ?? 0);
+            document.getElementById('monthlyExpenses').textContent = formatCurrency(totals.fuelSpend ?? 0);
+            document.getElementById('monthlyRecurrent').textContent = formatCurrency(totals.maintenanceSpend ?? 0);
+
+            // Update branch performance list (this will be handled by the scoped refresh)
+            const list = document.getElementById('branchPerformanceList');
+            if (list && dto.branches) {
+              if (dto.branches.length === 0) {
+                list.innerHTML = '<div class="text-muted">No branches to display.</div>';
+              } else {
+                list.innerHTML = dto.branches.slice(0, 6).map(b => {
+                  const perf = Math.round(get(b, 'performancePercentage') || 0);
+                  const assigned = get(b, 'assignedVehicleCount') || 0;
+                  const totalVeh = get(b, 'totalVehicles') || 0;
+                  const spend = get(b, 'totalSpend') || get(b, 'TotalSpend') || 0;
+                  const utilizationRate = totalVeh > 0 ? Math.Round((assigned / totalVeh) * 100, 1) : 0;
+
+                  return `
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold">${get(b, 'branchName')}</span>
+                        <span class="text-muted">${perf}% performance</span>
+                      </div>
+                      <div class="progress-bar-custom"><div class="progress-fill" style="width: ${perf}%"></div></div>
+                      <div class="mt-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                          <small class="text-muted"><strong>Utilization:</strong> ${assigned}/${totalVeh} vehicles (${utilizationRate}%)</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <small class="text-muted"><strong>Total Spend:</strong> ${formatCurrency(spend)}</small>
+                          <button class="btn btn-sm btn-outline-secondary view-branch" data-branch="${get(b, 'branchId')}">Details</button>
+                        </div>
+                      </div>
+                    </div>`;
+                }).join('');
+              }
+            }
+          }
+
+          // Load scoped dashboard
+          async function loadScopedDashboard(branchId) {
+            if (isRefreshing) return;
+            setRefreshLoading(true);
+            currentBranchId = branchId || null;
+
+            try {
+              const url = `/Company/Dashboard/Scoped?branchId=${encodeURIComponent(branchId || '')}&recentSize=10`;
+              const res = await fetch(url);
+              if (!res.ok) throw new Error('Failed to load scoped dashboard');
+
+              const result = await res.json();
+              if (!result.success) throw new Error(result.error || 'Failed to load dashboard data');
+
+              const dto = result.data;
+              applyDtoToUi(dto);
+
+              // Update charts
+              await loadPerformanceChart(currentBranchId);
+              initBranchRevenueChart(dto.branches || []);
+              initStatusChart(dto);
+
+              // Load recent activities
+              await loadRecentActivitiesForBranch(currentBranchId);
+            } catch (err) {
+              console.error('Error loading scoped dashboard:', err);
+              // Could show toast notification here
+            } finally {
+              setRefreshLoading(false);
+            }
+          }
+
+          // Branch detail modal handler
+          document.addEventListener('click', async (ev) => {
+            const btn = ev.target.closest('.view-branch');
+            if (!btn) return;
+
+            const branchId = btn.getAttribute('data-branch');
+            if (!branchId) return;
+
+            try {
+              const modalEl = document.getElementById('branchDetailModal');
+              const modal = new bootstrap.Modal(modalEl);
+              modal.show();
+
+              document.getElementById('branchDetailTitle').textContent = 'Loading Branch Details...';
+              document.getElementById('branchDetailBody').innerHTML = `
+                <div class="text-center">
+                  <div class="loading-spinner me-2"></div>
+                  Loading branch details...
+                </div>`;
+
+              const response = await fetch(`/Company/Dashboard/BranchDetails?branchId=${encodeURIComponent(branchId)}`);
+              if (!response.ok) throw new Error('Failed to load branch details');
+
+              const result = await response.json();
+              if (!result.success) throw new Error(result.error || 'Failed to load branch details');
+
+              showBranchModal(result.data);
+            } catch (err) {
+              console.error('Error fetching branch details:', err);
+              document.getElementById('branchDetailBody').innerHTML = `
+                <div class="alert alert-danger">
+                  Failed to load branch details. Please try again.
+                  <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.closest('.modal').querySelector('.btn-close').click()">Close</button>
+                </div>`;
+            }
+          });
+
+          function showBranchModal(data) {
+            const title = document.getElementById('branchDetailTitle');
+            const body = document.getElementById('branchDetailBody');
+
+            title.textContent = `${get(data, 'branchName') || 'Branch'} — Detailed View`;
+
+            const summary = get(data, 'summary') || {};
+            const recentTickets = get(data, 'recentMaintenanceTickets') || [];
+            const recentFuel = get(data, 'recentFuelLogs') || [];
+            const topVehicles = get(data, 'topVehiclesByFuel') || [];
+            const expenses = get(data, 'expensesByMonth') || [];
+
+            body.innerHTML = `
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">Branch Summary</h6>
+                      <p><strong>Manager:</strong> ${get(data, 'managerName') || '—'}</p>
+                      <p><strong>Company Admin:</strong> ${get(summary, 'companyAdminName') || '—'}</p>
+                      <p><strong>Drivers:</strong> ${get(summary, 'activeDrivers') || 0}/${get(summary, 'totalDrivers') || 0} active</p>
+                      <p><strong>Vehicles:</strong> ${get(summary, 'activeVehicles') || 0}/${get(summary, 'totalVehicles') || 0} active</p>
+                      <p><strong>Assigned Vehicles:</strong> ${get(summary, 'assignedVehicleCount') || 0}</p>
+                      <p><strong>Open Tickets:</strong> ${get(summary, 'openMaintenanceTickets') || 0}
+                        ${get(summary, 'overdueMaintenanceTickets') > 0 ? `<span class="text-danger">(${get(summary, 'overdueMaintenanceTickets')} overdue)</span>` : ''}
+                      </p>
+                      <p><strong>Total Spend:</strong> ${formatCurrency(get(summary, 'totalSpend') || 0)}</p>
+                      <p><strong>Performance:</strong> ${Math.round(get(summary, 'performancePercentage') || 0)}%</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">Top Fuel Consuming Vehicles</h6>
+                      ${topVehicles.length
+                        ? `<ul class="list-unstyled">
+                            ${topVehicles.slice(0, 5).map(v =>
+                              `<li class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                  <span><strong>${get(v, 'plateNo') || get(v, 'PlateNo') || 'N/A'}</strong></span>
+                                  <span class="badge bg-primary">${get(v, 'totalVolume') || 0}L</span>
+                                </div>
+                                <small class="text-muted">Cost: ${formatCurrency(get(v, 'totalCost') || 0)}</small>
+                              </li>`
+                            ).join('')}
+                           </ul>`
+                        : '<p class="text-muted">No fuel data available</p>'
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">Recent Maintenance Tickets</h6>
+                      <div class="list-group list-group-flush">
+                        ${recentTickets.length
+                          ? recentTickets.slice(0, 5).map(t =>
+                              `<div class="list-group-item px-0">
+                                 <div class="d-flex justify-content-between align-items-start">
+                                   <div>
+                                     <strong>${get(t, 'subject') || get(t, 'Subject') || '—'}</strong>
+                                     <small class="d-block text-muted">Vehicle: ${get(t, 'vehiclePlateNo') || '—'}</small>
+                                     <small class="d-block text-muted">${new Date(get(t, 'createdDate') || get(t, 'CreatedDate')).toLocaleDateString()}</small>
+                                   </div>
+                                   <span class="badge bg-${get(t, 'status') === 'Completed' || get(t, 'status') === 'Resolved' ? 'success' : get(t, 'status') === 'Pending' ? 'warning' : 'secondary'}">${get(t, 'status') || get(t, 'Status')}</span>
+                                 </div>
+                               </div>`
+                            ).join('')
+                          : '<div class="text-muted">No recent tickets</div>'
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">Recent Fuel Logs</h6>
+                      <div class="list-group list-group-flush">
+                        ${recentFuel.length
+                          ? recentFuel.slice(0, 5).map(f =>
+                              `<div class="list-group-item px-0">
+                                 <div class="d-flex justify-content-between align-items-start">
+                                   <div>
+                                     <strong>${get(f, 'vehiclePlateNo') || '—'}</strong>
+                                     <small class="d-block text-muted">Driver: ${get(f, 'driverName') || '—'}</small>
+                                     <small class="d-block text-muted">${new Date(get(f, 'date') || get(f, 'Date')).toLocaleDateString()}</small>
+                                   </div>
+                                   <div class="text-end">
+                                     <div><strong>${formatCurrency(get(f, 'cost') || 0)}</strong></div>
+                                     <small class="text-muted">${get(f, 'volume') || 0}L</small>
+                                   </div>
+                                 </div>
+                               </div>`
+                            ).join('')
+                          : '<div class="text-muted">No recent fuel logs</div>'
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+          // Retry functions
+          window.retryChart = function(chartType) {
+            switch(chartType) {
+              case 'performance':
+                loadPerformanceChart(currentBranchId);
+                break;
+              case 'branchRevenue':
+                initBranchRevenueChart(initialDashboard?.branches || []);
+                break;
+              case 'status':
+                initStatusChart(initialDashboard || {});
+                break;
+            }
+          };
+
+          // Refresh all data
+          async function refreshAllData() {
+            if (isRefreshing) return;
+            await loadScopedDashboard(currentBranchId);
+          }
+
+          // Event handlers
+          document.getElementById('branchSelect')?.addEventListener('change', function() {
+            const val = this.value;
+            loadScopedDashboard(val || null);
+          });
+
+          document.getElementById('refreshDashboardBtn')?.addEventListener('click', refreshAllData);
+
+          // Global function for retry
+          window.loadRecentActivities = function() { loadRecentActivitiesForBranch(currentBranchId); };
+
+          // Initialize
+          setGreeting();
+
+          // Seed charts with initial data
+              if (initialDashboard) {
+    initBranchRevenueChart(initialDashboard.branches || []);
+    initStatusChart(initialDashboard);
+    }
+
+    // Load performance chart and recent activities
+    loadPerformanceChart(currentBranchId);
+    loadRecentActivitiesForBranch(currentBranchId);
+
+    // Initialize branch select value
+    const branchSelect = document.getElementById('branchSelect');
+    if (branchSelect && initialDashboard?.isFiltered && initialDashboard.branchId) {
+    branchSelect.value = initialDashboard.branchId;
+    currentBranchId = initialDashboard.branchId;
+    }
+
+    })();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.CompanyOwnerDashboardDto
+@using FleetManager.Business.Database.IdentityModels
+@using FleetManager.Business.Interfaces.UserModule
+@using FleetManager.Business.ViewModels
+@using Microsoft.AspNetCore.Identity
+@using System.Text.Json
+@inject IAuthUser _authUser;
+@model CompanyOwnerDashboardDto
+@{
     ViewData["Title"] = "Fleet Manager - Admin Dashboard";
     // Currency formatting helper
     Func<decimal, string> ngn = (amt) => string.Format(new System.Globalization.CultureInfo("en-NG"), "₦{0:N0}", amt);
@@ -195,16 +1668,13 @@
     }
 
     @@keyframes spin {
-        0%
+        0% {
+            transform: rotate(0deg);
+        }
 
-    {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     .loading-overlay {
@@ -260,6 +1730,20 @@
                 <span class="refresh-text">Refresh Data</span>
                 <span class="loading-spinner d-none"></span>
             </button>
+            <div class="d-inline-block ms-2">
+                <select id="branchSelect" class="form-select form-select-sm">
+                    <option value="">All branches</option>
+                    @if (Model?.Branches != null)
+                    {
+                        foreach (var b in Model.Branches)
+                        {
+                            <option value="@b.BranchId">@b.BranchName</option>
+                        }
+                    }
+                </select>
+            </div>
+
+
             <a asp-action="Index" asp-controller="Branch" class="btn btn-primary btn-sm">Manage Branches</a>
         </div>
     </div>
@@ -585,7 +2069,622 @@
     </div>
 </div>
 
-<!-- Chart.js CDN -->
+<!-- Chart.js CDN (keep if not already present) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<script>
+    (function () {
+      // Server-provided initial dashboard DTO (used to seed charts quickly)
+      const initialDashboard = @Html.Raw(JsonSerializer.Serialize(Model ?? new CompanyOwnerDashboardDto()));
+      const currentUserFirstName = '@(_authUser?.FirstName ?? "")';
+
+      // Global state
+      let charts = {
+        performance: null,
+        branchRevenue: null,
+        status: null,
+        utilization: null
+      };
+
+      let currentBranchId = null;
+      let isRefreshing = false;
+
+      // Helpers
+      function formatCurrency(v) {
+        try {
+          return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(v || 0);
+        } catch (e) {
+          return '₦' + (v || 0);
+        }
+      }
+
+      function get(obj, key) {
+        if (!obj) return undefined;
+        if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
+        const camel = key.charAt(0).toLowerCase() + key.slice(1);
+        if (Object.prototype.hasOwnProperty.call(obj, camel)) return obj[camel];
+        const pascal = key.charAt(0).toUpperCase() + key.slice(1);
+        if (Object.prototype.hasOwnProperty.call(obj, pascal)) return obj[pascal];
+        return undefined;
+      }
+
+      // Loading UI helpers
+      function showLoading(name) {
+        document.getElementById(`${name}Loading`)?.classList.remove('d-none');
+        document.getElementById(`${name}Chart`)?.classList.add('d-none');
+        document.getElementById(`${name}Error`)?.classList.add('d-none');
+      }
+      function hideLoading(name) {
+        document.getElementById(`${name}Loading`)?.classList.add('d-none');
+        document.getElementById(`${name}Chart`)?.classList.remove('d-none');
+      }
+      function showError(name) {
+        document.getElementById(`${name}Loading`)?.classList.add('d-none');
+        document.getElementById(`${name}Chart`)?.classList.add('d-none');
+        document.getElementById(`${name}Error`)?.classList.remove('d-none');
+      }
+      function setRefreshLoading(loading) {
+        const btn = document.getElementById('refreshDashboardBtn');
+        if (!btn) return;
+        const text = btn.querySelector('.refresh-text');
+        const spinner = btn.querySelector('.loading-spinner');
+        if (loading) {
+          text.classList.add('d-none');
+          spinner.classList.remove('d-none');
+          btn.disabled = true;
+          isRefreshing = true;
+        } else {
+          text.classList.remove('d-none');
+          spinner.classList.add('d-none');
+          btn.disabled = false;
+          isRefreshing = false;
+        }
+      }
+
+      // Greeting
+      function setGreeting() {
+        const name = currentUserFirstName || '';
+        const hour = new Date().getHours();
+        let greeting, subMessage;
+
+        if (hour < 12) {
+          greeting = "Good Morning";
+          subMessage = "Ready to lead us to new heights today?";
+        } else if (hour < 17) {
+          greeting = "Good Afternoon";
+          subMessage = "Hope your strategic vision is coming together smoothly!";
+        } else {
+          greeting = "Good Evening";
+          subMessage = "Take a moment to celebrate today's achievements, visionary leader.";
+        }
+
+        const container = document.querySelector('.morning-user');
+        if (container) {
+          container.innerHTML = `
+            <h2>${greeting}${name ? ', ' + name : ''}</h2>
+            <p>${subMessage}</p>
+          `;
+        }
+      }
+
+      // -------- Chart inits (reusable) --------
+      function initBranchRevenueChart(branches) {
+        showLoading('branchRevenue');
+
+        try {
+          const branchLabels = (branches || []).map(b => get(b, 'branchName') || 'Branch');
+          const branchExpenses = (branches || []).map(b => get(b, 'totalSpend') || get(b, 'TotalSpend') || 0);
+
+          const ctx = document.getElementById('branchRevenueChart')?.getContext('2d');
+          if (!ctx) { showError('branchRevenue'); return; }
+
+          if (charts.branchRevenue) charts.branchRevenue.destroy();
+
+          charts.branchRevenue = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: branchLabels,
+              datasets: [{
+                label: 'Expenses (₦)',
+                data: branchExpenses,
+                borderRadius: 5,
+                borderSkipped: false
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) { return formatCurrency(context.parsed.y); }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: { callback: function(value) { return formatCurrency(value); } }
+                }
+              }
+            }
+          });
+
+          hideLoading('branchRevenue');
+        } catch (err) {
+          console.error(err);
+          showError('branchRevenue');
+        }
+      }
+
+      function initStatusChart(dashboardData) {
+        showLoading('status');
+
+        try {
+          const statusDistribution = dashboardData?.vehicleStatusDistribution || {};
+          const labels = [];
+          const data = [];
+          const colors = [];
+          const colorMap = {
+            'Active': '#28a745',
+            'Inactive': '#dc3545',
+            'Maintenance': '#ffc107',
+            'UnderMaintenance': '#ffc107',
+            'Unassigned': '#6c757d',
+            'Available': '#17a2b8',
+            'OutOfService': '#e74c3c'
+          };
+
+          for (const [status, count] of Object.entries(statusDistribution)) {
+            if (count > 0) {
+              labels.push(status);
+              data.push(count);
+              colors.push(colorMap[status] || '#6c757d');
+            }
+          }
+
+          if (data.length === 0) {
+            labels.push('No Data');
+            data.push(1);
+            colors.push('#e9ecef');
+          }
+
+          const ctx = document.getElementById('statusChart')?.getContext('2d');
+          if (!ctx) { showError('status'); return; }
+
+          if (charts.status) charts.status.destroy();
+
+          charts.status = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels,
+              datasets: [{
+                data,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true } }
+              }
+            }
+          });
+
+          hideLoading('status');
+        } catch (err) {
+          console.error(err);
+          showError('status');
+        }
+      }
+
+      function initUtilizationChart(sampleData) {
+        showLoading('utilization');
+
+        try {
+          const ctx = document.getElementById('utilizationChart')?.getContext('2d');
+          if (!ctx) return;
+
+          if (charts.utilization) charts.utilization.destroy();
+
+          charts.utilization = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: sampleData?.labels || ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+              datasets: [{
+                label: 'Utilization %',
+                data: sampleData?.data || [85,90,87,92,88,75,70],
+                fill: true,
+                tension: 0.4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  ticks: { callback: (v) => `${v}%` }
+                }
+              },
+              plugins: { legend: { display: false } }
+            }
+          });
+
+          hideLoading('utilization');
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      // -------- Data loaders --------
+      async function loadPerformanceChart(branchId) {
+        showLoading('performance');
+        try {
+          const url = `/Company/Dashboard/ExpensesByMonth?branchId=${encodeURIComponent(branchId || '')}`;
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+          const expenses = await response.json();
+          const labels = (expenses || []).map(m => {
+            const year = get(m, 'year') || get(m, 'Year') || new Date().getFullYear();
+            const month = get(m, 'month') || get(m, 'Month') || 1;
+            const monthNames = ['', 'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return `${monthNames[month]} ${year}`;
+          });
+          const values = (expenses || []).map(m => get(m, 'value') || get(m, 'Value') || 0);
+
+          const ctx = document.getElementById('performanceChart')?.getContext('2d');
+          if (!ctx) throw new Error('Chart canvas not found');
+
+          if (charts.performance) charts.performance.destroy();
+
+          charts.performance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels.length ? labels : ['No Data'],
+              datasets: [{
+                label: 'Monthly Expenses (₦)',
+                data: values.length ? values : [0],
+                fill: true,
+                tension: 0.3
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: { beginAtZero: true, ticks: { callback: (v) => formatCurrency(v) } }
+              },
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: (context) => `Expenses: ${formatCurrency(context.parsed.y)}`
+                  }
+                }
+              }
+            }
+          });
+
+          hideLoading('performance');
+        } catch (err) {
+          console.error('Error loading performance chart:', err);
+          showError('performance');
+        }
+      }
+
+      // Load Recent Activities (optionally branch-scoped)
+      async function loadRecentActivitiesForBranch(branchId) {
+        const tbody = document.querySelector('#recentActivitiesTable tbody');
+        const errorDiv = document.getElementById('activitiesError');
+
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted"><div class="loading-spinner me-2"></div>Loading recent activities...</td></tr>`;
+        errorDiv.classList.add('d-none');
+
+        try {
+          const url = `/Company/Dashboard/RecentActivities?branchId=${encodeURIComponent(branchId || '')}&size=10`;
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+          const data = await response.json();
+          const activities = (data.recentFuel && data.recentFuel.length) ? data.recentFuel : (data.recentTickets || []);
+          populateRecentActivities(activities);
+        } catch (err) {
+          console.error('Error loading recent activities:', err);
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No recent activities available</td></tr>';
+          errorDiv.classList.remove('d-none');
+        }
+      }
+
+      function populateRecentActivities(rows) {
+        const tbody = document.querySelector('#recentActivitiesTable tbody');
+        if (!rows || rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No recent activities available</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        for (const r of rows.slice(0, 10)) {
+          const vehicleId = get(r, 'vehiclePlateNo') || `#${get(r, 'vehicleId') || ''}`;
+          const driver = get(r, 'driverName') || (get(r, 'driverId') ? ('Driver ' + get(r, 'driverId')) : '—');
+          const status = get(r, 'status') || get(r, 'Status') || (get(r, 'invoiceAmount') ? 'Invoiced' : 'Active');
+          const location = get(r, 'location') || get(r, 'branchName') || '—';
+          const lastUpdated = new Date(get(r, 'date') || get(r, 'createdDate') || Date.now()).toLocaleString();
+
+          tbody.innerHTML += `
+            <tr>
+              <td>${vehicleId}</td>
+              <td>${driver}</td>
+              <td><span class="status-indicator status-active"></span>${status}</td>
+              <td>${location}</td>
+              <td>${lastUpdated}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary track-btn" data-vehicle="${get(r, 'vehicleId') || ''}">Track</button>
+                <button class="btn btn-sm btn-outline-secondary view-branch" data-branch="${get(r, 'branchId') || get(r, 'companyBranchId') || ''}">View</button>
+              </td>
+            </tr>`;
+        }
+      }
+
+      // Apply DTO to UI (update counts, totals, branch list area)
+      function applyDtoToUi(dto) {
+        if (!dto) return;
+        document.getElementById('branchCount').textContent = dto.branchCount ?? 0;
+        document.getElementById('adminCount').textContent = dto.adminCount ?? 0;
+        document.getElementById('vehicleCount').textContent = dto.vehicleCount ?? 0;
+        document.getElementById('driverCount').textContent = dto.driverCount ?? 0;
+
+        document.getElementById('monthlyExpenditure').textContent = formatCurrency(dto?.totals?.totalSpend ?? 0);
+        document.getElementById('monthlyExpenses').textContent = formatCurrency(dto?.totals?.fuelSpend ?? 0);
+        document.getElementById('monthlyRecurrent').textContent = formatCurrency(dto?.totals?.maintenanceSpend ?? 0);
+
+        // branch performance list: build from dto.branches (which, when scoped, contains only the selected branch)
+        const list = document.getElementById('branchPerformanceList');
+        if (list) {
+          if (!dto.branches || dto.branches.length === 0) {
+            list.innerHTML = '<div class="text-muted">No branches to display.</div>';
+          } else {
+            list.innerHTML = dto.branches.slice(0, 6).map(b => {
+              const perf = Math.round(get(b, 'performancePercentage') || 0);
+              const assigned = get(b, 'assignedVehicleCount') || 0;
+              const totalVeh = get(b, 'totalVehicles') || 0;
+              const spend = get(b, 'totalSpend') || get(b, 'TotalSpend') || 0;
+              const selectedClass = (currentBranchId && +currentBranchId === +get(b, 'branchId')) ? 'border-primary' : '';
+              return `
+                <div class="mb-3 ${selectedClass}">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-bold">${get(b, 'branchName')}</span>
+                    <span class="text-muted">${perf}%</span>
+                  </div>
+                  <div class="progress-bar-custom"><div class="progress-fill" style="width: ${perf}%"></div></div>
+                  <div class="mt-2 d-flex justify-content-between align-items-center">
+                    <small class="text-muted">${assigned}/${totalVeh} vehicles • ${formatCurrency(spend)} spent</small>
+                    <button class="btn btn-sm btn-outline-secondary view-branch" data-branch="${get(b, 'branchId')}">View Details</button>
+                  </div>
+                </div>`;
+            }).join('');
+          }
+        }
+      }
+
+      // Load scoped dashboard DTO and refresh parts of the UI
+      async function loadScopedDashboard(branchId) {
+        if (isRefreshing) return;
+        setRefreshLoading(true);
+        currentBranchId = branchId || null;
+
+        try {
+          const url = `/Company/Dashboard/Scoped?branchId=${encodeURIComponent(branchId || '')}&recentSize=10`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Failed to load scoped dashboard');
+
+          const dto = await res.json();
+          applyDtoToUi(dto);
+
+          // charts: pass branchId to performance
+          await loadPerformanceChart(currentBranchId);
+          initBranchRevenueChart(dto.branches || []);
+          initStatusChart(dto);
+
+          // recent activities for branch
+          await loadRecentActivitiesForBranch(currentBranchId);
+        } catch (err) {
+          console.error('Error loading scoped dashboard:', err);
+          // show toast or error UI as needed
+        } finally {
+          setRefreshLoading(false);
+        }
+      }
+
+      // Branch detail modal click handler (delegated)
+      document.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('.view-branch');
+        if (!btn) return;
+
+        const branchId = btn.getAttribute('data-branch');
+        if (!branchId) return;
+
+        try {
+          const modalEl = document.getElementById('branchDetailModal');
+          const modal = new bootstrap.Modal(modalEl);
+          modal.show();
+
+          const response = await fetch(`/Company/Dashboard/BranchDetails?branchId=${encodeURIComponent(branchId)}`);
+          if (!response.ok) throw new Error('Failed to load branch details');
+
+          const data = await response.json();
+          showBranchModal(data);
+        } catch (err) {
+          console.error('Error fetching branch details:', err);
+          document.getElementById('branchDetailBody').innerHTML = `<div class="alert alert-danger">Failed to load branch details. Please try again.</div>`;
+        }
+      });
+
+      function showBranchModal(data) {
+        const title = document.getElementById('branchDetailTitle');
+        const body = document.getElementById('branchDetailBody');
+
+        title.textContent = `${get(data, 'branchName') || 'Branch'} — Details`;
+
+        const summary = get(data, 'summary') || {};
+        const recentTickets = get(data, 'recentMaintenanceTickets') || [];
+        const recentFuel = get(data, 'recentFuelLogs') || [];
+        const topVehicles = get(data, 'topVehiclesByFuel') || [];
+
+        body.innerHTML = `
+          <div class="row">
+            <div class="col-md-6">
+              <h6>Summary</h6>
+              <p><strong>Manager:</strong> ${get(data, 'managerName') || '—'}</p>
+              <p><strong>Drivers:</strong> ${get(summary, 'totalDrivers') || 0} (active: ${get(summary, 'activeDrivers') || 0})</p>
+              <p><strong>Vehicles:</strong> ${get(summary, 'totalVehicles') || 0} (active: ${get(summary, 'activeVehicles') || 0})</p>
+              <p><strong>Assigned Vehicles:</strong> ${get(summary, 'assignedVehicleCount') || 0}</p>
+              <p><strong>Total Spend:</strong> ${formatCurrency(get(summary, 'totalSpend') || 0)}</p>
+            </div>
+            <div class="col-md-6">
+              <h6>Top Vehicles by Fuel</h6>
+              <ul class="list-unstyled">
+                ${topVehicles.length
+                  ? topVehicles.slice(0, 5).map(v =>
+                      `<li class="mb-1"><span class="badge bg-light text-dark me-2">${get(v, 'plateNo') || get(v, 'PlateNo') || 'N/A'}</span>${get(v, 'totalVolume') || 0}L</li>`
+                    ).join('')
+                  : '<li class="text-muted">No data available</li>'
+                }
+              </ul>
+            </div>
+          </div>
+          <hr/>
+          <div class="row">
+            <div class="col-md-6">
+              <h6>Recent Maintenance Tickets</h6>
+              <div class="list-group list-group-flush">
+                ${recentTickets.length
+                  ? recentTickets.slice(0, 5).map(t =>
+                      `<div class="list-group-item px-0">
+                         <div class="d-flex justify-content-between">
+                           <strong>${get(t, 'subject') || get(t, 'Subject') || '—'}</strong>
+                           <span class="badge bg-${get(t, 'status') === 'Completed' ? 'success' : 'warning'}">${get(t, 'status') || get(t, 'Status')}</span>
+                         </div>
+                         <small class="text-muted">${new Date(get(t, 'createdDate') || get(t, 'CreatedDate')).toLocaleDateString()}</small>
+                       </div>`
+                    ).join('')
+                  : '<div class="text-muted">No recent tickets</div>'
+                }
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6>Recent Fuel Logs</h6>
+              <div class="list-group list-group-flush">
+                ${recentFuel.length
+                  ? recentFuel.slice(0, 5).map(f =>
+                      `<div class="list-group-item px-0">
+                         <div class="d-flex justify-content-between">
+                           <strong>${get(f, 'vehiclePlateNo') || '—'}</strong>
+                           <span>${formatCurrency(get(f, 'cost') || 0)}</span>
+                         </div>
+                         <small class="text-muted">${get(f, 'volume') || 0}L • ${new Date(get(f, 'date') || get(f, 'Date')).toLocaleDateString()}</small>
+                       </div>`
+                    ).join('')
+                  : '<div class="text-muted">No recent fuel logs</div>'
+                }
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Retry functions used by Retry buttons on error UI
+      window.retryChart = function(chartType) {
+        switch(chartType) {
+          case 'performance':
+            loadPerformanceChart(currentBranchId);
+            break;
+          case 'branchRevenue':
+            // use server-initial data branches if available
+            initBranchRevenueChart(initialDashboard?.branches || []);
+            break;
+          case 'status':
+            initStatusChart(initialDashboard || {});
+            break;
+        }
+      };
+
+      // Refresh whole dashboard (keeps currentBranchId)
+      async function refreshAllData() {
+        if (isRefreshing) return;
+        setRefreshLoading(true);
+        try {
+          await loadScopedDashboard(currentBranchId);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setRefreshLoading(false);
+        }
+      }
+
+      // Wire dropdown: branch selection
+      document.getElementById('branchSelect')?.addEventListener('change', function() {
+        const val = this.value;
+        if (!val) {
+          loadScopedDashboard(null);
+        } else {
+          loadScopedDashboard(val);
+        }
+      });
+
+      // Wire refresh button
+      document.getElementById('refreshDashboardBtn')?.addEventListener('click', refreshAllData);
+
+      // Make loadRecentActivities globally callable for the Retry link
+      window.loadRecentActivities = function() { loadRecentActivitiesForBranch(currentBranchId); };
+
+      // Initialise UI
+      setGreeting();
+      // seed charts with quick initial data to avoid blank UI
+      initBranchRevenueChart(initialDashboard?.branches || []);
+      initStatusChart(initialDashboard || {});
+      initUtilizationChart();
+
+      // initial scoped load (company-wide by default)
+      setTimeout(() => {
+        loadScopedDashboard(null);
+      }, 150);
+
+    })();
+</script> *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* <!-- Chart.js CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
 <script>
@@ -1262,7 +3361,7 @@
         loadRecentActivities();
       }, 500);
     })();
-</script>
+</script> *@
 
 
 
@@ -1270,757 +3369,3 @@
 
 
 
-
-@* @using FleetManager.Business.DataObjects.CompanyOwnerDashboardDto
-@using FleetManager.Business.Database.IdentityModels
-@using FleetManager.Business.Interfaces.UserModule
-@using FleetManager.Business.ViewModels
-@using Microsoft.AspNetCore.Identity
-@using System.Text.Json
-@inject IAuthUser _authUser;
-@model CompanyOwnerDashboardViewModel 
-
-
-<style>
-    .dashboard-card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        padding: 20px;
-        margin-bottom: 20px;
-        border-left: 4px solid #007bff;
-    }
-
-    .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-        margin-bottom: 20px;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .metric-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-        }
-
-    .metric-value {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin: 10px 0;
-    }
-
-    .metric-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .status-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 8px;
-    }
-
-    .status-active {
-        background-color: #28a745;
-    }
-
-    .status-maintenance {
-        background-color: #ffc107;
-    }
-
-    .status-inactive {
-        background-color: #dc3545;
-    }
-
-    .progress-bar-custom {
-        height: 8px;
-        border-radius: 4px;
-        background-color: #e9ecef;
-        overflow: hidden;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #28a745, #20c997);
-        border-radius: 4px;
-        transition: width 0.3s ease;
-    }
-
-    .chart-container {
-        position: relative;
-        height: 300px;
-        margin: 20px 0;
-    }
-
-    .table-responsive {
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .table-custom {
-        margin-bottom: 0;
-    }
-
-        .table-custom th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #495057;
-            border: none;
-            padding: 15px;
-        }
-
-        .table-custom td {
-            padding: 12px 15px;
-            border-top: 1px solid #e9ecef;
-            vertical-align: middle;
-        }
-
-    .alert-item {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 10px;
-        border-left: 4px solid #f39c12;
-    }
-
-    .alert-high {
-        border-left-color: #e74c3c;
-        background: #ffebee;
-    }
-
-    .alert-medium {
-        border-left-color: #f39c12;
-        background: #fff3cd;
-    }
-
-    .alert-low {
-        border-left-color: #27ae60;
-        background: #e8f5e8;
-    }
-
-    .revenue-card {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-    }
-
-    .expense-card {
-        background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-    }
-</style>
-
-
-
-<div class="content">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="row">
-            <div class="col-sm-12">
-                <ul class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="index.html">Dashboard </a></li>
-                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
-                    <li class="breadcrumb-item active">Your Dashboard</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <!-- /Page Header -->
-
-    <div class="good-morning-blk">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="morning-user">
-                   
-                </div>
-            </div>
-            <div class="col-md-6 position-blk">
-                <div class="morning-img">
-                    <img src="~/assets/img/morning-img-01.png" alt="">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Statistics Row -->
-    <div class="row">
-        <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
-            <div class="dash-widget">
-                <div class="dash-boxs comman-flex-center">
-                    <img src="~/assets/img/icons/profile-add.svg" alt="">
-                </div>
-                <div class="dash-content dash-count">
-                    <a asp-action="Index" asp-controller="Branch" class="btn btn-primary">Manage Branches</a>
-                    <h2><span class="counter-up">@Model.BranchCount</span></h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
-            <div class="dash-widget">
-                <div class="dash-boxs comman-flex-center">
-                    <img src="~/assets/img/icons/profile-add.svg" alt="">
-                </div>
-                <div class="dash-content dash-count">
-                    <a asp-action="Index" asp-controller="OnboardAdmin" class="btn btn-primary">Manage Admins</a>
-                    <h2><span class="counter-up">@Model.AdminCount</span></h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
-            <div class="dash-widget">
-                <div class="dash-boxs comman-flex-center">
-                    <img src="assets/img/icons/scissor.svg" alt="">
-                </div>
-                <div class="dash-content dash-count">
-                    <h4>Vehicles</h4>
-                    <h2><span class="counter-up">@Model.VehicleCount</span></h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-sm-6 col-lg-6 col-xl-3">
-            <div class="dash-widget">
-                <div class="dash-boxs comman-flex-center">
-                    <img src="assets/img/icons/empty-wallet.svg" alt="">
-                </div>
-                <div class="dash-content dash-count">
-                    <h4>Drivers</h4>
-                    <h2><span class="counter-up">@Model.DriverCount</span></h2>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Financial Overview -->
-    <div class="row">
-        <div class="col-md-4">
-            <div class="revenue-card">
-                <div class="metric-label">Monthly Expenditure</div>
-                <div class="metric-value">&#8358;124,850</div>
-                <small>+12.5% from last month</small>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="expense-card">
-                <div class="metric-label">Monthly Expenses</div>
-                <div class="metric-value">&#8358;89,320</div>
-                <small>+5.2% from last month</small>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="metric-card">
-                <div class="metric-label">Monthly Recurrent Expenditure</div>
-                <div class="metric-value">&#8358;35,530</div>
-                <small>+28.4% from last month</small>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="row">
-        <div class="col-md-8">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Fleet Performance Overview</h5>
-                <div class="chart-container">
-                    <canvas id="performanceChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Vehicle Status Distribution</h5>
-                <div class="chart-container">
-                    <canvas id="statusChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Branch Performance -->
-    <div class="row">
-        <div class="col-md-6">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Branch Performance Metrics</h5>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Downtown Branch</span>
-                        <span>85%</span>
-                    </div>
-                    <div class="progress-bar-custom">
-                        <div class="progress-fill" style="width: 85%"></div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>North Branch</span>
-                        <span>72%</span>
-                    </div>
-                    <div class="progress-bar-custom">
-                        <div class="progress-fill" style="width: 72%"></div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>South Branch</span>
-                        <span>91%</span>
-                    </div>
-                    <div class="progress-bar-custom">
-                        <div class="progress-fill" style="width: 91%"></div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>East Branch</span>
-                        <span>67%</span>
-                    </div>
-                    <div class="progress-bar-custom">
-                        <div class="progress-fill" style="width: 67%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Performance by Branch</h5>
-                <div class="chart-container">
-                    <canvas id="branchRevenueChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Activities Table -->
-    <div class="row">
-        <div class="col-md-8">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Recent Vehicle Activities</h5>
-                <div class="table-responsive">
-                    <table class="table table-custom">
-                        <thead>
-                            <tr>
-                                <th>Vehicle ID</th>
-                                <th>Driver</th>
-                                <th>Status</th>
-                                <th>Location</th>
-                                <th>Last Updated</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>FL-001</td>
-                                <td>Adamu Garba</td>
-                                <td><span class="status-indicator status-active"></span>Active</td>
-                                <td>Downtown Route</td>
-                                <td>2 mins ago</td>
-                                <td><button class="btn btn-sm btn-outline-primary">Track</button></td>
-                            </tr>
-                            <tr>
-                                <td>FL-002</td>
-                                <td>Tobi John</td>
-                                <td><span class="status-indicator status-maintenance"></span>Maintenance</td>
-                                <td>Service Center</td>
-                                <td>1 hour ago</td>
-                                <td><button class="btn btn-sm btn-outline-warning">View</button></td>
-                            </tr>
-                            <tr>
-                                <td>FL-003</td>
-                                <td>Chibuike Johnson</td>
-                                <td><span class="status-indicator status-active"></span>Active</td>
-                                <td>North Route</td>
-                                <td>5 mins ago</td>
-                                <td><button class="btn btn-sm btn-outline-primary">Track</button></td>
-                            </tr>
-                            <tr>
-                                <td>FL-004</td>
-                                <td>Saheed Bamidele</td>
-                                <td><span class="status-indicator status-inactive"></span>Inactive</td>
-                                <td>South Branch</td>
-                                <td>30 mins ago</td>
-                                <td><button class="btn btn-sm btn-outline-secondary">Contact</button></td>
-                            </tr>
-                            <tr>
-                                <td>FL-005</td>
-                                <td>Ejike Brown</td>
-                                <td><span class="status-indicator status-active"></span>Active</td>
-                                <td>East Route</td>
-                                <td>1 min ago</td>
-                                <td><button class="btn btn-sm btn-outline-primary">Track</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Alerts & Notifications</h5>
-                <div class="alert-item alert-high">
-                    <strong>Critical:</strong> Vehicle FL-007 requires immediate maintenance
-                    <small class="d-block text-muted">10 minutes ago</small>
-                </div>
-                <div class="alert-item alert-medium">
-                    <strong>Warning:</strong> Driver overtime limit approaching - Tobi John
-                    <small class="d-block text-muted">25 minutes ago</small>
-                </div>
-                <div class="alert-item alert-low">
-                    <strong>Info:</strong> New driver registration completed
-                    <small class="d-block text-muted">1 hour ago</small>
-                </div>
-                <div class="alert-item alert-medium">
-                    <strong>Fuel:</strong> 3 vehicles need refueling
-                    <small class="d-block text-muted">2 hours ago</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Driver Performance -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Top Performing Drivers This Month</h5>
-                <div class="table-responsive">
-                    <table class="table table-custom">
-                        <thead>
-                            <tr>
-                                <th>Driver</th>
-                                <th>Branch</th>
-                                <th>Trips Completed</th>
-                                <th>Rating</th>
-                                <th>Fuel Efficiency</th>
-                                <th>On-Time %</th>
-                                <th>Revenue Generated</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; margin-right: 10px;">
-                                            AG
-                                        </div>
-                                        <div>
-                                            <strong>Adamu Garba</strong>
-                                            <small class="d-block text-muted">Driver ID: DR-001</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Downtown</td>
-                                <td>145</td>
-                                <td>
-                                    <span class="badge bg-success">4.9/5</span>
-                                </td>
-                                <td>8.2 L/100km</td>
-                                <td>
-                                    <div class="progress-bar-custom" style="width: 100px;">
-                                        <div class="progress-fill" style="width: 96%"></div>
-                                    </div>
-                                    <small>96%</small>
-                                </td>
-                                <td>&#8358;12,450</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; margin-right: 10px;">
-                                            CJ
-                                        </div>
-                                        <div>
-                                            <strong>Chibuike Johnson</strong>
-                                            <small class="d-block text-muted">Driver ID: DR-002</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>South</td>
-                                <td>138</td>
-                                <td>
-                                    <span class="badge bg-success">4.8/5</span>
-                                </td>
-                                <td>7.9 L/100km</td>
-                                <td>
-                                    <div class="progress-bar-custom" style="width: 100px;">
-                                        <div class="progress-fill" style="width: 94%"></div>
-                                    </div>
-                                    <small>94%</small>
-                                </td>
-                                <td>&#8358;11,890</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; margin-right: 10px;">
-                                            SB
-                                        </div>
-                                        <div>
-                                            <strong>Saheed Bamidele</strong>
-                                            <small class="d-block text-muted">Driver ID: DR-003</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>North</td>
-                                <td>132</td>
-                                <td>
-                                    <span class="badge bg-success">4.7/5</span>
-                                </td>
-                                <td>8.5 L/100km</td>
-                                <td>
-                                    <div class="progress-bar-custom" style="width: 100px;">
-                                        <div class="progress-fill" style="width: 92%"></div>
-                                    </div>
-                                    <small>92%</small>
-                                </td>
-                                <td>&#8358;11,320</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Fleet Utilization -->
-    <div class="row">
-        <div class="col-md-6">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Fleet Utilization Rate</h5>
-                <div class="chart-container">
-                    <canvas id="utilizationChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="dashboard-card">
-                <h5 class="mb-3">Maintenance Schedule</h5>
-                <div class="list-group list-group-flush">
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>FL-003</strong> - Scheduled Service
-                            <small class="d-block text-muted">Due: Tomorrow</small>
-                        </div>
-                        <span class="badge bg-warning">Pending</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>FL-008</strong> - Oil Change
-                            <small class="d-block text-muted">Due: In 3 days</small>
-                        </div>
-                        <span class="badge bg-info">Scheduled</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>FL-012</strong> - Tire Replacement
-                            <small class="d-block text-muted">Due: Next week</small>
-                        </div>
-                        <span class="badge bg-secondary">Planned</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>FL-015</strong> - Annual Inspection
-                            <small class="d-block text-muted">Due: In 2 weeks</small>
-                        </div>
-                        <span class="badge bg-info">Scheduled</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Chart.js CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-
-<script>
-
-     (function(){
-      const name = '@_authUser.FirstName'
-      const hour = new Date().getHours();
-      let greeting, subMessage;
-
-      if (hour < 12) {
-        greeting   = "Good Morning";
-        subMessage = "Ready to lead us to new heights today?";
-      } else if (hour < 17) {
-        greeting   = "Good Afternoon";
-        subMessage = "Hope your strategic vision is coming together smoothly!";
-      } else {
-        greeting   = "Good Evening";
-        subMessage = "Take a moment to celebrate today’s achievements, visionary leader.";
-      }
-
-      const container = document.querySelector('.morning-user');
-      container.innerHTML = `
-        <h2>${greeting}, Mr <span>${name}</span></h2>
-        <p>${subMessage}</p>
-      `;
-    })();
-
-
-    // Performance Chart
-    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
-    new Chart(performanceCtx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            datasets: [{
-                label: 'Revenue ($000)',
-                data: [85, 92, 78, 89, 95, 102, 88, 94, 97, 105, 112, 125],
-                borderColor: '#007bff',
-                backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                fill: true,
-                tension: 0.4
-            }, {
-                label: 'Expenses ($000)',
-                data: [65, 70, 68, 72, 74, 78, 75, 79, 82, 85, 88, 89],
-                borderColor: '#dc3545',
-                backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'top'
-                }
-            }
-        }
-    });
-
-    // Vehicle Status Chart
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Active', 'Maintenance', 'Inactive'],
-            datasets: [{
-                data: [75, 15, 10],
-                backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-
-    // Branch Revenue Chart
-    const branchRevenueCtx = document.getElementById('branchRevenueChart').getContext('2d');
-    new Chart(branchRevenueCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Downtown', 'North', 'South', 'East'],
-            datasets: [{
-                label: 'Revenue ($000)',
-                data: [35, 28, 42, 25],
-                backgroundColor: ['#007bff', '#28a745', '#ffc107', '#17a2b8'],
-                borderRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-
-    // Fleet Utilization Chart
-    const utilizationCtx = document.getElementById('utilizationChart').getContext('2d');
-    new Chart(utilizationCtx, {
-        type: 'line',
-        data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            datasets: [{
-                label: 'Utilization %',
-                data: [85, 90, 87, 92, 88, 75, 70],
-                borderColor: '#28a745',
-                backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#28a745',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-
-    // Counter animation
-    document.querySelectorAll('.counter-up').forEach(counter => {
-        const target = parseInt(counter.textContent);
-        const increment = target / 100;
-        let count = 0;
-        const timer = setInterval(() => {
-            count += increment;
-            if (count >= target) {
-                counter.textContent = target;
-                clearInterval(timer);
-            } else {
-                counter.textContent = Math.floor(count);
-            }
-        }, 20);
-    });
-</script>  *@

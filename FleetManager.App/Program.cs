@@ -219,6 +219,12 @@ builder.Services.AddTransient<IAuthUser, AuthUser>();
 builder.Services.AddTransient<BackgroundJobService>();
 
 
+// DbContextFActory
+//builder.Services.AddDbContextFactory<FleetManagerDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+
 //Pdf Serivce
 // 1) MVC + Razor‑to‑string
 builder.Services.AddControllersWithViews();

@@ -1,9 +1,11 @@
 ﻿using FleetManager.Business.DataObjects;
 using FleetManager.Business.Interfaces.CompanyBranchModule;
 using FleetManager.Business.Interfaces.CompanyModule;
+using FleetManager.Business.Interfaces.UserModule;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 
 namespace FleetManager.App.Areas.Company.Controllers
 {
@@ -13,15 +15,30 @@ namespace FleetManager.App.Areas.Company.Controllers
     {
         private readonly IBranchService _branchService;
         private readonly ICompanyManagementService _companyService;
+        private readonly IAuthUser _authUser;
 
-        public BranchController(IBranchService branchService, ICompanyManagementService companyService)
+        public BranchController(IBranchService branchService, ICompanyManagementService companyService, IAuthUser authUser)
         {
             _branchService = branchService;
             _companyService = companyService;
+            _authUser = authUser;
         }
 
         public async Task<IActionResult> Index()
         {
+            ViewBag.ExportConfig = new
+            {
+                CompanyName = "Disney Group",
+                CompanyAddress = "45 Victoria Island, Lagos, Nigeria",
+                CompanyPhone = "+234 901 234 5678",
+                CompanyEmail = "reports@techflow.com.ng",
+                UserName = User.Identity.Name,
+                UserRole = string.Join(", ", ((ClaimsIdentity)User.Identity).Claims
+                    .Where(c => c.Type == ClaimTypes.Role)
+                    .Select(c => c.Value)),
+                ExportedBy = _authUser.FullName
+            };
+
             var user = _companyService.GetUserData();
             if (user == null || user.CompanyId == null)
             {

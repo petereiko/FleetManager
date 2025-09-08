@@ -33,4 +33,12 @@ namespace FleetManager.Business.DataObjects.CompanyOwnerDashboardDto
         // NEW: Performance percentage for progress bars
         public double PerformancePercentage { get; set; }
     }
+
+
+    public class BranchListItemDto 
+    { 
+        public long BranchId { get; set; } 
+        public string BranchName { get; set; } 
+    }
+
 }

@@ -1,6 +1,664 @@
 ﻿@using FleetManager.Business.ViewModels
 @model CompanyViewModel
 @{
+    ViewData["Title"] = "Company Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Enhanced completeness calculation with better field weighting
+    var profileFields = new Dictionary<string, bool>
+    {
+        {"Name", !string.IsNullOrWhiteSpace(Model.Name)},
+        {"Email", !string.IsNullOrWhiteSpace(Model.Email)},
+        {"PhoneNumber", !string.IsNullOrWhiteSpace(Model.PhoneNumber)},
+        {"ContactPersonPhone", !string.IsNullOrWhiteSpace(Model.ContactPersonPhone)},
+        {"ContactPersonEmail", !string.IsNullOrWhiteSpace(Model.ContactPersonEmail)},
+        {"Address", !string.IsNullOrWhiteSpace(Model.Address)},
+        {"Website", !string.IsNullOrWhiteSpace(Model.Website)},
+        {"RegistrationNumber", !string.IsNullOrWhiteSpace(Model.RegistrationNumber)},
+        {"State", !string.IsNullOrWhiteSpace(Model.State)},
+        {"Logo", !string.IsNullOrWhiteSpace(Model.LogoUrl)}
+    };
+
+    int filledFields = profileFields.Count(x => x.Value);
+    int totalFields = profileFields.Count;
+    int completionPercentage = (int)Math.Round(((double)filledFields / totalFields) * 100);
+
+    // Get missing fields for recommendations
+    var missingFields = profileFields.Where(x => !x.Value).Select(x => x.Key).ToList();
+
+    // Calculate establishment years (if you have a creation date in your model)
+    int establishmentYears = Model.CreatedDate.HasValue ? DateTime.Now.Year - Model.CreatedDate.Value.Year : 0;
+}
+
+<style>
+    :root {
+        --primary-color: #4f46e5;
+        --secondary-color: #f8fafc;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .profile-header-enhanced {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+    }
+
+    .completion-circle-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1rem;
+    }
+
+    .completion-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(var(--primary-color) @(completionPercentage * 3.6) deg, #e5e7eb 0deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    }
+
+        .completion-circle::before {
+            content: '';
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+    .completion-percentage {
+        position: relative;
+        z-index: 2;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: var(--card-shadow);
+    }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        display: block;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.5rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .info-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--secondary-color);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: var(--primary-color);
+    }
+
+    .info-content h6 {
+        margin: 0 0 0.25rem 0;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .info-content p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .profile-logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: var(--card-shadow);
+    }
+
+    .recommendations-card {
+        background: linear-gradient(135deg, #fef7ff 0%, #faf5ff 100%);
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+
+    .recommendation-item {
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        border-left: 4px solid var(--warning-color);
+    }
+
+    .enhanced-tabs {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        margin-top: 2rem;
+    }
+
+        .enhanced-tabs .nav-tabs {
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 1rem;
+        }
+
+        .enhanced-tabs .nav-link {
+            border: none;
+            border-radius: 8px 8px 0 0;
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding: 1rem 1.5rem;
+            margin-right: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+            .enhanced-tabs .nav-link.active {
+                background: white;
+                color: var(--primary-color);
+                border-bottom: 2px solid var(--primary-color);
+            }
+
+    .tab-content {
+        padding: 2rem;
+    }
+
+    .timeline-item {
+        display: flex;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+    .timeline-marker {
+        width: 12px;
+        height: 12px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        margin-top: 0.5rem;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+
+    .timeline-content h6 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .timeline-content p {
+        margin: 0 0 0.25rem 0;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .alert-enhanced {
+        border: none;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .btn-enhanced {
+        background: var(--primary-color);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+    }
+
+        .btn-enhanced:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+        }
+</style>
+
+<div class="content">
+    <!-- Enhanced Profile Completion Section -->
+    <div class="alert alert-info alert-enhanced mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="completion-circle-container">
+                    <div class="completion-circle">
+                        <span class="completion-percentage">@completionPercentage%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <h5 class="mb-2">Profile Completion</h5>
+                <p class="mb-2">@filledFields of @totalFields fields completed</p>
+                @if (completionPercentage < 100)
+                {
+                    <div class="recommendations-card">
+                        <h6 class="mb-2"><i class="fa fa-lightbulb-o"></i> Recommendations to complete your profile:</h6>
+                        @foreach (var field in missingFields.Take(3))
+                        {
+                            <div class="recommendation-item">
+                                <small>Add @field.Replace("ContactPerson", "Contact Person ").Replace("PhoneNumber", "Phone Number")</small>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-success mb-0">
+                        <i class="fa fa-check-circle"></i> Your profile is complete! You have access to all platform features.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb and Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Company Profile</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-action="Edit" class="btn btn-primary btn-enhanced">
+                <i class="fa fa-edit"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Enhanced Profile Header -->
+    <div class="profile-header-enhanced">
+        <div class="row align-items-center">
+            @* <div class="col-md-3 text-center">
+                <img class="profile-logo"
+                     src="@(!string.IsNullOrWhiteSpace(Model.LogoUrl) ? Model.LogoUrl : "/assets/images/company_avatar.png")"
+                     alt="@Model.Name Logo">
+            </div> *@
+            <div class="col-md-3 text-center">
+                <img class="profile-logo"
+                     src="@(string.IsNullOrWhiteSpace(Model.LogoUrl)
+                ? Url.Content("~/assets/images/company_avatar.png")
+                : Url.Content(Model.LogoUrl))"
+                     alt="@(Model.Name ?? "Company") Logo" />
+            </div>
+
+            <div class="col-md-9">
+                <h2 class="mb-2">@(!string.IsNullOrWhiteSpace(Model.Name) ? Model.Name : "Company Name Not Set")</h2>
+                <p class="text-muted mb-3">@(!string.IsNullOrWhiteSpace(Model.Email) ? Model.Email : "Email not provided")</p>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-value">@establishmentYears</span>
+                        <span class="stat-label">Years Established</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">@completionPercentage%</span>
+                        <span class="stat-label">Profile Complete</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">@(!string.IsNullOrWhiteSpace(Model.State) ? "Active" : "Pending")</span>
+                        <span class="stat-label">Status</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Information Grid -->
+    <div class="info-grid">
+        <!-- Contact Information -->
+        <div class="info-card">
+            <h5 class="mb-3"><i class="fa fa-phone"></i> Contact Information</h5>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa fa-phone"></i>
+                </div>
+                <div class="info-content">
+                    <h6>Company Phone</h6>
+                    <p>@(!string.IsNullOrWhiteSpace(Model.PhoneNumber) ? Model.PhoneNumber : "Not provided")</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa fa-envelope"></i>
+                </div>
+                <div class="info-content">
+                    <h6>Email Address</h6>
+                    <p>@(!string.IsNullOrWhiteSpace(Model.Email) ? Model.Email : "Not provided")</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa fa-globe"></i>
+                </div>
+                <div class="info-content">
+                    <h6>Website</h6>
+                    <p>@(!string.IsNullOrWhiteSpace(Model.Website) ? Model.Website : "Not provided")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Person Information -->
+        <div class="info-card">
+            <h5 class="mb-3"><i class="fa fa-user"></i> Contact Person</h5>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa fa-phone"></i>
+                </div>
+                <div class="info-content">
+                    <h6>Phone Number</h6>
+                    <p>@(!string.IsNullOrWhiteSpace(Model.ContactPersonPhone) ? Model.ContactPersonPhone : "Not provided")</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa fa-envelope"></i>
+                </div>
+                <div class="info-content">
+                    <h6>Email Address</h6>
+                    <p>@(!string.IsNullOrWhiteSpace(Model.ContactPersonEmail) ? Model.ContactPersonEmail : "Not provided")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Information -->
+        <div class="info-card">
+            <h5 class="mb-3"><i class="fa fa-building"></i> Business Details</h5>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa fa-certificate"></i>
+                </div>
+                <div class="info-content">
+                    <h6>Registration Number</h6>
+                    <p>@(!string.IsNullOrWhiteSpace(Model.RegistrationNumber) ? Model.RegistrationNumber : "Not provided")</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa fa-map-marker"></i>
+                </div>
+                <div class="info-content">
+                    <h6>State</h6>
+                    <p>@(!string.IsNullOrWhiteSpace(Model.State) ? Model.State : "Not provided")</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa fa-location-arrow"></i>
+                </div>
+                <div class="info-content">
+                    <h6>Address</h6>
+                    <p>@(!string.IsNullOrWhiteSpace(Model.Address) ? Model.Address : "Not provided")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Tabs Section -->
+    <div class="enhanced-tabs">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" href="#company-overview" data-bs-toggle="tab" aria-selected="true" role="tab">
+                    <i class="fa fa-info-circle"></i> Company Overview
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="#fleet-summary" data-bs-toggle="tab" aria-selected="false" role="tab" tabindex="-1">
+                    <i class="fa fa-truck"></i> Fleet Summary
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="#recent-activity" data-bs-toggle="tab" aria-selected="false" role="tab" tabindex="-1">
+                    <i class="fa fa-clock-o"></i> Recent Activity
+                </a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane active show" id="company-overview" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4 class="mb-4">Company Information</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>About @(!string.IsNullOrWhiteSpace(Model.Name) ? Model.Name : "Our Company")</h6>
+                                @* <p class="text-muted">
+                                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                                    {
+                                        @Model.Description
+                                    }
+                                    else
+                                    {
+                                        <span>No company description available. <a asp-action="Edit">Add description</a> to provide more information about your business.</span>
+                                    }
+                                </p> *@
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Key Information</h6>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>Registration Details</h6>
+                                        <p>RC: @(!string.IsNullOrWhiteSpace(Model.RegistrationNumber) ? Model.RegistrationNumber : "Not provided")</p>
+                                        <p>State: @(!string.IsNullOrWhiteSpace(Model.State) ? Model.State : "Not specified")</p>
+                                    </div>
+                                </div>
+
+                                @if (Model.CreatedDate.HasValue)
+                                {
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <h6>Established</h6>
+                                            <p>@Model.CreatedDate.Value.ToString("MMMM yyyy")</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane" id="fleet-summary" role="tabpanel">
+                <h4 class="mb-4">Fleet Management Summary</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <span class="stat-value">@(Model.BranchCount)</span>
+                            <span class="stat-label">Total Branches</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <span class="stat-value">@(Model.StaffCount )</span>
+                            <span class="stat-label">Number Of Staff Employed</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <span class="stat-value">@(Model.VehicleCount)</span>
+                            <span class="stat-label">Total Number Of Vehicles Owned By Company</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted mt-3">
+                    Fleet management data will be displayed here. Complete your profile setup to access detailed fleet analytics.
+                </p>
+            </div>
+
+            <div class="tab-pane" id="recent-activity" role="tabpanel">
+                <h4 class="mb-4">Recent System Activity</h4>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <h6>Profile Updated</h6>
+                        <p>Company information was last modified</p>
+                        <small class="text-muted">@(Model.LastModified?.ToString("MMM dd, yyyy") ?? "Never")</small>
+                    </div>
+                </div>
+
+                @if (Model.CreatedDate.HasValue)
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h6>Account Created</h6>
+                            <p>Company profile was established</p>
+                            <small class="text-muted">@Model.CreatedDate.Value.ToString("MMM dd, yyyy")</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add smooth scroll behavior for better UX
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate completion circle on page load
+        const circle = document.querySelector('.completion-circle');
+        if (circle) {
+            circle.style.background = 'conic-gradient(#e5e7eb 0deg, #e5e7eb 360deg)';
+            setTimeout(() => {
+                circle.style.transition = 'background 1s ease-in-out';
+                circle.style.background = 'conic-gradient(var(--primary-color) @(completionPercentage * 3.6)deg, #e5e7eb 0deg)';
+            }, 100);
+        }
+
+        // Add hover effects to cards
+        const cards = document.querySelectorAll('.stat-card, .info-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.ViewModels
+@model CompanyViewModel
+@{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
@@ -199,192 +857,6 @@
         </div>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@* @using FleetManager.Business.ViewModels
-@model CompanyViewModel
-@{
-    ViewData["Title"] = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-
-<div class="content">
-
-    <div class="row">
-        <div class="col-sm-7 col-6">
-            <ul class="breadcrumb">
-                <li class="breadcrumb-item"><a asp-action="Index">Dashboard </a></li>
-                <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
-                <li class="breadcrumb-item active">My Profile</li>
-            </ul>
-        </div>
-
-        <div class="col-sm-5 col-6 text-end m-b-30">
-            <a asp-action="Edit" class="btn btn-primary btn-rounded"><i class="fa fa-plus"></i> Edit Profile</a>
-        </div>
-    </div>
-    <div class="card-box profile-header">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="profile-view">
-                    <div class="profile-img-wrap">
-                        <div class="profile-img">
-                            <a href="#"><img class="avatar" href="@Model.LogoUrl" alt="Company's Logo'"></a>
-                        </div>
-                    </div>
-                    <div class="profile-basic">
-                        <div class="row">
-                            <div class="col-md-5">
-                                <div class="profile-info-left">
-                                    <h3 class="user-name m-t-0 mb-0">@Model.Name</h3>
-                                    <small class="text-muted">@Model.Email</small>
-                                    <div class="staff-id">Company Phone : @Model.PhoneNumber</div>
-                                    <div class="staff-msg"><a href="chat.html" class="btn btn-primary">Send Message</a></div>
-                                </div>
-                            </div>
-                            <div class="col-md-7">
-                                <ul class="personal-info">
-                                    <li>
-                                        <span class="title">Phone:</span>
-                                        <span class="text"><a href="">@Model.ContactPersonPhone</a></span>
-                                    </li>
-                                    <li>
-                                        <span class="title">Email:</span>
-                                        <span class="text"><a href="">@Model.ContactPersonEmail</a></span>
-                                    </li>
-                                    <li>
-                                        <span class="title">Registration Number:</span>
-                                        <span class="text">@Model.RegistrationNumber</span>
-                                    </li>
-                                    <li>
-                                        <span class="title">Address:</span>
-                                        <span class="text">@Model.Address</span>
-                                    </li>
-                                    <li>
-                                        <span class="title">Website:</span>
-                                        <span class="text">@Model.Website</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="profile-tabs">
-        <ul class="nav nav-tabs nav-tabs-bottom" role="tablist">
-            <li class="nav-item" role="presentation"><a class="nav-link active" href="#about-cont" data-bs-toggle="tab" aria-selected="true" role="tab">About</a></li>
-            <li class="nav-item" role="presentation"><a class="nav-link" href="#bottom-tab2" data-bs-toggle="tab" aria-selected="false" role="tab" tabindex="-1">Profile</a></li>
-            <li class="nav-item" role="presentation"><a class="nav-link" href="#bottom-tab3" data-bs-toggle="tab" aria-selected="false" role="tab" tabindex="-1">Messages</a></li>
-        </ul>
-
-        <div class="tab-content">
-            <div class="tab-pane active show" id="about-cont" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card-box">
-                            <h3 class="card-title">Education Informations</h3>
-                            <div class="experience-box">
-                                <ul class="experience-list">
-                                    <li>
-                                        <div class="experience-user">
-                                            <div class="before-circle"></div>
-                                        </div>
-                                        <div class="experience-content">
-                                            <div class="timeline-content">
-                                                <a href="#/" class="name">International College of Medical Science (UG)</a>
-                                                <div>MBBS</div>
-                                                <span class="time">2001 - 2003</span>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="experience-user">
-                                            <div class="before-circle"></div>
-                                        </div>
-                                        <div class="experience-content">
-                                            <div class="timeline-content">
-                                                <a href="#/" class="name">International College of Medical Science (PG)</a>
-                                                <div>MD - Obstetrics &amp; Gynaecology</div>
-                                                <span class="time">1997 - 2001</span>
-                                            </div>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card-box ">
-                            <h3 class="card-title">Experience</h3>
-                            <div class="experience-box">
-                                <ul class="experience-list">
-                                    <li>
-                                        <div class="experience-user">
-                                            <div class="before-circle"></div>
-                                        </div>
-                                        <div class="experience-content">
-                                            <div class="timeline-content">
-                                                <a href="#/" class="name">Consultant Gynecologist</a>
-                                                <span class="time">Jan 2014 - Present (4 years 8 months)</span>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="experience-user">
-                                            <div class="before-circle"></div>
-                                        </div>
-                                        <div class="experience-content">
-                                            <div class="timeline-content">
-                                                <a href="#/" class="name">Consultant Gynecologist</a>
-                                                <span class="time">Jan 2009 - Present (6 years 1 month)</span>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="experience-user">
-                                            <div class="before-circle"></div>
-                                        </div>
-                                        <div class="experience-content">
-                                            <div class="timeline-content">
-                                                <a href="#/" class="name">Consultant Gynecologist</a>
-                                                <span class="time">Jan 2004 - Present (5 years 2 months)</span>
-                                            </div>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane" id="bottom-tab2" role="tabpanel">
-                Tab content 2
-            </div>
-            <div class="tab-pane" id="bottom-tab3" role="tabpanel">
-                Tab content 3
-            </div>
-        </div>
-    </div>
-</div>
-
  *@
+
+

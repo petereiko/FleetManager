@@ -22,6 +22,11 @@ namespace FleetManager.Business.ViewModels
         public string Website { get; set; }
         public string LogoUrl { get; set; }
         public bool IsVerified { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? LastModified { get; set; }
+        public int StaffCount { get; set; }
+        public int BranchCount { get; set; }
+        public int VehicleCount { get; set; }
     }
 
 }

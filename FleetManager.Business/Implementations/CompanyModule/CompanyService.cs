@@ -389,30 +389,46 @@ namespace FleetManager.Business.Implementations.CompanyModule
 
         public async Task<CompanyViewModel> GetCompanyProfile()
         {
-            var userData = GetUserData(); // retrieves the logged-in user’s data from the cookie or context
-            if (userData == null || userData.Id == null)
-            {
-                return null;
-            }
-
-            var user = await _userManager.FindByIdAsync(userData.Id);
-            if (user == null || user.CompanyId == null)
-            {
-                return null;
-            }
-
             var company = await _context.Companies
                 .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == user.CompanyId);
+                .FirstOrDefaultAsync(c => c.Id == _authUser.CompanyId);
 
-            if (company == null)
+            if (company == null) return null;
+
+            // 1) Fetch branch IDs for the company (single small query)
+            var branchIds = await _context.CompanyBranches
+                .AsNoTracking()
+                .Where(b => b.CompanyId == company.Id)
+                .Select(b => b.Id)
+                .ToListAsync();
+
+            // branch count is just the list count (no extra DB call)
+            var branchCount = branchIds.Count;
+
+            // 2) Count company admins and drivers (sequential, cheap)
+            var companyAdminCount = await _context.CompanyAdmins
+                .AsNoTracking()
+                .CountAsync(a => a.CompanyId == company.Id);
+
+            var driversCount = await _context.Drivers
+                .AsNoTracking()
+                .CountAsync(d => d.CompanyId == company.Id);
+
+            // 3) Count vehicles whose CompanyBranchId is in the branchIds list
+            //    This generates an SQL IN (...) query which is efficient and avoids a join.
+            int vehicleCount = 0;
+            if (branchIds.Any())
             {
-                return null;
+                vehicleCount = await _context.Vehicles
+                    .AsNoTracking()
+                    .CountAsync(v => branchIds.Contains((long)v.CompanyBranchId));
             }
+
+            var totalStaff = companyAdminCount + driversCount;
 
             return new CompanyViewModel
             {
-                Id=company.Id,
+                Id = company.Id,
                 Name = company.Name,
                 RegistrationNumber = company.RegistrationNumber,
                 Address = company.Address,
@@ -425,7 +441,12 @@ namespace FleetManager.Business.Implementations.CompanyModule
                 ContactPersonEmail = company.ContactPersonEmail,
                 Website = company.Website,
                 LogoUrl = company.LogoUrl,
-                IsVerified = company.IsVerified
+                IsVerified = company.IsVerified,
+                CreatedDate = company.CreatedDate,
+                LastModified = company.ModifiedDate,
+                BranchCount = branchCount,
+                StaffCount = totalStaff,
+                VehicleCount = vehicleCount
             };
         }
 
@@ -435,15 +456,15 @@ namespace FleetManager.Business.Implementations.CompanyModule
 
             try
             {
-                var userData = GetUserData(); 
-                var user = await _userManager.FindByIdAsync(userData.Id);
-                if (user == null || user.CompanyId == null)
+                //var userData = GetUserData(); 
+                var user = _authUser.UserId;
+                if (user == null)
                 {
                     response.Message = "User or associated company not found.";
                     return response;
                 }
 
-                var company = await _context.Companies.FindAsync(user.CompanyId);
+                var company = await _context.Companies.FindAsync(_authUser.CompanyId);
                 if (company == null)
                 {
                     response.Message = "Company not found.";

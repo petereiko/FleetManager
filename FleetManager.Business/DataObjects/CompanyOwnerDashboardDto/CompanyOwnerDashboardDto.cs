@@ -23,5 +23,8 @@ namespace FleetManager.Business.DataObjects.CompanyOwnerDashboardDto
         // NEW: Vehicle status distribution for pie chart
         public Dictionary<string, int> VehicleStatusDistribution { get; set; } = new Dictionary<string, int>();
 
+        public List<BranchListItemDto> AllBranches { get; set; } = new();
+        public bool IsFiltered { get; set; } 
+
     }
 }
