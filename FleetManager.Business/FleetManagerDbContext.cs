@@ -2,6 +2,7 @@
 using System.Reflection.Emit;
 using FleetManager.Business.Database.Entities;
 using FleetManager.Business.Database.Entities.MaintenanceTicket;
+using FleetManager.Business.Database.Entities.RepairHistory;
 using FleetManager.Business.Database.IdentityModels;
 using FleetManager.Business.DataObjects.ReportsDto;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -83,6 +84,11 @@ namespace FleetManager.Business
         
         public DbSet<NextOfKin> NextOfKins { get; set; }
         public DbSet<PublicHoliday> PublicHolidays { get; set;}
+        public DbSet<Repair> Repairs { get; set; }
+        public DbSet<RepairItem> RepairItems { get; set; }
+        public DbSet<RepairInvoice> RepairInvoices { get; set; }
+        public DbSet<RepairInvoiceItem> RepairInvoiceItems { get; set; }
+
         public DbSet<State> States { get; set; }
         public DbSet<TimeOffRequest> TimeOffRequests { get; set; }
         public DbSet<TimeOffCategory> TimeOffCategories { get; set; }

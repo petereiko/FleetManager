@@ -9,22 +9,14 @@ namespace FleetManager.Business.Database.Entities.MaintenanceTicket
 {
     public class MaintenanceTicket:BaseEntity
     {
-        // Who submitted it
         public long DriverId { get; set; }
         public virtual Driver Driver { get; set; }
-
-        // Which vehicle
         public long VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; }
-
-        // Which vehicle
         public long? CompanyBranchId { get; set; }
         public virtual CompanyBranch? CompanyBranch { get; set; }
-
         // A short description of the overall issue
         public string Subject { get; set; } = "";
-
-        // Free‐text notes
         public string? Notes { get; set; }
 
         // Line‐items: parts, quantities, unit prices
