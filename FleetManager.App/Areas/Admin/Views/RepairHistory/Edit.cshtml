@@ -1,0 +1,302 @@
+﻿@using System.Text.Json
+@using FleetManager.Business.ViewModels.RepairHistoryViewModels
+@model RepairEditViewModel
+
+@{
+    ViewData["Title"] = "Edit Repair";
+    var itemPartsJsonRaw = ViewBag.ItemPartsJson ?? "{}";
+}
+
+<h1>Edit Repair #@Model.Id</h1>
+
+<form asp-action="Edit" method="post" class="needs-validation" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="VehicleId" class="form-label">Vehicle</label>
+            <select asp-for="VehicleId" class="form-select" asp-items="Model.Vehicles"></select>
+            <span asp-validation-for="VehicleId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="DriverId" class="form-label">Driver (optional)</label>
+            <select asp-for="DriverId" class="form-select" asp-items="Model.Drivers">
+                <option value="">-- None --</option>
+            </select>
+            <span asp-validation-for="DriverId" class="text-danger"></span>
+        </div>
+
+        <div class="col-12">
+            <label asp-for="Subject" class="form-label">Subject</label>
+            <input asp-for="Subject" class="form-control" />
+            <span asp-validation-for="Subject" class="text-danger"></span>
+        </div>
+
+        <div class="col-12">
+            <label asp-for="Notes" class="form-label">Notes</label>
+            <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Priority" class="form-label">Priority</label>
+            <select asp-for="Priority" class="form-select" asp-items="Model.Priorities"></select>
+        </div>
+    </div>
+
+    <hr />
+
+    <h5>Items</h5>
+
+    <div id="categoryOptionsHtml" style="display:none">
+        @foreach (var c in Model.PartCategories)
+        {
+            <option value="@c.Value">@c.Text</option>
+        }
+    </div>
+
+    <table class="table table-sm" id="itemsTable">
+        <thead>
+            <tr>
+                <th style="min-width:200px">Category</th>
+                <th style="min-width:200px">Part</th>
+                <th>Description</th>
+                <th style="width:90px">Qty</th>
+                <th style="width:120px">Unit Price</th>
+                <th style="width:80px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Items.Count; i++)
+            {
+                var it = Model.Items[i];
+                <tr class="item-row" data-index="@i">
+                    <input type="hidden" name="Items[@i].Id" value="@(it.Id.HasValue? it.Id.ToString() : "")" />
+
+                    <td>
+                        <select name="Items[@i].PartCategoryId" class="form-select part-category" data-index="@i">
+                            <option value="">-- Category --</option>
+                            @foreach (var c in Model.PartCategories)
+                            {
+                                // Render safe option using an if/else to avoid Razor parsing errors
+                                int parsedCat;
+                                var catValue = c.Value;
+                                var isSelected = false;
+                                if (int.TryParse(catValue, out parsedCat) && it.PartCategoryId.HasValue && parsedCat == it.PartCategoryId.Value)
+                                {
+                                    isSelected = true;
+                                }
+
+                                if (isSelected)
+                                {
+                                    <option value="@c.Value" selected="selected">@c.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@c.Value">@c.Text</option>
+                                }
+                            }
+                        </select>
+                    </td>
+
+                    <td>
+                        <select name="Items[@i].PartId" class="form-select part-select" data-index="@i" data-selected-partid="@(it.PartId?.ToString() ?? "")">
+                            <option value="">-- Part --</option>
+                        </select>
+                    </td>
+
+                    <td>
+                        <input type="text" name="Items[@i].CustomDescription" class="form-control" value="@(it.CustomDescription ?? "")" />
+                    </td>
+
+                    <td>
+                        <input type="number" name="Items[@i].Quantity" class="form-control" min="1" value="@it.Quantity" />
+                    </td>
+
+                    <td>
+                        <input type="number" name="Items[@i].UnitPrice" class="form-control" min="0" step="0.01" value="@it.UnitPrice" />
+                    </td>
+
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger remove-item">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mb-3">
+        <button type="button" id="addItemBtn" class="btn btn-sm btn-success">Add Item</button>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+    <script>
+        (function () {
+            let partsByRow = {};
+            try {
+                partsByRow = @Html.Raw(itemPartsJsonRaw);
+            } catch (e) {
+                partsByRow = {};
+            }
+
+            const categoryOptionsHtml = document.getElementById('categoryOptionsHtml').innerHTML.trim();
+            const itemsTableBody = document.querySelector('#itemsTable tbody');
+            const addItemBtn = document.getElementById('addItemBtn');
+
+            function createRow(index, data = {}) {
+                const tr = document.createElement('tr');
+                tr.classList.add('item-row');
+                tr.setAttribute('data-index', index);
+
+                const idInput = `<input type="hidden" name="Items[${index}].Id" value="${data.id ? data.id : ''}" />`;
+
+                const categorySelect = `<select name="Items[${index}].PartCategoryId" class="form-select part-category" data-index="${index}">
+                                            <option value="">-- Category --</option>
+                                            ${categoryOptionsHtml}
+                                        </select>`;
+
+                const selectedPartAttr = data.partId ? `data-selected-partid="${data.partId}"` : `data-selected-partid=""`;
+                const partSelect = `<select name="Items[${index}].PartId" class="form-select part-select" data-index="${index}" ${selectedPartAttr}>
+                                        <option value="">-- Part --</option>
+                                    </select>`;
+
+                const descriptionInput = `<input type="text" name="Items[${index}].CustomDescription" class="form-control" value="${escapeHtml(data.description ?? '')}" />`;
+                const qtyInput = `<input type="number" name="Items[${index}].Quantity" class="form-control" min="1" value="${data.quantity ?? 1}" />`;
+                const upInput = `<input type="number" name="Items[${index}].UnitPrice" class="form-control" min="0" step="0.01" value="${data.unitPrice ?? ''}" />`;
+
+                tr.innerHTML = `
+                    ${idInput}
+                    <td>${categorySelect}</td>
+                    <td>${partSelect}</td>
+                    <td>${descriptionInput}</td>
+                    <td>${qtyInput}</td>
+                    <td>${upInput}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-item">Remove</button></td>
+                `;
+
+                return tr;
+            }
+
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return unsafe.toString().replace(/[&<"'>]/g, function (m) {
+                    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m];
+                });
+            }
+
+            function populateExistingPartSelects() {
+                Object.keys(partsByRow).forEach(function (idxStr) {
+                    const idx = parseInt(idxStr, 10);
+                    const select = document.querySelector(`.part-select[data-index="${idx}"]`);
+                    if (!select) return;
+                    select.innerHTML = '<option value="">-- Part --</option>';
+                    const list = partsByRow[idx] || [];
+                    list.forEach(function (opt) {
+                        const o = document.createElement('option');
+                        o.value = opt.value;
+                        o.textContent = opt.text;
+                        select.appendChild(o);
+                    });
+                    const pre = select.getAttribute('data-selected-partid');
+                    if (pre) select.value = pre;
+                });
+            }
+
+            async function loadPartsForCategory(categoryId, rowIndex) {
+                const partSelect = document.querySelector(`.part-select[data-index="${rowIndex}"]`);
+                if (!partSelect) return;
+                partSelect.innerHTML = '<option>Loading...</option>';
+                if (!categoryId) {
+                    partSelect.innerHTML = '<option value="">-- Part --</option>';
+                    return;
+                }
+
+                try {
+                    const url = '@Url.Action("GetPartsByCategory", "ManageRepair", new { area = "Admin" })' + '?categoryId=' + encodeURIComponent(categoryId);
+                    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (!resp.ok) throw new Error('Failed to load parts');
+                    const data = await resp.json();
+                    partSelect.innerHTML = '<option value="">-- Part --</option>';
+                    data.forEach(function (item) {
+                        const o = document.createElement('option');
+                        o.value = item.value;
+                        o.textContent = item.text;
+                        partSelect.appendChild(o);
+                    });
+                } catch (e) {
+                    partSelect.innerHTML = '<option value="">-- Part --</option>';
+                    console.error(e);
+                }
+            }
+
+            function reindexRows() {
+                const rows = document.querySelectorAll('#itemsTable tbody tr.item-row');
+                rows.forEach(function (tr, idx) {
+                    tr.setAttribute('data-index', idx);
+                    tr.querySelectorAll('input, select, textarea').forEach(function (el) {
+                        if (el.name) {
+                            const newName = el.name.replace(/^Items\[\d+\]\./, `Items[${idx}].`);
+                            el.name = newName;
+                        }
+                        if (el.getAttribute('data-index') !== null) {
+                            el.setAttribute('data-index', idx);
+                        }
+                    });
+                });
+            }
+
+            addItemBtn.addEventListener('click', function (e) {
+                const currentRows = document.querySelectorAll('#itemsTable tbody tr.item-row');
+                const newIndex = currentRows.length;
+                const newRow = createRow(newIndex, {});
+                itemsTableBody.appendChild(newRow);
+                reindexRows();
+            });
+
+            itemsTableBody.addEventListener('click', function (e) {
+                if (e.target && e.target.matches('.remove-item')) {
+                    const tr = e.target.closest('tr');
+                    tr.remove();
+                    reindexRows();
+                }
+            });
+
+            itemsTableBody.addEventListener('change', function (e) {
+                if (e.target && e.target.matches('.part-category')) {
+                    const rowIndex = e.target.getAttribute('data-index');
+                    const catId = e.target.value;
+                    const partSel = document.querySelector(`.part-select[data-index="${rowIndex}"]`);
+                    if (partSel) partSel.innerHTML = '<option value="">-- Part --</option>';
+                    loadPartsForCategory(catId, rowIndex);
+                }
+            });
+
+            populateExistingPartSelects();
+
+            (function ensurePartsForEveryRow() {
+                const rows = document.querySelectorAll('#itemsTable tbody tr.item-row');
+                rows.forEach(function (tr) {
+                    const idx = tr.getAttribute('data-index');
+                    const catSel = tr.querySelector('.part-category');
+                    const partSel = tr.querySelector('.part-select');
+                    const hasParts = partsByRow && partsByRow[idx] && partsByRow[idx].length > 0;
+                    const selectedPart = partSel ? partSel.getAttribute('data-selected-partid') : null;
+                    if (!hasParts && catSel && catSel.value) {
+                        loadPartsForCategory(catSel.value, idx).then(() => {
+                            if (selectedPart) {
+                                const ps = document.querySelector(`.part-select[data-index="${idx}"]`);
+                                if (ps) ps.value = selectedPart;
+                            }
+                        });
+                    }
+                });
+            })();
+
+        })();
+    </script>

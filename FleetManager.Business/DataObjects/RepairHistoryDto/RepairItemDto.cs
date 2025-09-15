@@ -12,6 +12,7 @@ namespace FleetManager.Business.DataObjects.RepairHistoryDto
         public int? PartId { get; set; }
         public string? PartName { get; set; }
         public string? PartCategoryName { get; set; }
+        public int ? PartCategoryId { get; set; }
         public string? CustomDescription { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }

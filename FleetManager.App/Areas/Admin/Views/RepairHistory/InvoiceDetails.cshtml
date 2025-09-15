@@ -1,0 +1,316 @@
+﻿@model RepairInvoiceDto
+@using System.Globalization
+@using FleetManager.Business.DataObjects.RepairHistoryDto
+@using FleetManager.Business.Enums
+@{
+    ViewData["Title"] = "Invoice Details";
+    // Helper to format currency
+    Func<decimal, string> formatN = d => string.Format(CultureInfo.GetCultureInfo("en-NG"), "₦{0:N2}", d);
+    // If a DateTime is needed for due date calculation:
+    DateTime invoiceDate = Model?.InvoiceDate ?? DateTime.UtcNow;
+    DateTime dueDate = invoiceDate.AddDays(30);
+}
+
+<!-- Open Invoice Button (visible on page) -->
+<div class="mb-3">
+    <a class="btn btn-outline-primary" role="button" id="viewInvoiceActionBtn">
+        <i class="fas fa-file-invoice-dollar me-2"></i> View Invoice
+    </a>
+
+    <a asp-action="Invoices" class="btn btn-secondary ms-2">
+        <i class="fas fa-arrow-left me-2"></i> Back to Invoices
+    </a>
+</div>
+
+<!-- Also include a printable header summary for SEO/print fallback -->
+<div class="card mb-3 ticket-details-container">
+    <div class="card-body">
+        <h4>Invoice #@Model.Id</h4>
+        <p><strong>Repair:</strong> @Model.RepairId</p>
+        <p><strong>Date:</strong> @Model.InvoiceDate.ToString("yyyy-MM-dd")</p>
+        <p><strong>Status:</strong> @Model.Status</p>
+    </div>
+</div>
+
+<!-- Professional Invoice Modal (converted from your design) -->
+<div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content invoice-modal">
+            <div class="modal-header invoice-header">
+                <h5 class="modal-title" id="invoiceModalLabel">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Invoice
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body invoice-body">
+                <div class="invoice-container">
+                    <!-- Invoice Header -->
+                    <div class="invoice-header-section d-flex justify-content-between">
+                        <div class="company-info d-flex">
+                            <div class="company-logo me-3">
+                                <i class="fas fa-shield-alt fa-2x"></i>
+                            </div>
+                            <div class="company-details">
+                                <h2>FleetGuard</h2>
+                                <p class="company-tagline">Professional Fleet Management Solutions</p>
+                                <div class="company-address">
+                                    <p class="mb-0">123 Fleet Street, Victoria Island</p>
+                                    <p class="mb-0">Lagos, Nigeria</p>
+                                    <p class="mb-0">Phone: +234 (0) 123 456 7890</p>
+                                    <p class="mb-0">Email: billing@fleetguard.ng</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="invoice-info text-end">
+                            <div class="invoice-number mb-2">
+                                <h3 class="mb-0">INVOICE</h3>
+                                <p class="invoice-id fs-6" id="invoiceId">#@Model.Id</p>
+                            </div>
+
+                            <div class="invoice-dates text-end mb-2">
+                                <div class="date-item"><strong>Invoice Date:</strong>
+                                    <div id="invoiceDate">@Model.InvoiceDate.ToString("MMM dd, yyyy")</div>
+                                </div>
+                                <div class="date-item"><strong>Due Date:</strong>
+                                    <div id="invoiceDueDate">@dueDate.ToString("MMM dd, yyyy")</div>
+                                </div>
+                            </div>
+
+                            <div class="invoice-status-section mt-2">
+                                <span class="badge" id="invoiceStatusBadge">@Model.Status</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bill To / Service Details -->
+                    <div class="invoice-parties d-flex justify-content-between mt-4">
+                        <div class="bill-to-section">
+                            <h6>Bill To:</h6>
+                            <div class="client-info">
+                                <p class="mb-0 client-name">@Model.RepairId != 0 ? "Driver: " + (Model as dynamic)?.Repair?.DriverName ?? "" : ""</p>
+                                <!-- Fallback to Repair info in controller; keep basic placeholders here -->
+                                <p class="mb-0 client-id">Driver ID: @( (Model as dynamic)?.Repair?.DriverId ?? "")</p>
+                                <p class="mb-0 vehicle-ref">Vehicle: @( (Model as dynamic)?.Repair?.VehicleDescription ?? "")</p>
+                            </div>
+                        </div>
+
+                        <div class="service-ref-section text-end">
+                            <h6>Service Reference:</h6>
+                            <div class="service-info">
+                                <p class="mb-0">Repair Ticket: #@( (Model as dynamic)?.RepairId ?? Model.RepairId )</p>
+                                <p class="mb-0">Service Date: @Model.InvoiceDate.ToString("MMM dd, yyyy")</p>
+                                <p class="mb-0">Subject: @( (Model as dynamic)?.Repair?.Subject ?? String.Empty )</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Items Table -->
+                    <div class="invoice-items-section mt-4">
+                        <table class="invoice-table table table-borderless">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="item-description">Description</th>
+                                    <th class="item-category">Category</th>
+                                    <th class="item-description">Custom Description</th>
+                                    <th class="item-quantity">Qty</th>
+                                    <th class="item-price">Unit Price</th>
+                                    <th class="item-total text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceItemsBody">
+                                @if (Model.Items != null && Model.Items.Any())
+                                {
+                                    foreach (var it in Model.Items)
+                                    {
+                                        <tr>
+                                            <td class="align-middle">
+                                                <div class="item-details">
+                                                    <span class="item-name">@(!string.IsNullOrEmpty(it.PartName) ? it.PartName : "Service")</span>
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                <span class="category-tag">@(!string.IsNullOrEmpty(it.PartCategory) ? it.PartCategory : "Repair")</span>
+                                            </td>
+                                            <td class="align-middle">@(!string.IsNullOrEmpty(it.Description) ? it.Description : "")</td>
+                                            <td class="align-middle">@it.Quantity</td>
+                                            <td class="align-middle">@formatN(it.UnitPrice)</td>
+                                            <td class="align-middle text-end">@formatN(it.LineTotal)</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">No items on this invoice.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Invoice Totals -->
+                    <div class="invoice-totals mt-3 d-flex justify-content-end">
+                        <div class="totals-section" style="width:320px;">
+                            @{
+                                decimal subtotal = Model.Items?.Sum(i => i.LineTotal) ?? 0m;
+                                decimal tax = subtotal * 0.075m;
+                                decimal total = subtotal + tax;
+                            }
+                            <div class="total-row subtotal d-flex justify-content-between">
+                                <span class="total-label">Subtotal:</span>
+                                <span class="total-value">@formatN(subtotal)</span>
+                            </div>
+                            <div class="total-row tax d-flex justify-content-between">
+                                <span class="total-label">VAT (7.5%):</span>
+                                <span class="total-value">@formatN(tax)</span>
+                            </div>
+                            <div class="total-row grand-total d-flex justify-content-between fw-bold">
+                                <span class="total-label">Total Due:</span>
+                                <span class="total-value">@formatN(total)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Footer -->
+                    <div class="invoice-footer mt-4 d-flex justify-content-between">
+                        <div class="payment-info">
+                            <h6>Payment Information:</h6>
+                            <p class="mb-0">Bank: First Bank of Nigeria</p>
+                            <p class="mb-0">Account Name: FleetGuard Services Ltd</p>
+                            <p class="mb-0">Account Number: 3012345678</p>
+                            <p class="mb-0">Sort Code: 011</p>
+                        </div>
+                        <div class="thank-you text-end">
+                            <p><strong>Thank you for your business!</strong></p>
+                            <p class="mb-0">For any questions regarding this invoice, please contact our billing department.</p>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Watermark -->
+                    <div class="invoice-watermark position-absolute top-50 start-50 translate-middle opacity-10">
+                        <span class="watermark-text display-1">FLEETGUARD</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer invoice-modal-footer">
+                <form asp-action="UpdateInvoiceStatus" method="post" class="me-auto">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="invoiceId" value="@Model.Id" />
+                    <div class="input-group">
+                        @* render select options with explicit if/else to avoid Razor parsing issues *@
+                        @{
+                            var st = Model.Status;
+                        }
+                        <select name="newStatus" class="form-select form-select-sm" style="min-width:150px;">
+                            @* Pending *@
+                            @if (st == InvoiceStatus.Pending)
+                            {
+                                <option value="Pending" selected="selected">Pending</option>
+                            }
+                            else
+                            {
+                                <option value="Pending">Pending</option>
+                            }
+
+                            @* Paid *@
+                            @if (st == InvoiceStatus.Paid)
+                            {
+                                <option value="Paid" selected="selected">Paid</option>
+                            }
+                            else
+                            {
+                                <option value="Paid">Paid</option>
+                            }
+
+                            @* Cancelled *@
+                            @if (st == InvoiceStatus.Cancelled)
+                            {
+                                <option value="Cancelled" selected="selected">Cancelled</option>
+                            }
+                            else
+                            {
+                                <option value="Cancelled">Cancelled</option>
+                            }
+                        </select>
+
+                        <button class="btn btn-primary btn-sm" type="submit">
+                            <i class="fas fa-save me-1"></i> Update Status
+                        </button>
+                    </div>
+                </form>
+
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printInvoice()">
+                    <i class="fas fa-print me-2"></i> Print Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optional scripts if not already included in your layout -->
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script>
+        // Toast helper (simple)
+        function showToast(message, type = 'success', duration = 3000) {
+            const backgroundColor = type === 'success'
+                ? 'linear-gradient(135deg, #28a745, #20c997)'
+                : 'linear-gradient(135deg, #dc3545, #e74c3c)';
+
+            Toastify({
+                text: message,
+                duration: duration,
+                close: true,
+                gravity: "top",
+                position: "right",
+                stopOnFocus: true,
+                style: {
+                    background: backgroundColor,
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                    fontWeight: "500"
+                }
+            }).showToast();
+        }
+
+        // Print Invoice
+        function printInvoice() {
+            const printContent = document.querySelector('.invoice-container').innerHTML;
+            const originalContent = document.body.innerHTML;
+
+            document.body.innerHTML = `
+                <div class="container">${printContent}</div>
+                <style>
+                    body { background-color: white !important; padding: 20px; }
+                    .invoice-modal-footer { display: none; }
+                </style>
+            `;
+
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+
+        // Auto-open modal when page loads (optional)
+        document.addEventListener('DOMContentLoaded', function () {
+            const actionBtn = document.getElementById('viewInvoiceActionBtn');
+            const modalEl = document.getElementById('invoiceModal');
+            if (actionBtn) {
+                actionBtn.addEventListener('click', function () {
+                    var modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                });
+            }
+        });
+    </script>
+}

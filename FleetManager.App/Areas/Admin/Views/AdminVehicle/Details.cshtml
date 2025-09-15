@@ -602,44 +602,51 @@
                         </li>
 
                         <li class="detail-item">
-  <div class="detail-label">Status</div>
-  <div class="detail-value">
-    <span id="statusBadge" class="status-badge @(
-        Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Active   ? "status-active" :
-        Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Inactive ? "status-inactive" :
-                                                                                   "status-maintenance")">
-      @if (Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Inactive)
-      {
-        <i class="fas fa-times-circle text-danger me-1" title="Not Working"></i>
-      }
-      else if (Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.UnderMaintenance)
-      {
-        <i class="fas fa-tools text-warning me-1" title="Under Maintenance"></i>
-      }
+                              <div class="detail-label">Status</div>
+                                  <div class="detail-value">
+                                    <span id="statusBadge" class="status-badge @(
+                                        Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Active   ? "status-active" :
+                                        Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Inactive ? "status-inactive" :
+                                                                                                                   "status-maintenance")">
+                                      @if (Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Inactive)
+                                      {
+                                        <i class="fas fa-times-circle text-danger me-1" title="Not Working"></i>
+                                      }
+                                      else if (Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.UnderMaintenance)
+                                      {
+                                        <i class="fas fa-tools text-warning me-1" title="Under Maintenance"></i>
+                                      }
       
-      @(EnumHelper<VehicleStatus>.GetDescription(Model.VehicleStatus))
-    </span>
-  </div>
+                                      @(EnumHelper<VehicleStatus>.GetDescription(Model.VehicleStatus))
+                                    </span>
+                                  </div>
 
-  <!-- New row for changing status -->
-</li>
+                          <!-- New row for changing status -->
+                        </li>
                         
                         <li class="detail-item">
-     <div for="vehicleStatusSelect" class="detail-label">Change Status:</div>
+                         <div for="vehicleStatusSelect" class="detail-label">Change Status:</div>
                               <div class="detail-value mt-2">
-    <form id="statusForm" class="d-flex align-items-center gap-2">
-      @Html.AntiForgeryToken()
-      <input type="hidden" name="vehicleId" value="@Model.Id" />
+                                <form id="statusForm" class="d-flex align-items-center gap-2">
+                                  @Html.AntiForgeryToken()
+                                  <input type="hidden" name="vehicleId" value="@Model.Id" />
 
-      <select id="vehicleStatusSelect" class="form-select form-select-sm w-auto">
-        @foreach (VehicleStatus s in Enum.GetValues<FleetManager.Business.Enums.VehicleStatus>())
-        {
-          @:<option value="@((int)s)" @(s == Model.VehicleStatus ? "selected" : "")>@(EnumHelper<VehicleStatus>.GetDescription(s))</option>
-        }
-      </select>
-    </form>
-  </div>
+                                  <select id="vehicleStatusSelect" class="form-select form-select-sm w-auto">
+                                    @foreach (VehicleStatus s in Enum.GetValues<FleetManager.Business.Enums.VehicleStatus>())
+                                    {
+                                      @:<option value="@((int)s)" @(s == Model.VehicleStatus ? "selected" : "")>@(EnumHelper<VehicleStatus>.GetDescription(s))</option>
+                                    }
+                                  </select>
+                                </form>
+                              </div>
 
+                        </li>
+                        <li class="detail-item">
+                            <div class="action-buttons">
+                                <a asp-controller="RepairHistory" asp-action="VehicleRepairs" asp-route-VehicleId="@Model.Id" class="btn btn-primary me-2">
+                                    <i class="feather-file me-1"></i> View Repair & Fixes History
+                                </a>
+                            </div>
                         </li>
                     </ul>
                 </div>

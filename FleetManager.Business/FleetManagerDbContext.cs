@@ -44,6 +44,11 @@ namespace FleetManager.Business
                 .HasOne(t => t.Invoice)
                 .WithOne(i => i.MaintenanceTicket)
                 .HasForeignKey<Invoice>(i => i.MaintenanceTicketId);
+
+            mb.Entity<Repair>()
+                .HasOne(r => r.Invoice)
+                .WithOne(i => i.Repair)
+                .HasForeignKey<RepairInvoice>(i => i.RepairId);
         }
 
 

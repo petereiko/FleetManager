@@ -31,7 +31,7 @@ namespace FleetManager.Business.Database.Entities.RepairHistory
         public DateTime? ResolvedAt { get; set; }
 
         public virtual ICollection<RepairItem> Items { get; set; } = new List<RepairItem>();
-        public long? RepairInvoiceId { get; set; }
+        //public long? RepairInvoiceId { get; set; }
         public virtual RepairInvoice? Invoice { get; set; }
         
     }

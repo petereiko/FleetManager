@@ -17,6 +17,7 @@ namespace FleetManager.Business.Interfaces.RepairModule
         Task<MessageResponse<PaginatedResult<RepairDto>>> QueryRepairsByVehicleAsync(int page, int pageSize, long vehicleId);
         Task<RepairDto?> GetRepairByIdAsync(long repairId);
         Task<MessageResponse<RepairDto>> CreateRepairAsync(RepairInputDto input, string createdByUserId);
+        Task<MessageResponse<RepairDto>> UpdateRepairAsync(UpdateRepairInputDto input);
         Task<MessageResponse<RepairDto>> UpdateRepairStatusAsync(UpdateRepairStatusDto input);
 
         // invoice helpers

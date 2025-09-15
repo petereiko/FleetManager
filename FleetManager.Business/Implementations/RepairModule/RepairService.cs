@@ -351,6 +351,174 @@ namespace FleetManager.Business.Implementations.RepairModule
             return resp;
         }
 
+        public async Task<MessageResponse<RepairDto>> UpdateRepairAsync(UpdateRepairInputDto input)
+        {
+            EnsureAdminOrOwner();
+            var resp = new MessageResponse<RepairDto>();
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // load repair + items + invoice + invoice.items
+                var repair = await _context.Repairs
+                    .Include(r => r.Items)
+                    .Include(r => r.Invoice).ThenInclude(inv => inv.Items)
+                    .FirstOrDefaultAsync(r => r.Id == input.RepairId);
+
+                if (repair == null)
+                {
+                    resp.Message = "Repair not found";
+                    return resp;
+                }
+
+                // update main fields
+                repair.VehicleId = input.VehicleId;
+                repair.DriverId = input.DriverId;
+                repair.Subject = input.Subject;
+                repair.Notes = input.Notes;
+                repair.Priority = input.Priority;
+                repair.ModifiedDate = DateTime.UtcNow;
+                repair.ModifiedBy = _auth.UserId;
+
+                // ----- SYNC ITEMS -----
+                // Build dictionary of existing items by id for quick lookup
+                var existingItems = repair.Items.ToDictionary(i => i.Id, i => i);
+
+                // Track incoming item ids so we can remove ones not present
+                var incomingIds = new HashSet<long>();
+
+                foreach (var incoming in input.Items)
+                {
+                    if (incoming.Id.HasValue && existingItems.TryGetValue(incoming.Id.Value, out var existing))
+                    {
+                        // update existing
+                        existing.VehiclePartCategoryId = incoming.PartCategoryId;
+                        existing.VehiclePartId = incoming.PartId;
+                        existing.CustomPartDescription = incoming.CustomDescription;
+                        existing.Quantity = incoming.Quantity;
+                        existing.UnitPrice = incoming.UnitPrice;
+                        existing.ModifiedDate = DateTime.UtcNow;
+                        existing.ModifiedBy = _auth.UserId;
+
+                        incomingIds.Add(existing.Id);
+                    }
+                    else
+                    {
+                        // create new item
+                        var newItem = new RepairItem
+                        {
+                            RepairId = repair.Id,
+                            VehiclePartCategoryId = incoming.PartCategoryId,
+                            VehiclePartId = incoming.PartId,
+                            CustomPartDescription = incoming.CustomDescription,
+                            Quantity = incoming.Quantity,
+                            UnitPrice = incoming.UnitPrice,
+                            CreatedDate = DateTime.UtcNow,
+                            CreatedBy = _auth.UserId
+                        };
+                        _context.RepairItems.Add(newItem);
+                        // We can't add to incomingIds now because id will be assigned after SaveChanges.
+                    }
+                }
+
+                // Remove items that were deleted on client
+                var toRemove = repair.Items.Where(i => !incomingIds.Contains(i.Id)).ToList();
+                foreach (var rem in toRemove)
+                {
+                    _context.RepairItems.Remove(rem);
+                }
+
+                await _context.SaveChangesAsync(); // persist item adds/updates/deletes so new Ids exist
+
+                // Re-load repair items to compute invoice
+                var finalItems = await _context.RepairItems
+                    .Where(i => i.RepairId == repair.Id)
+                    .ToListAsync();
+
+                // ----- SYNC / REBUILD INVOICE ITEMS & TOTAL -----
+                // If there is no invoice, create one
+                var invoice = repair.Invoice;
+                if (invoice == null)
+                {
+                    invoice = new RepairInvoice
+                    {
+                        RepairId = repair.Id,
+                        CompanyBranchId = repair.CompanyBranchId,
+                        InvoiceDate = DateTime.UtcNow,
+                        Status = InvoiceStatus.Pending,
+                        CreatedBy = _auth.UserId,
+                        TotalAmount = 0m
+                    };
+                    _context.RepairInvoices.Add(invoice);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Remove existing invoice items and recreate from finalItems (simpler & consistent)
+                var existingInvoiceItems = await _context.RepairInvoiceItems
+                    .Where(ii => ii.RepairInvoiceId == invoice.Id)
+                    .ToListAsync();
+
+                if (existingInvoiceItems.Any())
+                {
+                    _context.RepairInvoiceItems.RemoveRange(existingInvoiceItems);
+                    await _context.SaveChangesAsync();
+                }
+
+                decimal total = 0m;
+                foreach (var fi in finalItems)
+                {
+                    var ii = new RepairInvoiceItem
+                    {
+                        RepairInvoiceId = invoice.Id,
+                        VehiclePartCategoryId = fi.VehiclePartCategoryId,
+                        VehiclePartId = fi.VehiclePartId,
+                        Description = fi.CustomPartDescription,
+                        Quantity = fi.Quantity,
+                        UnitPrice = fi.UnitPrice,
+                        CreatedDate = DateTime.UtcNow,
+                        CreatedBy = _auth.UserId
+                    };
+                    _context.RepairInvoiceItems.Add(ii);
+                    total += fi.Quantity * fi.UnitPrice;
+                }
+
+                invoice.TotalAmount = total;
+                invoice.ModifiedDate = DateTime.UtcNow;
+                invoice.ModifiedBy = _auth.UserId;
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                // Return fresh DTO using existing helper
+                resp.Success = true;
+                resp.Result = await GetRepairByIdAsync(repair.Id);
+                resp.Message = "Repair updated successfully";
+
+                // notify driver/admins if desired
+                if (repair.DriverId.HasValue)
+                {
+                    var driver = await _context.Drivers.Include(d => d.User).FirstOrDefaultAsync(d => d.Id == repair.DriverId.Value);
+                    if (driver != null)
+                    {
+                        await _notification.CreateAsync(
+                            driver.UserId,
+                            $"Repair #{repair.Id} Updated",
+                            $"Repair details were updated by {_auth.UserId}",
+                            NotificationType.Info,
+                            new { repairId = repair.Id });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "Error updating repair {RepairId}", input.RepairId);
+                resp.Message = "Failed to update repair.";
+            }
+
+            return resp;
+        }
+
+
         public async Task<MessageResponse<RepairDto>> UpdateRepairStatusAsync(UpdateRepairStatusDto input)
         {
             EnsureAdminOrOwner();

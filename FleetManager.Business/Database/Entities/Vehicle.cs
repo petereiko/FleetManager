@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using FleetManager.Business.Database.Entities.Repair;
+using FleetManager.Business.Database.Entities.RepairHistory;
 using FleetManager.Business.Enums;
 
 namespace FleetManager.Business.Database.Entities
@@ -44,7 +44,7 @@ namespace FleetManager.Business.Database.Entities
         public long? VendorId { get; set; }
         public virtual Vendor? Vendor { get; set; }
         public virtual ICollection<MaintenanceRecord> MaintenanceRecords { get; set; } = new List<MaintenanceRecord>();
-        public virtual ICollection<Repair.Repair> Repairs { get; set; } = new List<Repair.Repair>();
+        public virtual ICollection<Repair> Repairs { get; set; } = new List<Repair>();
 
 
     }

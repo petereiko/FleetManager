@@ -1,0 +1,810 @@
+﻿@* @using FleetManager.Business.ViewModels.RepairHistoryViewModels
+@model RepairListViewModel
+@{
+    ViewData["Title"] = "Repairs";
+}
+
+<h1>Repairs</h1>
+
+<div class="mb-3">
+    <a class="btn btn-primary" asp-action="Create">Create Repair</a>
+    <a class="btn btn-outline-secondary" asp-action="Invoices">Invoices</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="CurrentFilter" class="form-select">
+            <option value="ByBranch" selected>By Branch</option>
+            <option value="ByDriver">By Driver</option>
+            <option value="ByVehicle">By Vehicle</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <select name="DriverId" class="form-select">
+            <option value="">-- Driver --</option>
+            @foreach (var d in Model.Drivers)
+            {
+                // safely parse the option value to compare against the nullable DriverId
+                if (long.TryParse(d.Value, out var dv) && Model.DriverId.HasValue && Model.DriverId.Value == dv)
+                {
+                    <option value="@d.Value" selected="selected">@d.Text</option>
+                }
+                else
+                {
+                    <option value="@d.Value">@d.Text</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <select name="VehicleId" class="form-select">
+            <option value="">-- Vehicle --</option>
+            @foreach (var v in Model.Vehicles)
+            {
+                if (long.TryParse(v.Value, out var vv) && Model.VehicleId.HasValue && Model.VehicleId.Value == vv)
+                {
+                    <option value="@v.Value" selected="selected">@v.Text</option>
+                }
+                else
+                {
+                    <option value="@v.Value">@v.Text</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <button class="btn btn-primary" type="submit">Filter</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Vehicle</th>
+            <th>Driver</th>
+            <th>Subject</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model.Repairs)
+        {
+            <tr>
+                <td>@r.Id</td>
+                <td>@r.VehicleDescription</td>
+                <td>@r.DriverName</td>
+                <td>@r.Subject</td>
+                <td>@r.Priority</td>
+                <td><span class="badge bg-info">@r.Status</span></td>
+                <td>@r.CreatedAt.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@r.Id">Details</a>
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@r.Id">Edit</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Simple pagination controls -->
+<nav>
+    <ul class="pagination">
+        @{
+            var page = Model.Pagination.CurrentPage;
+            for (int p = 1; p <= Math.Max(1, Model.Pagination.TotalItems); p++)
+            {
+                <li class="page-item @(p == page ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { page = p })">@p</a>
+                </li>
+                ;
+            }
+        }
+    </ul>
+</nav>
+ *@
+
+
+
+
+
+
+
+@using FleetManager.Business.ViewModels.RepairHistoryViewModels
+@model RepairListViewModel
+@{
+    ViewData["Title"] = "Vehicle Repair History";
+}
+
+<style>
+    .repair-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+    
+    .repair-header h1 {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .repair-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border-left: 4px solid #667eea;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+        margin: 0;
+    }
+    
+    .stats-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .filter-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .filter-title i {
+        margin-right: 0.5rem;
+        color: #667eea;
+    }
+    
+    .form-select, .form-control {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-select:focus, .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        transform: translateY(-2px);
+    }
+    
+    .repairs-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+    }
+    
+    .table {
+        margin: 0;
+    }
+    
+    .table thead th {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+        color: #495057;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.85rem;
+    }
+    
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: #f8f9fa;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .priority-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .priority-urgent {
+        background-color: red;
+        color: white;
+    }
+
+    .priority-high {
+        background-color: #dc2626;
+        ;
+        color: white;
+    }
+    
+    .priority-medium {
+        background-color: #ffa726;
+        color: white;
+    }
+    
+    .priority-low {
+        background-color: #66bb6a;
+        color: white;
+    }
+    
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-pending { background-color: #ff9800; color: white; }
+    
+    .status-progress {
+        background-color: #2196f3;
+        color: white;
+    }
+    
+    .status-completed {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .status-cancelled {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-sm {
+        border-radius: 6px;
+        font-weight: 500;
+        padding: 0.4rem 0.8rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary:hover, .btn-outline-secondary:hover {
+        transform: translateY(-1px);
+    }
+    
+    .vehicle-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .vehicle-plate {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .vehicle-model {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .driver-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .driver-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    
+    .pagination-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        margin-top: 2rem;
+    }
+    
+    .pagination {
+        margin: 0;
+        justify-content: center;
+    }
+    
+    .page-link {
+        border-radius: 8px;
+        margin: 0 0.2rem;
+        border: 2px solid #e9ecef;
+        color: #667eea;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .page-link:hover {
+        background-color: #667eea;
+        border-color: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+    
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    @@media (max-width: 768px) {
+        .repair-header {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .repair-header h1 {
+            font-size: 2rem;
+        }
+        
+        .quick-actions {
+            flex-direction: column;
+        }
+        
+        .filter-section .row {
+            flex-direction: column;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<!-- Header Section -->
+<div class="repair-header">
+    <h1>Vehicle Repair History</h1>
+    <p>Comprehensive tracking and management of all vehicle maintenance and repairs</p>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fas fa-plus me-2"></i>Create New Repair
+    </a>
+    <a class="btn btn-outline-secondary" asp-action="Invoices">
+        <i class="fas fa-file-invoice me-2"></i>View Invoices
+    </a>
+    <a class="btn btn-outline-secondary" asp-action="Reports">
+        <i class="fas fa-chart-bar me-2"></i>Generate Report
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <h3 class="stats-number">@Model.Repairs.Count()</h3>
+            <p class="stats-label">Total Repairs</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <h3 class="stats-number">@Model.Repairs.Count(r => r.Status.ToString().ToLower() == "pending")</h3>
+            <p class="stats-label">Pending</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <h3 class="stats-number">@Model.Repairs.Count(r => r.Status.ToString().ToLower() == "in progress")</h3>
+            <p class="stats-label">In Progress</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <h3 class="stats-number">@Model.Repairs.Count(r => r.Status.ToString().ToLower() == "completed")</h3>
+            <p class="stats-label">Completed</p>
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Filters -->
+<div class="filter-section">
+    <div class="filter-title">
+        <i class="fas fa-filter"></i>
+        Advanced Filters
+    </div>
+    
+    <form method="get" class="row g-3">
+        <div class="col-md-2">
+            <label class="form-label">Filter Type</label>
+            <select name="CurrentFilter" class="form-select">
+                @if (Model.CurrentFilter == "ByBranch")
+                {
+                    <option value="ByBranch" selected="selected">By Branch</option>
+                }
+                else
+                {
+                    <option value="ByBranch">By Branch</option>
+                }
+
+                @if (Model.CurrentFilter == "ByDriver")
+                {
+                    <option value="ByDriver" selected="selected">By Driver</option>
+                }
+                else
+                {
+                    <option value="ByDriver">By Driver</option>
+                }
+
+                @if (Model.CurrentFilter == "ByVehicle")
+                {
+                    <option value="ByVehicle" selected="selected">By Vehicle</option>
+                }
+                else
+                {
+                    <option value="ByVehicle">By Vehicle</option>
+                }
+
+                @if (Model.CurrentFilter == "ByStatus")
+                {
+                    <option value="ByStatus" selected="selected">By Status</option>
+                }
+                else
+                {
+                    <option value="ByStatus">By Status</option>
+                }
+
+                @if (Model.CurrentFilter == "ByPriority")
+                {
+                    <option value="ByPriority" selected="selected">By Priority</option>
+                }
+                else
+                {
+                    <option value="ByPriority">By Priority</option>
+                }
+            </select>
+
+        </div>
+        
+        <div class="col-md-2">
+            <label class="form-label">Driver</label>
+            <select name="DriverId" class="form-select">
+                <option value="">All Drivers</option>
+                @foreach (var d in Model.Drivers)
+                {
+                    if (long.TryParse(d.Value, out var dv) && Model.DriverId.HasValue && Model.DriverId.Value == dv)
+                    {
+                        <option value="@d.Value" selected="selected">@d.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@d.Value">@d.Text</option>
+                    }
+                }
+            </select>
+        </div>
+        
+        <div class="col-md-2">
+            <label class="form-label">Vehicle</label>
+            <select name="VehicleId" class="form-select">
+                <option value="">All Vehicles</option>
+                @foreach (var v in Model.Vehicles)
+                {
+                    if (long.TryParse(v.Value, out var vv) && Model.VehicleId.HasValue && Model.VehicleId.Value == vv)
+                    {
+                        <option value="@v.Value" selected="selected">@v.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@v.Value">@v.Text</option>
+                    }
+                }
+            </select>
+        </div>
+        
+       @*  <div class="col-md-2">
+            <label class="form-label">Date From</label>
+            <input type="date" name="DateFrom" class="form-control" value="@Model.DateFrom?.ToString("yyyy-MM-dd")">
+        </div>
+        
+        <div class="col-md-2">
+            <label class="form-label">Date To</label>
+            <input type="date" name="DateTo" class="form-control" value="@Model.DateTo?.ToString("yyyy-MM-dd")">
+        </div> *@
+        
+        <div class="col-md-2">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary flex-fill" type="submit">
+                    <i class="fas fa-search me-1"></i>Filter
+                </button>
+                <a class="btn btn-outline-secondary" asp-action="Index">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Repairs Table -->
+<div class="repairs-table">
+    @if (Model.Repairs.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Vehicle</th>
+                        <th>Driver</th>
+                        <th>Subject</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var repair in Model.Repairs)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-secondary">#@repair.Id</span>
+                            </td>
+                            <td>
+                                <div class="vehicle-info">
+                                    <span class="vehicle-plate">@repair.VehicleDescription</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="driver-info">
+                                    <div class="driver-avatar">
+                                        @(repair.DriverName?.Substring(0, 1).ToUpper() ?? "?")
+                                    </div>
+                                    @repair.DriverName
+                                </div>
+                            </td>
+                            <td>
+                                <span title="@repair.Subject">
+                                    @(repair.Subject?.Length > 30 ? repair.Subject.Substring(0, 30) + "..." : repair.Subject)
+                                </span>
+                            </td>
+                            <td>
+                                <span class="priority-badge @GetPriorityClass(repair.Priority
+)">
+                                    @repair.Priority
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge @GetStatusClass(repair.Status)">
+                                    @repair.Status
+                                </span>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>@repair.CreatedAt.ToString("MMM dd, yyyy")</strong>
+                                    <br>
+                                    <small class="text-muted">@repair.CreatedAt.ToString("HH:mm")</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@repair.Id" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@repair.Id" title="Edit Repair">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-tools"></i>
+            <h4>No Repairs Found</h4>
+            <p>There are no repair records matching your current filters.</p>
+            <a class="btn btn-primary" asp-action="Create">Create First Repair</a>
+        </div>
+    }
+</div>
+
+<!-- Enhanced Pagination -->
+@if (Model.Pagination.TotalItems > 0)
+{
+    <div class="pagination-wrapper">
+        <nav aria-label="Repair history pagination">
+            <ul class="pagination">
+                @{
+                    var currentPage = Model.Pagination.CurrentPage;
+                    var totalPages = (int)Math.Ceiling((double)Model.Pagination.TotalItems / Model.Pagination.PageSize);
+                    var startPage = Math.Max(1, currentPage - 2);
+                    var endPage = Math.Min(totalPages, currentPage + 2);
+                }
+                
+                @if (currentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1, DriverId = Model.DriverId, VehicleId = Model.VehicleId, CurrentFilter = Model.CurrentFilter })" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                }
+                
+                @for (int p = startPage; p <= endPage; p++)
+                {
+                    <li class="page-item @(p == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = p, DriverId = Model.DriverId, VehicleId = Model.VehicleId, CurrentFilter = Model.CurrentFilter })">@p</a>
+                    </li>
+                }
+                
+                @if (currentPage < totalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, DriverId = Model.DriverId, VehicleId = Model.VehicleId, CurrentFilter = Model.CurrentFilter })" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+        
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                Showing @((currentPage - 1) * Model.Pagination.PageSize + 1) to @Math.Min(currentPage * Model.Pagination.PageSize, Model.Pagination.TotalItems) 
+                of @Model.Pagination.TotalItems repairs
+            </small>
+        </div>
+    </div>
+}
+
+@functions {
+    private string GetPriorityClass(object priorityObj)
+    {
+        var priority = priorityObj?.ToString();
+        return priority?.ToLower() switch
+        {
+            "urgent" => "priority-urgent",
+            "high" => "priority-high",
+            "medium" => "priority-medium",
+            "low" => "priority-low",
+            _ => "priority-medium"
+        };
+    }
+    
+    // Accept object to handle both string and enum types
+    private string GetStatusClass(object statusObj)
+    {
+        var status = statusObj?.ToString();
+        return status?.ToLower().Replace(" ", "") switch
+        {
+            "pending" => "status-pending",
+            "inprogress" => "status-progress",
+            "completed" => "status-completed",
+            "cancelled" => "status-cancelled",
+            _ => "status-pending"
+        };
+    }
+}
+
+<!-- Include Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+    // Add any JavaScript functionality here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh functionality (optional)
+        // setInterval(() => location.reload(), 300000); // Refresh every 5 minutes
+        
+        // Search functionality enhancement
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                // Implement real-time search if needed
+            });
+        }
+    });
+</script>

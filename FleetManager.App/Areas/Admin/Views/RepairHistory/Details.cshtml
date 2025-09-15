@@ -1,0 +1,1505 @@
+﻿@using FleetManager.Business.Enums
+@using FleetManager.Business.DataObjects.RepairDto
+@model RepairDto
+@{
+    ViewData["Title"] = $"Repair #@{Model.Id}";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<style>
+
+
+    /* Main Container */
+    .ticket-details-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Header Section */
+    .details-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .ticket-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .ticket-meta {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .status-badge-lg {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Info Cards */
+    .info-card, .summary-card, .actions-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .info-card:hover, .summary-card:hover, .actions-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+        padding: 20px 25px;
+    }
+
+    .card-title {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    /* Vehicle Details */
+    .vehicle-details {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .vehicle-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .vehicle-info h6 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #2c3e50;
+    }
+
+    .vehicle-info p {
+        margin: 5px 0 0 0;
+        color: #6c757d;
+    }
+
+    /* Detail Rows */
+    .detail-row {
+        margin-bottom: 20px;
+    }
+
+        .detail-row label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+    .detail-value h6 {
+        margin: 0;
+        color: #495057;
+    }
+
+    .notes-content {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        border-left: 4px solid #667eea;
+        line-height: 1.6;
+        color: #495057;
+    }
+
+    /* Table Styles */
+    .table-header {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+        .table-header th {
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 15px;
+            border: none;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .part-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .part-name {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .category-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .quantity-badge {
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .price-text, .total-text {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .table-footer {
+        background: #f8f9fa;
+        border-top: 2px solid #dee2e6;
+    }
+
+    .grand-total {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    /* Summary Card */
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+    .summary-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .summary-value {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .cost-highlight {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    /* Action Buttons */
+    .action-buttons .btn {
+        font-weight: 500;
+        border-radius: 12px;
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+    }
+
+        .action-buttons .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    /* Status Badges */
+    .badge-status-Pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-status-InProgress {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .badge-status-Resolved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-status-Rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-status-Paid {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-status-Unpaid {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-status-Overdue {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-status-Cancelled {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    /* Priority Indicators (large) */
+    .priority-indicator-lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+
+    .priority-low {
+        color: #28a745;
+    }
+
+    .priority-moderate {
+        color: #ffc107;
+    }
+
+    .priority-high {
+        color: #fd7e14;
+    }
+
+    .priority-urgent {
+        color: #dc3545;
+    }
+
+
+
+    /* Back Section */
+    .back-section {
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    /* Invoice Modal Styles */
+    .invoice-modal {
+        border: none;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    .invoice-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom: none;
+        padding: 20px 30px;
+    }
+
+        .invoice-header .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+    .invoice-body {
+        padding: 0;
+        background: #f8f9fa;
+    }
+
+    .invoice-container {
+        background: white;
+        margin: 20px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    /* Invoice Header Section */
+    .invoice-header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 40px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .company-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .company-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .company-details h2 {
+        margin: 0 0 5px 0;
+        color: #2c3e50;
+        font-weight: 700;
+    }
+
+    .company-tagline {
+        color: #6c757d;
+        font-style: italic;
+        margin-bottom: 15px;
+    }
+
+    .company-address p {
+        margin: 2px 0;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    .invoice-info {
+        text-align: right;
+    }
+
+    .invoice-number h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .invoice-id {
+        color: #667eea;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 5px 0 20px 0;
+    }
+
+    .date-item {
+        margin-bottom: 10px;
+    }
+
+        .date-item strong {
+            color: #2c3e50;
+        }
+
+    .invoice-status-section {
+        margin-top: 20px;
+    }
+
+    .invoice-status-badge {
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Invoice Parties */
+    .invoice-parties {
+        display: flex;
+        justify-content: space-between;
+        padding: 30px 40px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        .invoice-parties h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+    .client-info p, .service-info p {
+        margin: 5px 0;
+        color: #495057;
+    }
+
+    .client-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+
+    /* Invoice Items Table */
+    .invoice-items-section {
+        padding: 0;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+        .invoice-table thead {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .invoice-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .invoice-table td {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .invoice-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+    .item-name {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .category-tag {
+        background: #e9ecef;
+        color: #495057;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .item-quantity {
+        text-align: center;
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .item-price, .item-total {
+        text-align: right;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    /* Invoice Totals */
+    .invoice-totals {
+        padding: 30px 40px;
+        border-top: 2px solid #dee2e6;
+    }
+
+    .totals-section {
+        max-width: 400px;
+        margin-left: auto;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 1.1rem;
+    }
+
+    .total-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .total-value {
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .subtotal {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .tax {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .grand-total {
+        font-size: 1.3rem;
+        padding-top: 15px;
+        margin-top: 5px;
+    }
+
+        .grand-total .total-value {
+            color: #28a745;
+            font-size: 1.5rem;
+        }
+
+    /* Invoice Footer */
+    .invoice-footer {
+        display: flex;
+        justify-content: space-between;
+        padding: 40px;
+        border-top: 1px solid #dee2e6;
+        background: #f8f9fa;
+    }
+
+    .payment-info {
+        flex: 1;
+    }
+
+        .payment-info h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .payment-info p {
+            margin: 5px 0;
+            color: #495057;
+        }
+
+    .thank-you {
+        flex: 1;
+        text-align: right;
+    }
+
+        .thank-you p {
+            margin: 5px 0;
+            color: #495057;
+        }
+
+        .thank-you strong {
+            color: #2c3e50;
+        }
+
+    /* Invoice Watermark */
+    .invoice-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        opacity: 0.03;
+        font-size: 8rem;
+        font-weight: 900;
+        color: #000;
+        pointer-events: none;
+        z-index: 0;
+        white-space: nowrap;
+    }
+
+    .watermark-text {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        letter-spacing: 10px;
+    }
+
+    /* Toast notifications */
+    .toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1100;
+    }
+
+    .toast {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 15px;
+        opacity: 1;
+    }
+
+    .toast-body {
+        padding: 15px 20px;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+
+    /* Print-specific styles */
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .print-container, .print-container * {
+            visibility: visible;
+        }
+
+        .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+    }
+
+    /* Enhanced modal styles */
+    .modal-dialog {
+        transition: transform 0.3s ease-out;
+    }
+
+    .modal.fade .modal-dialog {
+        transform: translate(0, -50px);
+    }
+
+    .modal.show .modal-dialog {
+        transform: none;
+    }
+
+    /* Custom form styling */
+    .form-select-lg, .form-control-lg {
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .form-select-lg:focus, .form-control-lg:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+    /* Status preview styling */
+    #statusPreview {
+        border-left: 4px solid #007bff !important;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Character counter styling */
+    #notesCounter {
+        font-size: 0.875rem;
+        transition: color 0.2s ease;
+    }
+
+        #notesCounter.text-warning {
+            color: #ffc107 !important;
+        }
+
+        #notesCounter.text-danger {
+            color: #dc3545 !important;
+        }
+
+    /* Enhanced kbd styling */
+    kbd {
+        background-color: #495057;
+        border-radius: 0.25rem;
+        padding: 0.125rem 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    /* Loading button animation */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+    }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    /* Custom toastify styles */
+    .toastify.success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+
+    .toastify.error {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+    }
+
+    /* Add this CSS to prevent modal backdrop issues */
+    .modal-backdrop.show {
+        opacity: 0.5;
+    }
+
+    /* Ensure modal backdrops are properly removed */
+    .modal-backdrop.fade:not(.show) {
+        display: none !important;
+    }
+
+    /* Force remove any stuck backdrops */
+    body:not(.modal-open) .modal-backdrop {
+        display: none !important;
+    }
+
+    /* Ensure body is interactive when no modals are open */
+    body:not(.modal-open) {
+        overflow: auto !important;
+        padding-right: 0 !important;
+        pointer-events: auto !important;
+    }
+
+    /* Fix for any stuck modal states */
+    .modal:not(.show) {
+        display: none !important;
+    }
+
+    /* Toastify positioning to ensure it's above any backdrop */
+    .toastify {
+        z-index: 9999 !important;
+    }
+
+    /* Visual feedback for status updates */
+    .status-updated {
+        animation: statusPulse 1s ease-in-out;
+        transform: scale(1.05);
+    }
+
+    @@keyframes statusPulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+            transform: scale(1);
+        }
+
+        50% {
+            box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+            transform: scale(1.05);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+            transform: scale(1);
+        }
+    }
+    /* Copy all the CSS styles from the Maintenance Details view */
+    /* Main Container */
+    .ticket-details-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Header Section */
+    .details-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .ticket-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .ticket-meta {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .status-badge-lg {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Info Cards */
+    .info-card, .summary-card, .actions-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    /* ... (all other CSS styles from the Maintenance view) ... */
+
+    /* Add any additional styles needed for repair-specific elements */
+</style>
+
+<div class="ticket-details-container">
+    <!-- Header Section -->
+    <div class="details-header">
+        <div class="header-content">
+            <div class="ticket-info">
+                <div class="ticket-number">
+                    <i class="fas fa-tools me-2"></i>
+                    <span>Repair #@Model.Id</span>
+                </div>
+                <div class="ticket-meta">
+                    <span class="created-date">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Created @Model.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
+                    </span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="ticket-status">
+                    <span class="badge badge-status-@Model.Status status-badge-lg">
+                        @Model.Status
+                    </span>
+                </div>
+
+                <div class="ticket-priority">
+                    @{
+                        var pClass = Model.Priority.ToString().ToLower();
+                    }
+                    <span class="priority-indicator-lg priority-@pClass">
+                        <i class="fas fa-circle"></i>
+                        @Model.Priority
+                    </span>
+                </div>
+
+                <button id="viewInvoiceBtn" class="btn btn-outline-primary">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    View Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="details-content">
+        <div class="row">
+            <!-- Left Column - Repair Information -->
+            <div class="col-lg-8">
+                <!-- Vehicle Information Card -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-car me-2"></i>
+                            Vehicle Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="vehicle-details">
+                            <div class="vehicle-icon">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="vehicle-info">
+                                <h6>@Model.VehicleDescription</h6>
+                                @* <p class="text-muted">Repaired Vehicle</p> *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Driver Information Card -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-user me-2"></i>
+                            Driver Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="detail-row">
+                            <label>Driver:</label>
+                            <div class="detail-value">
+                                <h6>@Model.DriverName</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Repair Details Card -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            Repair Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="detail-row">
+                            <label>Subject:</label>
+                            <div class="detail-value">
+                                <h6>@Model.Subject</h6>
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <label>Description/Notes:</label>
+                            <div class="detail-value">
+                                <div class="notes-content">
+                                    @Html.Raw(Model.Notes?.Replace("\n", "<br />"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Line Items Card -->
+                @if (Model.Items?.Any() == true)
+                {
+                    <div class="info-card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-cogs me-2"></i>
+                                Parts & Services
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-header">
+                                        <tr>
+                                            <th>Part/Service</th>
+                                            <th>Category</th>
+                                            <th>Description</th>
+                                            <th class="text-center">Quantity</th>
+                                            <th class="text-end">Unit Price</th>
+                                            <th class="text-end">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="part-info">
+                                                        <i class="fas fa-cog text-primary me-2"></i>
+                                                        <span class="part-name">@item.PartName</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="category-badge">@item.PartCategoryName</span>
+                                                </td>
+                                                <td>
+                                                    <span>@item.CustomDescription</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="quantity-badge">@item.Quantity</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="price-text">₦@item.UnitPrice.ToString("N2")</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="total-text">₦@item.LineTotal.ToString("N2")</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-footer">
+                                        <tr>
+                                            <th colspan="5" class="text-end">Grand Total:</th>
+                                            <th class="text-end">
+                                                <span class="grand-total">₦@Model.Items.Sum(x => x.LineTotal).ToString("N2")</span>
+                                            </th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Right Column - Summary & Actions -->
+            <div class="col-lg-4">
+                <!-- Quick Summary Card -->
+                <div class="summary-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Repair Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-item">
+                            <div class="summary-label">Current Status</div>
+                            <div class="summary-value">
+                                <span class="badge badge-status-@Model.Status">@Model.Status</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Priority</div>
+                            <div class="summary-value">
+                                @{
+                                    var sClass = Model.Priority.ToString().ToLower();
+                                }
+                                <span class="priority-indicator priority-@sClass">
+                                    <i class="fas fa-circle"></i>
+                                    @Model.Priority
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="summary-item">
+                            <div class="summary-label">Created Date</div>
+                            <div class="summary-value">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Vehicle</div>
+                            <div class="summary-value">@Model.VehicleDescription</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Driver</div>
+                            <div class="summary-value">@Model.DriverName</div>
+                        </div>
+                        @if (Model.Items?.Any() == true)
+                        {
+                            <div class="summary-item">
+                                <div class="summary-label">Total Cost</div>
+                                <div class="summary-value">
+                                    <span class="cost-highlight">₦@Model.Items.Sum(x => x.LineTotal).ToString("N2")</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="actions-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-tools me-2"></i>
+                            Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="action-buttons">
+                            <button id="viewInvoiceActionBtn" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-file-invoice-dollar me-2"></i>
+                                View Invoice
+                            </button>
+                            <a href="#" class="btn btn-outline-secondary w-100 mb-2" onclick="printTicket()">
+                                <i class="fas fa-print me-2"></i>
+                                Print Repair Details
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-edit me-2"></i>
+                                Edit Repair
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="back-section">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to Repair History
+        </a>
+    </div>
+</div>
+
+<!-- Professional Invoice Modal (Same structure as Maintenance view) -->
+<div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content invoice-modal">
+            <div class="modal-header invoice-header">
+                <h5 class="modal-title" id="invoiceModalLabel">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Invoice
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body invoice-body">
+                <div class="invoice-container">
+                    <!-- Invoice Header -->
+                    <div class="invoice-header-section">
+                        <div class="company-info">
+                            <div class="company-logo">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="company-details">
+                                <h2>FleetGuard</h2>
+                                <p class="company-tagline">Professional Fleet Management Solutions</p>
+                                <div class="company-address">
+                                    <p>123 Fleet Street, Victoria Island</p>
+                                    <p>Lagos, Nigeria</p>
+                                    <p>Phone: +234 (0) 123 456 7890</p>
+                                    <p>Email: billing@fleetguard.ng</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="invoice-info">
+                            <div class="invoice-number">
+                                <h3>INVOICE</h3>
+                                <p class="invoice-id" id="invoiceId">#Loading...</p>
+                            </div>
+                            <div class="invoice-dates">
+                                <div class="date-item">
+                                    <strong>Invoice Date:</strong>
+                                    <span id="invoiceDate">Loading...</span>
+                                </div>
+                                <div class="date-item">
+                                    <strong>Due Date:</strong>
+                                    <span id="invoiceDueDate">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="invoice-status-section">
+                                <span class="badge" id="invoiceStatusBadge">
+                                    Loading...
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bill To / Service Details -->
+                    <div class="invoice-parties">
+                        <div class="bill-to-section">
+                            <h6>Bill To:</h6>
+                            <div class="client-info">
+                                <p class="client-name" id="invoiceClientName">@Model.DriverName</p>
+                                <p class="client-id">Driver ID: @Model.DriverId</p>
+                                <p class="vehicle-ref">Vehicle: @Model.VehicleDescription</p>
+                            </div>
+                        </div>
+                        <div class="service-ref-section">
+                            <h6>Service Reference:</h6>
+                            <div class="service-info">
+                                <p>Repair Ticket: #@Model.Id</p>
+                                <p>Service Date: @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                                <p>Subject: @Model.Subject</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Items Table -->
+                    <div class="invoice-items-section">
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th class="item-description">Description</th>
+                                    <th class="item-category">Category</th>
+                                    <th class="item-description">Custom Description</th>
+                                    <th class="item-quantity">Qty</th>
+                                    <th class="item-price">Unit Price</th>
+                                    <th class="item-total">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceItemsBody">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Invoice Totals -->
+                    <div class="invoice-totals">
+                        <div class="totals-section">
+                            <div class="total-row subtotal">
+                                <span class="total-label">Subtotal:</span>
+                                <span class="total-value" id="invoiceSubtotal">₦0.00</span>
+                            </div>
+                            <div class="total-row tax">
+                                <span class="total-label">VAT (7.5%):</span>
+                                <span class="total-value" id="invoiceTax">₦0.00</span>
+                            </div>
+                            <div class="total-row grand-total">
+                                <span class="total-label">Total Due:</span>
+                                <span class="total-value" id="invoiceTotal">₦0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Footer -->
+                    <div class="invoice-footer">
+                        <div class="payment-info">
+                            <h6>Payment Information:</h6>
+                            <p>Bank: First Bank of Nigeria</p>
+                            <p>Account Name: FleetGuard Services Ltd</p>
+                            <p>Account Number: 3012345678</p>
+                            <p>Sort Code: 011</p>
+                        </div>
+                        <div class="thank-you">
+                            <p><strong>Thank you for your business!</strong></p>
+                            <p>For any questions regarding this invoice, please contact our billing department.</p>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Watermark -->
+                    <div class="invoice-watermark">
+                        <span class="watermark-text">FLEETGUARD</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer invoice-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>
+                    Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printInvoice()">
+                    <i class="fas fa-print me-2"></i>
+                    Print Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Required JavaScript CDNs -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    // Toast notification function
+    function showToast(message, type = 'success', duration = 3000) {
+        const backgroundColor = type === 'success'
+            ? 'linear-gradient(135deg, #28a745, #20c997)'
+            : 'linear-gradient(135deg, #dc3545, #e74c3c)';
+
+        Toastify({
+            text: message,
+            duration: duration,
+            close: true,
+            gravity: "top",
+            position: "right",
+            stopOnFocus: true,
+            style: {
+                background: backgroundColor,
+                borderRadius: "10px",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                fontWeight: "500"
+            },
+            onClick: function(){} // Callback after click
+        }).showToast();
+    }
+
+    // Print Ticket functionality
+    function printTicket() {
+        const printContent = document.querySelector('.ticket-details-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = `
+            <div class="container mt-4">${printContent}</div>
+            <style>
+                body { background-color: white !important; }
+                .back-section, .header-actions button { display: none; }
+                .ticket-details-container { box-shadow: none; }
+            </style>
+        `;
+
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload(); // Reload to restore functionality
+    }
+
+    // Print Invoice functionality
+    function printInvoice() {
+        const printContent = document.querySelector('.invoice-container').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = `
+            <div class="container">${printContent}</div>
+            <style>
+                body { background-color: white !important; padding: 20px; }
+                .invoice-modal-footer { display: none; }
+            </style>
+        `;
+
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload(); // Reload to restore functionality
+    }
+
+    // Load invoice data via AJAX
+    async function loadInvoiceData() {
+        const btn = document.getElementById('viewInvoiceBtn');
+        const actionBtn = document.getElementById('viewInvoiceActionBtn');
+
+        // Show loading state
+        btn.disabled = true;
+        actionBtn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+        actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+
+        try {
+            const resp = await fetch('@Url.Action("GetRepairInvoiceJson")?repairId=' + @Model.Id);
+            const data = await resp.json();
+
+            if (!data.success) {
+                showToast(data.message || 'No invoice found', 'error');
+                return;
+            }
+
+            const inv = data.invoice;
+
+            // Populate invoice modal with data
+            document.getElementById('invoiceId').textContent = '#' + inv.id;
+            document.getElementById('invoiceDate').textContent = new Date(inv.invoiceDate).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+
+            // Calculate due date (30 days after invoice date)
+            const dueDate = new Date(inv.invoiceDate);
+            dueDate.setDate(dueDate.getDate() + 30);
+            document.getElementById('invoiceDueDate').textContent = dueDate.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+
+            // Set invoice status
+            const statusBadge = document.getElementById('invoiceStatusBadge');
+            statusBadge.textContent = inv.status;
+            statusBadge.className = 'badge badge-status-' + inv.status;
+
+            // Set client name
+            document.getElementById('invoiceClientName').textContent = '@Model.DriverName';
+
+            // Populate invoice items
+            const itemsBody = document.getElementById('invoiceItemsBody');
+            itemsBody.innerHTML = '';
+
+            let subtotal = 0;
+
+            inv.items.forEach(i => {
+                const lineTotal = Number(i.quantity) * Number(i.unitPrice);
+                subtotal += lineTotal;
+
+                itemsBody.innerHTML += `
+                    <tr>
+                        <td class="item-description">
+                            <div class="item-details">
+                                <span class="item-name">${i.partName || 'Service'}</span>
+                            </div>
+                        </td>
+                        <td class="item-category">
+                            <span class="category-tag">${i.partCategory || 'Repair'}</span>
+                        </td>
+                        <td class="item-description">${i.description || ''}</td>
+                        <td class="item-quantity">${i.quantity}</td>
+                        <td class="item-price">₦${Number(i.unitPrice).toFixed(2)}</td>
+                        <td class="item-total">₦${lineTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            // Calculate totals
+            const tax = subtotal * 0.075;
+            const total = subtotal + tax;
+
+            document.getElementById('invoiceSubtotal').textContent = '₦' + subtotal.toFixed(2);
+            document.getElementById('invoiceTax').textContent = '₦' + tax.toFixed(2);
+            document.getElementById('invoiceTotal').textContent = '₦' + total.toFixed(2);
+
+            // Show the modal
+            var modal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+            modal.show();
+
+        } catch (error) {
+            console.error('Error loading invoice:', error);
+            showToast('Error loading invoice data', 'error');
+        } finally {
+            // Reset button states
+            btn.disabled = false;
+            actionBtn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-file-invoice-dollar me-2"></i>View Invoice';
+            actionBtn.innerHTML = '<i class="fas fa-file-invoice-dollar me-2"></i>View Invoice';
+        }
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners to both invoice buttons
+        document.getElementById('viewInvoiceBtn').addEventListener('click', loadInvoiceData);
+        document.getElementById('viewInvoiceActionBtn').addEventListener('click', loadInvoiceData);
+
+        // Add tooltips
+        $('[title]').tooltip({
+            trigger: 'hover',
+            placement: 'top'
+        });
+    });
+</script>

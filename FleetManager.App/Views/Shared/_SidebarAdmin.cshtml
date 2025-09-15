@@ -237,6 +237,26 @@
                     </li> *@
                 </ul>
             </li>
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="RepairHistory"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-02.svg" alt="">
+                    </span>
+                    <span> Repairs and Fixes History</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="RepairHistory"
+                           asp-action="Index">
+                            Vehicle Repair Records
+                        </a>
+                    </li>
+                </ul>
+            </li>
 
             <li class="submenu">
                 <a asp-area="Admin"

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace FleetManager.Business.Database.Entities.RepairHistory
 {
-    // RepairInvoiceItem.cs
     public class RepairInvoiceItem : BaseEntity
     {
         public long RepairInvoiceId { get; set; }
