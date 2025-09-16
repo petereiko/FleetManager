@@ -390,12 +390,23 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-auto pt-3">
+                                @* <div class="mt-auto pt-3">
                                     <button class="btn btn-primary btn-modern w-100 view-details-btn"
                                             data-url="@Url.Action("Details", "AssignedVehicle", new { protectedId = assignment.EncodedVehicleId })">
                                         <i class="fas fa-eye me-2"></i>View Details
                                     </button>
+                                </div> *@
+                                <div class="mt-auto pt-3">
+                                    <a asp-controller="AssignedVehicle"
+                                       asp-action="Details"
+                                       asp-route-protectedId="@assignment.EncodedVehicleId"
+                                       class="btn btn-primary btn-modern w-100 view-details-btn"
+                                       role="button"
+                                       aria-label="View details for vehicle">
+                                        <i class="fas fa-eye me-2"></i>View Details
+                                    </a>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -449,40 +460,40 @@
         var modal = new bootstrap.Modal(modalEl);
 
         // View details functionality
-        $('.view-details-btn').on('click', function() {
-            var url = $(this).data('url');
+        // $('.view-details-btn').on('click', function() {
+        //     var url = $(this).data('url');
 
-            // Show loading state
-            $('#vehicleDetailsModal .modal-body').html(`
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-3 text-muted">Loading vehicle details...</p>
-                </div>
-            `);
+        //     // Show loading state
+        //     $('#vehicleDetailsModal .modal-body').html(`
+        //         <div class="text-center py-5">
+        //             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        //                 <span class="visually-hidden">Loading...</span>
+        //             </div>
+        //             <p class="mt-3 text-muted">Loading vehicle details...</p>
+        //         </div>
+        //     `);
 
-            // Show modal
-            modal.show();
+        //     // Show modal
+        //     modal.show();
 
-            // Load content via AJAX
-            $.get(url)
-                .done(function(html) {
-                    $('#vehicleDetailsModal .modal-body').html(html);
-                })
-                .fail(function(jqXHR) {
-                    console.error("AJAX error:", jqXHR.status, jqXHR.statusText);
-                    $('#vehicleDetailsModal .modal-body').html(`
-                        <div class="alert alert-danger m-4">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Failed to load vehicle details. (${jqXHR.status} ${jqXHR.statusText})
-                            <br><small>Please try again or contact support if the problem persists.</small>
-                        </div>
-                    `);
-                });
-        });
+        //     // Load content via AJAX
+        //     $.get(url)
+        //         .done(function(html) {
+        //             $('#vehicleDetailsModal .modal-body').html(html);
+        //         })
+        //         .fail(function(jqXHR) {
+        //             console.error("AJAX error:", jqXHR.status, jqXHR.statusText);
+        //             $('#vehicleDetailsModal .modal-body').html(`
+        //                 <div class="alert alert-danger m-4">
+        //                     <i class="fas fa-exclamation-triangle me-2"></i>
+        //                     Failed to load vehicle details. (${jqXHR.status} ${jqXHR.statusText})
+        //                     <br><small>Please try again or contact support if the problem persists.</small>
+        //                 </div>
+        //             `);
+        //         });
+        // });
 
-        // Search functionality
+        // Search functionality 
         $('#searchInput').on('keyup', function() {
             filterVehicles();
         });

@@ -204,34 +204,30 @@
         gap: 0.375rem;
     }
     
-    .stats-bar {
+    .stats-row {
         background: white;
         padding: 1.5rem;
         border-radius: 12px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         margin-bottom: 2rem;
-        border: 1px solid #e5e7eb;
     }
     
     .stat-item {
         text-align: center;
-        padding: 0.5rem;
     }
     
     .stat-value {
-        font-size: 1.875rem;
+        font-size: 2rem;
         font-weight: 700;
         color: #1f2937;
-        display: block;
     }
     
     .stat-label {
         color: #6b7280;
-        font-size: 0.75rem;
+        font-size: 0.875rem;
         font-weight: 500;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-top: 0.25rem;
+        letter-spacing: 0.5px;
     }
     
     .no-records {
@@ -239,14 +235,13 @@
         padding: 4rem 2rem;
         background: white;
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
     
     .no-records-icon {
         font-size: 4rem;
         color: #d1d5db;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
     
     .pagination-container {
@@ -345,28 +340,28 @@
 }
 else
 {
-    <!-- Statistics Summary -->
-    <div class="stats-bar">
+     <!-- Statistics Summary -->
+@*     <div class="stats-row">
         <div class="row">
-            <div class="col-6 col-md-3 stat-item">
-                <span class="stat-value text-primary">@Model.Repairs.Count()</span>
+            <div class="col-md-3 stat-item">
+                <div class="stat-value">@Model.Repairs.Count()</div>
                 <div class="stat-label">Total Repairs</div>
             </div>
-            <div class="col-6 col-md-3 stat-item">
-                <span class="stat-value text-success">@Model.Repairs.Count(r => r.Status.ToString().ToLower() == "completed")</span>
+            <div class="col-md-3 stat-item">
+                <div class="stat-value text-success">@Model.Repairs.Count(r => r.Status.ToString().ToLower() == "completed")</div>
                 <div class="stat-label">Completed</div>
             </div>
-            <div class="col-6 col-md-3 stat-item">
-                <span class="stat-value text-warning">@Model.Repairs.Count(r => r.Status.ToString().ToLower() == "pending" || r.Status.ToString().ToLower() == "in-progress")</span>
-                <div class="stat-label">Active</div>
+            <div class="col-md-3 stat-item">
+                <div class="stat-value text-warning">@Model.Repairs.Count(r => r.Status.ToString().ToLower() == "pending" || r.Status.ToString().ToLower() == "in-progress")</div>
+                <div class="stat-label">In Progress</div>
             </div>
-            <div class="col-6 col-md-3 stat-item">
-                <span class="stat-value text-info">@Model.Repairs.Count(r => r.Invoice != null)</span>
-                <div class="stat-label">Invoiced</div>
+            <div class="col-md-3 stat-item">
+                <div class="stat-value text-info">@Model.Repairs.Count(r => r.Invoice != null)</div>
+                <div class="stat-label">With Invoices</div>
             </div>
         </div>
     </div>
-
+ *@
     <!-- Professional Table -->
     <div class="table-container">
         <table class="table table-modern">
@@ -377,8 +372,8 @@ else
                     <th style="width: 180px;">Driver</th>
                     <th style="width: 100px;">Priority</th>
                     <th style="width: 120px;">Status</th>
-                    <th style="width: 120px;">Date Created</th>
-                    <th style="width: 130px;">Invoice</th>
+                    <th style="width: 120px;">Date Logged</th>
+                    <th style="width: 130px;">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -455,7 +450,7 @@ else
                         <td>
                             @if (repair.Invoice != null)
                             {
-                                <a class="invoice-btn" asp-action="InvoiceDetails" asp-route-id="@repair.Invoice.Id">
+                                <a class="invoice-btn" asp-action="Details" asp-route-id="@repair.Id">
                                     <i class="fas fa-file-invoice-dollar"></i>
                                     View
                                 </a>

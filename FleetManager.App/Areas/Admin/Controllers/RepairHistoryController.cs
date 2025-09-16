@@ -183,7 +183,7 @@ public class RepairHistoryController : Controller
         {
             TempData["Error"] = "Error creating repair log. Please try again.";
             _logger.LogError(ex, "Error creating repair");
-            ModelState.AddModelError("", "Unexpected error.");
+            //ModelState.AddModelError("", "Unexpected error.");
             return View(vm);
         }
     }

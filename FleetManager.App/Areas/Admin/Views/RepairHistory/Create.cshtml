@@ -4,6 +4,10 @@
     ViewData["Title"] = "Create New Repair";
 }
 
+<!-- Include External Libraries -->
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <style>
     .create-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -62,7 +66,13 @@
         letter-spacing: 0.5px;
     }
     
-    .form-select, .form-control, .form-control-lg {
+    .required::after {
+        content: " *";
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .form-select, .form-control {
         border-radius: 8px;
         border: 2px solid #e9ecef;
         padding: 0.75rem 1rem;
@@ -93,7 +103,7 @@
         letter-spacing: 0.5px;
     }
     
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
     }
@@ -144,24 +154,11 @@
         box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
     }
     
-    .items-section {
-        background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        border: 1px solid #e9ecef;
-    }
-    
     .items-table {
         background: #f8f9fa;
         border-radius: 8px;
         overflow: hidden;
         border: 1px solid #dee2e6;
-    }
-    
-    .table {
-        margin: 0;
     }
     
     .table thead th {
@@ -180,10 +177,6 @@
         vertical-align: middle;
         border-color: #dee2e6;
         background: white;
-    }
-    
-    .table tbody tr {
-        transition: all 0.3s ease;
     }
     
     .table tbody tr:hover {
@@ -209,12 +202,6 @@
         border-top: 2px solid #f8f9fa;
     }
     
-    .required::after {
-        content: " *";
-        color: #dc3545;
-        font-weight: bold;
-    }
-    
     .validation-summary {
         background: #fff5f5;
         border: 1px solid #fed7d7;
@@ -228,34 +215,6 @@
         font-size: 0.85rem;
         margin-top: 0.25rem;
         font-weight: 500;
-    }
-    
-    .priority-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 0.5rem;
-    }
-    
-    .priority-high { background-color: #dc3545; }
-    .priority-medium { background-color: #ffc107; }
-    .priority-low { background-color: #28a745; }
-    
-    .form-floating {
-        position: relative;
-    }
-    
-    .form-floating > label {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        padding: 1rem 0.75rem;
-        pointer-events: none;
-        border: 1px solid transparent;
-        transform-origin: 0 0;
-        transition: opacity .1s ease-in-out,transform .1s ease-in-out;
     }
     
     .loading-spinner {
@@ -285,6 +244,21 @@
         transition: width 0.3s ease;
     }
     
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+    
+    .is-valid {
+        border-color: #28a745 !important;
+    }
+    
+    .invalid-feedback {
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+    
     @@media (max-width: 768px) {
         .create-header {
             padding: 1.5rem;
@@ -295,7 +269,7 @@
             font-size: 2rem;
         }
         
-        .form-section, .items-section {
+        .form-section {
             padding: 1.5rem;
         }
         
@@ -303,42 +277,10 @@
             flex-direction: column;
         }
         
-        .table-responsive {
-            font-size: 0.85rem;
-        }
-        
         .btn-primary, .btn-secondary {
             width: 100%;
             margin-bottom: 0.5rem;
         }
-    }
-    
-    .tooltip-custom {
-        position: relative;
-        display: inline-block;
-    }
-    
-    .tooltip-custom .tooltiptext {
-        visibility: hidden;
-        width: 200px;
-        background-color: #555;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 5px;
-        position: absolute;
-        z-index: 1;
-        bottom: 125%;
-        left: 50%;
-        margin-left: -100px;
-        opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 0.8rem;
-    }
-    
-    .tooltip-custom:hover .tooltiptext {
-        visibility: visible;
-        opacity: 1;
     }
 </style>
 
@@ -419,7 +361,7 @@
     </div>
 
     <!-- Parts and Items Section -->
-    <div class="items-section">
+    <div class="form-section">
         <h3 class="section-title">
             <i class="fas fa-cogs"></i>
             Parts & Services
@@ -444,12 +386,7 @@
                         <th style="width: 15%;">
                             <i class="fas fa-dollar-sign me-2"></i>Unit Price
                         </th>
-                        <th style="width: 5%;">
-                            <div class="tooltip-custom">
-                                <i class="fas fa-question-circle"></i>
-                                <span class="tooltiptext">Add or remove items from this repair</span>
-                            </div>
-                        </th>
+                        <th style="width: 5%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -457,16 +394,8 @@
                     {
                         <tr data-item-index="@i">
                             <td>
-                                @* <select name="Items[@i].PartCategoryId" class="form-select part-category" data-index="@i">
-                                    <option value="">Select category...</option>
-                                    @foreach (var c in Model.PartCategories)
-                                    {
-                                        <option value="@c.Value" @(Model.Items[i].PartCategoryId?.ToString() == c.Value ? "selected" : "")>@c.Text</option>
-                                    }
-                                </select> *@
-
                                 <select name="Items[@i].PartCategoryId" class="form-select part-category" data-index="@i">
-                                    <option value="">-- Category --</option>
+                                    <option value="">Select category...</option>
                                     @foreach (var c in Model.PartCategories)
                                     {
                                         <option value="@c.Value">@c.Text</option>
@@ -493,7 +422,7 @@
                             </td>
                             <td>
                                 <div class="input-group">
-                                    <span class="input-group-text">₦</span>
+                                    <span class="input-group-text">$</span>
                                     <input name="Items[@i].UnitPrice" type="number" step="0.01" min="0"
                                            class="form-control price-input" 
                                            value="@Model.Items[i].UnitPrice.ToString("N2")" 
@@ -507,7 +436,7 @@
                             </td>
                         </tr>
                     }
-                    @if (Model.Items?.Count == 0)
+                    @if ((Model.Items?.Count ?? 0) == 0)
                     {
                         <tr class="no-items-row">
                             <td colspan="6" class="text-center py-4">
@@ -552,22 +481,15 @@
     </div>
 </form>
 
-<!-- Include Toastify CSS -->
-<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
-<!-- Include Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
 @section Scripts {
     <!-- Include Toastify JS -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.js"></script>
-
+    
     <script>
-        (function () {
-            // initial item index seeded from server model
+        document.addEventListener('DOMContentLoaded', function() {
             let itemIndex = @((Model.Items?.Count ?? 0));
-            let currentBindingsInstalled = false;
-
-            // Toast helpers
+            
+            // Toast notification functions
             function showSuccessToast(message) {
                 Toastify({
                     text: message,
@@ -583,6 +505,7 @@
                     }
                 }).showToast();
             }
+            
             function showErrorToast(message) {
                 Toastify({
                     text: message,
@@ -598,6 +521,7 @@
                     }
                 }).showToast();
             }
+            
             function showInfoToast(message) {
                 Toastify({
                     text: message,
@@ -613,95 +537,41 @@
                     }
                 }).showToast();
             }
-
-            // Utility: finds validation span for a field generated by asp-validation-for (data-valmsg-for attr)
-            function fieldValidationSpan(fieldName) {
-                // fieldName may be like "VehicleId" or "Items[0].Quantity"
-                return document.querySelector(`[data-valmsg-for="${fieldName}"]`);
+            
+            // Show toasts from server
+            @if (TempData["Success"] != null)
+            {
+                <text>showSuccessToast('@Html.Raw(TempData["Success"])');</text>
             }
-
-            // Clear all existing validation messages in the form
-            function clearValidationMessages(form) {
-                form.querySelectorAll('[data-valmsg-for]').forEach(el => {
-                    el.textContent = '';
-                    el.classList.remove('field-validation-error');
-                });
-                // hide validation summary if any
-                const summary = form.querySelector('.validation-summary');
-                if (summary) summary.style.display = 'none';
+            
+            @if (TempData["Error"] != null)
+            {
+                <text>showErrorToast('@Html.Raw(TempData["Error"])');</text>
             }
-
-            // Populate validation errors delivered as JSON: { "Errors": { "Subject": ["Required"], "Items[0].Quantity": ["..."] } }
-            function applyValidationErrors(form, errors) {
-                clearValidationMessages(form);
-
-                const summaryDiv = form.querySelector('.validation-summary');
-                let summaryHtml = '<h6><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6><ul>';
-                let foundAny = false;
-
-                for (const key in errors) {
-                    if (!Object.prototype.hasOwnProperty.call(errors, key)) continue;
-                    const messages = errors[key];
-                    const span = fieldValidationSpan(key);
-                    if (span) {
-                        span.textContent = messages.join(' ');
-                        span.classList.add('field-validation-error');
-                    } else {
-                        // push into summary
-                        summaryHtml += `<li><strong>${key}:</strong> ${messages.join(', ')}</li>`;
-                    }
-                    foundAny = true;
-                }
-                summaryHtml += '</ul>';
-                if (summaryDiv) {
-                    summaryDiv.innerHTML = summaryHtml;
-                    summaryDiv.style.display = 'block';
-                } else if (foundAny) {
-                    showErrorToast('Please correct the highlighted errors.');
-                }
-            }
-
-            // Update estimated total
-            function updateTotal() {
-                let total = 0;
-                document.querySelectorAll('#itemsTable tbody tr:not(.no-items-row)').forEach(row => {
-                    const qtyEl = row.querySelector('.quantity-input');
-                    const priceEl = row.querySelector('.price-input');
-                    const quantity = parseFloat(qtyEl?.value || 0);
-                    const price = parseFloat(priceEl?.value || 0);
-                    if (!isNaN(quantity) && !isNaN(price)) total += quantity * price;
-                });
-                const totalDisplay = document.getElementById('totalAmount');
-                if (totalDisplay) totalDisplay.textContent = '$' + total.toFixed(2);
-            }
-
-            // Add item row
-            function addItemRow(prefill) {
+            
+            // Add item functionality
+            document.getElementById('addItem').addEventListener('click', function() {
                 const tbody = document.querySelector('#itemsTable tbody');
                 const noItemsRow = document.querySelector('.no-items-row');
-                if (noItemsRow) noItemsRow.remove();
-
-                const i = itemIndex;
+                
+                if (noItemsRow) {
+                    noItemsRow.remove();
+                }
+                
                 const tr = document.createElement('tr');
-                tr.setAttribute('data-item-index', i);
-
-                // Build category options from server-side Model.PartCategories
-                const categoryOptions = `
-                    <option value="">Select category...</option>
-                    @foreach (var c in Model.PartCategories)
-                    {
-                            <text><option value="@c.Value">@c.Text</option></text>
-                    }
-                `;
-
+                tr.setAttribute('data-item-index', itemIndex);
                 tr.innerHTML = `
                     <td>
-                        <select name="Items[${i}].PartCategoryId" class="form-select part-category" data-index="${i}">
-                            ${categoryOptions}
+                        <select name="Items[${itemIndex}].PartCategoryId" class="form-select part-category" data-index="${itemIndex}">
+                            <option value="">Select category...</option>
+                            @foreach (var c in Model.PartCategories)
+                            {
+                                <text><option value="@c.Value">@c.Text</option></text>
+                            }
                         </select>
                     </td>
                     <td>
-                        <select name="Items[${i}].PartId" class="form-select part-select" data-index="${i}">
+                        <select name="Items[${itemIndex}].PartId" class="form-select part-select" data-index="${itemIndex}">
                             <option value="">Select part...</option>
                         </select>
                         <div class="loading-parts" style="display: none;">
@@ -709,15 +579,15 @@
                         </div>
                     </td>
                     <td>
-                        <input name="Items[${i}].CustomDescription" class="form-control" placeholder="Custom description..." value="${prefill?.customDescription ?? ''}" />
+                        <input name="Items[${itemIndex}].CustomDescription" class="form-control" placeholder="Custom description..." />
                     </td>
                     <td>
-                        <input name="Items[${i}].Quantity" type="number" min="1" value="${prefill?.quantity ?? 1}" class="form-control quantity-input" />
+                        <input name="Items[${itemIndex}].Quantity" type="number" min="1" value="1" class="form-control quantity-input" />
                     </td>
                     <td>
                         <div class="input-group">
-                            <span class="input-group-text">₦</span>
-                            <input name="Items[${i}].UnitPrice" type="number" step="0.01" min="0" class="form-control price-input" placeholder="0.00" value="${prefill?.unitPrice ?? ''}" />
+                            <span class="input-group-text">$</span>
+                            <input name="Items[${itemIndex}].UnitPrice" type="number" step="0.01" min="0" class="form-control price-input" placeholder="0.00" />
                         </div>
                     </td>
                     <td>
@@ -726,35 +596,24 @@
                         </button>
                     </td>
                 `;
-
                 tbody.appendChild(tr);
-                // animate
-                tr.style.opacity = '0';
-                tr.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    tr.style.transition = 'all 0.25s ease';
-                    tr.style.opacity = '1';
-                    tr.style.transform = 'translateY(0)';
-                }, 10);
-
                 itemIndex++;
                 updateTotal();
-                return tr;
-            }
+                showInfoToast('New item row added successfully!');
+            });
 
-            // Remove item handler (delegated)
-            function onRemoveItem(target) {
-                const row = target.closest('tr');
-                if (!row) return;
-                row.style.transition = 'all 0.25s ease';
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(-100px)';
-                setTimeout(() => {
+            // Remove item functionality
+            document.addEventListener('click', function(e) {
+                if (e.target && (e.target.matches('.remove-item') || e.target.closest('.remove-item'))) {
+                    const button = e.target.matches('.remove-item') ? e.target : e.target.closest('.remove-item');
+                    const row = button.closest('tr');
+                    
                     row.remove();
                     updateTotal();
-
-                    const remaining = document.querySelectorAll('#itemsTable tbody tr:not(.no-items-row)');
-                    if (remaining.length === 0) {
+                    
+                    // Check if no items left
+                    const remainingRows = document.querySelectorAll('#itemsTable tbody tr:not(.no-items-row)');
+                    if (remainingRows.length === 0) {
                         const tbody = document.querySelector('#itemsTable tbody');
                         const noItemsRow = document.createElement('tr');
                         noItemsRow.className = 'no-items-row';
@@ -766,243 +625,112 @@
                         `;
                         tbody.appendChild(noItemsRow);
                     }
-
-                }, 250);
-            }
-
-            // Load parts for a category (fills the select)
-            async function loadPartsForCategory(categoryId, index, selectEl, loadingDiv) {
-                if (!categoryId) {
-                    selectEl.innerHTML = '<option value="">Select part...</option>';
-                    return;
+                    
+                    showInfoToast('Item removed successfully!');
                 }
-                loadingDiv.style.display = 'block';
-                selectEl.style.display = 'none';
-                try {
-                    const resp = await fetch('@Url.Action("GetPartsByCategory")?categoryId=' + encodeURIComponent(categoryId), {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    if (!resp.ok) throw new Error('Server returned ' + resp.status);
-                    const data = await resp.json();
-                    selectEl.innerHTML = '<option value="">Select part...</option>';
-                    data.forEach(item => {
-                        const opt = document.createElement('option');
-                        opt.value = item.value;
-                        opt.textContent = item.text;
-                        selectEl.appendChild(opt);
-                    });
-                    showInfoToast(`Loaded ${data.length} parts`);
-                } catch (err) {
-                    console.error('Error loading parts:', err);
-                    showErrorToast('Error loading parts. Try again.');
-                } finally {
-                    loadingDiv.style.display = 'none';
-                    selectEl.style.display = '';
-                }
-            }
+            });
 
-            // Rebind events (for initial load and after form HTML replacement)
-            function bindEvents() {
-                if (currentBindingsInstalled) return;
-                currentBindingsInstalled = true;
-
-                // Add item
-                const addBtn = document.getElementById('addItem');
-                if (addBtn) addBtn.addEventListener('click', () => addItemRow());
-
-                // Remove item (delegated)
-                document.addEventListener('click', function (ev) {
-                    const button = ev.target.closest('.remove-item');
-                    if (!button) return;
-                    onRemoveItem(button);
-                });
-
-                // Dynamic parts loading (delegated)
-                document.addEventListener('change', function (ev) {
-                    const sel = ev.target.closest('.part-category');
-                    if (!sel) return;
-                    const categoryId = sel.value;
-                    const index = sel.getAttribute('data-index');
-                    const row = sel.closest('tr');
-                    const select = row.querySelector(`.part-select[data-index="${index}"]`);
-                    const loadingDiv = row.querySelector('.loading-parts');
-                    loadPartsForCategory(categoryId, index, select, loadingDiv);
-                });
-
-                // Quantity / price change => recalc total
-                document.addEventListener('input', function (ev) {
-                    if (ev.target && (ev.target.matches('.quantity-input') || ev.target.matches('.price-input'))) {
-                        updateTotal();
+            // Dynamic parts loading
+            document.addEventListener('change', async function(e) {
+                if (e.target && e.target.matches('.part-category')) {
+                    const categoryId = e.target.value;
+                    const index = e.target.getAttribute('data-index');
+                    const select = document.querySelector(`.part-select[data-index="${index}"]`);
+                    const loadingDiv = e.target.closest('tr').querySelector('.loading-parts');
+                    
+                    if (!categoryId) { 
+                        select.innerHTML = '<option value="">Select part...</option>'; 
+                        return; 
                     }
-                });
-
-                // Form submission - use XHR to show upload progress and handle result
-                const form = document.getElementById('createRepairForm');
-                if (form) {
-                    form.addEventListener('submit', function (e) {
-                        e.preventDefault();
-                        submitFormAjax(form);
-                    });
+                    
+                    // Show loading
+                    loadingDiv.style.display = 'block';
+                    select.style.display = 'none';
+                    
+                    try {
+                        const resp = await fetch('@Url.Action("GetPartsByCategory")?categoryId=' + categoryId);
+                        const data = await resp.json();
+                        
+                        select.innerHTML = '<option value="">Select part...</option>';
+                        data.forEach(item => {
+                            const opt = document.createElement('option');
+                            opt.value = item.value;
+                            opt.textContent = item.text;
+                            select.appendChild(opt);
+                        });
+                        
+                        showInfoToast(`Loaded ${data.length} parts for selected category`);
+                    } catch (error) {
+                        showErrorToast('Error loading parts. Please try again.');
+                        console.error('Error loading parts:', error);
+                    } finally {
+                        // Hide loading
+                        loadingDiv.style.display = 'none';
+                        select.style.display = 'block';
+                    }
                 }
-
-                // If TempData success/error present (server rendered at top of script), they were already displayed by earlier code in view; no-op here.
+            });
+            
+            // Calculate total amount
+            function updateTotal() {
+                let total = 0;
+                document.querySelectorAll('#itemsTable tbody tr:not(.no-items-row)').forEach(row => {
+                    const quantity = parseFloat(row.querySelector('.quantity-input')?.value || 0);
+                    const price = parseFloat(row.querySelector('.price-input')?.value || 0);
+                    total += quantity * price;
+                });
+                
+                document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
             }
-
-            // AJAX form submit with progress via XMLHttpRequest
-            function submitFormAjax(form) {
+            
+            // Update total when quantities or prices change
+            document.addEventListener('input', function(e) {
+                if (e.target && (e.target.matches('.quantity-input') || e.target.matches('.price-input'))) {
+                    updateTotal();
+                }
+            });
+            
+            // Form submission with progress
+            document.getElementById('createRepairForm').addEventListener('submit', function(e) {
                 const submitBtn = document.getElementById('submitBtn');
                 const progressBar = document.getElementById('progressBar');
-                if (!submitBtn || !progressBar) {
-                    form.submit(); // fallback
+                
+                // Basic form validation
+                const vehicle = document.querySelector('[name="VehicleId"]').value;
+                const subject = document.querySelector('[name="Subject"]').value;
+                const priority = document.querySelector('[name="Priority"]').value;
+                
+                if (!vehicle || !subject || !priority) {
+                    e.preventDefault();
+                    showErrorToast('Please fill in all required fields (Vehicle, Subject, Priority)');
                     return;
                 }
-
-                // UX: disable submit and show spinner
-                const originalBtnHtml = submitBtn.innerHTML;
+                
+                // Disable submit button and show loading
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<div class="loading-spinner" style="display:inline-block;vertical-align:middle;margin-right:8px;"></div>Creating...';
-                progressBar.style.width = '5%';
-
-                // Clear any previous validation messages
-                clearValidationMessages(form);
-
-                const url = form.action;
-                const formData = new FormData(form);
-
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', url, true);
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-
-                // Upload progress
-                xhr.upload.addEventListener('progress', function (evt) {
-                    if (evt.lengthComputable) {
-                        const percent = Math.round((evt.loaded / evt.total) * 100);
-                        progressBar.style.width = percent + '%';
-                    }
-                });
-
-                // On load
-                xhr.addEventListener('load', function () {
+                submitBtn.innerHTML = '<div class="loading-spinner"></div>Creating Repair...';
+                
+                // Simulate progress bar
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 30;
+                    if (progress > 90) progress = 90;
+                    progressBar.style.width = progress + '%';
+                }, 100);
+                
+                // Show processing toast
+                showInfoToast('Processing repair creation...');
+                
+                // Clean up progress on form submission
+                setTimeout(() => {
+                    clearInterval(progressInterval);
                     progressBar.style.width = '100%';
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHtml;
-
-                    // Status 2xx: success - server may return JSON or HTML
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        const text = xhr.responseText || '';
-
-                        // Try parse JSON
-                        try {
-                            const json = JSON.parse(text);
-                            // expected json shape: { success: true, message: "...", redirectUrl: "..." } or { success:false, errors: { field: [msg] } }
-                            if (json.success) {
-                                showSuccessToast(json.message || 'Repair created successfully.');
-                                // redirect if given, else to index
-                                const redirect = json.redirectUrl || '@Url.Action("Index")';
-                                if (redirect) {
-                                    setTimeout(() => window.location.href = redirect, 800);
-                                }
-                                return;
-                            } else if (json.errors) {
-                                applyValidationErrors(form, json.errors);
-                                showErrorToast('Please correct the errors and try again.');
-                                return;
-                            } else {
-                                // unknown JSON — show message then redirect if redirectUrl exists
-                                if (json.message) showInfoToast(json.message);
-                                if (json.redirectUrl) setTimeout(() => window.location.href = json.redirectUrl, 800);
-                                return;
-                            }
-                        } catch (ex) {
-                            // Not JSON -> assume HTML (server returned view with validation errors). Replace form portion if possible.
-                            try {
-                                const parser = new DOMParser();
-                                const doc = parser.parseFromString(text, 'text/html');
-                                const newForm = doc.getElementById('createRepairForm');
-                                if (newForm) {
-                                    // replace existing form with new one
-                                    form.replaceWith(newForm);
-                                    // reset bindings and re-run initialization
-                                    currentBindingsInstalled = false; // allow rebind
-                                    itemIndex = parseInt((newForm.querySelectorAll('#itemsTable tbody tr[data-item-index]').length) || itemIndex) || itemIndex;
-                                    bindEvents();
-                                    showErrorToast('Please correct the errors highlighted below.');
-                                    return;
-                                } else {
-                                    // No form found — treat as success and redirect to Index
-                                    showSuccessToast('Repair created (server returned page). Redirecting...');
-                                    setTimeout(() => window.location.href = '@Url.Action("Index")', 800);
-                                    return;
-                                }
-                            } catch (inner) {
-                                console.error('Could not parse server response', inner);
-                                showErrorToast('Unexpected server response. Try again.');
-                                return;
-                            }
-                        }
-                    } else if (xhr.status === 400) {
-                        // try parse JSON errors
-                        try {
-                            const json = JSON.parse(xhr.responseText);
-                            if (json.errors) {
-                                applyValidationErrors(form, json.errors);
-                            }
-                            showErrorToast(json.message || 'Validation failed. Please fix errors.');
-                        } catch (err) {
-                            showErrorToast('Bad request. Please check your input.');
-                        }
-                    } else {
-                        showErrorToast('Server error: ' + xhr.status + '. Please try again later.');
-                    }
-                });
-
-                xhr.addEventListener('error', function () {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHtml;
-                    progressBar.style.width = '0%';
-                    showErrorToast('Network error during submission. Check your connection and try again.');
-                });
-
-                xhr.send(formData);
-            }
-
-            // Initialize existing rows' part-selects if Model had Items (preload parts for selected category/part)
-            function preloadExistingParts() {
-                // For each row that has a .part-category and .part-select, if a category is selected, trigger loadPartsForCategory
-                document.querySelectorAll('#itemsTable tbody tr[data-item-index]').forEach(row => {
-                    const categorySel = row.querySelector('.part-category');
-                    const partSel = row.querySelector('.part-select');
-                    if (categorySel && partSel && categorySel.value) {
-                        const loadingDiv = row.querySelector('.loading-parts');
-                        loadPartsForCategory(categorySel.value, categorySel.getAttribute('data-index'), partSel, loadingDiv)
-                            .then(() => {
-                                // mark selected part if server rendered a selected value (when Model.Items had PartId)
-                                const serverSelected = row.querySelector('[name$=".PartId"]')?.getAttribute('value');
-                                if (serverSelected) {
-                                    // if server provided value (rare), set it if option exists
-                                    const opt = partSel.querySelector(`option[value="${serverSelected}"]`);
-                                    if (opt) partSel.value = serverSelected;
-                                }
-                            });
-                    }
-                });
-            }
-
-            // Run initial bindings
-            function init() {
-                bindEvents();
-                updateTotal();
-                preloadExistingParts();
-
-                // If server passed TempData messages (these were placed earlier in markup), they already invoked toasts.
-                // Ensure the progress bar is reset
-                const progressBar = document.getElementById('progressBar');
-                if (progressBar) progressBar.style.width = '0%';
-            }
-
-            // Start
-            document.addEventListener('DOMContentLoaded', init);
-        })();
+                }, 1000);
+            });
+            
+            // Initialize total calculation on page load
+            updateTotal();
+        });
     </script>
 }
 
