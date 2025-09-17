@@ -1460,19 +1460,33 @@
                         </td>
                         <td class="item-description">${i.description || ''}</td>
                         <td class="item-quantity">${i.quantity}</td>
-                        <td class="item-price">₦${Number(i.unitPrice).toFixed(2)}</td>
-                        <td class="item-total">₦${lineTotal.toFixed(2)}</td>
+                        <td class="item-price">
+                          ${new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 2 })
+                            .format(Number(i.unitPrice || 0))}
+                        </td>
+                        <td class="item-total">
+                          ${new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 2 })
+                                .format(Number(lineTotal || 0))}
+                        </td>
+                        
                     </tr>
                 `;
             });
+
+            const fmtNGN = v => new Intl.NumberFormat('en-NG', {
+              style: 'currency',
+              currency: 'NGN',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }).format(Number(v || 0));
 
             // Calculate totals
             const tax = subtotal * 0.075;
             const total = subtotal + tax;
 
-            document.getElementById('invoiceSubtotal').textContent = '₦' + subtotal.toFixed(2);
-            document.getElementById('invoiceTax').textContent = '₦' + tax.toFixed(2);
-            document.getElementById('invoiceTotal').textContent = '₦' + total.toFixed(2);
+            document.getElementById('invoiceSubtotal').textContent = fmtNGN(subtotal);
+            document.getElementById('invoiceTax').textContent      = fmtNGN(tax);
+            document.getElementById('invoiceTotal').textContent    = fmtNGN(total);
 
             // Show the modal
             var modal = new bootstrap.Modal(document.getElementById('invoiceModal'));

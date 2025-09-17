@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -38,10 +39,11 @@ namespace FleetManager.Business.Implementations.CompanyModule
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly IHostEnvironment _env;
 
         private readonly IMemoryCache _memoryCache;
         private readonly IAuthUser _authUser;
-        public CompanyService(FleetManagerDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, SignInManager<ApplicationUser> signInManager, ILogger<CompanyService> logger, IHttpContextAccessor contextAccessor, IEmailService emailService, IConfiguration configuration, IMemoryCache memoryCache, IAuthUser authUser)
+        public CompanyService(FleetManagerDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, SignInManager<ApplicationUser> signInManager, ILogger<CompanyService> logger, IHttpContextAccessor contextAccessor, IEmailService emailService, IConfiguration configuration, IMemoryCache memoryCache, IAuthUser authUser, IHostEnvironment env)
         {
             _context = context;
             _userManager = userManager;
@@ -53,9 +55,10 @@ namespace FleetManager.Business.Implementations.CompanyModule
             _configuration = configuration;
             _memoryCache = memoryCache;
             _authUser = authUser;
+            _env = env;
         }
-        
-       
+
+
 
         public async Task<MessageResponse> OnboardCompany(CompanyRegistrationViewModel model)
         {
@@ -415,13 +418,13 @@ namespace FleetManager.Business.Implementations.CompanyModule
                 .CountAsync(d => d.CompanyId == company.Id);
 
             // 3) Count vehicles whose CompanyBranchId is in the branchIds list
-            //    This generates an SQL IN (...) query which is efficient and avoids a join.
             int vehicleCount = 0;
             if (branchIds.Any())
             {
+                // ensure we only compare non-null CompanyBranchId values to avoid invalid cast / null issues
                 vehicleCount = await _context.Vehicles
                     .AsNoTracking()
-                    .CountAsync(v => branchIds.Contains((long)v.CompanyBranchId));
+                    .CountAsync(v => v.CompanyBranchId.HasValue && branchIds.Contains(v.CompanyBranchId.Value));
             }
 
             var totalStaff = companyAdminCount + driversCount;
@@ -450,61 +453,208 @@ namespace FleetManager.Business.Implementations.CompanyModule
             };
         }
 
-        public async Task<MessageResponse> EditCompanyProfile(EditCompanyViewModel model)
+        private string GetWebRootPath()
+        {
+            // try cast to IWebHostEnvironment to get WebRootPath if available
+            //if (_env is Microsoft.AspNetCore.Hosting.IWebHostEnvironment webEnv)
+            //{
+            //    return webEnv.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            //}
+
+            // fallback: combine ContentRootPath + "wwwroot"
+            return Path.Combine(_env.ContentRootPath, "wwwroot");
+        }
+
+        public async Task<MessageResponse> EditCompanyProfile(EditCompanyViewModel model, CancellationToken ct = default)
         {
             var response = new MessageResponse();
 
             try
             {
-                //var userData = GetUserData(); 
-                var user = _authUser.UserId;
-                if (user == null)
+                var userId = _authUser.UserId;
+                if (userId == null)
                 {
                     response.Message = "User or associated company not found.";
                     return response;
                 }
 
-                var company = await _context.Companies.FindAsync(_authUser.CompanyId);
+                var companyId = _authUser.CompanyId;
+                if (companyId == null)
+                {
+                    response.Message = "Company not found.";
+                    return response;
+                }
+
+                var company = await _context.Companies.FindAsync(new object[] { companyId }, ct);
                 if (company == null)
                 {
                     response.Message = "Company not found.";
                     return response;
                 }
 
-
+                // update scalar fields
                 company.RegistrationNumber = model.RegistrationNumber;
                 company.Address = model.Address;
                 company.DateOfIncorporation = model.DateOfIncorporation;
-                //company.State = model.State;
                 company.Email = model.Email;
                 company.PhoneNumber = model.PhoneNumber;
                 company.ContactPersonName = model.ContactPersonName;
                 company.ContactPersonPhone = model.ContactPersonPhone;
                 company.ContactPersonEmail = model.ContactPersonEmail;
                 company.Website = model.Website;
-                company.LogoUrl = model.LogoUrl;
 
                 if (model.StateId.HasValue)
                 {
-                    var selectedState = await _context.States.FindAsync(model.StateId.Value);
+                    var selectedState = await _context.States.FindAsync(new object[] { model.StateId.Value }, ct);
                     company.State = selectedState?.Name;
                 }
 
+                // allowed extensions & size
+                var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
+                const long maxBytes = 2 * 1024 * 1024; // 2 MB
+
+                // Helper: delete previously saved local file if it lives under /uploads/company-logos/
+                void DeleteOldLocalFile(string? existingLogoUrl)
+                {
+                    if (string.IsNullOrWhiteSpace(existingLogoUrl)) return;
+                    var prefix = "/images/company-logos/";
+                    if (!existingLogoUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
+
+                    var filename = existingLogoUrl.Substring(prefix.Length).TrimStart('/');
+                    var webRoot = GetWebRootPath();
+                    var physicalPath = Path.Combine(webRoot, "images", "company-logos", filename);
+
+                    if (File.Exists(physicalPath))
+                    {
+                        try { File.Delete(physicalPath); } catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete old company logo file."); }
+                    }
+                }
+
+                // handle uploaded file
+                if (model.LogoFile != null && model.LogoFile.Length > 0)
+                {
+                    var ext = Path.GetExtension(model.LogoFile.FileName);
+                    if (string.IsNullOrEmpty(ext) || !allowed.Contains(ext))
+                    {
+                        response.Message = "Invalid logo file type. Allowed: jpg, jpeg, png, gif, svg.";
+                        return response;
+                    }
+
+                    if (model.LogoFile.Length > maxBytes)
+                    {
+                        response.Message = "Logo file too large. Max size is 2 MB.";
+                        return response;
+                    }
+
+                    var webRoot = GetWebRootPath();
+                    var uploadsFolder = Path.Combine(webRoot, "images", "company-logos");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var newFileName = $"{Guid.NewGuid()}{ext}";
+                    var physicalPath = Path.Combine(uploadsFolder, newFileName);
+
+                    using (var stream = new FileStream(physicalPath, FileMode.Create))
+                    {
+                        await model.LogoFile.CopyToAsync(stream, ct);
+                    }
+
+                    // delete previous local file if any
+                    DeleteOldLocalFile(company.LogoUrl);
+
+                    // store relative path for serving via Url.Content
+                    company.LogoUrl = $"/images/company-logos/{newFileName}";
+                }
+                else if (!string.IsNullOrWhiteSpace(model.LogoUrlInput))
+                {
+                    // user provided an external URL
+                    var candidate = model.LogoUrlInput.Trim();
+                    if (Uri.TryCreate(candidate, UriKind.Absolute, out var uri) &&
+                        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                    {
+                        // if switching from a local upload to external, delete local file
+                        DeleteOldLocalFile(company.LogoUrl);
+
+                        company.LogoUrl = candidate;
+                    }
+                    else
+                    {
+                        response.Message = "Invalid logo URL. Use a complete URL starting with http:// or https://";
+                        return response;
+                    }
+                }
+                // else: no change to company.LogoUrl
 
                 _context.Companies.Update(company);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 response.Success = true;
                 response.Message = "Company profile updated successfully.";
+                return response;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating company profile.");
                 response.Message = "An error occurred while updating the company profile.";
+                return response;
             }
-
-            return response;
         }
+
+
+        //public async Task<MessageResponse> EditCompanyProfile(EditCompanyViewModel model)
+        //{
+        //    var response = new MessageResponse();
+
+        //    try
+        //    {
+        //        //var userData = GetUserData(); 
+        //        var user = _authUser.UserId;
+        //        if (user == null)
+        //        {
+        //            response.Message = "User or associated company not found.";
+        //            return response;
+        //        }
+
+        //        var company = await _context.Companies.FindAsync(_authUser.CompanyId);
+        //        if (company == null)
+        //        {
+        //            response.Message = "Company not found.";
+        //            return response;
+        //        }
+
+
+        //        company.RegistrationNumber = model.RegistrationNumber;
+        //        company.Address = model.Address;
+        //        company.DateOfIncorporation = model.DateOfIncorporation;
+        //        //company.State = model.State;
+        //        company.Email = model.Email;
+        //        company.PhoneNumber = model.PhoneNumber;
+        //        company.ContactPersonName = model.ContactPersonName;
+        //        company.ContactPersonPhone = model.ContactPersonPhone;
+        //        company.ContactPersonEmail = model.ContactPersonEmail;
+        //        company.Website = model.Website;
+        //        company.LogoUrl = model.LogoUrl;
+
+        //        if (model.StateId.HasValue)
+        //        {
+        //            var selectedState = await _context.States.FindAsync(model.StateId.Value);
+        //            company.State = selectedState?.Name;
+        //        }
+
+
+        //        _context.Companies.Update(company);
+        //        await _context.SaveChangesAsync();
+
+        //        response.Success = true;
+        //        response.Message = "Company profile updated successfully.";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error updating company profile.");
+        //        response.Message = "An error occurred while updating the company profile.";
+        //    }
+
+        //    return response;
+        //}
 
         public async Task<List<StateDto>> GetAllStatesAsync()
         {

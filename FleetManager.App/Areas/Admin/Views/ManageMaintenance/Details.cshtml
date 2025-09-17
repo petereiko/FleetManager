@@ -6,6 +6,7 @@
     ViewData["Title"] = $"Ticket #{Model.Id}";
 }
 
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <!-- Font Awesome for icons -->
@@ -17,6 +18,7 @@
 
 <!-- Toastify CSS -->
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
 
 
 <style>
@@ -389,7 +391,7 @@
     .company-logo {
         width: 80px;
         height: 80px;
-        background: linear-gradient(45deg, #667eea, #764ba2);
+        /* background: linear-gradient(45deg, #667eea, #764ba2); */
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -925,7 +927,7 @@
                             </div>
                             <div class="vehicle-info">
                                 <h6>@Model.VehicleDescription</h6>
-                                <p class="text-muted">Assigned Vehicle</p>
+                                @* <p class="text-muted">Assigned Vehicle</p> *@
                             </div>
                         </div>
                     </div>
@@ -1264,25 +1266,56 @@
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
+
                     <div class="modal-body invoice-body">
                         <div class="invoice-container">
                             <!-- Invoice Header -->
                             <div class="invoice-header-section">
-                                <div class="company-info">
-                                    <div class="company-logo">
-                                        <i class="fas fa-shield-alt"></i>
-                                    </div>
-                                    <div class="company-details">
-                                        <h2>FleetGuard</h2>
-                                        <p class="company-tagline">Professional Fleet Management Solutions</p>
-                                        <div class="company-address">
-                                            <p>123 Fleet Street, Victoria Island</p>
-                                            <p>Lagos, Nigeria</p>
-                                            <p>Phone: +234 (0) 123 456 7890</p>
-                                            <p>Email: billing@fleetguard.ng</p>
-                                        </div>
+
+                            <div class="company-info" style="display:flex; align-items:center; gap:1rem;">
+                                <div class="company-logo" >
+                                    @if (!string.IsNullOrEmpty(Model.CompanyLogoUrl))
+                                    {
+                                        /* Url.Content will resolve app-relative paths like "~/uploads/...".
+                                        If LogoUrl is already an absolute URL, Url.Content will return it unchanged. */
+                                        <img src="@(Url.Content(Model.CompanyLogoUrl))" alt="@Model.CompanyName" style="max-height:80px; max-width:120px; object-fit:contain;" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-shield-alt" style="font-size:36px;"></i>
+                                    }
+                                </div>
+
+                                <div class="company-details">
+                                    <h2>@(Model.CompanyName ?? "FleetGuard")</h2>
+                                    <p class="company-tagline">@(!string.IsNullOrEmpty(Model.BranchName) ? Model.BranchName : "Professional Fleet Management Solutions")</p>
+
+                                    <div class="company-address">
+                                        @if (!string.IsNullOrEmpty(Model.BranchAddress))
+                                        {
+                                            <p>@Model.BranchAddress</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.BranchState))
+                                        {
+                                            <p>@Model.BranchState, Nigeria</p>
+                                        }
+                                        
+                                        @* Phones & emails use branch first, then company fallback *@
+                                        <p>
+                                            Phone: @(Model.BranchPhone ?? Model.CompanyPhone ?? "N/A")
+                                        </p>
+                                        <p>
+                                            Email: @(Model.BranchEmail ?? Model.CompanyEmail ?? "billing@fleetguard.ng")
+                                        </p>
                                     </div>
                                 </div>
+                            </div>
+
+
+
+
+
+
                                 <div class="invoice-info">
                                     <div class="invoice-number">
                                         <h3>INVOICE</h3>
@@ -1380,21 +1413,21 @@
                             <!-- Invoice Footer -->
                             <div class="invoice-footer">
                                 <div class="payment-info">
-                                    <h6>Payment Information:</h6>
+                                    @* <h6>Payment Information:</h6>
                                     <p>Bank: First Bank of Nigeria</p>
                                     <p>Account Name: FleetGuard Services Ltd</p>
                                     <p>Account Number: 3012345678</p>
-                                    <p>Sort Code: 011</p>
+                                    <p>Sort Code: 011</p> *@
                                 </div>
                                 <div class="thank-you">
-                                    <p><strong>Thank you for your business!</strong></p>
-                                    <p>For any questions regarding this invoice, please contact our billing department.</p>
+                                    @* <p><strong>Thank you for your business!</strong></p>
+                                    <p>For any questions regarding this invoice, please contact our billing department.</p> *@
                                 </div>
                             </div>
 
                             <!-- Invoice Watermark -->
                             <div class="invoice-watermark">
-                                <span class="watermark-text">FLEETGUARD</span>
+                                <span class="watermark-text">@Model.CompanyName</span>
                             </div>
                         </div>
                     </div>
@@ -2030,482 +2063,3 @@
       }
     }
 </script>
-
-
-
-
-@* <script>
-        // Enhanced toast notification function
-     // Enhanced toast notification function
-    function showToast(message, type = 'success', duration = 3000) {
-        const backgroundColor = type === 'success'
-            ? 'linear-gradient(135deg, #28a745, #20c997)'
-            : 'linear-gradient(135deg, #dc3545, #e74c3c)';
-
-        Toastify({
-            text: message,
-            duration: duration,
-            close: true,
-            gravity: "top",
-            position: "right",
-            stopOnFocus: true,
-            style: {
-                background: backgroundColor,
-                borderRadius: "10px",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-                fontWeight: "500"
-            },
-            onClick: function(){} // Callback after click
-        }).showToast();
-    }
-
-    // Function to update all status elements on the page
-    function updatePageStatusElements(newStatus, ticketId) {
-        console.log('Updating page elements - Status:', newStatus, 'TicketId:', ticketId);
-
-        // Define status classes mapping
-        const statusClasses = {
-            'Pending': 'badge-status-Pending',
-            'InProgress': 'badge-status-InProgress',
-            'Resolved': 'badge-status-Resolved',
-            'Rejected': 'badge-status-Rejected'
-        };
-
-        const newStatusClass = statusClasses[newStatus] || 'badge-status-Pending';
-
-        // 1. Update header status badges (both regular and large)
-        $('.details-header .badge, .header-actions .badge').each(function() {
-            const $badge = $(this);
-            // Remove all status classes
-            Object.values(statusClasses).forEach(cls => $badge.removeClass(cls));
-            // Add new status class
-            $badge.addClass(newStatusClass);
-            $badge.text(newStatus);
-        });
-
-        // 2. Update summary card status specifically
-        $('.summary-card .summary-item').each(function() {
-            const $item = $(this);
-            const labelText = $item.find('.summary-label').text().trim();
-            if (labelText === 'Current Status') {
-                const $valueBadge = $item.find('.summary-value .badge');
-                if ($valueBadge.length > 0) {
-                    Object.values(statusClasses).forEach(cls => $valueBadge.removeClass(cls));
-                    $valueBadge.addClass(newStatusClass);
-                    $valueBadge.text(newStatus);
-                }
-            }
-        });
-
-        // 3. Update any status badges with status-badge-lg class (header large badges)
-        $('.status-badge-lg').each(function() {
-            const $badge = $(this);
-            Object.values(statusClasses).forEach(cls => $badge.removeClass(cls));
-            $badge.addClass(newStatusClass);
-            $badge.text(newStatus);
-        });
-
-        // 4. Update ticket status sections
-        $('.ticket-status .badge').each(function() {
-            const $badge = $(this);
-            Object.values(statusClasses).forEach(cls => $badge.removeClass(cls));
-            $badge.addClass(newStatusClass);
-            $badge.text(newStatus);
-        });
-
-        // 5. Update data attributes on edit buttons
-        $('button[data-bs-target="#updateModal"], button[data-ticket-id]').each(function() {
-            $(this).attr('data-ticket-status', newStatus);
-        });
-
-        // 6. Update any span elements that might contain status
-        $('span.badge').each(function() {
-            const $span = $(this);
-            if (Object.values(statusClasses).some(cls => $span.hasClass(cls))) {
-                Object.values(statusClasses).forEach(cls => $span.removeClass(cls));
-                $span.addClass(newStatusClass);
-                $span.text(newStatus);
-
-                // Add visual feedback - brief highlight effect
-                $span.addClass('status-updated');
-                setTimeout(() => $span.removeClass('status-updated'), 1000);
-            }
-        });
-
-        console.log('Status update completed for all page elements');
-    }
-    function cleanupModalBackdrops() {
-        // Remove all modal backdrops
-        $('.modal-backdrop').remove();
-
-        // Reset body classes
-        $('body').removeClass('modal-open');
-
-        // Reset body styles that might be set by Bootstrap
-        $('body').css({
-            'overflow': '',
-            'padding-right': ''
-        });
-
-        // Reset body attributes
-        $('body').removeAttr('style');
-
-        // Force page to be interactive
-        $('body').css('pointer-events', 'auto');
-        $('html').css('pointer-events', 'auto');
-    }
-
-    $(document).ready(function() {
-        // ======== EDIT MODAL FUNCTIONALITY FOR DETAILS PAGE ========
-
-        // Handle edit button clicks - Works with both data-bs-toggle buttons and action-btn-edit buttons
-        $(document).on('click', '.action-btn-edit, button[data-bs-toggle="modal"][data-bs-target="#updateModal"]', function(e) {
-            // Clean up any existing backdrops before opening modal
-            cleanupModalBackdrops();
-
-            // Don't prevent default for data-bs-toggle buttons as they need Bootstrap's native behavior
-            if (!$(this).attr('data-bs-toggle')) {
-                e.preventDefault();
-            }
-
-            const $btn = $(this);
-            let ticketId = $btn.data('ticket-id');
-            const ticketStatus = $btn.data('ticket-status');
-            const invoiceStatus = $btn.data('invoice-status');
-            const adminNotes = $btn.data('admin-notes');
-
-            // FALLBACK: If ticketId is not found in data attributes, try to extract from URL or page
-            if (!ticketId) {
-                // Try to get from the page title or other elements
-                const titleText = document.title;
-                const ticketMatch = titleText.match(/Ticket #(\d+)/);
-                if (ticketMatch) {
-                    ticketId = ticketMatch[1];
-                }
-            }
-
-            // Another fallback: try to get from the header
-            if (!ticketId) {
-                const headerTicketText = $('.ticket-number span').text();
-                const headerMatch = headerTicketText.match(/Ticket #(\d+)/);
-                if (headerMatch) {
-                    ticketId = headerMatch[1];
-                }
-            }
-
-            console.log('Debug - TicketId:', ticketId); // Debug log
-
-            // Validate that we have a ticket ID
-            if (!ticketId) {
-                showToast('Error: Could not determine ticket ID', 'error');
-                return;
-            }
-
-            // Small delay to ensure modal is opened by Bootstrap first (for data-bs-toggle buttons)
-            setTimeout(function() {
-                // Populate form fields
-                $('input[name="TicketId"]').val(ticketId);
-                $('#modalTicketStatus').val(ticketStatus);
-                $('#modalInvoiceStatus').val(invoiceStatus || '');
-                $('#modalAdminNotes').val(adminNotes || '');
-
-                // Debug: Log the form values
-                console.log('Form values set:', {
-                    ticketId: $('input[name="TicketId"]').val(),
-                    status: $('#modalTicketStatus').val(),
-                    invoiceStatus: $('#modalInvoiceStatus').val(),
-                    notes: $('#modalAdminNotes').val()
-                });
-
-                // Reset UI elements
-                $('#statusPreview').hide();
-                $('#modalAlert').hide();
-                updateNotesCounter();
-
-                // For non-Bootstrap toggle buttons, manually show the modal
-                if (!$btn.attr('data-bs-toggle')) {
-                    $('#updateModal').modal('show');
-                }
-            }, 100);
-        });
-
-        // Handle form submission via AJAX
-        $(document).on('submit', '#updateForm', function(e) {
-            e.preventDefault();
-
-            const $form = $(this);
-            const $submitBtn = $form.find('button[type=submit]');
-            const originalText = $submitBtn.html();
-
-            // Validate ticket ID before submission
-            const ticketId = $('input[name="TicketId"]').val();
-            if (!ticketId || ticketId.trim() === '') {
-                showModalAlert('Error: Ticket ID is missing. Please refresh the page and try again.', 'danger');
-                return;
-            }
-
-            // Debug: Log form data before submission
-            const formData = $form.serializeArray();
-            console.log('Form data being submitted:', formData);
-
-            // Disable submit button and show loading state
-            $submitBtn.prop('disabled', true).addClass('btn-loading');
-
-            // Hide any existing alerts
-            $('#modalAlert').hide();
-
-            $.ajax({
-                url: $form.attr('action'),
-                method: 'POST',
-                data: $form.serialize(),
-                success: function(response) {
-                    if (response.success) {
-                        // PROPERLY CLOSE MODAL AND CLEAN UP
-                        const modalElement = document.getElementById('updateModal');
-                        const modal = bootstrap.Modal.getInstance(modalElement);
-
-                        if (modal) {
-                            modal.hide();
-                        } else {
-                            $('#updateModal').modal('hide');
-                        }
-
-                        // Force cleanup after a short delay to ensure modal is fully closed
-                        setTimeout(function() {
-                            cleanupModalBackdrops();
-                        }, 300);
-
-                        const newStatus = response.newStatus;
-                        const responseTicketId = response.ticketId;
-
-                        // COMPREHENSIVE status mapping
-                        const statusMapping = {
-                            'Pending': { class: 'bg-warning text-dark', icon: 'fas fa-clock' },
-                            'InProgress': { class: 'bg-info text-white', icon: 'fas fa-wrench' },
-                            'Resolved': { class: 'bg-success text-white', icon: 'fas fa-check' },
-                            'Rejected': { class: 'bg-danger text-white', icon: 'fas fa-times' }
-                        };
-
-                        const statusInfo = statusMapping[newStatus] || {
-                            class: 'bg-primary text-white',
-                            icon: 'fas fa-info-circle'
-                        };
-
-                        // Check if we're on the index page (has table) or details page
-                        const $ticketTable = $('table tbody');
-
-                        if ($ticketTable.length > 0) {
-                            // INDEX PAGE LOGIC - Update table row
-                            const $ticketRow = $(`td:contains("#${responseTicketId}")`).closest('tr');
-
-                            if ($ticketRow.length > 0) {
-                                // Find ONLY the status badge (5th column - Status column)
-                                const $statusCell = $ticketRow.find('td').eq(4);
-                                const $statusBadge = $statusCell.find('span.badge');
-
-                                if ($statusBadge.length > 0) {
-                                    $statusBadge
-                                        .attr('class', `badge ${statusInfo.class} px-3 py-2`)
-                                        .html(`<i class="${statusInfo.icon} me-1"></i>${newStatus}`);
-                                }
-
-                                // Update edit button's data attributes
-                                const $editBtn = $ticketRow.find('.action-btn-edit');
-                                $editBtn.attr('data-ticket-status', newStatus);
-                            }
-                        } else {
-                            // DETAILS PAGE LOGIC - Use comprehensive update function
-                            updatePageStatusElements(newStatus, responseTicketId);
-                        }
-
-                        // Show success toast AFTER modal cleanup
-                        setTimeout(function() {
-                            showToast('Ticket updated successfully!', 'success');
-                        }, 400);
-
-                    } else {
-                        // Show error message in modal
-                        showModalAlert(response.message || 'Failed to update ticket', 'danger');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr.responseText);
-
-                    // Try to parse the error response
-                    let errorMessage = 'An unexpected error occurred. Please try again.';
-                    try {
-                        const errorResponse = JSON.parse(xhr.responseText);
-                        if (errorResponse.errors) {
-                            const errorMessages = [];
-                            for (const field in errorResponse.errors) {
-                                errorMessages.push(...errorResponse.errors[field]);
-                            }
-                            errorMessage = errorMessages.join(', ');
-                        } else if (errorResponse.message) {
-                            errorMessage = errorResponse.message;
-                        }
-                    } catch (e) {
-                        // Use default error message
-                    }
-
-                    showModalAlert(errorMessage, 'danger');
-                },
-                complete: function() {
-                    // Re-enable submit button and remove loading state
-                    $submitBtn.prop('disabled', false).removeClass('btn-loading').html(originalText);
-                }
-            });
-        });
-
-        // Enhanced modal event handlers to ensure proper cleanup
-        $('#updateModal').on('hidden.bs.modal', function () {
-            // Force cleanup when modal is hidden
-            setTimeout(function() {
-                cleanupModalBackdrops();
-            }, 100);
-        });
-
-        // Additional cleanup on modal show to prevent stacking issues
-        $('#updateModal').on('show.bs.modal', function () {
-            cleanupModalBackdrops();
-        });
-
-        // Force cleanup if user clicks outside modal or presses escape
-        $(document).on('click', '.modal-backdrop', function() {
-            setTimeout(function() {
-                cleanupModalBackdrops();
-            }, 300);
-        });
-
-        // Handle escape key specifically
-        $(document).on('keydown', function(e) {
-            if (e.key === 'Escape' && $('#updateModal').hasClass('show')) {
-                setTimeout(function() {
-                    cleanupModalBackdrops();
-                }, 300);
-            }
-        });
-
-        // Helper function to show alerts in modal
-        function showModalAlert(message, type) {
-            $('#modalAlert')
-                .removeClass('alert-success alert-danger')
-                .addClass(`alert-${type} show`)
-                .find('#modalAlertMessage')
-                .text(message);
-            $('#modalAlert').show();
-        }
-
-        // Character counter for notes textarea
-        function updateNotesCounter() {
-            const notes = $('#modalAdminNotes').val() || '';
-            const length = notes.length;
-            const $counter = $('#notesCounter');
-
-            $counter.text(`${length}/1000`);
-
-            if (length > 800) {
-                $counter.removeClass('text-muted text-warning').addClass('text-danger');
-            } else if (length > 600) {
-                $counter.removeClass('text-muted text-danger').addClass('text-warning');
-            } else {
-                $counter.removeClass('text-warning text-danger').addClass('text-muted');
-            }
-        }
-
-        // Update counter on input
-        $(document).on('input', '#modalAdminNotes', updateNotesCounter);
-
-        // Status change preview
-        $(document).on('change', '#modalTicketStatus', function() {
-            const newStatus = $(this).val();
-            const $preview = $('#statusPreview');
-            const $changeText = $('#statusChangeText');
-
-            if (newStatus) {
-                $changeText.html(`Status will be changed to: <strong>${newStatus}</strong>`);
-                $preview.show();
-            } else {
-                $preview.hide();
-            }
-        });
-
-        // Add enhanced tooltips to action buttons
-        $('[title]').tooltip({
-            trigger: 'hover',
-            placement: 'top'
-        });
-
-        // Add keyboard shortcuts for better UX
-        $(document).on('keydown', function(e) {
-            // Escape key to close modal
-            if (e.key === 'Escape' && $('#updateModal').hasClass('show')) {
-                $('#updateModal').modal('hide');
-            }
-
-            // Ctrl+Enter to submit form when modal is open
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('#updateModal').hasClass('show')) {
-                e.preventDefault();
-                $('#updateForm').submit();
-            }
-        });
-
-        // Emergency cleanup function - can be called from browser console if needed
-        window.forceCleanupModals = function() {
-            cleanupModalBackdrops();
-            console.log('Modal backdrops cleaned up manually');
-        };
-    });
-
-    // Print Ticket functionality
-    function printTicket() {
-        const printContent = document.querySelector('.ticket-details-container').innerHTML;
-        const originalContent = document.body.innerHTML;
-
-        document.body.innerHTML = `
-            <div class="container mt-4">${printContent}</div>
-            <style>
-                body { background-color: white !important; }
-                .back-section, .header-actions button { display: none; }
-                .ticket-details-container { box-shadow: none; }
-            </style>
-        `;
-
-        window.print();
-        document.body.innerHTML = originalContent;
-    }
-
-    // Print Invoice functionality
-    function printInvoice() {
-        const printContent = document.querySelector('.invoice-container').innerHTML;
-        const originalContent = document.body.innerHTML;
-
-        document.body.innerHTML = `
-            <div class="container">${printContent}</div>
-            <style>
-                body { background-color: white !important; padding: 20px; }
-                .invoice-modal-footer { display: none; }
-            </style>
-        `;
-
-        window.print();
-        document.body.innerHTML = originalContent;
-    }
-
-    // Download PDF functionality
-    function downloadPDF() {
-        // In a real application, this would call a server endpoint
-        // For this demo, we'll show a success message
-        const invoiceId = '@Model.Invoice?.Id';
-        if (!invoiceId) return;
-
-        // Show toast notification
-        showToast('PDF download started', 'success');
-
-        // Simulate PDF generation delay
-        setTimeout(() => {
-            showToast('Download complete - Invoice PDF has been downloaded successfully.', 'success');
-        }, 2500);
-    }
-</script>
- *@

@@ -26,5 +26,20 @@ namespace FleetManager.Business.DataObjects.MaintenanceDto
         public List<MaintenanceTicketItemDto> Items { get; set; } = new();
         //public long? InvoiceId { get; set; }
         public InvoiceDto? Invoice { get; set; }
+
+
+        // company / branch fields (new)
+        public string? CompanyName { get; set; }
+        public string? CompanyLogoUrl { get; set; }
+        public string? CompanyEmail { get; set; }
+        public string? CompanyPhone { get; set; }
+
+        public string? BranchName { get; set; }
+        public string? BranchAddress { get; set; }
+        public string? BranchState { get; set; }
+        public string? BranchPhone { get; set; }
+        public string? BranchEmail { get; set; }
+        public bool IsBranchHeadOffice { get; set; }
+        public string? CompanyLogoDataUrl { get; set; }
     }
 }

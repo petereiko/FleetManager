@@ -1,6 +1,7 @@
 ﻿@using FleetManager.Business.DataObjects.MaintenanceDto
 @model MaintenanceTicketDto
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -513,16 +514,24 @@
             <div class="invoice-header-section">
                 <div class="company-info">
                     <div class="company-logo">
-                        FG
+                        @if (!string.IsNullOrEmpty(Model.CompanyLogoDataUrl))
+                        {
+                            <img src="@Model.CompanyLogoDataUrl" alt="@Model.CompanyName"
+                                 style="max-height:80px; max-width:120px; object-fit:contain;" />
+                        }
+                        else
+                        {
+                            <div class="company-logo-text">FG</div>
+                        }
                     </div>
                     <div class="company-details">
-                        <h2>FleetGuard</h2>
-                        <p class="company-tagline">Professional Fleet Management Solutions</p>
+                        <h2>@Model.CompanyName</h2>
+                        <p class="company-tagline">@Model.BranchName</p>
                         <div class="company-address">
-                            <p><strong>123 Fleet Street, Victoria Island</strong></p>
-                            <p>Lagos, Nigeria</p>
-                            <p><strong>Phone:</strong> +234 (0) 123 456 7890</p>
-                            <p><strong>Email:</strong> billing@fleetguard.ng</p>
+                            <p><strong>@Model.BranchAddress</strong></p>
+                            <p>@Model.BranchState, Nigeria</p>
+                            <p><strong>Phone:</strong> @Model.BranchPhone</p>
+                            <p><strong>Email:</strong> @Model.BranchEmail</p>
                         </div>
                     </div>
                 </div>
@@ -632,12 +641,12 @@
             <!-- Invoice Footer -->
             <div class="invoice-footer">
                 <div class="payment-info">
-                    <h6>Payment Information:</h6>
+                   @*  <h6>Payment Information:</h6>
                     <p><strong>Bank:</strong> First Bank of Nigeria</p>
                     <p><strong>Account:</strong> FleetGuard Services Ltd</p>
                     <p><strong>Number:</strong> 3012345678</p>
                     <p><strong>Sort Code:</strong> 011</p>
-                    <p><em>Reference: Invoice #@Model.Invoice.Id</em></p>
+                    <p><em>Reference: Invoice #@Model.Invoice.Id</em></p> *@
                 </div>
                 <div class="thank-you">
                     <p><strong>Thank you for your business!</strong></p>

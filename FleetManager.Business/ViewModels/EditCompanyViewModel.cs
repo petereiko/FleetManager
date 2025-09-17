@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -26,5 +27,15 @@ namespace FleetManager.Business.ViewModels
         public int Token { get; set; }
 
         public bool HasAgreed { get; set; }
+
+
+        // New: file upload
+        public IFormFile? LogoFile { get; set; }
+
+        // New: user can also paste an external url
+        public string? LogoUrlInput { get; set; }
+
+        // Existing DB value for showing current logo in the view
+        public string? ExistingLogoUrl { get; set; }
     }
 }

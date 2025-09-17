@@ -284,6 +284,12 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     .ThenInclude(v => v.VehicleMake)
                 .Include(t => t.Vehicle)
                     .ThenInclude(v => v.VehicleModel)
+                // include Company + Branch from Vehicle
+                .Include(t => t.Vehicle)
+                    .ThenInclude(v => v.Company)
+                .Include(t => t.Vehicle)
+                    .ThenInclude(v => v.CompanyBranch)
+                    .ThenInclude(b => b.State)
                 // load both nav‐props off of Items:
                 .Include(t => t.Items)
                     .ThenInclude(i => i.VehiclePartCategory)
@@ -314,14 +320,27 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     reviewerName = $"{admin.FirstName} {admin.LastName}";
             }
 
+            // company/branch shortcuts (safe)
+            var company = t.Vehicle?.Company;
+            var branch = t.Vehicle?.CompanyBranch;
+            string? branchStateName = branch?.State?.Name;
+
+            if (branchStateName == null && branch?.StateId != null)
+            {
+                var state = await _context.States
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Id == branch.StateId);
+                branchStateName = state?.Name;
+            }
+
 
             return new MaintenanceTicketDto
             {
                 Id = t.Id,
                 DriverId = t.DriverId,
-                DriverName = $"{t.Driver.User.FirstName} {t.Driver.User.LastName}",
+                DriverName = t.Driver?.User == null ? "" : $"{t.Driver.User.FirstName} {t.Driver.User.LastName}",
                 VehicleId = t.VehicleId,
-                VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
+                VehicleDescription = t.Vehicle == null ? "" : $"{t.Vehicle.VehicleMake?.Name} {t.Vehicle.VehicleModel?.Name} ({t.Vehicle.PlateNo})",
                 Subject = t.Subject,
                 Notes = t.Notes,
                 Status = t.Status,
@@ -330,17 +349,31 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 CreatedAt = t.CreatedDate,
                 ResolvedAt = t.ResolvedAt,
                 ResolvedBy = reviewerName,
+
+                // NEW: company & branch info
+                CompanyName = company?.Name,
+                CompanyLogoUrl = company?.LogoUrl,
+                CompanyEmail = company?.Email,
+                CompanyPhone = company?.PhoneNumber,
+                BranchName = branch?.Name,
+                BranchAddress = branch?.Address,
+                BranchState = branchStateName,
+                BranchPhone = branch?.Phone,
+                BranchEmail = branch?.Email,
+                IsBranchHeadOffice = branch?.IsHeadOffice ?? false,
+
                 Items = t.Items.Select(i => new MaintenanceTicketItemDto
                 {
                     Id = i.Id,
                     PartId = i.VehiclePartId,
-                    PartName = i.VehiclePart.Name,
-                    PartCategoryName = i.VehiclePartCategory.Name ?? "",
+                    PartName = i.VehiclePart?.Name ?? "",
+                    PartCategoryName = i.VehiclePartCategory?.Name ?? "",
                     CustomDescription = i.CustomPartDescription ?? "",
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
                     LineTotal = i.Quantity * i.UnitPrice
                 }).ToList(),
+
                 Invoice = t.Invoice == null ? null : new InvoiceDto
                 {
                     Id = t.Invoice.Id,
@@ -352,9 +385,9 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                     {
                         Id = ii.Id,
                         PartId = ii.VehiclePartId,
-                        PartName = ii.VehiclePart.Name ?? "",
-                        PartCategory = ii.VehiclePartCategory.Name ?? "",
-                        CustomPartDescription = ii.Description ,
+                        PartName = ii.VehiclePart?.Name ?? "",
+                        PartCategory = ii.VehiclePartCategory?.Name ?? "",
+                        CustomPartDescription = ii.Description,
                         Quantity = ii.Quantity,
                         UnitPrice = ii.UnitPrice,
                         LineTotal = ii.Quantity * ii.UnitPrice
@@ -362,7 +395,6 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 }
             };
         }
-
 
 
         public async Task<MessageResponse<MaintenanceTicketDto>> CreateTicketAsync(MaintenanceTicketInputDto input, string createdByUserId)
@@ -816,59 +848,91 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
 }
 
 
-//public async Task<MessageResponse<MaintenanceTicketDto>> UpdateTicketStatusAsync(long ticketId, TicketStatus newStatus)
+//public async Task<MaintenanceTicketDto?> GetTicketByIdAsync(long ticketId)
 //{
-//    EnsureAdminOrOwner();
-//    var resp = new MessageResponse<MaintenanceTicketDto>();
-//    using var tx = await _context.Database.BeginTransactionAsync();
-//    try
-//    {
-//        var ticket = await _context.MaintenanceTickets.FindAsync(ticketId);
-//        if (ticket == null) { resp.Message = "Ticket not found"; return resp; }
+//    var t = await _context.MaintenanceTickets
+//        .AsNoTracking()
+//        .Include(t => t.Driver)
+//            .ThenInclude(d => d.User)
+//        .Include(t => t.Vehicle)
+//            .ThenInclude(v => v.VehicleMake)
+//        .Include(t => t.Vehicle)
+//            .ThenInclude(v => v.VehicleModel)
+//        // load both nav‐props off of Items:
+//        .Include(t => t.Items)
+//            .ThenInclude(i => i.VehiclePartCategory)
+//        .Include(t => t.Items)
+//            .ThenInclude(i => i.VehiclePart)
+//        // load invoice + its items too
+//        .Include(t => t.Invoice)
+//            .ThenInclude(inv => inv.Items)
+//                .ThenInclude(ii => ii.VehiclePartCategory)
+//        .Include(t => t.Invoice)
+//            .ThenInclude(inv => inv.Items)
+//                .ThenInclude(ii => ii.VehiclePart)
+//        .FirstOrDefaultAsync(t => t.Id == ticketId);
 
-//        // If rejecting, cancel invoice
-//        if (newStatus == TicketStatus.Rejected)
+//    if (t == null) return null;
+
+//    // find reviewer admin name if present
+//    string? reviewerName = null;
+//    if (t.ModifiedBy != null)
+//    {
+//        var admin = await _context.CompanyAdmins
+//            .AsNoTracking()
+//            .Where(ca => ca.UserId == t.ModifiedBy)
+//            .Select(ca => ca.User)
+//            .FirstOrDefaultAsync();
+
+//        if (admin != null)
+//            reviewerName = $"{admin.FirstName} {admin.LastName}";
+//    }
+
+
+//    return new MaintenanceTicketDto
+//    {
+//        Id = t.Id,
+//        DriverId = t.DriverId,
+//        DriverName = $"{t.Driver.User.FirstName} {t.Driver.User.LastName}",
+//        VehicleId = t.VehicleId,
+//        VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
+//        Subject = t.Subject,
+//        Notes = t.Notes,
+//        Status = t.Status,
+//        Priority = t.Priority,
+//        AdminNotes = t.AdminNotes,
+//        CreatedAt = t.CreatedDate,
+//        ResolvedAt = t.ResolvedAt,
+//        ResolvedBy = reviewerName,
+//        Items = t.Items.Select(i => new MaintenanceTicketItemDto
 //        {
-//            var inv = await _context.Invoices.FirstOrDefaultAsync(i => i.TicketId == ticketId);
-//            if (inv != null)
+//            Id = i.Id,
+//            PartId = i.VehiclePartId,
+//            PartName = i.VehiclePart.Name,
+//            PartCategoryName = i.VehiclePartCategory.Name ?? "",
+//            CustomDescription = i.CustomPartDescription ?? "",
+//            Quantity = i.Quantity,
+//            UnitPrice = i.UnitPrice,
+//            LineTotal = i.Quantity * i.UnitPrice
+//        }).ToList(),
+//        Invoice = t.Invoice == null ? null : new InvoiceDto
+//        {
+//            Id = t.Invoice.Id,
+//            TicketId = t.Invoice.MaintenanceTicketId,
+//            InvoiceDate = t.Invoice.InvoiceDate,
+//            Status = t.Invoice.Status,
+//            TotalAmount = t.Invoice.TotalAmount,
+//            Items = t.Invoice.Items.Select(ii => new InvoiceItemDto
 //            {
-//                inv.Status = InvoiceStatus.Cancelled;
-//                inv.ModifiedDate = DateTime.UtcNow;
-//                inv.ModifiedBy = _auth.UserId;
-//                await _notification.CreateAsync(
-//                    ticket.Driver.UserId,
-//                    "Invoice Cancelled",
-//                    $"Your invoice #{inv.Id} has been cancelled due to ticket rejection.",
-//                    NotificationType.Warning,
-//                    new { invoiceId = inv.Id });
-//            }
+//                Id = ii.Id,
+//                PartId = ii.VehiclePartId,
+//                PartName = ii.VehiclePart.Name ?? "",
+//                PartCategory = ii.VehiclePartCategory.Name ?? "",
+//                CustomPartDescription = ii.Description,
+//                Quantity = ii.Quantity,
+//                UnitPrice = ii.UnitPrice,
+//                LineTotal = ii.Quantity * ii.UnitPrice
+//            }).ToList()
 //        }
-
-//        ticket.Status = newStatus;
-//        if (newStatus == TicketStatus.Resolved)
-//            ticket.ResolvedAt = DateTime.UtcNow;
-//        ticket.ModifiedDate = DateTime.UtcNow;
-//        ticket.ModifiedBy = _auth.UserId;
-//        await _context.SaveChangesAsync();
-
-//        await tx.CommitAsync();
-
-//        resp.Success = true;
-//        resp.Result = await GetTicketByIdAsync(ticketId)!;
-
-//        // Notify driver
-//        await _notification.CreateAsync(
-//            ticket.Driver.UserId,
-//            "Ticket Status Updated",
-//            $"Your ticket #{ticketId} status is now {newStatus}.",
-//            NotificationType.Info,
-//            new { ticketId });
-//    }
-//    catch (Exception ex)
-//    {
-//        await tx.RollbackAsync();
-//        _logger.LogError(ex, "Error updating ticket status {TicketId}", ticketId);
-//        resp.Message = "Failed to update status.";
-//    }
-//    return resp;
+//    };
 //}

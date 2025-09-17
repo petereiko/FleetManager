@@ -351,18 +351,17 @@
     <!-- Enhanced Profile Header -->
     <div class="profile-header-enhanced">
         <div class="row align-items-center">
-            @* <div class="col-md-3 text-center">
-                <img class="profile-logo"
-                     src="@(!string.IsNullOrWhiteSpace(Model.LogoUrl) ? Model.LogoUrl : "/assets/images/company_avatar.png")"
-                     alt="@Model.Name Logo">
-            </div> *@
+           
             <div class="col-md-3 text-center">
                 <img class="profile-logo"
                      src="@(string.IsNullOrWhiteSpace(Model.LogoUrl)
-                ? Url.Content("~/assets/images/company_avatar.png")
-                : Url.Content(Model.LogoUrl))"
+                                 ? Url.Content("~/images/company_avatar.png")
+                                 : (Model.LogoUrl.StartsWith("http", System.StringComparison.OrdinalIgnoreCase)
+                                     ? Model.LogoUrl
+                                     : Url.Content(Model.LogoUrl)))"
                      alt="@(Model.Name ?? "Company") Logo" />
             </div>
+
 
             <div class="col-md-9">
                 <h2 class="mb-2">@(!string.IsNullOrWhiteSpace(Model.Name) ? Model.Name : "Company Name Not Set")</h2>

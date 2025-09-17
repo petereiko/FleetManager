@@ -18,7 +18,9 @@ namespace FleetManager.Business.Interfaces.CompanyModule
         Task<UserViewModel> GetStaffByEmail(string email);
         Task<UserViewModel> GetStaffById(string id);
         Task<CompanyViewModel> GetCompanyProfile();
-        Task<MessageResponse> EditCompanyProfile(EditCompanyViewModel model);
+
+        Task<MessageResponse> EditCompanyProfile(EditCompanyViewModel model, CancellationToken ct = default);
+        //Task<MessageResponse> EditCompanyProfile(EditCompanyViewModel model);
         Task<List<StateDto>> GetAllStatesAsync();
         Task<List<LgaDto>> GetLgasByStateIdAsync(long stateId);
 
