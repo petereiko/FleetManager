@@ -1,569 +1,326 @@
 ﻿@using FleetManager.Business.ViewModels.RepairHistoryViewModels
 @model RepairCreateViewModel
 @{
-    ViewData["Title"] = "Create New Repair";
+    ViewData["Title"] = "Create Repair";
 }
 
-<!-- Include External Libraries -->
-<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    .create-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+    /* Custom Styles */
+    .card {
         border-radius: 12px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
     }
-    
-    .create-header h1 {
-        font-size: 2.5rem;
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        }
+
+    .btn {
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+    .table th {
+        border-top: none;
         font-weight: 600;
+    }
+
+    .item-row:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+
+    .breadcrumb {
+        background: none;
+        padding: 0;
         margin: 0;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    
-    .create-header p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.9;
-        font-size: 1.1rem;
-    }
-    
-    .form-section {
-        background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        border: 1px solid #e9ecef;
-    }
-    
-    .section-title {
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #f8f9fa;
-    }
-    
-    .section-title i {
-        margin-right: 0.5rem;
-        color: #667eea;
-        font-size: 1.2rem;
-    }
-    
-    .form-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .required::after {
-        content: " *";
-        color: #dc3545;
-        font-weight: bold;
-    }
-    
-    .form-select, .form-control {
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        padding: 0.75rem 1rem;
-        transition: all 0.3s ease;
-        font-size: 1rem;
-    }
-    
-    .form-control-lg {
-        padding: 1rem 1.25rem;
-        font-size: 1.1rem;
-    }
-    
-    .form-select:focus, .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        background-color: #fff;
-    }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .btn-primary:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    }
-    
-    .btn-secondary {
-        border: 2px solid #6c757d;
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
         color: #6c757d;
-        background: white;
-        border-radius: 8px;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
-    
-    .btn-secondary:hover {
-        background-color: #6c757d;
-        border-color: #6c757d;
-        color: white;
-        transform: translateY(-2px);
+
+    .toast {
+        border-radius: 12px;
     }
-    
-    .btn-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+
+    .bg-gradient {
+        background: linear-gradient(45deg, var(--bs-primary), #0056b3) !important;
     }
-    
-    .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+
+    .border-2 {
+        border-width: 2px !important;
     }
-    
-    .btn-danger {
-        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
-    }
-    
-    .items-table {
-        background: #f8f9fa;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid #dee2e6;
-    }
-    
-    .table thead th {
-        background: linear-gradient(135deg, #495057 0%, #6c757d 100%);
-        color: white;
-        border: none;
-        padding: 1rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-size: 0.85rem;
-    }
-    
-    .table tbody td {
-        padding: 1rem;
-        vertical-align: middle;
-        border-color: #dee2e6;
-        background: white;
-    }
-    
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .add-item-section {
-        text-align: center;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 8px;
-        margin-top: 1rem;
-    }
-    
-    .form-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 3rem;
-        padding-top: 2rem;
-        border-top: 2px solid #f8f9fa;
-    }
-    
-    .validation-summary {
-        background: #fff5f5;
-        border: 1px solid #fed7d7;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 2rem;
-        color: #c53030;
-    }
-    
-    .text-danger {
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
-        font-weight: 500;
-    }
-    
-    .loading-spinner {
-        display: inline-block;
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid #f3f3f3;
-        border-top: 2px solid #667eea;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-right: 0.5rem;
-    }
-    
-    @@keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .progress-bar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        height: 4px;
-        border-radius: 2px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 9999;
-        transition: width 0.3s ease;
-    }
-    
-    .is-invalid {
-        border-color: #dc3545 !important;
-    }
-    
-    .is-valid {
-        border-color: #28a745 !important;
-    }
-    
-    .invalid-feedback {
-        width: 100%;
-        margin-top: 0.25rem;
-        font-size: 0.875em;
-        color: #dc3545;
-    }
-    
-    @@media (max-width: 768px) {
-        .create-header {
-            padding: 1.5rem;
-            text-align: center;
-        }
-        
-        .create-header h1 {
-            font-size: 2rem;
-        }
-        
-        .form-section {
-            padding: 1.5rem;
-        }
-        
-        .form-actions {
-            flex-direction: column;
-        }
-        
-        .btn-primary, .btn-secondary {
-            width: 100%;
-            margin-bottom: 0.5rem;
-        }
+
+    .form-select-lg, .form-control-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
     }
 </style>
 
-<!-- Progress Bar -->
-<div class="progress-bar" id="progressBar" style="width: 0%;"></div>
 
-<!-- Header Section -->
-<div class="create-header">
-    <h1><i class="fas fa-plus-circle me-3"></i>Create New Repair</h1>
-    <p>Add a new vehicle repair record with parts and service details</p>
-</div>
-
-<!-- Validation Summary -->
-<div asp-validation-summary="ModelOnly" class="validation-summary" style="display: none;">
-    <h6><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6>
-</div>
-
-<form asp-action="Create" method="post" id="createRepairForm" novalidate>
-    @Html.AntiForgeryToken()
-    
-    <!-- Basic Information Section -->
-    <div class="form-section">
-        <h3 class="section-title">
-            <i class="fas fa-info-circle"></i>
-            Basic Information
-        </h3>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label required">Vehicle</label>
-                    <select asp-for="VehicleId" class="form-select form-control-lg" asp-items="Model.Vehicles">
-                        <option value="">Select a vehicle...</option>
-                    </select>
-                    <span asp-validation-for="VehicleId" class="text-danger"></span>
-                    <div class="form-text">Choose the vehicle that requires repair</div>
-                </div>
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="successMessage"></span>
             </div>
-            
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">Driver (Optional)</label>
-                    <select asp-for="DriverId" class="form-select form-control-lg" asp-items="Model.Drivers">
-                        <option value="">No specific driver assigned</option>
-                    </select>
-                    <span asp-validation-for="DriverId" class="text-danger"></span>
-                    <div class="form-text">Assign a driver if applicable</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-8">
-                <div class="mb-3">
-                    <label class="form-label required">Subject</label>
-                    <input asp-for="Subject" class="form-control form-control-lg" placeholder="Brief description of the repair needed..." maxlength="200" />
-                    <span asp-validation-for="Subject" class="text-danger"></span>
-                    <div class="form-text">Enter a clear, concise subject for this repair</div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label class="form-label required">Priority</label>
-                    <select asp-for="Priority" class="form-select form-control-lg" asp-items="Model.Priorities"></select>
-                    <span asp-validation-for="Priority" class="text-danger"></span>
-                    <div class="form-text">Set the urgency level</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mb-3">
-            <label class="form-label">Detailed Notes</label>
-            <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Provide detailed information about the repair, symptoms, conditions, etc..."></textarea>
-            <span asp-validation-for="Notes" class="text-danger"></span>
-            <div class="form-text">Add any additional details that might be helpful</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
+    
+    <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 
-    <!-- Parts and Items Section -->
-    <div class="form-section">
-        <h3 class="section-title">
-            <i class="fas fa-cogs"></i>
-            Parts & Services
-        </h3>
-        
-        <div class="items-table">
-            <table class="table" id="itemsTable">
-                <thead>
-                    <tr>
-                        <th style="width: 20%;">
-                            <i class="fas fa-layer-group me-2"></i>Category
-                        </th>
-                        <th style="width: 25%;">
-                            <i class="fas fa-puzzle-piece me-2"></i>Part/Service
-                        </th>
-                        <th style="width: 25%;">
-                            <i class="fas fa-file-alt me-2"></i>Description
-                        </th>
-                        <th style="width: 10%;">
-                            <i class="fas fa-hashtag me-2"></i>Qty
-                        </th>
-                        <th style="width: 15%;">
-                            <i class="fas fa-dollar-sign me-2"></i>Unit Price
-                        </th>
-                        <th style="width: 5%;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < (Model.Items?.Count ?? 0); i++)
-                    {
-                        <tr data-item-index="@i">
-                            <td>
-                                <select name="Items[@i].PartCategoryId" class="form-select part-category" data-index="@i">
-                                    <option value="">Select category...</option>
-                                    @foreach (var c in Model.PartCategories)
-                                    {
-                                        <option value="@c.Value">@c.Text</option>
-                                    }
-                                </select>
-                            </td>
-                            <td>
-                                <select name="Items[@i].PartId" class="form-select part-select" data-index="@i">
-                                    <option value="">Select part...</option>
-                                </select>
-                                <div class="loading-parts" style="display: none;">
-                                    <div class="loading-spinner"></div>Loading parts...
-                                </div>
-                            </td>
-                            <td>
-                                <input name="Items[@i].CustomDescription" class="form-control" 
-                                       placeholder="Custom description..." 
-                                       value="@Model.Items[i].CustomDescription" />
-                            </td>
-                            <td>
-                                <input name="Items[@i].Quantity" type="number" min="1" 
-                                       class="form-control quantity-input" 
-                                       value="@(Model.Items[i].Quantity > 0 ? Model.Items[i].Quantity : 1)" />
-                            </td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input name="Items[@i].UnitPrice" type="number" step="0.01" min="0"
-                                           class="form-control price-input" 
-                                           value="@Model.Items[i].UnitPrice.ToString("N2")" 
-                                           placeholder="0.00" />
-                                </div>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm btn-danger remove-item" title="Remove this item">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                    @if ((Model.Items?.Count ?? 0) == 0)
-                    {
-                        <tr class="no-items-row">
-                            <td colspan="6" class="text-center py-4">
-                                <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
-                                <p class="text-muted mb-0">No items added yet. Click "Add Item" to get started.</p>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="add-item-section">
-            <button type="button" id="addItem" class="btn btn-success btn-lg">
-                <i class="fas fa-plus me-2"></i>Add Item
-            </button>
-            <p class="text-muted mt-2 mb-0">Add parts, services, or labor items to this repair</p>
-        </div>
-        
-        <!-- Total Calculation -->
-        <div class="row mt-3">
-            <div class="col-md-8"></div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">Estimated Total</h6>
-                        <h4 class="text-primary mb-0" id="totalAmount">$0.00</h4>
+<div class="container-fluid px-4 py-3">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-gradient rounded-circle p-3 me-3">
+                        <i class="fas fa-tools text-white fa-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-1 text-dark fw-bold">Create New Repair</h1>
+                        <p class="text-muted mb-0">Add a new repair record to the fleet management system</p>
                     </div>
                 </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none">Repairs</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Create</li>
+                    </ol>
+                </nav>
             </div>
         </div>
     </div>
 
-    <!-- Form Actions -->
-    <div class="form-actions">
-        <button class="btn btn-primary" type="submit" id="submitBtn">
-            <i class="fas fa-save me-2"></i>Create Repair
-        </button>
-        <a asp-action="Index" class="btn btn-secondary">
-            <i class="fas fa-times me-2"></i>Cancel
-        </a>
-    </div>
-</form>
+    <!-- Main Form Card -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        <h5 class="mb-0 fw-semibold">Repair Information</h5>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post" id="repairForm" novalidate>
+                        @Html.AntiForgeryToken()
 
-@section Scripts {
-    <!-- Include Toastify JS -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.js"></script>
+                        <!-- Basic Information Section -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark">
+                                    <i class="fas fa-car text-primary me-2"></i>Vehicle *
+                                </label>
+                                <select asp-for="VehicleId" class="form-select form-select-lg border-2" asp-items="Model.Vehicles" required>
+                                    <option value="">-- Select Vehicle --</option>
+                                </select>
+                                <span asp-validation-for="VehicleId" class="text-danger small mt-1 d-block"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark">
+                                    <i class="fas fa-user text-primary me-2"></i>Driver (Optional)
+                                </label>
+                                <select asp-for="DriverId" class="form-select form-select-lg border-2" asp-items="Model.Drivers">
+                                    <option value="">-- No Driver Assigned --</option>
+                                </select>
+                                <span asp-validation-for="DriverId" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold text-dark">
+                                    <i class="fas fa-heading text-primary me-2"></i>Subject *
+                                </label>
+                                <input asp-for="Subject" class="form-control form-control-lg border-2" placeholder="Enter repair subject or title" required />
+                                <span asp-validation-for="Subject" class="text-danger small mt-1 d-block"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-dark">
+                                    <i class="fas fa-flag text-primary me-2"></i>Priority *
+                                </label>
+                                <select asp-for="Priority" class="form-select form-select-lg border-2" asp-items="Model.Priorities" required>
+                                    <option value="">-- Select Priority --</option>
+                                </select>
+                                <span asp-validation-for="Priority" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark">
+                                <i class="fas fa-sticky-note text-primary me-2"></i>Notes
+                            </label>
+                            <textarea asp-for="Notes" class="form-control border-2" rows="4" placeholder="Enter detailed notes about the repair..."></textarea>
+                            <div class="form-text">Provide detailed information about the repair requirements</div>
+                        </div>
+
+                        <!-- Items Section -->
+                        <div class="card border border-2 border-light mb-4">
+                            <div class="card-header bg-light">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5 class="mb-0 fw-semibold">
+                                        <i class="fas fa-cogs text-primary me-2"></i>Repair Items
+                                    </h5>
+                                    <button type="button" id="addItem" class="btn btn-success btn-sm">
+                                        <i class="fas fa-plus me-1"></i>Add Item
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0" id="itemsTable">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th width="20%" class="fw-semibold">Category</th>
+                                                <th width="20%" class="fw-semibold">Part</th>
+                                                <th width="25%" class="fw-semibold">Description</th>
+                                                <th width="10%" class="fw-semibold">Qty</th>
+                                                <th width="15%" class="fw-semibold">Unit Price (₦)</th>
+                                                <th width="10%" class="fw-semibold text-center">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (int i = 0; i < Model.Items.Count; i++)
+                                            {
+                                                <tr class="item-row">
+                                                    <td>
+                                                        <select name="Items[@i].PartCategoryId" class="form-select part-category" data-index="@i" required>
+                                                            <option value="">-- Select Category --</option>
+                                                            @foreach (var c in Model.PartCategories)
+                                                            {
+                                                                <option value="@c.Value">@c.Text</option>
+                                                            }
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <select name="Items[@i].PartId" class="form-select part-select" data-index="@i">
+                                                            <option value="">-- Select Part --</option>
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <input name="Items[@i].CustomDescription" class="form-control" placeholder="Custom description" value="@Model.Items[i].CustomDescription" />
+                                                    </td>
+                                                    <td>
+                                                        <input name="Items[@i].Quantity" type="number" min="1" value="@(Model.Items[i].Quantity == 0 ? 1 : Model.Items[i].Quantity)" class="form-control quantity-input" required />
+                                                    </td>
+                                                    <td>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">₦</span>
+                                                            <input name="Items[@i].UnitPrice" type="number" step="0.01" min="0" class="form-control price-input" placeholder="0.00" value="@Model.Items[i].UnitPrice" />
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm remove-item" title="Remove Item">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot class="table-light">
+                                            <tr>
+                                                <td colspan="4" class="text-end fw-bold">Total Estimated Cost:</td>
+                                                <td class="fw-bold text-primary" id="totalCost">₦ 0.00</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-light btn-lg px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button class="btn btn-primary btn-lg px-4" type="submit" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Create Repair
+                                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let itemIndex = @((Model.Items?.Count ?? 0));
+        (function(){
+            let idx = @Model.Items.Count;
             
-            // Toast notification functions
-            function showSuccessToast(message) {
-                Toastify({
-                    text: message,
-                    duration: 4000,
-                    close: true,
-                    gravity: "top",
-                    position: "right",
-                    stopOnFocus: true,
-                    style: {
-                        background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
-                        borderRadius: "8px",
-                        boxShadow: "0 4px 15px rgba(40, 167, 69, 0.4)"
-                    }
-                }).showToast();
-            }
-            
-            function showErrorToast(message) {
-                Toastify({
-                    text: message,
-                    duration: 5000,
-                    close: true,
-                    gravity: "top",
-                    position: "right",
-                    stopOnFocus: true,
-                    style: {
-                        background: "linear-gradient(135deg, #dc3545 0%, #fd7e14 100%)",
-                        borderRadius: "8px",
-                        boxShadow: "0 4px 15px rgba(220, 53, 69, 0.4)"
-                    }
-                }).showToast();
-            }
-            
-            function showInfoToast(message) {
-                Toastify({
-                    text: message,
-                    duration: 3000,
-                    close: true,
-                    gravity: "top",
-                    position: "right",
-                    stopOnFocus: true,
-                    style: {
-                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                        borderRadius: "8px",
-                        boxShadow: "0 4px 15px rgba(102, 126, 234, 0.4)"
-                    }
-                }).showToast();
-            }
-            
-            // Show toasts from server
-            @if (TempData["Success"] != null)
-            {
-                <text>showSuccessToast('@Html.Raw(TempData["Success"])');</text>
-            }
-            
-            @if (TempData["Error"] != null)
-            {
-                <text>showErrorToast('@Html.Raw(TempData["Error"])');</text>
-            }
-            
-            // Add item functionality
-            document.getElementById('addItem').addEventListener('click', function() {
-                const tbody = document.querySelector('#itemsTable tbody');
-                const noItemsRow = document.querySelector('.no-items-row');
-                
-                if (noItemsRow) {
-                    noItemsRow.remove();
+            // Initialize form
+            document.addEventListener('DOMContentLoaded', function() {
+                showToastMessages();
+                calculateTotal();
+                initializeExistingRows();
+            });
+
+            // Toast messages
+            function showToastMessages() {
+                @if(TempData["SuccessMessage"] != null)
+                {
+                    <text>
+                    document.getElementById('successMessage').textContent = '@Html.Raw(TempData["SuccessMessage"])';
+                    const successToast = new bootstrap.Toast(document.getElementById('successToast'));
+                    successToast.show();
+                    </text>
                 }
                 
+                @if(TempData["Error"] != null)
+                {
+                    <text>
+                    document.getElementById('errorMessage').textContent = '@Html.Raw(TempData["Error"])';
+                    const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+                    errorToast.show();
+                    </text>
+                }
+            }
+
+            // Add new item
+            document.getElementById('addItem').addEventListener('click', async () => {
+                const tbody = document.querySelector('#itemsTable tbody');
                 const tr = document.createElement('tr');
-                tr.setAttribute('data-item-index', itemIndex);
+                tr.className = 'item-row';
                 tr.innerHTML = `
                     <td>
-                        <select name="Items[${itemIndex}].PartCategoryId" class="form-select part-category" data-index="${itemIndex}">
-                            <option value="">Select category...</option>
+                        <select name="Items[${idx}].PartCategoryId" class="form-select part-category" data-index="${idx}" required>
+                            <option value="">-- Select Category --</option>
                             @foreach (var c in Model.PartCategories)
                             {
                                 <text><option value="@c.Value">@c.Text</option></text>
@@ -571,170 +328,152 @@
                         </select>
                     </td>
                     <td>
-                        <select name="Items[${itemIndex}].PartId" class="form-select part-select" data-index="${itemIndex}">
-                            <option value="">Select part...</option>
+                        <select name="Items[${idx}].PartId" class="form-select part-select" data-index="${idx}">
+                            <option value="">-- Select Part --</option>
                         </select>
-                        <div class="loading-parts" style="display: none;">
-                            <div class="loading-spinner"></div>Loading parts...
-                        </div>
                     </td>
                     <td>
-                        <input name="Items[${itemIndex}].CustomDescription" class="form-control" placeholder="Custom description..." />
+                        <input name="Items[${idx}].CustomDescription" class="form-control" placeholder="Custom description" />
                     </td>
                     <td>
-                        <input name="Items[${itemIndex}].Quantity" type="number" min="1" value="1" class="form-control quantity-input" />
+                        <input name="Items[${idx}].Quantity" type="number" min="1" value="1" class="form-control quantity-input" required />
                     </td>
                     <td>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input name="Items[${itemIndex}].UnitPrice" type="number" step="0.01" min="0" class="form-control price-input" placeholder="0.00" />
+                            <span class="input-group-text">₦</span>
+                            <input name="Items[${idx}].UnitPrice" type="number" step="0.01" min="0" class="form-control price-input" placeholder="0.00" />
                         </div>
                     </td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-danger remove-item" title="Remove this item">
+                    <td class="text-center">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-item" title="Remove Item">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
-                itemIndex++;
-                updateTotal();
-                showInfoToast('New item row added successfully!');
+                idx++;
+                
+                // Add animation
+                tr.style.opacity = '0';
+                tr.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    tr.style.transition = 'all 0.3s ease';
+                    tr.style.opacity = '1';
+                    tr.style.transform = 'translateY(0)';
+                }, 10);
             });
 
-            // Remove item functionality
-            document.addEventListener('click', function(e) {
+            // Remove item
+            document.addEventListener('click', function(e){
                 if (e.target && (e.target.matches('.remove-item') || e.target.closest('.remove-item'))) {
                     const button = e.target.matches('.remove-item') ? e.target : e.target.closest('.remove-item');
                     const row = button.closest('tr');
                     
-                    row.remove();
-                    updateTotal();
+                    // Add animation
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(-20px)';
                     
-                    // Check if no items left
-                    const remainingRows = document.querySelectorAll('#itemsTable tbody tr:not(.no-items-row)');
-                    if (remainingRows.length === 0) {
-                        const tbody = document.querySelector('#itemsTable tbody');
-                        const noItemsRow = document.createElement('tr');
-                        noItemsRow.className = 'no-items-row';
-                        noItemsRow.innerHTML = `
-                            <td colspan="6" class="text-center py-4">
-                                <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
-                                <p class="text-muted mb-0">No items added yet. Click "Add Item" to get started.</p>
-                            </td>
-                        `;
-                        tbody.appendChild(noItemsRow);
-                    }
-                    
-                    showInfoToast('Item removed successfully!');
+                    setTimeout(() => {
+                        row.remove();
+                        calculateTotal();
+                    }, 300);
                 }
             });
 
-            // Dynamic parts loading
+            // Handle parts loading
             document.addEventListener('change', async function(e) {
                 if (e.target && e.target.matches('.part-category')) {
                     const categoryId = e.target.value;
-                    const index = e.target.getAttribute('data-index');
-                    const select = document.querySelector(`.part-select[data-index="${index}"]`);
-                    const loadingDiv = e.target.closest('tr').querySelector('.loading-parts');
+                    const idx = e.target.getAttribute('data-index');
+                    const select = document.querySelector(`.part-select[data-index="${idx}"]`);
+                    
+                    select.innerHTML = '<option value="">Loading...</option>';
                     
                     if (!categoryId) { 
-                        select.innerHTML = '<option value="">Select part...</option>'; 
+                        select.innerHTML = '<option value="">-- Select Part --</option>'; 
                         return; 
                     }
-                    
-                    // Show loading
-                    loadingDiv.style.display = 'block';
-                    select.style.display = 'none';
                     
                     try {
                         const resp = await fetch('@Url.Action("GetPartsByCategory")?categoryId=' + categoryId);
                         const data = await resp.json();
-                        
-                        select.innerHTML = '<option value="">Select part...</option>';
+                        select.innerHTML = '<option value="">-- Select Part --</option>';
                         data.forEach(item => {
                             const opt = document.createElement('option');
                             opt.value = item.value;
                             opt.textContent = item.text;
                             select.appendChild(opt);
                         });
-                        
-                        showInfoToast(`Loaded ${data.length} parts for selected category`);
                     } catch (error) {
-                        showErrorToast('Error loading parts. Please try again.');
+                        select.innerHTML = '<option value="">Error loading parts</option>';
                         console.error('Error loading parts:', error);
-                    } finally {
-                        // Hide loading
-                        loadingDiv.style.display = 'none';
-                        select.style.display = 'block';
                     }
                 }
             });
-            
-            // Calculate total amount
-            function updateTotal() {
+
+            // Calculate total on quantity or price change
+            document.addEventListener('input', function(e) {
+                if (e.target && (e.target.matches('.quantity-input') || e.target.matches('.price-input'))) {
+                    calculateTotal();
+                }
+            });
+
+            // Calculate total cost
+            function calculateTotal() {
                 let total = 0;
-                document.querySelectorAll('#itemsTable tbody tr:not(.no-items-row)').forEach(row => {
-                    const quantity = parseFloat(row.querySelector('.quantity-input')?.value || 0);
-                    const price = parseFloat(row.querySelector('.price-input')?.value || 0);
+                const rows = document.querySelectorAll('.item-row');
+                
+                rows.forEach(row => {
+                    const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+                    const price = parseFloat(row.querySelector('.price-input').value) || 0;
                     total += quantity * price;
                 });
                 
-                document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+                document.getElementById('totalCost').textContent = `₦ ${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
             }
-            
-            // Update total when quantities or prices change
-            document.addEventListener('input', function(e) {
-                if (e.target && (e.target.matches('.quantity-input') || e.target.matches('.price-input'))) {
-                    updateTotal();
-                }
-            });
-            
-            // Form submission with progress
-            document.getElementById('createRepairForm').addEventListener('submit', function(e) {
+
+            // Initialize existing rows (for edit scenarios)
+            function initializeExistingRows() {
+                const categorySelects = document.querySelectorAll('.part-category');
+                categorySelects.forEach(async (select) => {
+                    if (select.value) {
+                        const event = new Event('change');
+                        select.dispatchEvent(event);
+                    }
+                });
+            }
+
+            // Form submission with loading state
+            document.getElementById('repairForm').addEventListener('submit', function(e) {
                 const submitBtn = document.getElementById('submitBtn');
-                const progressBar = document.getElementById('progressBar');
+                const spinner = submitBtn.querySelector('.spinner-border');
                 
-                // Basic form validation
-                const vehicle = document.querySelector('[name="VehicleId"]').value;
-                const subject = document.querySelector('[name="Subject"]').value;
-                const priority = document.querySelector('[name="Priority"]').value;
-                
-                if (!vehicle || !subject || !priority) {
-                    e.preventDefault();
-                    showErrorToast('Please fill in all required fields (Vehicle, Subject, Priority)');
-                    return;
-                }
-                
-                // Disable submit button and show loading
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<div class="loading-spinner"></div>Creating Repair...';
+                spinner.classList.remove('d-none');
                 
-                // Simulate progress bar
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 30;
-                    if (progress > 90) progress = 90;
-                    progressBar.style.width = progress + '%';
-                }, 100);
-                
-                // Show processing toast
-                showInfoToast('Processing repair creation...');
-                
-                // Clean up progress on form submission
+                // Re-enable after a timeout in case of client-side validation errors
                 setTimeout(() => {
-                    clearInterval(progressInterval);
-                    progressBar.style.width = '100%';
-                }, 1000);
+                    if (submitBtn.disabled) {
+                        submitBtn.disabled = false;
+                        spinner.classList.add('d-none');
+                    }
+                }, 5000);
             });
-            
-            // Initialize total calculation on page load
-            updateTotal();
-        });
+
+            // Form validation
+            const form = document.getElementById('repairForm');
+            form.addEventListener('submit', function(e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        })();
     </script>
-}
-
-
+    
+    
 
 
 

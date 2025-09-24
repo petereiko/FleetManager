@@ -121,10 +121,12 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
             var e = await _context.FineAndTolls.AsNoTracking()
                 .Include(x => x.Driver)
                 .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.VehicleMake)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.VehicleModel)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            if (e == null)
-                return null;
+            if (e == null) return null;
 
             // enforce branch for admins
             if (!_auth.Roles.Split(',').Any(r => r.Trim() is "Super Admin" or "Company Owner" or "Company Admin")
@@ -133,13 +135,22 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                 throw new UnauthorizedAccessException();
             }
 
+            string make = e.Vehicle?.VehicleMake?.Name ?? string.Empty;
+            string model = e.Vehicle?.VehicleModel?.Name ?? string.Empty;
+            string plate = e.Vehicle?.PlateNo?.ToUpper() ?? string.Empty;
+
+            string vehicleDesc = string.IsNullOrWhiteSpace(make + model + plate)
+                ? string.Empty
+                : $"{make} {model} ({plate})".Trim();
+
             return new FineAndTollDto
             {
                 Id = e.Id,
                 DriverId = e.DriverId,
                 DriverName = e.Driver.FirstName + " " + e.Driver.LastName,
                 VehicleId = e.VehicleId,
-                VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
+                //VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
+                VehicleDescription = vehicleDesc,
                 Type = e.Type,
                 Title = e.Title,
                 Amount = e.Amount,

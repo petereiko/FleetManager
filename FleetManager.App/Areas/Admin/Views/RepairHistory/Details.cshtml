@@ -1197,22 +1197,47 @@
             <div class="modal-body invoice-body">
                 <div class="invoice-container">
                     <!-- Invoice Header -->
+
                     <div class="invoice-header-section">
-                        <div class="company-info">
+                        <div class="company-info" style="display:flex; align-items:center; gap:1rem;">
                             <div class="company-logo">
-                                <i class="fas fa-shield-alt"></i>
+                                @if (!string.IsNullOrEmpty(Model.CompanyLogoUrl))
+                                {
+                                    
+                                    <img src="@(Url.Content(Model.CompanyLogoUrl))" alt="@Model.CompanyName" style="max-height:80px; max-width:120px; object-fit:contain;" />
+                                }
+                                else
+                                {
+                                    <i class="fas fa-shield-alt" style="font-size:36px;"></i>
+                                }
                             </div>
+
                             <div class="company-details">
-                                <h2>FleetGuard</h2>
-                                <p class="company-tagline">Professional Fleet Management Solutions</p>
+                                <h2>@(Model.CompanyName ?? "FleetGuard")</h2>
+                                <p class="company-tagline">@(!string.IsNullOrEmpty(Model.BranchName) ? Model.BranchName : "Professional Fleet Management Solutions")</p>
+
                                 <div class="company-address">
-                                    <p>123 Fleet Street, Victoria Island</p>
-                                    <p>Lagos, Nigeria</p>
-                                    <p>Phone: +234 (0) 123 456 7890</p>
-                                    <p>Email: billing@fleetguard.ng</p>
+                                    @if (!string.IsNullOrEmpty(Model.BranchAddress))
+                                    {
+                                        <p>@Model.BranchAddress</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.BranchState))
+                                    {
+                                        <p>@Model.BranchState, Nigeria</p>
+                                    }
+
+                                    @* Phones & emails use branch first, then company fallback *@
+                                    <p>
+                                        Phone: @(Model.BranchPhone ?? Model.CompanyPhone ?? "N/A")
+                                    </p>
+                                    <p>
+                                        Email: @(Model.BranchEmail ?? Model.CompanyEmail ?? "billing@fleetguard.ng")
+                                    </p>
                                 </div>
                             </div>
                         </div>
+
+
                         <div class="invoice-info">
                             <div class="invoice-number">
                                 <h3>INVOICE</h3>
@@ -1241,8 +1266,8 @@
                         <div class="bill-to-section">
                             <h6>Bill To:</h6>
                             <div class="client-info">
-                                <p class="client-name" id="invoiceClientName">@Model.DriverName</p>
-                                <p class="client-id">Driver ID: @Model.DriverId</p>
+                                <p class="client-name" id="invoiceClientName">@Model.BranchName</p>
+                                
                                 <p class="vehicle-ref">Vehicle: @Model.VehicleDescription</p>
                             </div>
                         </div>
@@ -1296,21 +1321,21 @@
                     <!-- Invoice Footer -->
                     <div class="invoice-footer">
                         <div class="payment-info">
-                            <h6>Payment Information:</h6>
+                           @*  <h6>Payment Information:</h6>
                             <p>Bank: First Bank of Nigeria</p>
                             <p>Account Name: FleetGuard Services Ltd</p>
                             <p>Account Number: 3012345678</p>
-                            <p>Sort Code: 011</p>
+                            <p>Sort Code: 011</p> *@
                         </div>
                         <div class="thank-you">
-                            <p><strong>Thank you for your business!</strong></p>
-                            <p>For any questions regarding this invoice, please contact our billing department.</p>
+                           @*  <p><strong>Thank you for your business!</strong></p>
+                            <p>For any questions regarding this invoice, please contact our billing department.</p> *@
                         </div>
                     </div>
 
                     <!-- Invoice Watermark -->
                     <div class="invoice-watermark">
-                        <span class="watermark-text">FLEETGUARD</span>
+                        <span class="watermark-text">@Model.CompanyName</span>
                     </div>
                 </div>
             </div>
@@ -1323,6 +1348,14 @@
                     <i class="fas fa-print me-2"></i>
                     Print Invoice
                 </button>
+                <a class="btn btn-success"
+                   asp-area=""
+                   asp-controller="Invoice"
+                   asp-action="Download"
+                   asp-route-id="@Model.Invoice.Id">
+                    <i class="fas fa-download me-2"></i>
+                    Download PDF
+                </a>
             </div>
         </div>
     </div>
@@ -1436,7 +1469,7 @@
             statusBadge.className = 'badge badge-status-' + inv.status;
 
             // Set client name
-            document.getElementById('invoiceClientName').textContent = '@Model.DriverName';
+            document.getElementById('invoiceClientName').textContent = '@Model.BranchName';
 
             // Populate invoice items
             const itemsBody = document.getElementById('invoiceItemsBody');
@@ -1504,7 +1537,25 @@
         }
     }
 
-    // Event listeners
+
+    // Download PDF functionality
+
+
+       function downloadPDF() {
+
+         const downloadUrl = '@Url.Action("Download", "Invoice", new { area = "", id = "__ID__" })';
+       function downloadPDF() {
+         if (!@Model.Invoice.Id) return;
+         window.location = downloadUrl.replace("__ID__", '@Model.Invoice.Id');
+       }
+
+           // Show toast notification
+           showToast('success', 'PDF download started', 'Your invoice PDF is being prepared for download.');
+
+
+       }
+
+       // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
         // Add event listeners to both invoice buttons
         document.getElementById('viewInvoiceBtn').addEventListener('click', loadInvoiceData);

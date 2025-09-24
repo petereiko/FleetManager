@@ -11,6 +11,7 @@
 @inject FleetManagerDbContext _context
 @inject IAuthUser _authUser
 
+
 @{
     string area = "";
     string fullName = "User";
@@ -103,6 +104,7 @@
     <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@simonwep/pickr/dist/themes/classic.min.css" />
+
 
     <!-- Custom notification styles -->
     <style>
@@ -545,6 +547,8 @@
                 </div>
             </div>
         </div>
+
+        
     </div>
 
     <!-- Export Loading Indicator -->
@@ -561,45 +565,14 @@
         <span>Export completed successfully!</span>
     </div>
 
-   
+    
 
 
     <div class="sidebar-overlay" data-reff=""></div>
 
     <audio id="notification-sound" src="/sounds/notify.mp3" preload="auto"></audio>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteGenericModal" tabindex="-1" aria-labelledby="deleteGenericModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="deleteGenericModalLabel">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete the record <strong id="deleteRecordName"></strong>?</p>
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        This action cannot be undone.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <div class="d-inline">
-                        <input type="hidden" name="id" id="deleteRecordId" />
-                        <input type="hidden" id="action" />
-                        <input type="hidden" id="controller" />
-                        <button id="confirm-delete" onclick="ConfirmDelete()" type="button" class="btn btn-danger">
-                            <i class="fas fa-trash me-1"></i>Delete Record
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
 
 
     <!-- Alert auto-hide script -->
@@ -616,12 +589,19 @@
         //     });
         // });
     </script>
+
+
+
+
     <!-- Delete Modal -->
-    <script src="~/js/deleteModal.js"></script>
+    <!-- <script src="~/js/deleteModal.js"></script> -->
+
+    <script src="~/js/delete-modal-simple.js"></script>
 
 
 
-    <!-- jQuery -->
+     <!-- JQuery -->
+    
     <script src="~/assets/js/jquery-3.7.1.min.js"></script>
 
     <!-- Table Export -->
@@ -1040,8 +1020,9 @@
     <!-- Custom JS -->
     <script src="~/assets/js/app.js"></script>
 
-
+    @await Html.PartialAsync("_DeleteModal")
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 
 

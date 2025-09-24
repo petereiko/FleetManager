@@ -1440,6 +1440,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1451,6 +1452,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
 
     <style>
         :root {
@@ -1649,14 +1651,14 @@
                     display: block; /* ensure Chart reads real size when created */
                 }
 
-        /* UPDATED: Make table cards the same height with vertical scroll */
+        /* Updated table card styles to accommodate card footer */
         .table-card {
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--card-shadow);
             overflow: hidden;
             transition: var(--transition);
-            height: 400px; /* Fixed height for all table cards */
+            height: 450px; /* Increased height to accommodate footer */
             display: flex;
             flex-direction: column;
         }
@@ -1671,19 +1673,44 @@
                 border: none;
                 padding: 1rem 1.5rem;
                 font-weight: 600;
+                flex-shrink: 0; /* Don't shrink header */
             }
 
         .table-responsive {
-            overflow-y: auto; /* Vertical scrollbar */
-            flex: 1; /* Fill remaining space */
+            overflow-y: auto;
+            flex: 1; /* Fill remaining space between header and footer */
         }
 
+        /* New card footer styles */
+        .table-card .card-footer {
+            background: #f8f9fa;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-top: 1px solid #dee2e6;
+            flex-shrink: 0; /* Don't shrink footer */
+        }
+
+            .table-card .card-footer .btn {
+                font-size: 0.875rem;
+                font-weight: 500;
+                padding: 0.5rem 1rem;
+                transition: var(--transition);
+                border-radius: 8px;
+            }
+
+                .table-card .card-footer .btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+                }
+
+        /* Ensure table hover effects work nicely */
         .table-hover tbody tr:hover {
             background-color: #f8f9fa;
             transform: scale(1.01);
             transition: var(--transition);
         }
 
+        /* Status badges remain the same */
         .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 50px;
@@ -1798,6 +1825,7 @@
                 padding: 1rem;
             }
         }
+
     </style>
 </head>
 
@@ -2095,6 +2123,7 @@
             </div>
         </div>
 
+
         <!-- Data Tables Section -->
         <div class="row g-4 mb-4">
             <div class="col-lg-4">
@@ -2150,9 +2179,14 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="card-footer">
+                        <a asp-action="Index" asp-controller="ManageMaintenance" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-list me-1"></i>View All Maintenance Tickets
+                        </a>
+                    </div>
                 </div>
             </div>
-
+ 
             <div class="col-lg-4">
                 <div class="table-card animate__animated animate__fadeInUp animate__delay-1s">
                     <div class="card-header">
@@ -2197,6 +2231,11 @@
                                 }
                             </tbody>
                         </table>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Index" asp-controller="FuelLog" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-list me-1"></i>View All Fuel Logs
+                        </a>
                     </div>
                 </div>
             </div>
@@ -2253,6 +2292,11 @@
                                 }
                             </tbody>
                         </table>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Index" asp-controller="ContactDirectory" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-address-book me-1"></i>View All Contacts
+                        </a>
                     </div>
                 </div>
             </div>

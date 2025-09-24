@@ -5,7 +5,6 @@
 }
 
 
-
 <style>
     /* Main Container */
     .ticket-details-container {
@@ -958,6 +957,7 @@
                 <div class="modal-body invoice-body">
                     <div class="invoice-container">
                         <!-- Invoice Header -->
+
                         <div class="invoice-header-section">
                             <div class="company-info" style="display:flex; align-items:center; gap:1rem;">
                                 <div class="company-logo">
@@ -1124,10 +1124,18 @@
                         <i class="fas fa-print me-2"></i>
                         Print Invoice
                     </button>
-                    <button type="button" class="btn btn-success" onclick="downloadPDF()">
+                    @* <button type="button" class="btn btn-success" onclick="downloadPDF()">
                         <i class="fas fa-download me-2"></i>
                         Download PDF
-                    </button>
+                    </button> *@
+                    <a class="btn btn-success"
+                       asp-area=""
+                       asp-controller="Invoice"
+                       asp-action="Download"
+                       asp-route-id="@Model.Invoice.Id">
+                        <i class="fas fa-download me-2"></i>
+                        Download PDF
+                    </a>
                 </div>
             </div>
         </div>

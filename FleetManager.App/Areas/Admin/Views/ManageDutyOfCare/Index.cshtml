@@ -1079,10 +1079,6 @@
 </script>
 
 
-
-
-
-
  *@
 
 
@@ -1241,6 +1237,7 @@
         </div>
     </div>
 
+
     <!-- Alert Messages -->
     @if (TempData["Success"] != null)
     {
@@ -1276,6 +1273,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
             <div class="card bg-success text-white">
                 <div class="card-body">
@@ -1436,7 +1434,6 @@
                                         </div>
                                         <div>
                                             <strong>@record.DriverName</strong>
-                                            <div class="text-muted small">ID: @record.DriverId</div>
                                         </div>
                                     </div>
                                 </td>
@@ -1447,7 +1444,7 @@
                                         </div>
                                         <div>
                                             <strong>@record.VehicleDescription</strong>
-                                            <div class="text-muted small">ID: @record.VehicleId</div>
+                                            <div class="text-muted small">Plate: @record.LicensePlate</div>
                                         </div>
                                     </div>
                                 </td>
@@ -1500,30 +1497,41 @@
                                     }
                                 </td>
                                 <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a asp-action="Edit" asp-route-id="@record.Id" 
-                                           class="btn btn-outline-primary"
-                                           data-bs-toggle="tooltip" 
-                                           title="Edit Record">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button class="btn btn-outline-info" 
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#detailsModal"
-                                                data-url="@Url.Action("Details", new { id = record.Id })"
-                                                data-bs-toggle="tooltip" 
-                                                title="View Details">
-                                            <i class="fas fa-eye"></i>
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
                                         </button>
-                                        <button type="button" 
-                                                class="btn btn-outline-danger delete-btn"
-                                                data-record-id="@record.Id"
-                                                data-record-name="@record.DriverName - @record.DutyOfCareRecordType.ToString()"
-                                                data-bs-toggle="tooltip" 
-                                                title="Delete Record">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <button class="dropdown-item"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#detailsModal"
+                                                        data-url="@Url.Action("Details", new { id = record.Id })">
+                                                    <i class="fas fa-eye me-2 text-info"></i>View Details
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" asp-action="Edit" asp-route-id="@record.Id">
+                                                    <i class="fas fa-edit me-2 text-info"></i>Edit
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+
+                                                <button class="dropdown-item d-flex align-items-center text-danger delete-btn"
+                                                        data-record-id="@record.Id"
+                                                        data-record-name="@record.DriverName - @record.DutyOfCareRecordType.ToString()"
+                                                        data-delete-action="@Url.Action("Delete", "ManageDutyOfCare")"
+                                                        data-item-type="Record"
+                                                        data-button-text="Record">
+                                                    <i class="fas fa-trash me-1"></i>Delete Record
+                                                </button>
+                                            </li>
+                                        </ul>
                                     </div>
+
                                 </td>
                             </tr>
                         }
@@ -1569,10 +1577,14 @@
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <button class="dropdown-item text-danger delete-btn"
+                                                   
+                                                    <button class="dropdown-item btn btn-outline-danger delete-btn"
                                                             data-record-id="@record.Id"
-                                                            data-record-name="@record.DriverName - @record.DutyOfCareRecordType.ToString()">
-                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                            data-record-name="@record.DriverName - @record.DutyOfCareRecordType.ToString()"
+                                                            data-delete-action="@Url.Action("Delete", "ManageDutyOfCare")"
+                                                            data-item-type="Record"
+                                                            data-button-text="Record">
+                                                        <i class="fas fa-trash me-1"></i>Delete Record
                                                     </button>
                                                 </li>
                                             </ul>
@@ -1684,38 +1696,11 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete the record <strong id="deleteRecordName"></strong>?</p>
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    This action cannot be undone.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="post" class="d-inline">
-                    <input type="hidden" name="id" id="deleteRecordId" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i>Delete Record
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Bootstrap 5 JavaScript Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1944,19 +1929,6 @@
                     });
             });
 
-            // Delete confirmation
-            const deleteModal = document.getElementById('deleteModal');
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const recordId = this.dataset.recordId;
-                    const recordName = this.dataset.recordName;
-                    
-                    document.getElementById('deleteRecordId').value = recordId;
-                    document.getElementById('deleteRecordName').textContent = recordName;
-                    document.getElementById('deleteForm').action = '@Url.Action("Delete")';
-                    
-                    new bootstrap.Modal(deleteModal).show();
-                });
-            });
+            
         });
     </script>

@@ -200,12 +200,30 @@ namespace FleetManager.Business.Implementations.RepairModule
                 .Include(x => x.Driver).ThenInclude(d => d.User)
                 .Include(x => x.Vehicle).ThenInclude(v => v.VehicleMake)
                 .Include(x => x.Vehicle).ThenInclude(v => v.VehicleModel)
+                // include Company + Branch from Vehicle
+                .Include(t => t.Vehicle).ThenInclude(v => v.Company)
+                .Include(t => t.Vehicle).ThenInclude(v => v.CompanyBranch)
                 .Include(x => x.Items).ThenInclude(i => i.VehiclePartCategory)
                 .Include(x => x.Items).ThenInclude(i => i.VehiclePart)
                 .Include(x => x.Invoice).ThenInclude(inv => inv.Items).ThenInclude(ii => ii.VehiclePart)
                 .FirstOrDefaultAsync(x => x.Id == repairId);
 
             if (r == null) return null;
+
+            
+
+            // company/branch shortcuts (safe)
+            var company = r.Vehicle?.Company;
+            var branch = r.Vehicle?.CompanyBranch;
+            string? branchStateName = branch?.State?.Name;
+
+            if (branchStateName == null && branch?.StateId != null)
+            {
+                var state = await _context.States
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Id == branch.StateId);
+                branchStateName = state?.Name;
+            }
 
             return new RepairDto
             {
@@ -220,6 +238,17 @@ namespace FleetManager.Business.Implementations.RepairModule
                 Priority = r.Priority,
                 CreatedAt = r.CreatedDate,
                 ResolvedAt = r.ResolvedAt,
+                // NEW: company & branch info
+                CompanyName = company?.Name,
+                CompanyLogoUrl = company?.LogoUrl,
+                CompanyEmail = company?.Email,
+                CompanyPhone = company?.PhoneNumber,
+                BranchName = branch?.Name,
+                BranchAddress = branch?.Address,
+                BranchState = branchStateName,
+                BranchPhone = branch?.Phone,
+                BranchEmail = branch?.Email,
+                IsBranchHeadOffice = branch?.IsHeadOffice ?? false,
                 Items = r.Items.Select(i => new RepairItemDto
                 {
                     Id = i.Id,

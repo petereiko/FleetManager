@@ -105,9 +105,29 @@ namespace FleetManager.App.Areas.Admin.Controllers
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
-            var resp = await _service.DeleteContactAsync(id);
-            if (!resp.Success)
-                TempData["Error"] = resp.Message;
+            //var resp = await _service.DeleteContactAsync(id);
+            //if (!resp.Success)
+            //    TempData["Error"] = resp.Message;
+            //return RedirectToAction(nameof(Index));
+
+            try
+            {
+                var resp = await _service.DeleteContactAsync(id);
+                if (resp == null)
+                {
+                    TempData["Error"] = resp.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+
+                await _service.DeleteContactAsync(id);
+                TempData["Success"] = resp.Message;
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while deleting the contact.";
+                // Log exception
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

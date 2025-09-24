@@ -411,8 +411,14 @@
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <button class="dropdown-item d-flex align-items-center text-danger delete-btn" onclick="DeleteRecord('@log.Id','@log.DriverName','@log.VehicleDescription')" data-id="@log.Id" data-driver="@log.DriverName" data-vehicle="@log.VehicleDescription">
-                                                        <i class="feather-trash-2 me-2"></i>Delete Log
+                                                   
+                                                    <button class="dropdown-item d-flex align-items-center text-danger delete-btn"
+                                                            data-record-id="@log.Id"
+                                                            data-record-name="@log.FuelType - ₦@log.Cost.ToString("N2")"
+                                                            data-delete-action="@Url.Action("Delete", "FuelLog")"
+                                                            data-item-type="Record"
+                                                            data-button-text="Record">
+                                                        <i class="fas fa-trash me-1"></i>Delete Record
                                                     </button>
                                                 </li>
                                             </ul>
@@ -684,86 +690,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                 });
         });
-    });
-
-    // Delete confirmation functionality
-    // document.querySelectorAll('.delete-btn').forEach(btn => {
-    //     btn.addEventListener('click', function() {
-    //         const logId = this.dataset.id;
-    //         const driverName = this.dataset.driver;
-    //         const vehicleDesc = this.dataset.vehicle;
-
-
-    //                deleteModal.openDeleteModal("Fuel Log", "Delete", "FuelLog", logId);
-                   
-    //        //deleteModal.confirmDelete("action", "controller", 4);
-                
-
-    //         // Swal.fire({
-    //         //     title: 'Delete Fuel Log?',
-    //         //     html: `
-    //         //         <div class="text-start mt-3">
-    //         //             <p class="mb-2"><strong>Driver:</strong> ${driverName}</p>
-    //         //             <p class="mb-2"><strong>Vehicle:</strong> ${vehicleDesc}</p>
-    //         //             <p class="text-danger mb-0"><small>This action cannot be undone.</small></p>
-    //         //         </div>
-    //         //     `,
-    //         //     icon: 'warning',
-    //         //     showCancelButton: true,
-    //         //     confirmButtonColor: '#dc3545',
-    //         //     cancelButtonColor: '#6c757d',
-    //         //     confirmButtonText: '<i class="feather-trash-2 me-1"></i> Yes, Delete',
-    //         //     cancelButtonText: '<i class="feather-x me-1"></i> Cancel',
-    //         //     reverseButtons: true,
-    //         //     customClass: {
-    //         //         popup: 'swal2-border-radius'
-    //         //     }
-    //         // }).then((result) => {
-    //         //     if (result.isConfirmed) {
-    //         //         // Create and submit form
-    //         //         const form = document.createElement('form');
-    //         //         form.method = 'POST';
-    //         //         form.action = `@Url.Action("Delete", "FuelLog")/${logId}`;
-                    
-    //         //         // Add CSRF token if available
-    //         //         const token = document.querySelector('input[name="__RequestVerificationToken"]');
-    //         //         if (token) {
-    //         //             const hiddenToken = document.createElement('input');
-    //         //             hiddenToken.type = 'hidden';
-    //         //             hiddenToken.name = '__RequestVerificationToken';
-    //         //             hiddenToken.value = token.value;
-    //         //             form.appendChild(hiddenToken);
-    //         //         }
-                    
-    //         //         document.body.appendChild(form);
-    //         //         form.submit();
-    //         //     }
-    //         // });
-    //     });
-    // });
-
-        // Excel Export Function
-    
-
+    });    
 
 });
 
-let _logId=0;
 
-              function DeleteRecord(logId, logDriverName, logVehicleDescription) {
-                  _logId=logId;
-            const modal = new DeleteModal("Fuel Log", "Delete", "FuelLog", "Admin", logId);
-        modal.openDeleteModal();
-    }
-
-
-    function ConfirmDelete(){
-             
-                     const modal = new DeleteModal("Fuel Log", "Delete", "FuelLog", "Admin", _logId);
-                     console.log(_logId);
-                      modal.confirmDelete();
-             
-    }
 
     function exportToExcel() {
             debugger
