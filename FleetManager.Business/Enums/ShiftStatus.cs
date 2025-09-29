@@ -12,7 +12,10 @@ namespace FleetManager.Business.Enums
         [Display(Name = "On Duty")]
         OnDuty = 1,
         [Display(Name = "Off Duty")]
-        OffDuty,
+        OffDuty = 2,
+        [Display(Name = "Available")]
+        Available,
+
 
     }
 }

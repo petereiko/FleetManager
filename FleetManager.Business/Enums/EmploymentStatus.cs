@@ -25,6 +25,9 @@ namespace FleetManager.Business.Enums
         Contract,
 
         [Description("Temporary")]
-        Temporary
+        Temporary,
+
+        [Description("Inactive")]
+        Inactive
     }
 }

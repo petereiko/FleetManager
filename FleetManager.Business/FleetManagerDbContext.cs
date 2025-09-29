@@ -98,6 +98,9 @@ namespace FleetManager.Business
         public DbSet<TimeOffRequest> TimeOffRequests { get; set; }
         public DbSet<TimeOffCategory> TimeOffCategories { get; set; }
         public DbSet<Trip> Trips { get; set; }
+        public DbSet<TripCheckpoint> TripCheckpoints { get; set; }
+        public DbSet<TripDocument> TripDocuments { get; set; }
+        public DbSet<TripExpense> TripExpenses { get; set; }    
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }
         public DbSet<VehicleMake> VehicleMakes { get; set; }

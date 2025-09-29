@@ -5,23 +5,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FleetManager.Business.Database.Entities
+namespace FleetManager.Business.DataObjects.TripsDto
 {
-    public class Trip : BaseEntity
+    public class TripDto
     {
-        public string TripNumber { get; set; } // Auto-generated unique identifier
+        public long Id { get; set; }
+        public string TripNumber { get; set; }
         public long CompanyBranchId { get; set; }
-        public virtual CompanyBranch CompanyBranch { get; set; }
-
         public long CompanyId { get; set; }
-        public virtual Company Company { get; set; }
 
-        // Assignment Details
-        public long? DriverId { get; set; }
-        public virtual Driver Driver { get; set; }
-
+        // Vehicle Info
         public long VehicleId { get; set; }
-        public virtual Vehicle Vehicle { get; set; }
+        public string VehiclePlateNo { get; set; }
+        public string VehicleMake { get; set; }
+        public string VehicleModel { get; set; }
+
+        // Driver Info
+        public long? DriverId { get; set; }
+        public string? DriverName { get; set; }
+        public string? DriverLicenseNumber { get; set; }
 
         // Trip Details
         public string Origin { get; set; }
@@ -35,39 +37,43 @@ namespace FleetManager.Business.Database.Entities
         public DateTime? ActualStartDate { get; set; }
         public DateTime? ActualEndDate { get; set; }
 
-        // Trip Metrics
-        public decimal? EstimatedDistance { get; set; } // in KM
+        // Metrics
+        public decimal? EstimatedDistance { get; set; }
         public decimal? ActualDistance { get; set; }
         public decimal? EstimatedFuelCost { get; set; }
         public decimal? ActualFuelCost { get; set; }
 
-        // Odometer Readings
+        // Odometer
         public int? StartOdometer { get; set; }
         public int? EndOdometer { get; set; }
 
-        // Status & Priority
+        // Status
         public TripStatus Status { get; set; }
+        public string StatusDisplay { get; set; }
         public TripPriority Priority { get; set; }
+        public string PriorityDisplay { get; set; }
 
         // Assignment
-        public string? AssignedBy { get; set; } // UserId of admin who assigned
+        public string? AssignedBy { get; set; }
         public DateTime? AssignedDate { get; set; }
 
-        // Approval Workflow (Optional)
+        // Approval
         public bool RequiresApproval { get; set; }
         public bool? IsApproved { get; set; }
         public string? ApprovedBy { get; set; }
         public DateTime? ApprovedDate { get; set; }
         public string? RejectionReason { get; set; }
 
-        // Additional Information
+        // Additional
         public string? Notes { get; set; }
         public string? CancellationReason { get; set; }
         public DateTime? CancellationDate { get; set; }
 
-        // Navigation Properties
-        public virtual ICollection<TripExpense> TripExpenses { get; set; } = new HashSet<TripExpense>();
-        public virtual ICollection<TripDocument> TripDocuments { get; set; } = new HashSet<TripDocument>();
-        public virtual ICollection<TripCheckpoint> TripCheckpoints { get; set; } = new HashSet<TripCheckpoint>();
+        // Base Entity
+        public bool IsActive { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? ModifiedBy { get; set; }
     }
 }

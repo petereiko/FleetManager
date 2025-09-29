@@ -31,6 +31,7 @@ using FleetManager.Business.Implementations.RentalModule;
 using FleetManager.Business.Implementations.RepairModule;
 using FleetManager.Business.Implementations.ReportModule;
 using FleetManager.Business.Implementations.ScheduleModule;
+using FleetManager.Business.Implementations.TripModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
 using FleetManager.Business.Implementations.VendorModule;
@@ -53,6 +54,7 @@ using FleetManager.Business.Interfaces.RentalModule;
 using FleetManager.Business.Interfaces.RepairModule;
 using FleetManager.Business.Interfaces.ReportModule;
 using FleetManager.Business.Interfaces.ScheduleModule;
+using FleetManager.Business.Interfaces.TripModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
@@ -212,6 +214,7 @@ builder.Services.AddTransient<IPublicHolidayService, PublicHolidayService>();
 builder.Services.AddTransient<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddTransient<ICompanyOwnerDashboardService, CompanyOwnerDashboardService>();
 builder.Services.AddTransient<IRepairService, RepairService>();
+builder.Services.AddTransient<ITripService, TripService>();
 
 
 
