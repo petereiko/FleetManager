@@ -43,5 +43,8 @@ namespace FleetManager.Business.Interfaces.TripModule
 
         // Validation & Business Rules
         Task<MessageResponse<bool>> ValidateTripAvailabilityAsync(long vehicleId, long? driverId, DateTime startDate, DateTime endDate, long? excludeTripId = null);
+
+        Task<MessageResponse<List<SimpleVehicleDto>>> GetVehiclesForDriverAsync(long driverId, DateTime? scheduledStart = null, DateTime? scheduledEnd = null, bool excludeVehiclesOnTripOverlap = true);
+        Task<MessageResponse<List<SimpleDriverDto>>> GetDriversForBranchAsync();
     }
 }

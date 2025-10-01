@@ -111,6 +111,8 @@ namespace FleetManager.Business
         public DbSet<VehicleToCompanyRental> VehicleToCompanyRentals { get; set; }
         public DbSet<Vendor> Vendors { get; set; }
         public DbSet<VendorCategory> VendorCategories { get; set; }
+        public DbSet<WebhookDeliveryLog> WebhookDeliveryLogs { get; set; }
+
 
         #endregion
     }

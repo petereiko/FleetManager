@@ -64,10 +64,17 @@ namespace FleetManager.Business.Database.Entities
         public string? Notes { get; set; }
         public string? CancellationReason { get; set; }
         public DateTime? CancellationDate { get; set; }
+        
 
         // Navigation Properties
         public virtual ICollection<TripExpense> TripExpenses { get; set; } = new HashSet<TripExpense>();
         public virtual ICollection<TripDocument> TripDocuments { get; set; } = new HashSet<TripDocument>();
         public virtual ICollection<TripCheckpoint> TripCheckpoints { get; set; } = new HashSet<TripCheckpoint>();
+
+
+        //Take them out later
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
+        public double Distance { get; set; }
     }
 }

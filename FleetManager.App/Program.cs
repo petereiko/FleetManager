@@ -5,6 +5,7 @@ using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DVLA.Business.UserModule;
 using FleetManager.App;
+using FleetManager.App.Areas.Admin.Controllers;
 using FleetManager.Business;
 using FleetManager.Business.Database.IdentityModels;
 using FleetManager.Business.DataObjects.ReportsDto;
@@ -35,6 +36,7 @@ using FleetManager.Business.Implementations.TripModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
 using FleetManager.Business.Implementations.VendorModule;
+using FleetManager.Business.Implementations.Webhooks;
 using FleetManager.Business.Interfaces.AdminDashboardModule;
 using FleetManager.Business.Interfaces.CompanyBranchModule;
 using FleetManager.Business.Interfaces.CompanyDashboardModule;
@@ -58,6 +60,7 @@ using FleetManager.Business.Interfaces.TripModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
+using FleetManager.Business.Interfaces.WebhookModule;
 using FleetManager.Business.UtilityModels;
 using FleetManager.Business.UtilityModels.PdfService;
 using Hangfire;
@@ -214,6 +217,8 @@ builder.Services.AddTransient<IPublicHolidayService, PublicHolidayService>();
 builder.Services.AddTransient<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddTransient<ICompanyOwnerDashboardService, CompanyOwnerDashboardService>();
 builder.Services.AddTransient<IRepairService, RepairService>();
+builder.Services.AddTransient<IWebhookDispatcher, WebhookDispatcher>();
+builder.Services.AddTransient<NotificationWorker>();
 builder.Services.AddTransient<ITripService, TripService>();
 
 
@@ -357,7 +362,13 @@ app.UseAuthorization();
 //app.UseMiddleware<SessionTimeoutRedirectMiddleware>();
 
 
-app.UseHangfireDashboard("/hangfire");
+//app.UseHangfireDashboard("/hangfire");
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireDashboardAuthorizationFilter() },
+    DashboardTitle = "FleetGuard Background Jobs"
+});
+
 
 app.MapControllerRoute(
     name: "areas",

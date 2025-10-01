@@ -11,14 +11,16 @@ namespace FleetManager.Business.ViewModels.TripsViewModels
 {
     public class AssignTripViewModel
     {
-       
+        public long TripId { get; set; }
+        public string TripNumber { get; set; }
         public TripDto Trip { get; set; }
         
         [Display(Name = "Driver")]
         public long? DriverId { get; set; }
-        public List<SelectListItem> Drivers { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> Drivers { get; set; } = Enumerable.Empty<SelectListItem>();
 
         [StringLength(2000)]
+        [DataType(DataType.MultilineText)]
         public string Notes { get; set; }
     }
 }
