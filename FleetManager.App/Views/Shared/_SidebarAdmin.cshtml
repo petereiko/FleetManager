@@ -100,6 +100,28 @@
 
             <li class="submenu">
                 <a asp-area="Admin"
+                   asp-controller="AdminTrips"
+                   asp-action="Dashboard">
+                    <span class="menu-side">
+                        <img src="~/assets/img/icons/menu-icon-02.svg" alt="">
+                    </span>
+                    <span> Trips </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="AdminTrips"
+                           asp-action="Dashboard">
+                            Manage Trips
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+
+            <li class="submenu">
+                <a asp-area="Admin"
                    asp-controller="ManageFuelLog"
                    asp-action="Index">
                     <span class="menu-side">

@@ -1,0 +1,326 @@
+﻿@using FleetManager.Business.ViewModels.TripsViewModels
+@model AssignTripViewModel
+
+<style>
+    .modal-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+        border: none;
+    }
+
+        .modal-header-custom h5 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .modal-header-custom .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+
+            .modal-header-custom .btn-close:hover {
+                opacity: 1;
+            }
+
+    .modal-body-custom {
+        padding: 2rem;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.75rem;
+        font-size: 0.938rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control-custom,
+    .form-select-custom {
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s;
+        font-size: 0.938rem;
+    }
+
+        .form-control-custom:focus,
+        .form-select-custom:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+    .form-select-custom {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+    }
+
+    .trip-info-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid #dee2e6;
+    }
+
+    .trip-info-title {
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .trip-info-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #667eea;
+        margin: 0;
+    }
+
+    .modal-footer-custom {
+        padding: 1.5rem 2rem;
+        border-top: 2px solid #f1f3f5;
+        background: #f8f9fa;
+        border-radius: 0 0 12px 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .btn-submit-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-submit-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-submit-custom:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    .btn-cancel-custom {
+        background: white;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-cancel-custom:hover {
+            background: #f8fafc;
+            border-color: #cbd5e0;
+            color: #475569;
+        }
+
+    .validation-error {
+        color: #ef4444;
+        font-size: 0.813rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .helper-text {
+        color: #64748b;
+        font-size: 0.813rem;
+        margin-top: 0.5rem;
+        font-style: italic;
+    }
+
+    .required-indicator {
+        color: #ef4444;
+        font-weight: 700;
+    }
+
+    .driver-option-empty {
+        color: #94a3b8;
+        font-style: italic;
+    }
+</style>
+
+<div class="modal-header-custom">
+    <h5>
+        <i class="fas fa-user-plus me-2"></i>
+        Assign Driver to Trip
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body-custom">
+    <!-- Trip Information Card -->
+    <div class="trip-info-card">
+        <div class="trip-info-title">
+            <i class="fas fa-route me-1"></i> Trip Reference
+        </div>
+        <div class="trip-info-number">@Model.TripNumber</div>
+    </div>
+
+    <!-- Assignment Form -->
+    <form id="assignForm" asp-action="Assign" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="TripId" />
+
+        <!-- Driver Selection -->
+        <div class="mb-4">
+            <label asp-for="DriverId" class="form-label-custom">
+                <i class="fas fa-user"></i>
+                Select Driver
+                <span class="required-indicator">*</span>
+            </label>
+            <select asp-for="DriverId" class="form-select form-select-custom" asp-items="Model.Drivers" required>
+                <option value="" class="driver-option-empty">-- Choose a driver --</option>
+            </select>
+            <span asp-validation-for="DriverId" class="validation-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="field-validation-valid" data-valmsg-for="DriverId" data-valmsg-replace="true"></span>
+            </span>
+            <div class="helper-text">
+                <i class="fas fa-info-circle me-1"></i>
+                Select an available driver from the list
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="mb-3">
+            <label asp-for="Notes" class="form-label-custom">
+                <i class="fas fa-sticky-note"></i>
+                Additional Notes
+                <small class="text-muted fw-normal">(Optional)</small>
+            </label>
+            <textarea asp-for="Notes" class="form-control form-control-custom" rows="4"
+                      placeholder="Add any special instructions or notes for this assignment..."></textarea>
+            <span asp-validation-for="Notes" class="validation-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="field-validation-valid" data-valmsg-for="Notes" data-valmsg-replace="true"></span>
+            </span>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer-custom">
+    <button type="button" class="btn-cancel-custom" data-bs-dismiss="modal">
+        <i class="fas fa-times"></i>
+        Cancel
+    </button>
+    <button type="submit" form="assignForm" class="btn-submit-custom">
+        <i class="fas fa-check"></i>
+        Assign Driver
+    </button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    $(function() {
+        // Re-parse unobtrusive validation after dynamic content load
+        var form = $('#assignForm');
+        $.validator.unobtrusive.parse(form);
+
+        // Custom styling for validation errors
+        form.validate({
+            errorClass: "validation-error",
+            errorElement: "span",
+            highlight: function(element) {
+                $(element).addClass('border-danger').removeClass('border-success');
+            },
+            unhighlight: function(element) {
+                $(element).removeClass('border-danger').addClass('border-success');
+            },
+            errorPlacement: function(error, element) {
+                error.insertAfter(element);
+                error.prepend('<i class="fas fa-exclamation-circle me-1"></i>');
+            }
+        });
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.ViewModels.TripsViewModels
+@model AssignTripViewModel
+
+<div>
+    <h5 class="mb-3">Assign Trip @Model.TripNumber</h5>
+
+    <div id="assignFormContainer">
+        <form id="assignForm" asp-action="Assign" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="TripId" />
+
+            <div class="mb-3">
+                <label asp-for="DriverId" class="form-label"></label>
+                <select asp-for="DriverId" class="form-select" asp-items="Model.Drivers">
+                    <option value="">-- Select driver --</option>
+                </select>
+                <span asp-validation-for="DriverId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">Assign</button>
+                <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // client-side validation or AJAX handled by parent page (Index or Details)
+    </script>
+}
+ *@

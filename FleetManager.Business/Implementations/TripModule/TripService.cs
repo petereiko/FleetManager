@@ -47,6 +47,16 @@ namespace FleetManager.Business.Implementations.TripModule
             _authUser = authUser;
         }
 
+        private void EnsureDriverOnly()
+        {
+            var roles = (_authUser.Roles ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(r => r.Trim());
+            if (roles.Contains("Company Admin") && roles.Contains("Company Owner") && roles.Contains("Super Admin"))
+            {
+                throw new UnauthorizedAccessException("Only the assigned driver may start/complete this trip");
+
+            }
+        }
+
         #region CRUD Operations
 
         public async Task<MessageResponse<TripDto>> CreateTripAsync(CreateTripDto dto)
@@ -57,6 +67,10 @@ namespace FleetManager.Business.Implementations.TripModule
                     return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch or company." };
 
                 var now = DateTime.UtcNow;
+
+                // Normalize incoming client-local datetimes to UTC
+                dto.ScheduledStartDate = DateTimeUtils.ToUtcFromLocal(dto.ScheduledStartDate);
+                dto.ScheduledEndDate = DateTimeUtils.ToUtcFromLocal(dto.ScheduledEndDate);
 
                 // Validate scheduled dates (use UTC assumption)
                 if (dto.ScheduledEndDate <= dto.ScheduledStartDate)
@@ -226,6 +240,10 @@ namespace FleetManager.Business.Implementations.TripModule
 
                 var now = DateTime.UtcNow;
 
+                // Normalize incoming client-local datetimes to UTC
+                dto.ScheduledStartDate = DateTimeUtils.ToUtcFromLocal(dto.ScheduledStartDate);
+                dto.ScheduledEndDate = DateTimeUtils.ToUtcFromLocal(dto.ScheduledEndDate);
+
                 var trip = await _context.Trips
                     .FirstOrDefaultAsync(t => t.Id == dto.Id &&
                                               t.CompanyBranchId == _authUser.CompanyBranchId &&
@@ -325,6 +343,7 @@ namespace FleetManager.Business.Implementations.TripModule
                     .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
                     .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                     .Include(t => t.Driver).ThenInclude(d => d.User)
+                    .Include(t => t.TripCheckpoints)
                     .FirstOrDefaultAsync(t => t.Id == id &&
                                               t.CompanyBranchId == _authUser.CompanyBranchId &&
                                               t.IsActive);
@@ -350,7 +369,8 @@ namespace FleetManager.Business.Implementations.TripModule
 
                 var query = _context.Trips
                     .AsNoTracking()
-                    .Include(t => t.Vehicle)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                     .Include(t => t.Driver).ThenInclude(d => d.User)
                     .Where(t => t.CompanyBranchId == _authUser.CompanyBranchId && t.IsActive);
 
@@ -385,7 +405,7 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -395,7 +415,9 @@ namespace FleetManager.Business.Implementations.TripModule
                         StatusDisplay = t.Status.ToString(),
                         Priority = t.Priority,
                         PriorityDisplay = t.Priority.ToString(),
-                        CreatedDate = t.CreatedDate
+                        CreatedDate = t.CreatedDate,
+                        RequiresApproval = t.RequiresApproval
+
                     })
                     .ToListAsync();
 
@@ -611,11 +633,15 @@ namespace FleetManager.Business.Implementations.TripModule
             }
         }
 
+
         public async Task<MessageResponse<TripDto>> StartTripAsync(StartTripDto dto)
         {
+            EnsureDriverOnly();
             try
             {
-                if (_authUser?.CompanyBranchId == null) return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch." };
+                if (_authUser?.CompanyBranchId == null)
+                    return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch." };
+
                 var now = DateTime.UtcNow;
 
                 var trip = await _context.Trips
@@ -630,7 +656,8 @@ namespace FleetManager.Business.Implementations.TripModule
                 if (trip.Status != TripStatus.Assigned)
                     return new MessageResponse<TripDto> { Success = false, Message = $"Cannot start trip with status '{trip.Status}'. Trip must be assigned first." };
 
-                if (!trip.DriverId.HasValue) return new MessageResponse<TripDto> { Success = false, Message = "Trip must be assigned to a driver before starting" };
+                if (!trip.DriverId.HasValue)
+                    return new MessageResponse<TripDto> { Success = false, Message = "Trip must be assigned to a driver before starting" };
 
                 // Odometer validity
                 if (trip.Vehicle != null && trip.Vehicle.Mileage.HasValue && dto.StartOdometer < trip.Vehicle.Mileage.Value)
@@ -638,6 +665,77 @@ namespace FleetManager.Business.Implementations.TripModule
                     return new MessageResponse<TripDto> { Success = false, Message = $"Start odometer reading ({dto.StartOdometer} km) cannot be less than vehicle's current mileage ({trip.Vehicle.Mileage.Value} km)" };
                 }
 
+                // --- GEO CHECK (soft-flag) ---
+                const double WARN_THRESHOLD_METERS = 5_000;        // 5 km -> log
+                const double SUSPICIOUS_THRESHOLD_METERS = 50_000; // 50 km -> flag as suspicious
+
+                bool locationSuspicious = false;
+                string? suspicionNote = null;
+
+                if (dto.Latitude.HasValue && dto.Longitude.HasValue)
+                {
+                    decimal? refLat = null, refLon = null;
+                    bool hasReference = false;
+
+                    // Try trip.OriginLatitude / OriginLongitude (decimal?) if present
+                    var tripType = trip.GetType();
+                    var originLatProp = tripType.GetProperty("OriginLatitude");
+                    var originLonProp = tripType.GetProperty("OriginLongitude");
+                    if (originLatProp != null && originLonProp != null)
+                    {
+                        var oLat = originLatProp.GetValue(trip);
+                        var oLon = originLonProp.GetValue(trip);
+                        if (oLat != null && oLon != null)
+                        {
+                            refLat = Convert.ToDecimal(oLat);
+                            refLon = Convert.ToDecimal(oLon);
+                            hasReference = true;
+                        }
+                    }
+
+                    // Fallback: vehicle.LastKnownLatitude / LastKnownLongitude (decimal?)
+                    if (!hasReference && trip.Vehicle != null)
+                    {
+                        var vType = trip.Vehicle.GetType();
+                        var vLatProp = vType.GetProperty("LastKnownLatitude");
+                        var vLonProp = vType.GetProperty("LastKnownLongitude");
+                        if (vLatProp != null && vLonProp != null)
+                        {
+                            var vLat = vLatProp.GetValue(trip.Vehicle);
+                            var vLon = vLonProp.GetValue(trip.Vehicle);
+                            if (vLat != null && vLon != null)
+                            {
+                                refLat = Convert.ToDecimal(vLat);
+                                refLon = Convert.ToDecimal(vLon);
+                                hasReference = true;
+                            }
+                        }
+                    }
+
+                    if (hasReference)
+                    {
+                        var distMetersNullable = GeoUtils.HaversineDistanceMeters(refLat, refLon, dto.Latitude, dto.Longitude);
+                        if (distMetersNullable.HasValue)
+                        {
+                            var distMeters = distMetersNullable.Value;
+
+                            if (distMeters > WARN_THRESHOLD_METERS)
+                            {
+                                _logger.LogWarning("Driver {UserId} reported start location {Lat},{Lon} which is {DistanceKm} km from reference for trip {TripId}",
+                                    _authUser.UserId, dto.Latitude, dto.Longitude, Math.Round(distMeters / 1000.0, 2), trip.Id);
+                            }
+
+                            if (distMeters > SUSPICIOUS_THRESHOLD_METERS)
+                            {
+                                locationSuspicious = true;
+                                suspicionNote = $"SUSPICIOUS LOCATION: reported start {Math.Round(distMeters / 1000.0, 1)} km from reference.";
+                            }
+                        }
+                    }
+                    // else: no reference available — accept coords (cannot validate).
+                }
+
+                // Apply changes and create checkpoint (soft-flag will be embedded into checkpoint notes)
                 using var tx = await _context.Database.BeginTransactionAsync();
                 try
                 {
@@ -655,6 +753,21 @@ namespace FleetManager.Business.Implementations.TripModule
                         trip.Driver.LastSeen = now;
                     }
 
+                    // Build checkpoint notes
+                    var cpNotes = dto.Notes ?? string.Empty;
+                    if (dto.LatitudeAccuracy.HasValue)
+                    {
+                        cpNotes = string.IsNullOrWhiteSpace(cpNotes)
+                            ? $"Accuracy: ±{Math.Round((double)dto.LatitudeAccuracy.Value)} m"
+                            : $"{cpNotes}\nAccuracy: ±{Math.Round((double)dto.LatitudeAccuracy.Value)} m";
+                    }
+                    if (locationSuspicious && !string.IsNullOrWhiteSpace(suspicionNote))
+                    {
+                        cpNotes = string.IsNullOrWhiteSpace(cpNotes)
+                            ? suspicionNote
+                            : $"{cpNotes}\n\n{suspicionNote}";
+                    }
+
                     var checkpoint = new TripCheckpoint
                     {
                         TripId = trip.Id,
@@ -664,7 +777,7 @@ namespace FleetManager.Business.Implementations.TripModule
                         CheckpointType = CheckpointType.Start,
                         Latitude = dto.Latitude,
                         Longitude = dto.Longitude,
-                        Notes = dto.Notes,
+                        Notes = cpNotes,
                         IsActive = true,
                         CreatedDate = now,
                         CreatedBy = _authUser.UserId
@@ -680,7 +793,7 @@ namespace FleetManager.Business.Implementations.TripModule
                     throw;
                 }
 
-                // Enqueue background job for TripStarted (notifications + webhooks)
+                // background job
                 try
                 {
                     var correlationId = Guid.NewGuid().ToString();
@@ -701,94 +814,269 @@ namespace FleetManager.Business.Implementations.TripModule
                 return new MessageResponse<TripDto> { Success = false, Message = "An error occurred while starting the trip" };
             }
         }
+public async Task<MessageResponse<TripDto>> CompleteTripAsync(CompleteTripDto dto)
+{
+    EnsureDriverOnly();
+    try
+    {
+        if (_authUser?.CompanyBranchId == null)
+            return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch." };
 
-        public async Task<MessageResponse<TripDto>> CompleteTripAsync(CompleteTripDto dto)
+        var now = DateTime.UtcNow;
+
+        var trip = await _context.Trips
+            .Include(t => t.Vehicle)
+            .Include(t => t.Driver).ThenInclude(d => d.User)
+            .FirstOrDefaultAsync(t => t.Id == dto.TripId &&
+                                      t.CompanyBranchId == _authUser.CompanyBranchId &&
+                                      t.IsActive);
+
+        if (trip == null) return new MessageResponse<TripDto> { Success = false, Message = "Trip not found" };
+
+        if (trip.Status != TripStatus.InProgress) return new MessageResponse<TripDto> { Success = false, Message = $"Cannot complete trip with status '{trip.Status}'. Trip must be in progress." };
+
+        if (!trip.StartOdometer.HasValue) return new MessageResponse<TripDto> { Success = false, Message = "Trip does not have a start odometer reading" };
+
+        if (dto.EndOdometer <= trip.StartOdometer.Value) return new MessageResponse<TripDto> { Success = false, Message = $"End odometer reading ({dto.EndOdometer} km) must be greater than start odometer ({trip.StartOdometer.Value} km)" };
+
+        // --- GEO CHECK (soft-flag) ---
+        const double WARN_THRESHOLD_METERS = 5_000;        // 5 km -> log
+        const double SUSPICIOUS_THRESHOLD_METERS = 50_000; // 50 km -> flag as suspicious
+
+        bool locationSuspicious = false;
+        string? suspicionNote = null;
+
+        if (dto.Latitude.HasValue && dto.Longitude.HasValue)
         {
-            try
+            decimal? refLat = null, refLon = null;
+            bool hasReference = false;
+
+            // Try trip.DestinationLatitude / DestinationLongitude (decimal?) if present
+            var tripType = trip.GetType();
+            var destLatProp = tripType.GetProperty("DestinationLatitude");
+            var destLonProp = tripType.GetProperty("DestinationLongitude");
+            if (destLatProp != null && destLonProp != null)
             {
-                if (_authUser?.CompanyBranchId == null) return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch." };
-                var now = DateTime.UtcNow;
-
-                var trip = await _context.Trips
-                    .Include(t => t.Vehicle)
-                    .Include(t => t.Driver).ThenInclude(d => d.User)
-                    .FirstOrDefaultAsync(t => t.Id == dto.TripId &&
-                                              t.CompanyBranchId == _authUser.CompanyBranchId &&
-                                              t.IsActive);
-
-                if (trip == null) return new MessageResponse<TripDto> { Success = false, Message = "Trip not found" };
-
-                if (trip.Status != TripStatus.InProgress) return new MessageResponse<TripDto> { Success = false, Message = $"Cannot complete trip with status '{trip.Status}'. Trip must be in progress." };
-
-                if (!trip.StartOdometer.HasValue) return new MessageResponse<TripDto> { Success = false, Message = "Trip does not have a start odometer reading" };
-
-                if (dto.EndOdometer <= trip.StartOdometer.Value) return new MessageResponse<TripDto> { Success = false, Message = $"End odometer reading ({dto.EndOdometer} km) must be greater than start odometer ({trip.StartOdometer.Value} km)" };
-
-                using var tx = await _context.Database.BeginTransactionAsync();
-                try
+                var dLat = destLatProp.GetValue(trip);
+                var dLon = destLonProp.GetValue(trip);
+                if (dLat != null && dLon != null)
                 {
-                    trip.ActualEndDate = now;
-                    trip.EndOdometer = dto.EndOdometer;
-                    trip.ActualDistance = dto.EndOdometer - trip.StartOdometer.Value;
-                    trip.ActualFuelCost = dto.ActualFuelCost;
-                    trip.Status = TripStatus.Completed;
-                    trip.ModifiedDate = now;
-                    trip.ModifiedBy = _authUser.UserId;
+                    refLat = Convert.ToDecimal(dLat);
+                    refLon = Convert.ToDecimal(dLon);
+                    hasReference = true;
+                }
+            }
 
-                    if (trip.Vehicle != null) trip.Vehicle.Mileage = dto.EndOdometer;
-
-                    if (trip.Driver != null)
+            // fallback to vehicle last known
+            if (!hasReference && trip.Vehicle != null)
+            {
+                var vType = trip.Vehicle.GetType();
+                var vLatProp = vType.GetProperty("LastKnownLatitude");
+                var vLonProp = vType.GetProperty("LastKnownLongitude");
+                if (vLatProp != null && vLonProp != null)
+                {
+                    var vLat = vLatProp.GetValue(trip.Vehicle);
+                    var vLon = vLonProp.GetValue(trip.Vehicle);
+                    if (vLat != null && vLon != null)
                     {
-                        trip.Driver.ShiftStatus = ShiftStatus.Available;
-                        trip.Driver.LastSeen = now;
+                        refLat = Convert.ToDecimal(vLat);
+                        refLon = Convert.ToDecimal(vLon);
+                        hasReference = true;
+                    }
+                }
+            }
+
+            if (hasReference)
+            {
+                var distMetersNullable = GeoUtils.HaversineDistanceMeters(refLat, refLon, dto.Latitude, dto.Longitude);
+                if (distMetersNullable.HasValue)
+                {
+                    var distMeters = distMetersNullable.Value;
+
+                    if (distMeters > WARN_THRESHOLD_METERS)
+                    {
+                        _logger.LogWarning("Driver {UserId} reported completion location {Lat},{Lon} which is {DistanceKm} km from reference for trip {TripId}",
+                            _authUser.UserId, dto.Latitude, dto.Longitude, Math.Round(distMeters / 1000.0, 2), trip.Id);
                     }
 
-                    var checkpoint = new TripCheckpoint
+                    if (distMeters > SUSPICIOUS_THRESHOLD_METERS)
                     {
-                        TripId = trip.Id,
-                        Location = trip.Destination,
-                        Description = "Trip completed",
-                        CheckpointTime = now,
-                        CheckpointType = CheckpointType.End,
-                        Latitude = dto.Latitude,
-                        Longitude = dto.Longitude,
-                        Notes = dto.Notes,
-                        IsActive = true,
-                        CreatedDate = now,
-                        CreatedBy = _authUser.UserId
-                    };
-
-                    _context.TripCheckpoints.Add(checkpoint);
-                    await _context.SaveChangesAsync();
-                    await tx.CommitAsync();
+                        locationSuspicious = true;
+                        suspicionNote = $"SUSPICIOUS LOCATION: reported completion {Math.Round(distMeters / 1000.0, 1)} km from reference.";
+                    }
                 }
-                catch
-                {
-                    await tx.RollbackAsync();
-                    throw;
-                }
-
-                // Enqueue TripCompleted for background processing (notifications + webhook)
-                try
-                {
-                    var correlationId = Guid.NewGuid().ToString();
-                    _backgroundJobClient.Enqueue<NotificationWorker>(w => w.ProcessEvent("TripCompleted", trip.Id, correlationId));
-                }
-                catch (Exception bgEx)
-                {
-                    _logger.LogWarning(bgEx, "Failed to enqueue TripCompleted job for trip {TripId}", trip.Id);
-                }
-
-                _logger.LogInformation("Trip {TripNumber} completed by {UserId} - Distance: {Distance}", trip.TripNumber, _authUser.UserId, trip.ActualDistance);
-                var result = await GetTripByIdAsync(trip.Id);
-                return new MessageResponse<TripDto> { Success = true, Message = $"Trip completed successfully. Distance covered: {trip.ActualDistance} km", Result = result.Result };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error completing trip");
-                return new MessageResponse<TripDto> { Success = false, Message = "An error occurred while completing the trip" };
             }
         }
+
+        using var tx = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            trip.ActualEndDate = now;
+            trip.EndOdometer = dto.EndOdometer;
+            trip.ActualDistance = dto.EndOdometer - trip.StartOdometer.Value;
+            trip.ActualFuelCost = dto.ActualFuelCost;
+            trip.Status = TripStatus.Completed;
+            trip.ModifiedDate = now;
+            trip.ModifiedBy = _authUser.UserId;
+
+            if (trip.Vehicle != null) trip.Vehicle.Mileage = dto.EndOdometer;
+
+            if (trip.Driver != null)
+            {
+                trip.Driver.ShiftStatus = ShiftStatus.Available;
+                trip.Driver.LastSeen = now;
+            }
+
+            // checkpoint notes
+            var cpNotes = dto.Notes ?? string.Empty;
+            if (dto.LatitudeAccuracy.HasValue)
+            {
+                cpNotes = string.IsNullOrWhiteSpace(cpNotes)
+                    ? $"Accuracy: ±{Math.Round((double)dto.LatitudeAccuracy.Value)} m"
+                    : $"{cpNotes}\nAccuracy: ±{Math.Round((double)dto.LatitudeAccuracy.Value)} m";
+            }
+            if (locationSuspicious && !string.IsNullOrWhiteSpace(suspicionNote))
+            {
+                cpNotes = string.IsNullOrWhiteSpace(cpNotes)
+                    ? suspicionNote
+                    : $"{cpNotes}\n\n{suspicionNote}";
+            }
+
+            var checkpoint = new TripCheckpoint
+            {
+                TripId = trip.Id,
+                Location = trip.Destination,
+                Description = "Trip completed",
+                CheckpointTime = now,
+                CheckpointType = CheckpointType.End,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude,
+                Notes = cpNotes,
+                IsActive = true,
+                CreatedDate = now,
+                CreatedBy = _authUser.UserId
+            };
+
+            _context.TripCheckpoints.Add(checkpoint);
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
+
+        // background job
+        try
+        {
+            var correlationId = Guid.NewGuid().ToString();
+            _backgroundJobClient.Enqueue<NotificationWorker>(w => w.ProcessEvent("TripCompleted", trip.Id, correlationId));
+        }
+        catch (Exception bgEx)
+        {
+            _logger.LogWarning(bgEx, "Failed to enqueue TripCompleted job for trip {TripId}", trip.Id);
+        }
+
+        _logger.LogInformation("Trip {TripNumber} completed by {UserId} - Distance: {Distance}", trip.TripNumber, _authUser.UserId, trip.ActualDistance);
+        var result = await GetTripByIdAsync(trip.Id);
+        return new MessageResponse<TripDto> { Success = true, Message = $"Trip completed successfully. Distance covered: {trip.ActualDistance} km", Result = result.Result };
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error completing trip");
+        return new MessageResponse<TripDto> { Success = false, Message = "An error occurred while completing the trip" };
+    }
+}
+
+        //public async Task<MessageResponse<TripDto>> CompleteTripAsync(CompleteTripDto dto)
+        //{
+        //    EnsureDriverOnly();
+        //    try
+        //    {
+        //        if (_authUser?.CompanyBranchId == null) return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch." };
+        //        var now = DateTime.UtcNow;
+
+        //        var trip = await _context.Trips
+        //            .Include(t => t.Vehicle)
+        //            .Include(t => t.Driver).ThenInclude(d => d.User)
+        //            .FirstOrDefaultAsync(t => t.Id == dto.TripId &&
+        //                                      t.CompanyBranchId == _authUser.CompanyBranchId &&
+        //                                      t.IsActive);
+
+        //        if (trip == null) return new MessageResponse<TripDto> { Success = false, Message = "Trip not found" };
+
+        //        if (trip.Status != TripStatus.InProgress) return new MessageResponse<TripDto> { Success = false, Message = $"Cannot complete trip with status '{trip.Status}'. Trip must be in progress." };
+
+        //        if (!trip.StartOdometer.HasValue) return new MessageResponse<TripDto> { Success = false, Message = "Trip does not have a start odometer reading" };
+
+        //        if (dto.EndOdometer <= trip.StartOdometer.Value) return new MessageResponse<TripDto> { Success = false, Message = $"End odometer reading ({dto.EndOdometer} km) must be greater than start odometer ({trip.StartOdometer.Value} km)" };
+
+        //        using var tx = await _context.Database.BeginTransactionAsync();
+        //        try
+        //        {
+        //            trip.ActualEndDate = now;
+        //            trip.EndOdometer = dto.EndOdometer;
+        //            trip.ActualDistance = dto.EndOdometer - trip.StartOdometer.Value;
+        //            trip.ActualFuelCost = dto.ActualFuelCost;
+        //            trip.Status = TripStatus.Completed;
+        //            trip.ModifiedDate = now;
+        //            trip.ModifiedBy = _authUser.UserId;
+
+        //            if (trip.Vehicle != null) trip.Vehicle.Mileage = dto.EndOdometer;
+
+        //            if (trip.Driver != null)
+        //            {
+        //                trip.Driver.ShiftStatus = ShiftStatus.Available;
+        //                trip.Driver.LastSeen = now;
+        //            }
+
+        //            var checkpoint = new TripCheckpoint
+        //            {
+        //                TripId = trip.Id,
+        //                Location = trip.Destination,
+        //                Description = "Trip completed",
+        //                CheckpointTime = now,
+        //                CheckpointType = CheckpointType.End,
+        //                Latitude = dto.Latitude,
+        //                Longitude = dto.Longitude,
+        //                Notes = dto.Notes,
+        //                IsActive = true,
+        //                CreatedDate = now,
+        //                CreatedBy = _authUser.UserId
+        //            };
+
+        //            _context.TripCheckpoints.Add(checkpoint);
+        //            await _context.SaveChangesAsync();
+        //            await tx.CommitAsync();
+        //        }
+        //        catch
+        //        {
+        //            await tx.RollbackAsync();
+        //            throw;
+        //        }
+
+        //        // Enqueue TripCompleted for background processing (notifications + webhook)
+        //        try
+        //        {
+        //            var correlationId = Guid.NewGuid().ToString();
+        //            _backgroundJobClient.Enqueue<NotificationWorker>(w => w.ProcessEvent("TripCompleted", trip.Id, correlationId));
+        //        }
+        //        catch (Exception bgEx)
+        //        {
+        //            _logger.LogWarning(bgEx, "Failed to enqueue TripCompleted job for trip {TripId}", trip.Id);
+        //        }
+
+        //        _logger.LogInformation("Trip {TripNumber} completed by {UserId} - Distance: {Distance}", trip.TripNumber, _authUser.UserId, trip.ActualDistance);
+        //        var result = await GetTripByIdAsync(trip.Id);
+        //        return new MessageResponse<TripDto> { Success = true, Message = $"Trip completed successfully. Distance covered: {trip.ActualDistance} km", Result = result.Result };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error completing trip");
+        //        return new MessageResponse<TripDto> { Success = false, Message = "An error occurred while completing the trip" };
+        //    }
+        //}
 
         public async Task<MessageResponse<TripDto>> CancelTripAsync(CancelTripDto dto)
         {
@@ -1186,6 +1474,68 @@ namespace FleetManager.Business.Implementations.TripModule
             }
         }
 
+        public async Task<MessageResponse<DashboardSeriesDto>> GetDashboardSeriesAsync()
+        {
+            try
+            {
+                if (_authUser?.CompanyBranchId == null)
+                    return new MessageResponse<DashboardSeriesDto> { Success = false, Message = "Invalid user context. Missing branch." };
+
+                var branchId = _authUser.CompanyBranchId.Value;
+                var now = DateTime.UtcNow;
+                var fromDate = now.Date.AddDays(-6); // last 7 days (inclusive)
+
+                // Get relevant trips for the branch and timeframe
+                var baseQuery = _context.Trips
+                    .AsNoTracking()
+                    .Where(t => t.CompanyBranchId == branchId && t.IsActive);
+
+                // === Status counts (group by status) ===
+                var statusGroups = await baseQuery
+                    .GroupBy(t => t.Status)
+                    .Select(g => new { Status = g.Key, Count = g.Count() })
+                    .ToListAsync();
+
+                var statusCounts = new Dictionary<string, int>();
+                foreach (var g in statusGroups)
+                {
+                    statusCounts[g.Status.ToString()] = g.Count;
+                }
+
+                // === 7-day trend (created date) ===
+                // Fetch relevant recent trips and group in-memory by date (safe for 7 days)
+                var recentTrips = await baseQuery
+                    .Where(t => t.CreatedDate >= fromDate)
+                    .Select(t => new { t.CreatedDate })
+                    .ToListAsync();
+
+                var trendDict = recentTrips
+                    .GroupBy(t => t.CreatedDate.Date)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                var trendList = new List<DailySeriesPoint>();
+                for (var day = fromDate; day <= now.Date; day = day.AddDays(1))
+                {
+                    trendDict.TryGetValue(day, out var c);
+                    trendList.Add(new DailySeriesPoint { Date = day, Count = c });
+                }
+
+                var dto = new DashboardSeriesDto
+                {
+                    StatusCounts = statusCounts,
+                    SevenDayTrend = trendList
+                };
+
+                return new MessageResponse<DashboardSeriesDto> { Success = true, Result = dto };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error building dashboard series");
+                return new MessageResponse<DashboardSeriesDto> { Success = false, Message = "An error occurred while retrieving dashboard series" };
+            }
+        }
+
+
         public async Task<MessageResponse<TripDashboardViewModel>> GetDashboardDataAsync()
         {
             try
@@ -1199,7 +1549,8 @@ namespace FleetManager.Business.Implementations.TripModule
 
                 var upcomingTrips = await _context.Trips
                     .AsNoTracking()
-                    .Include(t => t.Vehicle)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                     .Include(t => t.Driver).ThenInclude(d => d.User)
                     .Where(t => t.CompanyBranchId == _authUser.CompanyBranchId &&
                                 t.IsActive &&
@@ -1212,7 +1563,7 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1228,7 +1579,8 @@ namespace FleetManager.Business.Implementations.TripModule
 
                 var activeTrips = await _context.Trips
                     .AsNoTracking()
-                    .Include(t => t.Vehicle)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                     .Include(t => t.Driver).ThenInclude(d => d.User)
                     .Where(t => t.CompanyBranchId == _authUser.CompanyBranchId &&
                                 t.IsActive &&
@@ -1239,7 +1591,7 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1255,7 +1607,8 @@ namespace FleetManager.Business.Implementations.TripModule
 
                 var pendingApprovalTrips = await _context.Trips
                     .AsNoTracking()
-                    .Include(t => t.Vehicle)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                     .Include(t => t.Driver).ThenInclude(d => d.User)
                     .Where(t => t.CompanyBranchId == _authUser.CompanyBranchId &&
                                 t.IsActive &&
@@ -1266,7 +1619,7 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1287,6 +1640,19 @@ namespace FleetManager.Business.Implementations.TripModule
                     ActiveTrips = activeTrips,
                     PendingApprovalTrips = pendingApprovalTrips
                 };
+
+                var seriesResp = await GetDashboardSeriesAsync();
+                if (seriesResp.Success && seriesResp.Result != null)
+                {
+                    dashboard.StatusCounts = seriesResp.Result.StatusCounts ?? new Dictionary<string, int>();
+                    dashboard.SevenDayTrend = seriesResp.Result.SevenDayTrend ?? new List<DailySeriesPoint>();
+                }
+                else
+                {
+                    // If helper fails, default to empty collections (non-fatal)
+                    dashboard.StatusCounts = new Dictionary<string, int>();
+                    dashboard.SevenDayTrend = new List<DailySeriesPoint>();
+                }
 
                 return new MessageResponse<TripDashboardViewModel> { Success = true, Result = dashboard };
             }
@@ -1312,7 +1678,8 @@ namespace FleetManager.Business.Implementations.TripModule
 
                 var trips = await _context.Trips
                     .AsNoTracking()
-                    .Include(t => t.Vehicle)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                     .Include(t => t.Driver).ThenInclude(d => d.User)
                     .Where(t => t.DriverId == driverId && t.IsActive)
                     .OrderByDescending(t => t.ScheduledStartDate)
@@ -1322,7 +1689,7 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
                         DriverName = t.Driver.User.FirstName + " " + t.Driver.User.LastName,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1632,7 +1999,7 @@ namespace FleetManager.Business.Implementations.TripModule
 
         private TripDto MapTripToDto(Trip trip)
         {
-            return new TripDto
+            var tripDto = new TripDto
             {
                 Id = trip.Id,
                 TripNumber = trip.TripNumber,
@@ -1679,11 +2046,29 @@ namespace FleetManager.Business.Implementations.TripModule
                 CreatedBy = trip.CreatedBy,
                 ModifiedBy = trip.ModifiedBy
             };
+
+            // New: detect suspicious checkpoints (case-insensitive)
+            try
+            {
+                tripDto.HasSuspiciousLocation =
+                    trip.TripCheckpoints?.Any(c =>
+                        !string.IsNullOrWhiteSpace(c.Notes) &&
+                        c.Notes.IndexOf("SUSPICIOUS LOCATION", StringComparison.OrdinalIgnoreCase) >= 0
+                    ) ?? false;
+            }
+            catch
+            {
+                // Defensive: if TripCheckpoints wasn't loaded or anything goes wrong, default to false
+                tripDto.HasSuspiciousLocation = false;
+            }
+
+            return tripDto;
         }
 
 
         #endregion
     }
+
 
 
 

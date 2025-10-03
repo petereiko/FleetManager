@@ -18,6 +18,9 @@ namespace FleetManager.Business.ViewModels.TripsViewModels
         // client-side filled
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public decimal? LatitudeAccuracy { get; set; }
+
+        
 
         [DataType(DataType.MultilineText)]
         public string Notes { get; set; }
@@ -38,6 +41,7 @@ namespace FleetManager.Business.ViewModels.TripsViewModels
         // client-side filled
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public decimal? LatitudeAccuracy { get; set; }
 
         [DataType(DataType.MultilineText)]
         public string Notes { get; set; }

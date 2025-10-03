@@ -1,0 +1,63 @@
+﻿@using FleetManager.Business.DataObjects.TripsDto
+@model List<TripListDto>
+
+@{
+    ViewData["Title"] = "My Trips";
+}
+
+<div class="container mt-3">
+    <h1>My Trips</h1>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="mb-3">
+        <a class="btn btn-primary" asp-action="Index">Refresh</a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">You have no trips.</div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Trip#</th>
+                    <th>Vehicle</th>
+                    <th>Origin → Destination</th>
+                    <th>Schedule</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td>@t.TripNumber</td>
+                        <td>@t.VehiclePlateNo</td>
+                        <td>
+                            <strong>@t.Origin</strong> → @t.Destination
+                        </td>
+                        <td>
+                            @t.ScheduledStartDate.ToLocalTime().ToString("g")<br />
+                            <small class="text-muted">@t.ScheduledEndDate.ToLocalTime().ToString("g")</small>
+                        </td>
+                        <td>@t.StatusDisplay</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@t.Id">Details</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

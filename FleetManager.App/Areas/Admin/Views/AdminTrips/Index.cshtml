@@ -1,0 +1,1460 @@
+﻿@using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.UtilityModels
+@model PaginatedResult<TripListDto>
+@using System.Web
+@{
+    var currentSearch = ViewBag.FilterSearch as string ?? "";
+    var currentStart = ViewBag.FilterStartDate as string ?? "";
+    var currentEnd = ViewBag.FilterEndDate as string ?? "";
+}
+@{
+    ViewData["Title"] = "Trips";
+}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .trips-wrapper {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding-bottom: 3rem;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        margin: -1rem -1rem 2rem -1rem;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-create {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+            color: #667eea;
+        }
+
+    .btn-dashboard {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.4);
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+        .btn-dashboard:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.6);
+            color: white;
+        }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+    }
+
+        .filter-card .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .filter-card .form-control {
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            padding: 0.625rem 1rem;
+            transition: border-color 0.2s;
+        }
+
+            .filter-card .form-control:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.625rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .btn-clear {
+        background: white;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        padding: 0.625rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+        .btn-clear:hover {
+            background: #f8fafc;
+            border-color: #cbd5e0;
+            color: #475569;
+        }
+
+    .trips-table-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .trips-table {
+        margin: 0;
+    }
+
+        .trips-table thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+            .trips-table thead th {
+                font-weight: 600;
+                color: #2d3748;
+                border-bottom: 2px solid #dee2e6;
+                padding: 1rem;
+                font-size: 0.875rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+        .trips-table tbody tr {
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+            .trips-table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .trips-table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            color: #4a5568;
+        }
+
+    .trip-number {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .trip-route {
+        color: #64748b;
+    }
+
+    .route-arrow {
+        color: #cbd5e0;
+        margin: 0 0.5rem;
+    }
+
+    .status-badge {
+        padding: 0.375rem 0.875rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .status-scheduled {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .status-assigned {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .status-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .status-completed {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    .status-cancelled {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 0.375rem 0.875rem;
+        border-radius: 6px;
+        font-size: 0.813rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-details {
+        background: #667eea;
+        color: white;
+    }
+
+        .btn-details:hover {
+            background: #5568d3;
+            color: white;
+        }
+
+    .btn-assign {
+        background: white;
+        color: #64748b;
+        border: 1.5px solid #e2e8f0;
+    }
+
+        .btn-assign:hover {
+            background: #f8fafc;
+            border-color: #cbd5e0;
+            color: #475569;
+        }
+
+    .btn-edit {
+        background: #f59e0b;
+        color: white;
+    }
+
+        .btn-edit:hover {
+            background: #d97706;
+            color: white;
+        }
+
+    .btn-delete {
+        background: #ef4444;
+        color: white;
+    }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+    .pagination-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-top: 1.5rem;
+    }
+
+    .pagination {
+        margin: 0;
+        justify-content: center;
+    }
+
+    .page-item .page-link {
+        border: 2px solid #e2e8f0;
+        color: #64748b;
+        border-radius: 8px;
+        margin: 0 0.25rem;
+        padding: 0.5rem 0.875rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+        .page-item .page-link:hover {
+            background: #f8fafc;
+            border-color: #cbd5e0;
+            color: #475569;
+        }
+
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #94a3b8;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+    /* Modal Styles */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .modal-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+    }
+
+        .modal-header-custom h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+    .results-info {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="trips-wrapper">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-route me-2"></i>All Trips</h1>
+                <div class="header-actions">
+                    <a class="btn btn-create" asp-action="Create">
+                        <i class="fas fa-plus me-2"></i>Create Trip
+                    </a>
+                    <a class="btn btn-dashboard" asp-action="Dashboard">
+                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <form method="get" class="row gy-3 gx-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-search me-1"></i> Search</label>
+                    <input type="text" name="search" value="@Html.Raw(HttpUtility.HtmlEncode(currentSearch))"
+                           class="form-control" placeholder="Trip number, origin, vehicle..." />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-calendar-alt me-1"></i> Start Date</label>
+                    <input type="text" id="filterStart" name="startDate" value="@currentStart"
+                           class="form-control" placeholder="Select start date" autocomplete="off" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-calendar-alt me-1"></i> End Date</label>
+                    <input type="text" id="filterEnd" name="endDate" value="@currentEnd"
+                           class="form-control" placeholder="Select end date" autocomplete="off" />
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-filter w-100">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                </div>
+
+                <div class="col-md-12 text-end">
+                    <a class="btn btn-clear" href="@Url.Action("Index", "AdminTrips")">
+                        <i class="fas fa-times me-1"></i> Clear Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        @if (!string.IsNullOrEmpty(currentSearch) || !string.IsNullOrEmpty(currentStart) || !string.IsNullOrEmpty(currentEnd))
+        {
+            <div class="results-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Showing filtered results • Total: @Model.TotalCount trip(s)</span>
+            </div>
+        }
+
+        <!-- Trips Table -->
+        <div class="trips-table-card">
+            @if (Model.Items?.Any() == true)
+            {
+                <table class="table trips-table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag me-1"></i> Trip #</th>
+                            <th><i class="fas fa-car me-1"></i> Vehicle</th>
+                            <th><i class="fas fa-user me-1"></i> Driver</th>
+                            <th><i class="fas fa-map-marked-alt me-1"></i> Route</th>
+                            <th><i class="fas fa-clock me-1"></i> Scheduled</th>
+                            <th><i class="fas fa-info-circle me-1"></i> Status</th>
+                            <th style="width:280px"><i class="fas fa-cogs me-1"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model.Items)
+                        {
+                            <tr>
+                                <td class="trip-number">@t.TripNumber</td>
+                                <td>@t.VehiclePlateNo</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(t.DriverName))
+                                    {
+                                        <span>@t.DriverName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted"><i>Not assigned</i></span>
+                                    }
+                                </td>
+                                <td class="trip-route">
+                                    @t.Origin <span class="route-arrow"><i class="fas fa-arrow-right"></i></span> @t.Destination
+                                </td>
+                                <td>@t.ScheduledStartDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>
+                                    <span class="status-badge status-@(t.StatusDisplay?.ToLower() ?? "scheduled")">
+                                        @t.StatusDisplay
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a class="btn btn-action btn-details" asp-action="Details" asp-route-id="@t.Id">
+                                            <i class="fas fa-eye me-1"></i> Details
+                                        </a>
+
+                                        @if (t.DriverName == null)
+                                        {
+                                            <button class="btn btn-action btn-assign assign-btn" data-tripid="@t.Id">
+                                                <i class="fas fa-user-plus me-1"></i> Assign
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-action btn-assign assign-btn" data-tripid="@t.Id">
+                                                <i class="fas fa-user-edit me-1"></i> Reassign
+                                            </button>
+                                        }
+
+                                        <a class="btn btn-action btn-edit" asp-action="Edit" asp-route-id="@t.Id">
+                                            <i class="fas fa-edit me-1"></i> Edit
+                                        </a>
+
+                                        <form method="post" asp-action="Delete" asp-route-id="@t.Id" style="display:inline"
+                                              onsubmit="return confirm('Are you sure you want to delete this trip?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-action btn-delete">
+                                                <i class="fas fa-trash-alt me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>No Trips Found</h3>
+                    <p>There are no trips matching your criteria</p>
+                    @if (!string.IsNullOrEmpty(currentSearch) || !string.IsNullOrEmpty(currentStart) || !string.IsNullOrEmpty(currentEnd))
+                    {
+                        <a class="btn btn-filter" href="@Url.Action("Index", "AdminTrips")">
+                            <i class="fas fa-times me-1"></i> Clear Filters
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-filter" asp-action="Create">
+                            <i class="fas fa-plus me-1"></i> Create Your First Trip
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination-wrapper">
+                <nav>
+                    <ul class="pagination mb-0">
+                        @{
+                            var current = Model.Page;
+                            var total = Model.TotalPages;
+
+                            // Previous button
+                            if (current > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-route-page="@(current - 1)"
+                                       asp-route-search="@currentSearch"
+                                       asp-route-startDate="@currentStart"
+                                       asp-route-endDate="@currentEnd">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+
+                            // Page numbers
+                            for (int i = 1; i <= total; i++)
+                            {
+                                <li class="page-item @(i == current ? "active" : "")">
+                                    <a class="page-link" asp-route-page="@i"
+                                       asp-route-search="@currentSearch"
+                                       asp-route-startDate="@currentStart"
+                                       asp-route-endDate="@currentEnd">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            // Next button
+                            if (current < total)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-route-page="@(current + 1)"
+                                       asp-route-search="@currentSearch"
+                                       asp-route-startDate="@currentStart"
+                                       asp-route-endDate="@currentEnd">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Assign Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div id="assignModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+
+<script>
+    // Initialize Flatpickr for date inputs
+    $(function () {
+        var opts = {
+            enableTime: true,
+            dateFormat: "Y-m-d\\TH:i",
+            altInput: true,
+            altFormat: "F j, Y H:i",
+            time_24hr: false,
+            allowInput: true
+        };
+
+        flatpickr("#filterStart", opts);
+        flatpickr("#filterEnd", opts);
+    });
+
+    // Load Assign view into modal when assign button clicked
+    $(function () {
+        $('.assign-btn').on('click', function (e) {
+            e.preventDefault();
+            var tripId = $(this).data('tripid');
+            var url = '@Url.Action("Assign", "AdminTrips")' + '?id=' + tripId;
+            $('#assignModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
+            $('#assignModal').modal('show');
+            $.get(url, function (html) {
+                $('#assignModalBody').html(html);
+            }).fail(function (xhr) {
+                $('#assignModalBody').html('<div class="p-4 text-center"><div class="text-danger"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><p>Failed to load assign form</p></div></div>');
+            });
+        });
+
+        // Handle assign form submission
+        $(document).on('submit', '#assignForm', function (e) {
+            e.preventDefault();
+            var $form = $(this);
+            var action = $form.attr('action');
+            var data = $form.serialize();
+
+            // Disable submit button
+            $form.find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Assigning...');
+
+            $.post(action, data).done(function () {
+                $('#assignModal').modal('hide');
+                location.reload();
+            }).fail(function (xhr) {
+                var err = xhr.responseText || 'Failed to assign driver';
+                $('#assignFormAlert').remove();
+                $form.prepend('<div id="assignFormAlert" class="alert alert-danger alert-dismissible fade show"><i class="fas fa-exclamation-circle me-2"></i>' + err + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+                $form.find('button[type="submit"]').prop('disabled', false).html('<i class="fas fa-check me-2"></i>Assign Driver');
+            });
+        });
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.UtilityModels
+@model PaginatedResult<TripListDto>
+@using System.Web
+@{
+    var currentSearch = ViewBag.FilterSearch as string ?? "";
+    var currentStart = ViewBag.FilterStartDate as string ?? "";
+    var currentEnd = ViewBag.FilterEndDate as string ?? "";
+}
+@{
+    ViewData["Title"] = "Trips";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+
+<style>
+    .trips-wrapper {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding-bottom: 3rem;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        margin: -1rem -1rem 2rem -1rem;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .header-actions .btn {
+        border: 2px solid white;
+        color: white;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .header-actions .btn:hover {
+        background: white;
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .filter-card {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-card .form-label {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-card .form-control {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.6rem 0.75rem;
+        transition: all 0.2s;
+    }
+
+    .filter-card .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+
+    .trips-table-card {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .table-header-info {
+        padding: 1.25rem 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-header-info h5 {
+        margin: 0;
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .results-count {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .trips-table {
+        margin: 0;
+    }
+
+    .trips-table thead th {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 1.25rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .trips-table tbody tr {
+        transition: background-color 0.2s;
+    }
+
+    .trips-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .trips-table tbody td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .trip-number {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-scheduled { background: #fef3c7; color: #92400e; }
+    .status-assigned { background: #dbeafe; color: #1e40af; }
+    .status-active { background: #d1fae5; color: #065f46; }
+    .status-completed { background: #e0e7ff; color: #3730a3; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+    }
+
+    .action-buttons .btn {
+        font-size: 0.813rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .action-buttons .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .pagination-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .pagination {
+        margin: 0;
+        gap: 0.35rem;
+    }
+
+    .pagination .page-item .page-link {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        color: #4a5568;
+        font-weight: 500;
+        padding: 0.5rem 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .pagination .page-item .page-link:hover {
+        background: #f7fafc;
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #a0aec0;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        color: #4a5568;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #a0aec0;
+        margin-bottom: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .header-actions {
+            flex-direction: column;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .action-buttons .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="trips-wrapper">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div>
+                    <h1><i class="fas fa-route me-2"></i>All Trips</h1>
+                    <p class="mb-0 mt-2 opacity-75">Manage and track all fleet trips</p>
+                </div>
+                <div class="header-actions">
+                    <a class="btn btn-outline-light" asp-action="Dashboard">
+                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                    </a>
+                    <a class="btn btn-outline-light" asp-action="Create">
+                        <i class="fas fa-plus-circle me-2"></i>Create Trip
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <form method="get" class="row g-3">
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label"><i class="fas fa-search me-1"></i> Search</label>
+                    <input type="text" name="search" value="@Html.Raw(HttpUtility.HtmlEncode(currentSearch))" 
+                           class="form-control" placeholder="Trip number, origin, vehicle..." />
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label"><i class="fas fa-calendar-alt me-1"></i> Start Date (From)</label>
+                    <input type="text" id="filterStart" name="startDate" value="@currentStart" 
+                           class="form-control" placeholder="Select start date" autocomplete="off" />
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label"><i class="fas fa-calendar-alt me-1"></i> End Date (To)</label>
+                    <input type="text" id="filterEnd" name="endDate" value="@currentEnd" 
+                           class="form-control" placeholder="Select end date" autocomplete="off" />
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label d-block">&nbsp;</label>
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i> Apply Filters
+                        </button>
+                        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "AdminTrips")">
+                            <i class="fas fa-redo me-1"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Trips Table -->
+        <div class="trips-table-card">
+            <div class="table-header-info">
+                <h5><i class="fas fa-list me-2"></i>Trip Records</h5>
+                <span class="results-count">
+                    Showing @Model.Items.Count() of @Model.TotalCount results
+                </span>
+            </div>
+
+            @if (Model.Items.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table trips-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag me-1"></i> Trip #</th>
+                                <th><i class="fas fa-car me-1"></i> Vehicle</th>
+                                <th><i class="fas fa-user me-1"></i> Driver</th>
+                                <th><i class="fas fa-map-marker-alt me-1"></i> Route</th>
+                                <th><i class="fas fa-clock me-1"></i> Scheduled</th>
+                                <th><i class="fas fa-info-circle me-1"></i> Status</th>
+                                <th style="width:280px"><i class="fas fa-cog me-1"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in Model.Items)
+                            {
+                                <tr>
+                                    <td><span class="trip-number">@t.TripNumber</span></td>
+                                    <td>@t.VehiclePlateNo</td>
+                                    <td>@(t.DriverName ?? "<span class='text-muted'>Not Assigned</span>")</td>
+                                    <td>
+                                        <span class="text-muted">@t.Origin</span>
+                                        <i class="fas fa-arrow-right mx-1 text-primary"></i>
+                                        <span class="text-muted">@t.Destination</span>
+                                    </td>
+                                    <td>@t.ScheduledStartDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="status-badge status-@t.StatusDisplay.ToLower().Replace(" ", "-")">
+                                            <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                                            @t.StatusDisplay
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@t.Id">
+                                                <i class="fas fa-eye me-1"></i> Details
+                                            </a>
+
+                                            @if (t.DriverName == null)
+                                            {
+                                                <button class="btn btn-sm btn-outline-success assign-btn" data-tripid="@t.Id">
+                                                    <i class="fas fa-user-plus me-1"></i> Assign
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary assign-btn" data-tripid="@t.Id">
+                                                    <i class="fas fa-user-edit me-1"></i> Reassign
+                                                </button>
+                                            }
+
+                                            <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@t.Id">
+                                                <i class="fas fa-edit me-1"></i> Edit
+                                            </a>
+
+                                            <form method="post" asp-action="Delete" asp-route-id="@t.Id" 
+                                                  style="display:inline" onsubmit="return confirm('Are you sure you want to delete this trip?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash-alt me-1"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h5>No Trips Found</h5>
+                    <p>There are no trips matching your criteria. Try adjusting your filters.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination-wrapper">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        @if (Model.Page > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-route-page="@(Model.Page - 1)" 
+                                   asp-route-search="@currentSearch" 
+                                   asp-route-startDate="@currentStart" 
+                                   asp-route-endDate="@currentEnd">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+
+                        @{
+                            var current = Model.Page;
+                            var total = Model.TotalPages;
+                            var startPage = Math.Max(1, current - 2);
+                            var endPage = Math.Min(total, current + 2);
+                            
+                            if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-route-page="1" 
+                                       asp-route-search="@currentSearch" 
+                                       asp-route-startDate="@currentStart" 
+                                       asp-route-endDate="@currentEnd">1</a>
+                                </li>
+                                if (startPage > 2)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                            }
+
+                            for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == current ? "active" : "")">
+                                    <a class="page-link" asp-route-page="@i" 
+                                       asp-route-search="@currentSearch" 
+                                       asp-route-startDate="@currentStart" 
+                                       asp-route-endDate="@currentEnd">@i</a>
+                                </li>
+                            }
+
+                            if (endPage < total)
+                            {
+                                if (endPage < total - 1)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" asp-route-page="@total" 
+                                       asp-route-search="@currentSearch" 
+                                       asp-route-startDate="@currentStart" 
+                                       asp-route-endDate="@currentEnd">@total</a>
+                                </li>
+                            }
+                        }
+
+                        @if (Model.Page < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-route-page="@(Model.Page + 1)" 
+                                   asp-route-search="@currentSearch" 
+                                   asp-route-startDate="@currentStart" 
+                                   asp-route-endDate="@currentEnd">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Assign Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body p-0" id="assignModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-3">Loading assignment form...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+
+<script>
+    // Initialize Flatpickr for date inputs
+    $(function () {
+        var opts = {
+            enableTime: true,
+            dateFormat: "Y-m-d\\TH:i",
+            altInput: true,
+            altFormat: "F j, Y H:i",
+            time_24hr: false,
+            allowInput: true
+        };
+
+        flatpickr("#filterStart", opts);
+        flatpickr("#filterEnd", opts);
+    });
+
+    // Handle assign/reassign modal
+    $(function () {
+        $('.assign-btn').on('click', function (e) {
+            e.preventDefault();
+            var tripId = $(this).data('tripid');
+            var url = '@Url.Action("Assign","AdminTrips")' + '?id=' + tripId;
+            
+            $('#assignModalBody').html(
+                '<div class="text-center py-5">' +
+                '<div class="spinner-border text-primary" role="status">' +
+                '<span class="visually-hidden">Loading...</span></div>' +
+                '<p class="text-muted mt-3">Loading assignment form...</p></div>'
+            );
+            
+            $('#assignModal').modal('show');
+            
+            $.get(url, function (html) {
+                $('#assignModalBody').html(html);
+            }).fail(function (xhr) {
+                $('#assignModalBody').html(
+                    '<div class="p-4 text-center">' +
+                    '<i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>' +
+                    '<h5 class="text-danger">Failed to Load</h5>' +
+                    '<p class="text-muted">' + (xhr.responseText || 'Unable to load assignment form') + '</p>' +
+                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>' +
+                    '</div>'
+                );
+            });
+        });
+
+        // Handle form submission via AJAX
+        $(document).on('submit', '#assignForm', function (e) {
+            e.preventDefault();
+            var $form = $(this);
+            var action = $form.attr('action');
+            var data = $form.serialize();
+            
+            // Disable submit button
+            $form.find('button[type="submit"]').prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm me-2"></span>Assigning...'
+            );
+            
+            $.post(action, data).done(function () {
+                $('#assignModal').modal('hide');
+                location.reload();
+            }).fail(function (xhr) {
+                var err = xhr.responseText || 'Failed to assign driver';
+                $('#assignFormAlert').remove();
+                $form.prepend(
+                    '<div id="assignFormAlert" class="alert alert-danger alert-dismissible fade show">' +
+                    '<i class="fas fa-exclamation-circle me-2"></i>' + err +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'
+                );
+                $form.find('button[type="submit"]').prop('disabled', false).html(
+                    '<i class="fas fa-check me-1"></i> Assign Driver'
+                );
+            });
+        });
+    });
+</script> *@
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.UtilityModels
+@model PaginatedResult<TripListDto>
+@using System.Web
+@{
+    var currentSearch = ViewBag.FilterSearch as string ?? "";
+    var currentStart = ViewBag.FilterStartDate as string ?? "";
+    var currentEnd = ViewBag.FilterEndDate as string ?? "";
+}
+@{
+    ViewData["Title"] = "Trips";
+}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1>Trips</h1>
+        <div>
+            <a class="btn btn-primary" asp-action="Create">Create Trip</a>
+            <a class="btn btn-outline-secondary" asp-action="Dashboard">Dashboard</a>
+        </div>
+    </div>
+
+    <form method="get" class="row gy-2 gx-3 align-items-end mb-3">
+        <div class="col-auto">
+            <label class="form-label">Search</label>
+            <input type="text" name="search" value="@Html.Raw(HttpUtility.HtmlEncode(currentSearch))" class="form-control" placeholder="Trip number, origin, vehicle..." />
+        </div>
+
+        <div class="col-auto">
+            <label class="form-label">Start (from)</label>
+            <input type="text" id="filterStart" name="startDate" value="@currentStart" class="form-control" placeholder="Start date" autocomplete="off" />
+        </div>
+
+        <div class="col-auto">
+            <label class="form-label">End (to)</label>
+            <input type="text" id="filterEnd" name="endDate" value="@currentEnd" class="form-control" placeholder="End date" autocomplete="off" />
+        </div>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a class="btn btn-outline-secondary" href="@Url.Action("Index", "AdminTrips")">Clear</a>
+        </div>
+    </form>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Trip #</th>
+                <th>Vehicle</th>
+                <th>Driver</th>
+                <th>Origin → Destination</th>
+                <th>Scheduled</th>
+                <th>Status</th>
+                <th style="width:220px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model.Items)
+            {
+                <tr>
+                    <td>@t.TripNumber</td>
+                    <td>@t.VehiclePlateNo</td>
+                    <td>@t.DriverName</td>
+                    <td>@t.Origin &nbsp;→&nbsp; @t.Destination</td>
+                    <td>@t.ScheduledStartDate.ToLocalTime().ToString("g")</td>
+                    <td>@t.StatusDisplay</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@t.Id">Details</a>
+
+                        @if ( t.DriverName == null)
+                        {
+                            <button class="btn btn-sm btn-outline-secondary assign-btn" data-tripid="@t.Id">Assign</button>
+                        }
+                        else
+                        {
+                            // If trip requires approval and driver assigned, show Approve link
+                            if ( /* you don't have RequiresApproval in TripListDto - optionally add it */ false)
+                            {
+                                <a class="btn btn-sm btn-warning" asp-action="Details" asp-route-id="@t.Id">Approve</a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-secondary assign-btn" data-tripid="@t.Id">Reassign</button>
+                            }
+                        }
+
+                        <a class="btn btn-sm btn-secondary" asp-action="Edit" asp-route-id="@t.Id">Edit</a>
+
+                        <form method="post" asp-action="Delete" asp-route-id="@t.Id" style="display:inline" onsubmit="return confirm('Delete this trip?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- pagination (simple) -->
+    <nav>
+        <ul class="pagination">
+            @{
+                var current = Model.Page;
+                var total = Model.TotalPages;
+                for (int i = 1; i <= total; i++)
+                {
+                    <li class="page-item @(i == current ? "active" : "")"><a class="page-link" asp-route-page="@i">@i</a></li>
+                }
+            }
+        </ul>
+    </nav>
+</div>
+
+<!-- Assign modal placeholder -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body p-3" id="assignModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+
+<script>
+    // Initialize Flatpickr for date inputs
+       
+    $(function () {
+           var opts = {
+               enableTime: true,
+               dateFormat: "Y-m-d\\TH:i",
+               altInput: true,
+               altFormat: "F j, Y H:i",
+               time_24hr: false,
+               allowInput: true,
+               defaultDate: "today"
+           };
+
+           flatpickr("#filterStart", opts);
+           flatpickr("#filterEnd", opts);
+       });
+    // load Assign view into modal when assign button clicked
+    $(function () {
+        $('.assign-btn').on('click', function (e) {
+            e.preventDefault();
+            var tripId = $(this).data('tripid');
+            var url = '@Url.Action("Assign","AdminTrips")' + '?id=' + tripId;
+            $('#assignModalBody').html('<div class="text-center py-5"><div class="spinner-border" role="status"></div></div>');
+            $('#assignModal').modal('show');
+            $.get(url, function (html) {
+                $('#assignModalBody').html(html);
+            }).fail(function (xhr) {
+                $('#assignModalBody').html('<div class="p-3 text-danger">Failed to load assign form: ' + xhr.responseText + '</div>');
+            });
+        });
+
+        // ensure modal markup works with bootstrap 5
+        $(document).on('submit', '#assignForm', function (e) {
+            e.preventDefault();
+            var $form = $(this);
+            var action = $form.attr('action');
+            var data = $form.serialize();
+            $.post(action, data).done(function () {
+                // close modal, reload page to reflect assignment
+                $('#assignModal').modal('hide');
+                location.reload();
+            }).fail(function (xhr) {
+                var err = xhr.responseText || 'Failed to assign';
+                $('#assignFormAlert').remove();
+                $form.prepend('<div id="assignFormAlert" class="alert alert-danger">' + err + '</div>');
+            });
+        });
+    });
+</script>
+ *@

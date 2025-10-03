@@ -1,0 +1,138 @@
+﻿@using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.Enums
+@model TripDto
+
+@{
+    ViewData["Title"] = "Trip Details";
+}
+
+<div class="container mt-3">
+    <h1>Trip @Model.TripNumber</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="mb-3">
+        <a class="btn btn-outline-secondary" asp-action="Index">Back to list</a>
+        <a class="btn btn-outline-primary ms-2" asp-action="Details" asp-route-id="@Model.Id">Refresh</a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Origin → @Model.Destination</h5>
+            <p class="mb-1"><strong>Vehicle:</strong> @(Model.VehiclePlateNo ?? "Not assigned")</p>
+            <p class="mb-1"><strong>Driver:</strong> @(Model.DriverName ?? "Not assigned")</p>
+            <p class="mb-1"><strong>Schedule:</strong> @Model.ScheduledStartDate.ToLocalTime().ToString("g") — @Model.ScheduledEndDate.ToLocalTime().ToString("g")</p>
+            <p class="mb-1"><strong>Status:</strong> @Model.StatusDisplay</p>
+            <p class="mb-1"><strong>Purpose:</strong> @Model.Purpose</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Notes))
+            {
+                <p class="mb-0"><strong>Notes:</strong> @Model.Notes</p>
+            }
+        </div>
+    </div>
+    
+
+
+
+    <!-- Driver actions -->
+    <div class="mb-3">
+        @if (Model.Status == TripStatus.Assigned)
+        {
+            <button class="btn btn-success openStartModal" data-tripid="@Model.Id">Start Trip</button>
+        }
+        else if (Model.Status == TripStatus.InProgress)
+        {
+            <button class="btn btn-warning openCompleteModal" data-tripid="@Model.Id">Complete Trip</button>
+        }
+    </div>
+
+    @* Additional sections (expenses, checkpoints) would go here if available *@
+
+    <!-- Start Modal -->
+<div class="modal fade" id="startModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <form id="startModalForm" method="post" asp-action="Start" asp-controller="DriverTrips">
+        <div class="modal-header">
+          <h5 class="modal-title">Start Trip</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="startModalBody">
+          <div class="text-center py-4"><div class="spinner-border" role="status"></div></div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <form id="completeModalForm" method="post" asp-action="Complete" asp-controller="DriverTrips" >
+        <div class="modal-header">
+          <h5 class="modal-title">Complete Trip</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="completeModalBody">
+          <div class="text-center py-4"><div class="spinner-border" role="status"></div></div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function loadStartModal(tripId) {
+        var url = '@Url.Action("Start", "DriverTrips", new { area = "User" })' + '&id=' + tripId;
+        $('#startModalBody').html('<div class="text-center py-4"><div class="spinner-border" role="status"></div></div>');
+        var modal = new bootstrap.Modal(document.getElementById('startModal'));
+        modal.show();
+        $.get(url, function (html) {
+            $('#startModalBody').html(html);
+            // ensure form has TripId hidden input (partial does), or set it:
+            $('#startModalBody').find('input[name="TripId"]').val(tripId);
+        }).fail(function (xhr) {
+            $('#startModalBody').html('<div class="p-3 text-danger">Failed to load form: ' + xhr.responseText + '</div>');
+        });
+    }
+
+    function loadCompleteModal(tripId) {
+        var url = '@Url.Action("Complete", "DriverTrips", new { area = "User" })' + '&id=' + tripId;
+        $('#completeModalBody').html('<div class="text-center py-4"><div class="spinner-border" role="status"></div></div>');
+        var modal = new bootstrap.Modal(document.getElementById('completeModal'));
+        modal.show();
+        $.get(url, function (html) {
+            $('#completeModalBody').html(html);
+            $('#completeModalBody').find('input[name="TripId"]').val(tripId);
+        }).fail(function (xhr) {
+            $('#completeModalBody').html('<div class="p-3 text-danger">Failed to load form: ' + xhr.responseText + '</div>');
+        });
+    }
+
+    // wire the buttons (adjust selectors to your buttons)
+    $(function () {
+        $(document).on('click', '.openStartModal', function (e) {
+            e.preventDefault();
+            var id = $(this).data('tripid');
+            loadStartModal(id);
+        });
+        $(document).on('click', '.openCompleteModal', function (e) {
+            e.preventDefault();
+            var id = $(this).data('tripid');
+            loadCompleteModal(id);
+        });
+    });
+</script>

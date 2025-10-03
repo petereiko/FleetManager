@@ -1,0 +1,1034 @@
+﻿
+@using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.Enums
+@model TripDto
+@{
+    ViewData["Title"] = "Trip Details";
+    var statusClass = Model.Status switch {
+        TripStatus.PendingApproval => "warning",
+        TripStatus.Approved => "info",
+        TripStatus.InProgress => "primary",
+        TripStatus.Completed => "success",
+        TripStatus.Cancelled => "danger",
+        _ => "secondary"
+    };
+    
+    var statusIcon = Model.Status switch {
+        TripStatus.PendingApproval => "fa-clock",
+        TripStatus.Approved => "fa-check-circle",
+        TripStatus.InProgress => "fa-route",
+        TripStatus.Completed => "fa-check-double",
+        TripStatus.Cancelled => "fa-times-circle",
+        _ => "fa-file-alt"
+    };
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .trip-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .status-badge {
+        font-size: 0.95rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        border: 1px solid #e5e7eb;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    
+    .info-card-header {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .detail-row {
+        display: flex;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #6b7280;
+        min-width: 140px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .detail-value {
+        color: #1f2937;
+        flex: 1;
+        font-size: 0.95rem;
+    }
+    
+    .action-btn {
+        padding: 0.6rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .metric-card {
+        background: linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%);
+        border-radius: 10px;
+        padding: 1.25rem;
+        border: 1px solid #e5e7eb;
+        text-align: center;
+        height: 100%;
+    }
+    
+    .metric-icon {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .metric-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 2rem;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 8px;
+        bottom: -8px;
+        width: 2px;
+        background: #e5e7eb;
+    }
+    
+    .timeline-item:last-child:before {
+        display: none;
+    }
+    
+    .timeline-dot {
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #667eea;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #667eea;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #9ca3af;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .warning-banner {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+        margin: 2rem 0;
+    }
+    
+    .route-display {
+        background: #f9fafb;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .route-point {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+    }
+    
+    .route-icon {
+        font-size: 1.5rem;
+        color: #667eea;
+    }
+    
+    .route-arrow {
+        font-size: 1.5rem;
+        color: #9ca3af;
+        text-align: center;
+        padding: 0.5rem 0;
+    }
+    
+    .quick-info {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1rem;
+    }
+    
+    .quick-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+    }
+    
+    .quick-info-icon {
+        color: #667eea;
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
+    }
+    
+    .assignment-card {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: 10px;
+        padding: 1.25rem;
+        border: 1px solid #bae6fd;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Warning Banner -->
+    @if (Model.HasSuspiciousLocation)
+    {
+        <div class="warning-banner">
+            <i class="fas fa-exclamation-triangle fa-lg"></i>
+            <div>
+                <strong>GPS Location Alert</strong>
+                <p class="mb-0 small">This trip has been flagged for suspicious GPS coordinates. Please review the location data.</p>
+            </div>
+        </div>
+    }
+
+    <!-- Trip Header -->
+    <div class="trip-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
+                    <h2 class="mb-0">Trip #@Model.TripNumber</h2>
+                    <span class="status-badge bg-@statusClass text-white">
+                        <i class="fas @statusIcon"></i>
+                        <span>@Model.StatusDisplay</span>
+                    </span>
+                </div>
+                <small class="opacity-75">
+                    <i class="far fa-calendar-alt"></i> Created @Model.CreatedDate.ToLocalTime().ToString("MMMM dd, yyyy 'at' h:mm tt")
+                </small>
+            </div>
+            
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-light action-btn" asp-action="Index">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <a class="btn btn-primary action-btn" asp-action="Edit" asp-route-id="@Model.Id">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <button class="btn btn-info action-btn" id="openAssignBtn" data-tripid="@Model.Id">
+                    <i class="fas fa-user-check"></i> Assign / Reassign
+                </button>
+                
+                @if (Model.RequiresApproval && Model.Status == TripStatus.PendingApproval)
+                {
+                    <form id="approveForm" method="post" asp-action="Approve" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="tripId" value="@Model.Id" />
+                        <input type="hidden" name="isApproved" value="true" id="approveFlag" />
+                        <input type="hidden" name="comments" id="approveComments" />
+                        <button type="button" class="btn btn-success action-btn" id="btnApprove">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button type="button" class="btn btn-danger action-btn" id="btnReject">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                }
+                
+                <form method="post" asp-action="Delete" asp-route-id="@Model.Id" onsubmit="return confirm('Are you sure you want to delete this trip?');" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-danger action-btn">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Trip Overview -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-info-circle"></i> Trip Overview
+                </div>
+                
+                <!-- Route Display -->
+                <div class="route-display">
+                    <div class="route-point">
+                        <div class="route-icon">
+                            <i class="fas fa-map-marker-alt text-success"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted">Origin</div>
+                            <div class="fw-semibold">@Model.Origin</div>
+                        </div>
+                    </div>
+                    
+                    <div class="route-arrow">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    
+                    <div class="route-point">
+                        <div class="route-icon">
+                            <i class="fas fa-map-marker-alt text-danger"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted">Destination</div>
+                            <div class="fw-semibold">@Model.Destination</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            <i class="fas fa-car"></i> Vehicle
+                        </div>
+                        <div class="detail-value">
+                            <strong>@Model.VehiclePlateNo</strong> - @Model.VehicleMake @Model.VehicleModel
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            <i class="fas fa-user"></i> Driver
+                        </div>
+                        <div class="detail-value">@Model.DriverName</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            <i class="fas fa-calendar-check"></i> Scheduled Start
+                        </div>
+                        <div class="detail-value">@Model.ScheduledStartDate.ToLocalTime().ToString("MMMM dd, yyyy 'at' h:mm tt")</div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            <i class="fas fa-calendar-times"></i> Scheduled End
+                        </div>
+                        <div class="detail-value">@Model.ScheduledEndDate.ToLocalTime().ToString("MMMM dd, yyyy 'at' h:mm tt")</div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                    {
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                <i class="fas fa-sticky-note"></i> Notes
+                            </div>
+                            <div class="detail-value">@Model.Notes</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Expenses Section -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-wallet"></i> Expenses
+                </div>
+                <div id="expensesContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <p class="mb-0">No expenses recorded yet</p>
+                        <small class="text-muted">Expenses will appear here once added to this trip</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checkpoints Section -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-map-marked-alt"></i> Checkpoints
+                </div>
+                <div id="checkpointsContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-map-pin"></i>
+                        </div>
+                        <p class="mb-0">No checkpoints recorded yet</p>
+                        <small class="text-muted">Checkpoint data will appear here during the trip</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Metrics -->
+            <div class="row g-3 mb-4">
+                <div class="col-6">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                        <div class="metric-value">@Model.TripNumber</div>
+                        <div class="metric-label">Trip Number</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div class="metric-value">@Model.StatusDisplay</div>
+                        <div class="metric-label">Status</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignment Info -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-user-tie"></i> Assignment Details
+                </div>
+                <div class="assignment-card">
+                    <div class="quick-info-item">
+                        <div class="quick-info-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted">Driver</div>
+                            <div class="fw-semibold">@Model.DriverName</div>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-info-item">
+                        <div class="quick-info-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted">Assigned Date</div>
+                            <div class="fw-semibold">
+                                @if (Model.AssignedDate.HasValue)
+                                {
+                                    @Model.AssignedDate.Value.ToLocalTime().ToString("MMM dd, yyyy h:mm tt")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not assigned</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-outline-primary w-100 mt-3 action-btn" id="openAssignBtn2" data-tripid="@Model.Id">
+                        <i class="fas fa-user-check"></i> Reassign Trip
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </div>
+                
+                @if (Model.RequiresApproval && !Model.IsApproved.GetValueOrDefault(false))
+                {
+                    <form method="post" asp-action="Approve" asp-route-tripId="@Model.Id" class="mb-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="isApproved" value="true" />
+                        <input type="hidden" name="comments" value="Approved by admin" />
+                        <button class="btn btn-success w-100 action-btn mb-2">
+                            <i class="fas fa-check-circle"></i> Quick Approve
+                        </button>
+                    </form>
+                }
+                
+                <a class="btn btn-outline-primary w-100 action-btn mb-2" asp-action="Edit" asp-route-id="@Model.Id">
+                    <i class="fas fa-edit"></i> Edit Trip
+                </a>
+                
+                <form method="post" asp-action="Delete" asp-route-id="@Model.Id" onsubmit="return confirm('Are you sure you want to delete this trip? This action cannot be undone.');">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-outline-danger w-100 action-btn">
+                        <i class="fas fa-trash-alt"></i> Delete Trip
+                    </button>
+                </form>
+            </div>
+
+            <!-- Trip Timeline -->
+            <div class="info-card">
+                <div class="info-card-header">
+                    <i class="fas fa-history"></i> Timeline
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="small text-muted">Created</div>
+                    <div class="fw-semibold">@Model.CreatedDate.ToLocalTime().ToString("MMM dd, h:mm tt")</div>
+                </div>
+                
+                @if (Model.AssignedDate.HasValue)
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="small text-muted">Assigned</div>
+                        <div class="fw-semibold">@Model.AssignedDate.Value.ToLocalTime().ToString("MMM dd, h:mm tt")</div>
+                    </div>
+                }
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="small text-muted">Scheduled Start</div>
+                    <div class="fw-semibold">@Model.ScheduledStartDate.ToLocalTime().ToString("MMM dd, h:mm tt")</div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="small text-muted">Scheduled End</div>
+                    <div class="fw-semibold">@Model.ScheduledEndDate.ToLocalTime().ToString("MMM dd, h:mm tt")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Assignment -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body" id="assignModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Geolocation helper
+    function tryFillGeolocation(latSelector, lonSelector) {
+        if (!navigator.geolocation) {
+            console.warn('Geolocation not available');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            var lat = pos.coords.latitude;
+            var lon = pos.coords.longitude;
+            $(latSelector).val(lat);
+            $(lonSelector).val(lon);
+        }, function (err) {
+            console.warn('Geolocation denied or failed', err);
+        }, { enableHighAccuracy: true, timeout: 5000 });
+    }
+
+    $(function () {
+        function showAssignLoading() {
+            $('#assignModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+        }
+
+        function loadAssignModal(tripId) {
+            var url = '@Url.Action("Assign", "AdminTrips")' + '?id=' + tripId;
+            
+            showAssignLoading();
+            $('#assignModal').modal('show');
+            $.get(url, function (html) {
+                $('#assignModalBody').html(html);
+            }).fail(function (xhr) {
+                $('#assignModalBody').html('<div class="p-3 text-danger"><i class="fas fa-exclamation-triangle"></i> Failed to load assign form: ' + (xhr.responseText || xhr.statusText) + '</div>');
+            });
+        }
+
+        $('#openAssignBtn, #openAssignBtn2').on('click', function (e) {
+            e.preventDefault();
+            var tripId = $(this).data('tripid');
+            if (!tripId) return;
+            loadAssignModal(tripId);
+        });
+
+        // Handle assignment form submission
+        $(document).on('submit', '#assignForm', function (e) {
+            e.preventDefault();
+            var $form = $(this);
+            var action = $form.attr('action') || '@Url.Action("Assign", "AdminTrips")';
+            var $submit = $form.find('button[type="submit"]').first();
+            
+            $form.find('#assignFormAlert').remove();
+            $submit.prop('disabled', true).addClass('disabled');
+            
+            $.post(action, $form.serialize())
+                .done(function () {
+                    $('#assignModal').modal('hide');
+                    location.reload();
+                })
+                .fail(function (xhr) {
+                    var err = xhr.responseText || 'Failed to assign trip';
+                    $form.prepend('<div id="assignFormAlert" class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ' + err + '</div>');
+                })
+                .always(function () {
+                    $submit.prop('disabled', false).removeClass('disabled');
+                });
+        });
+
+        // Approve button handler
+        $(document).on('click', '#btnApprove', function (e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var $form = $('#approveForm');
+            
+            if (!$form.length) {
+                alert('Approve form not found.');
+                return;
+            }
+
+            $('#approveAlert').remove();
+            $('#approveFlag').val('true');
+            $('#approveComments').val('Approved by admin');
+
+            $btn.prop('disabled', true);
+            $.post('@Url.Action("Approve", "AdminTrips")', $form.serialize())
+                .done(function () {
+                    location.reload();
+                })
+                .fail(function (xhr) {
+                    var msg = xhr.responseText || 'Failed to approve trip';
+                    $form.prepend('<div id="approveAlert" class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ' + msg + '</div>');
+                })
+                .always(function () {
+                    $btn.prop('disabled', false);
+                });
+        });
+
+        // Reject button handler
+        $(document).on('click', '#btnReject', function (e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var $form = $('#approveForm');
+            
+            if (!$form.length) {
+                alert('Approve form not found.');
+                return;
+            }
+
+            var reason = prompt('Please enter a rejection reason (optional):');
+            if (reason === null) {
+                return;
+            }
+
+            $('#approveAlert').remove();
+            $('#approveFlag').val('false');
+            $('#approveComments').val(reason || '');
+
+            $btn.prop('disabled', true);
+            $.post('@Url.Action("Approve", "AdminTrips")', $form.serialize())
+                .done(function () {
+                    location.reload();
+                })
+                .fail(function (xhr) {
+                    var msg = xhr.responseText || 'Failed to reject trip';
+                    $form.prepend('<div id="approveAlert" class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ' + msg + '</div>');
+                })
+                .always(function () {
+                    $btn.prop('disabled', false);
+                });
+        });
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.TripsDto
+
+@using FleetManager.Business.Enums
+@model TripDto
+@{
+    ViewData["Title"] = "Trip Details";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        @if (Model.HasSuspiciousLocation)
+        {
+            <span class="badge bg-warning text-dark">⚠️ Suspicious GPS</span>
+        }
+
+        <div>
+            <h1>Trip @Model.TripNumber</h1>
+            <small class="text-muted">Created: @Model.CreatedDate.ToLocalTime().ToString("g")</small>
+        </div>
+
+        <div class="d-flex">
+            <a class="btn btn-outline-secondary me-2" asp-action="Index">Back</a>
+            <a class="btn btn-primary me-2" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+
+            <button class="btn btn-secondary me-2" id="openAssignBtn" data-tripid="@Model.Id">Assign / Reassign</button>
+
+            @if (Model.RequiresApproval && Model.Status == TripStatus.PendingApproval)
+            {
+                <form id="approveForm" method="post" asp-action="Approve" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="tripId" value="@Model.Id" />
+                    <input type="hidden" name="isApproved" value="true" id="approveFlag" />
+                    <input type="hidden" name="comments" id="approveComments" />
+                    <button type="button" class="btn btn-success me-1" id="btnApprove">Approve</button>
+                    <button type="button" class="btn btn-danger" id="btnReject">Reject</button>
+                </form>
+            }
+
+            <form method="post" asp-action="Delete" asp-route-id="@Model.Id" onsubmit="return confirm('Delete this trip?');">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-danger ms-2">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>Trip Details</h5>
+                    <dl class="row">
+                        <dt class="col-sm-3">Vehicle</dt>
+                        <dd class="col-sm-9">@Model.VehiclePlateNo (@Model.VehicleMake @Model.VehicleModel)</dd>
+
+                        <dt class="col-sm-3">Driver</dt>
+                        <dd class="col-sm-9">@Model.DriverName</dd>
+
+                        <dt class="col-sm-3">Origin</dt>
+                        <dd class="col-sm-9">@Model.Origin</dd>
+
+                        <dt class="col-sm-3">Destination</dt>
+                        <dd class="col-sm-9">@Model.Destination</dd>
+
+                        <dt class="col-sm-3">Scheduled</dt>
+                        <dd class="col-sm-9">@Model.ScheduledStartDate.ToLocalTime() - @Model.ScheduledEndDate.ToLocalTime()</dd>
+
+                        <dt class="col-sm-3">Status</dt>
+                        <dd class="col-sm-9">@Model.StatusDisplay</dd>
+
+                        <dt class="col-sm-3">Notes</dt>
+                        <dd class="col-sm-9">@Model.Notes</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Expenses -->
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Expenses</strong>
+                    <small class="text-muted">Total: --</small>
+                </div>
+                <div class="card-body" id="expensesContainer">
+                    <!-- if you have a JSON endpoint to get expenses, you can load here via AJAX.
+                         For now, we show a placeholder / call a server-side included partial if available -->
+                    <p class="text-muted">Expenses will show here (server-side partial or AJAX load)</p>
+                </div>
+            </div>
+
+            <!-- Checkpoints -->
+            <div class="card mb-3">
+                <div class="card-header"><strong>Checkpoints</strong></div>
+                <div class="card-body" id="checkpointsContainer">
+                    <p class="text-muted">Checkpoints will show here (server-side partial or AJAX load)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header"><strong>Quick Actions</strong></div>
+                <div class="card-body">
+                    <p><strong>Trip #</strong><br />@Model.TripNumber</p>
+                    <p><strong>Created</strong><br />@Model.CreatedDate.ToLocalTime().ToString("g")</p>
+
+                    <form method="post" asp-action="Delete" asp-route-id="@Model.Id" onsubmit="return confirm('Delete this trip?');">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-danger w-100 mb-2">Delete</button>
+                    </form>
+
+                    @if (Model.RequiresApproval && !Model.IsApproved.GetValueOrDefault(false))
+                    {
+                        <form method="post" asp-action="Approve" asp-route-tripId="@Model.Id" class="mb-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="isApproved" value="true" />
+                            <input type="hidden" name="comments" value="Approved by admin" />
+                            <button class="btn btn-success w-100">Approve</button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><strong>Assignment</strong></div>
+                <div class="card-body">
+                    <p><strong>Driver:</strong> @Model.DriverName</p>
+                    <p><strong>Assigned Date:</strong> @(Model.AssignedDate?.ToLocalTime().ToString("g") ?? "Not assigned")</p>
+                    <a class="btn btn-outline-secondary w-100 mb-2" id="openAssignBtn2" data-tripid="@Model.Id">Assign / Reassign</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal used to load the Assign partial -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body" id="assignModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts: jQuery, Bootstrap JS, geolocation helper and AJAX wiring -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Geolocation helper used on Start / Complete pages
+    function tryFillGeolocation(latSelector, lonSelector) {
+        if (!navigator.geolocation) {
+            console.warn('Geolocation not available');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            var lat = pos.coords.latitude;
+            var lon = pos.coords.longitude;
+            $(latSelector).val(lat);
+            $(lonSelector).val(lon);
+        }, function (err) {
+            console.warn('Geolocation denied or failed', err);
+        }, { enableHighAccuracy: true, timeout: 5000 });
+    }
+
+    // load assign partial into modal
+    $(function () {
+
+        function showAssignLoading() {
+            $('#assignModalBody').html('<div class="text-center py-5"><div class="spinner-border" role="status"></div></div>');
+        }
+
+        function loadAssignModal(tripId) {
+            var url = '@Url.Action("Assign", "AdminTrips")' + '?id=' + tripId;
+            
+
+            showAssignLoading();
+            $('#assignModal').modal('show');
+            $.get(url, function (html) {
+                $('#assignModalBody').html(html);
+            }).fail(function (xhr) {
+                $('#assignModalBody').html('<div class="p-3 text-danger">Failed to load assign form: ' + (xhr.responseText || xhr.statusText) + '</div>');
+            });
+        }
+
+        $('#openAssignBtn, #openAssignBtn2').on('click', function (e) {
+            e.preventDefault();
+            var tripId = $(this).data('tripid');
+            if (!tripId) return;
+            loadAssignModal(tripId);
+        });
+
+        // handle assignment submit (partial contains #assignForm)
+        $(document).on('submit', '#assignForm', function (e) {
+            e.preventDefault();
+            var $form = $(this);
+            var action = $form.attr('action') || '@Url.Action("Assign", "AdminTrips")';
+            var $submit = $form.find('button[type="submit"]').first();
+            // remove any previous alert
+            $form.find('#assignFormAlert').remove();
+            $submit.prop('disabled', true).addClass('disabled');
+            $.post(action, $form.serialize())
+                .done(function () {
+                    // close modal, reload page to reflect assignment
+                    $('#assignModal').modal('hide');
+                    location.reload();
+                })
+                .fail(function (xhr) {
+                    var err = xhr.responseText || 'Failed to assign';
+                    $form.prepend('<div id="assignFormAlert" class="alert alert-danger">' + err + '</div>');
+                })
+                .always(function () {
+                    $submit.prop('disabled', false).removeClass('disabled');
+                });
+        });
+
+        // APPROVE / REJECT wiring
+        // expects a form with id="approveForm" that contains anti-forgery token and hidden inputs:
+        // <input type="hidden" name="tripId" value="..." />
+        // <input type="hidden" name="isApproved" value="true" id="approveFlag" />
+        // <input type="hidden" name="comments" id="approveComments" />
+        $(document).on('click', '#btnApprove', function (e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var $form = $('#approveForm');
+            if (!$form.length) {
+                alert('Approve form not found.');
+                return;
+            }
+
+            // clear any previous message
+            $('#approveAlert').remove();
+
+            // set values
+            $('#approveFlag').val('true');
+            $('#approveComments').val('Approved by admin');
+
+            $btn.prop('disabled', true);
+            $.post('@Url.Action("Approve", "AdminTrips")', $form.serialize())
+                .done(function () {
+                    location.reload();
+                })
+                .fail(function (xhr) {
+                    var msg = xhr.responseText || 'Failed to approve';
+                    $form.prepend('<div id="approveAlert" class="alert alert-danger">' + msg + '</div>');
+                })
+                .always(function () {
+                    $btn.prop('disabled', false);
+                });
+        });
+
+        $(document).on('click', '#btnReject', function (e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var $form = $('#approveForm');
+            if (!$form.length) {
+                alert('Approve form not found.');
+                return;
+            }
+
+            // ask for reason (optional)
+            var reason = prompt('Please enter a rejection reason (optional):');
+            if (reason === null) {
+                // user cancelled prompt
+                return;
+            }
+
+            // clear previous alert
+            $('#approveAlert').remove();
+
+            $('#approveFlag').val('false');
+            $('#approveComments').val(reason || '');
+
+            $btn.prop('disabled', true);
+            $.post('@Url.Action("Approve", "AdminTrips")', $form.serialize())
+                .done(function () {
+                    location.reload();
+                })
+                .fail(function (xhr) {
+                    var msg = xhr.responseText || 'Failed to reject';
+                    $form.prepend('<div id="approveAlert" class="alert alert-danger">' + msg + '</div>');
+                })
+                .always(function () {
+                    $btn.prop('disabled', false);
+                });
+        });
+
+    });
+</script>
+ *@

@@ -17,6 +17,7 @@ namespace FleetManager.Business.DataObjects.TripsDto
 
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public decimal? LatitudeAccuracy { get; set; }
 
         [StringLength(500)]
         public string? Notes { get; set; }

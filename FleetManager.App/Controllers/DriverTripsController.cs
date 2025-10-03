@@ -58,7 +58,8 @@ namespace FleetManager.App.Controllers
             if (tripResp.Result.DriverId != driverId) return Forbid();
 
             var vm = new StartTripViewModel { TripId = id };
-            return View(vm);
+            return PartialView("_StartPartial", vm);
+            //return View(vm);
         }
 
         [HttpPost]
@@ -71,8 +72,9 @@ namespace FleetManager.App.Controllers
             {
                 TripId = vm.TripId,
                 StartOdometer = vm.StartOdometer,
-                Latitude = vm.Latitude,
+                Latitude = vm.Latitude, 
                 Longitude = vm.Longitude,
+                LatitudeAccuracy = vm.LatitudeAccuracy,
                 Notes = vm.Notes
             };
 
@@ -98,7 +100,8 @@ namespace FleetManager.App.Controllers
             if (tripResp.Result.DriverId != driverId) return Forbid();
 
             var vm = new CompleteTripViewModel { TripId = id };
-            return View(vm);
+            return PartialView("_CompletePartial", vm);
+            //return View(vm);
         }
 
         [HttpPost]
@@ -114,6 +117,7 @@ namespace FleetManager.App.Controllers
                 ActualFuelCost = vm.ActualFuelCost,
                 Latitude = vm.Latitude,
                 Longitude = vm.Longitude,
+                LatitudeAccuracy = vm.LatitudeAccuracy,
                 Notes = vm.Notes
             };
 

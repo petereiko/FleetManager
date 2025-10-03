@@ -68,6 +68,7 @@ namespace FleetManager.Business.DataObjects.TripsDto
         public string? Notes { get; set; }
         public string? CancellationReason { get; set; }
         public DateTime? CancellationDate { get; set; }
+        public bool HasSuspiciousLocation { get; set; }
 
         // Base Entity
         public bool IsActive { get; set; }

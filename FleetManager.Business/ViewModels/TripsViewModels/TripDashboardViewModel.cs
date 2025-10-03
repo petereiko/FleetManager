@@ -14,5 +14,8 @@ namespace FleetManager.Business.ViewModels.TripsViewModels
         public List<TripListDto> UpcomingTrips { get; set; }
         public List<TripListDto> ActiveTrips { get; set; }
         public List<TripListDto> PendingApprovalTrips { get; set; }
+
+        public Dictionary<string, int> StatusCounts { get; set; } = new();
+        public List<DailySeriesPoint> SevenDayTrend { get; set; } = new();
     }
 }

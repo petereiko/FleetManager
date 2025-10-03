@@ -1,0 +1,942 @@
+﻿@using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.ViewModels.TripsViewModels
+
+@model TripDashboardViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Trips Dashboard";
+    var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+
+<style>
+    .dashboard-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-bottom: 3rem;
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        margin: -1rem -1rem 2rem -1rem;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        overflow: hidden;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .stat-card .card-body {
+            padding: 1.5rem;
+        }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 1rem;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .chart-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        height: 100%;
+    }
+
+        .chart-card .card-header {
+            background: white;
+            border-bottom: 2px solid #f1f3f5;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+
+    .chart-container {
+        position: relative;
+        height: 350px;
+        padding: 1.5rem;
+    }
+
+    .list-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        height: 100%;
+    }
+
+        .list-card .card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 2px solid #dee2e6;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .list-card .list-group {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        padding: 1rem 1.25rem;
+        transition: background-color 0.2s;
+    }
+
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .list-group-item:first-child {
+            border-top: none;
+        }
+
+    .trip-number {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 1rem;
+    }
+
+    .trip-details {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .trip-route {
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #adb5bd;
+    }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+    /* Color schemes for stat cards */
+    .stat-card-total {
+        border-left: 4px solid #667eea;
+    }
+
+    .stat-card-scheduled {
+        border-left: 4px solid #f59e0b;
+    }
+
+    .stat-card-active {
+        border-left: 4px solid #10b981;
+    }
+
+    .stat-card-completed {
+        border-left: 4px solid #3b82f6;
+    }
+
+    .icon-total {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    .icon-scheduled {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .icon-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .icon-completed {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    /* Scrollbar styling */
+    .list-group::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .list-group::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .list-group::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 3px;
+    }
+
+        .list-group::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+    .view-all-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+    }
+
+        .view-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .stats-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .stats-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin: 0;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="dashboard-wrapper">
+        <div class="dashboard-header">
+            <h1 class="mb-2">Trips Dashboard</h1>
+            <p class="mb-0 opacity-75">Real-time fleet management overview</p>
+        </div>
+       
+
+        <!-- Statistics Header with View All Button -->
+        <div class="stats-header">
+            <h2 class="stats-title">Trip Statistics</h2>
+            <a asp-action="Index" class="view-all-btn">
+                <i class="fas fa-list"></i>
+                View All Trips
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card stat-card-total shadow-sm">
+                    <div class="card-body">
+                        <div class="stat-icon icon-total">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-label">Total Trips</div>
+                        <div class="stat-number">@(Model.Statistics?.TotalTrips ?? 0)</div>
+                        <small class="text-muted">All-time record</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card stat-card-scheduled shadow-sm">
+                    <div class="card-body">
+                        <div class="stat-icon icon-scheduled">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-label">Scheduled</div>
+                        <div class="stat-number">@(Model.Statistics?.ScheduledTrips ?? 0)</div>
+                        <small class="text-muted">Upcoming assignments</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card stat-card-active shadow-sm">
+                    <div class="card-body">
+                        <div class="stat-icon icon-active">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <div class="stat-label">In Progress</div>
+                        <div class="stat-number">@(Model.Statistics?.ActiveTrips ?? 0)</div>
+                        <small class="text-muted">Currently on route</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card stat-card-completed shadow-sm">
+                    <div class="card-body">
+                        <div class="stat-icon icon-completed">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-label">Completed</div>
+                        <div class="stat-number">@(Model.Statistics?.CompletedTrips ?? 0)</div>
+                        <small class="text-muted">Successfully finished</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie me-2"></i>Trip Status Distribution
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="statusDoughnut"></canvas>
+                            <div id="statusEmpty" class="empty-state" style="display:none;">
+                                <i class="fas fa-chart-pie"></i>
+                                <p class="mb-0">No status data available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-area me-2"></i>7-Day Trip Creation Trend
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="sevenDayTrend"></canvas>
+                            <div id="trendEmpty" class="empty-state" style="display:none;">
+                                <i class="fas fa-chart-line"></i>
+                                <p class="mb-0">No trend data available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip Lists Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="card list-card">
+                    <div class="card-header">
+                        <i class="fas fa-calendar-day me-2"></i>Upcoming Trips
+                        <span class="badge bg-primary rounded-pill float-end">@(Model.UpcomingTrips?.Count() ?? 0)</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            @if (Model.UpcomingTrips?.Any() == true)
+                            {
+                                foreach (var t in Model.UpcomingTrips)
+                                {
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <div class="trip-number">@t.TripNumber</div>
+                                                <div class="trip-details">
+                                                    <div><i class="fas fa-car me-1"></i> @t.VehiclePlateNo</div>
+                                                    <div class="trip-route mt-1">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>@t.Origin
+                                                        <i class="fas fa-arrow-right mx-1"></i> @t.Destination
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="text-end ms-3">
+                                                <small class="text-muted d-block mb-2">
+                                                    @t.ScheduledStartDate.ToLocalTime().ToString("MMM dd, HH:mm")
+                                                </small>
+                                                <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Details", "AdminTrips", new { id = t.Id })">
+                                                    <i class="fas fa-eye me-1"></i> View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="list-group-item empty-state">
+                                    <i class="fas fa-calendar-times"></i>
+                                    <p class="mb-0">No upcoming trips</p>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card list-card">
+                    <div class="card-header">
+                        <i class="fas fa-shipping-fast me-2"></i>Active Trips
+                        <span class="badge bg-success rounded-pill float-end">@(Model.ActiveTrips?.Count() ?? 0)</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            @if (Model.ActiveTrips?.Any() == true)
+                            {
+                                foreach (var t in Model.ActiveTrips)
+                                {
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <div class="trip-number">@t.TripNumber</div>
+                                                <div class="trip-details">
+                                                    <div><i class="fas fa-car me-1"></i> @t.VehiclePlateNo</div>
+                                                    <div class="mt-1"><i class="fas fa-user me-1"></i> @t.DriverName</div>
+                                                    <small class="text-success fw-bold mt-1 d-block">
+                                                        <i class="fas fa-circle me-1"></i> In Progress
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end ms-3">
+                                                <small class="text-muted d-block mb-2">
+                                                    @t.ScheduledStartDate.ToLocalTime().ToString("MMM dd, HH:mm")
+                                                </small>
+                                                <a class="btn btn-sm btn-outline-success" href="@Url.Action("Details", "AdminTrips", new { id = t.Id })">
+                                                    <i class="fas fa-location-arrow me-1"></i> Track
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="list-group-item empty-state">
+                                    <i class="fas fa-road"></i>
+                                    <p class="mb-0">No active trips</p>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card list-card">
+                    <div class="card-header">
+                        <i class="fas fa-clock me-2"></i>Pending Approvals
+                        <span class="badge bg-warning rounded-pill float-end">@(Model.PendingApprovalTrips?.Count() ?? 0)</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            @if (Model.PendingApprovalTrips?.Any() == true)
+                            {
+                                foreach (var t in Model.PendingApprovalTrips)
+                                {
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <div class="trip-number">@t.TripNumber</div>
+                                                <div class="trip-details">
+                                                    <div><i class="fas fa-car me-1"></i> @t.VehiclePlateNo</div>
+                                                    <div class="trip-route mt-1">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>@t.Origin
+                                                        <i class="fas fa-arrow-right mx-1"></i> @t.Destination
+                                                    </div>
+                                                    <small class="text-warning fw-bold mt-1 d-block">
+                                                        <i class="fas fa-hourglass-half me-1"></i> Awaiting Approval
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end ms-3">
+                                                <small class="text-muted d-block mb-2">
+                                                    @t.CreatedDate.ToLocalTime().ToString("MMM dd, HH:mm")
+                                                </small>
+                                                <a class="btn btn-sm btn-outline-warning" href="@Url.Action("Details", "AdminTrips", new { id = t.Id })">
+                                                    <i class="fas fa-tasks me-1"></i> Review
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="list-group-item empty-state">
+                                    <i class="fas fa-check-double"></i>
+                                    <p class="mb-0">All trips approved</p>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    (function () {
+        // Status Distribution Chart
+        var statusCounts = @Html.Raw(JsonSerializer.Serialize(Model.StatusCounts ?? new Dictionary<string, int>(), jsonOptions));
+        var statusLabels = Object.keys(statusCounts || {});
+        var statusData = statusLabels.map(l => statusCounts[l] || 0);
+
+        if (!statusLabels.length || statusData.every(d => d === 0)) {
+            $('#statusDoughnut').hide();
+            $('#statusEmpty').show();
+        } else {
+            $('#statusEmpty').hide();
+
+            var ctxD = document.getElementById('statusDoughnut').getContext('2d');
+            new Chart(ctxD, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: [
+                            '#667eea', '#f59e0b', '#10b981', '#ef4444',
+                            '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6',
+                            '#f97316', '#06b6d4'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 13, weight: '600' },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                label: function(context) {
+                                    var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    var percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: 20
+                    }
+                }
+            });
+        }
+
+        // 7-Day Trend Chart
+        var trend = @Html.Raw(JsonSerializer.Serialize(Model.SevenDayTrend ?? new List<DailySeriesPoint>(), jsonOptions));
+
+        if (!trend || !trend.length || trend.every(p => !p.count)) {
+            $('#sevenDayTrend').hide();
+            $('#trendEmpty').show();
+        } else {
+            $('#trendEmpty').hide();
+
+            var trendLabels = trend.map(p => {
+                var d = new Date(p.date);
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            var trendData = trend.map(p => p.count);
+
+            var ctxL = document.getElementById('sevenDayTrend').getContext('2d');
+
+            // Create gradient
+            var gradient = ctxL.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(102, 126, 234, 0.4)');
+            gradient.addColorStop(1, 'rgba(102, 126, 234, 0.01)');
+
+            new Chart(ctxL, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Trips Created',
+                        data: trendData,
+                        fill: true,
+                        backgroundColor: gradient,
+                        borderColor: '#667eea',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 3,
+                        pointHoverBackgroundColor: '#667eea',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                font: { size: 12 },
+                                color: '#6c757d',
+                                padding: 10
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.06)',
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#6c757d',
+                                padding: 10
+                            },
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    return context.parsed.y + ' trip' + (context.parsed.y !== 1 ? 's' : '') + ' created';
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 20,
+                            right: 20,
+                            bottom: 10,
+                            left: 10
+                        }
+                    }
+                }
+            });
+        }
+    })();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.ViewModels.TripsViewModels
+
+@model TripDashboardViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Trips Dashboard";
+    var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+}
+
+<div class="container-fluid">
+    <h1 class="my-3">Trips Dashboard</h1>
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Total Trips</h6>
+                    <h2>@(Model.Statistics?.TotalTrips ?? 0)</h2>
+                    <small class="text-muted">Since inception</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Scheduled / Assigned</h6>
+                    <h2>@(Model.Statistics?.ScheduledTrips ?? 0)</h2>
+                    <small class="text-muted">Upcoming & assigned</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">In Progress</h6>
+                    <h2>@(Model.Statistics?.ActiveTrips ?? 0)</h2>
+                    <small class="text-muted">Ongoing trips</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Completed</h6>
+                    <h2>@(Model.Statistics?.CompletedTrips ?? 0)</h2>
+                    <small class="text-muted">Trips completed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Status Breakdown</strong></div>
+                <div class="card-body">
+                    <canvas id="statusDoughnut" height="220"></canvas>
+                    <div id="statusEmpty" class="text-center text-muted mt-3" style="display:none;">No status data to display</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>7-Day Created Trips Trend</strong></div>
+                <div class="card-body">
+                    <canvas id="sevenDayTrend" height="220"></canvas>
+                    <div id="trendEmpty" class="text-center text-muted mt-3" style="display:none;">No recent data</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lists: Upcoming / Active / Pending approval (kept) -->
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Upcoming Trips (7 days)</strong></div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @if (Model.UpcomingTrips?.Any() == true)
+                        {
+                            foreach (var t in Model.UpcomingTrips)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@t.TripNumber</strong><br />
+                                        <small>@t.VehiclePlateNo — @t.Origin → @t.Destination</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small>@t.ScheduledStartDate.ToLocalTime().ToString("g")</small><br />
+                                        <a class="btn btn-sm btn-outline-primary mt-1" href="@Url.Action("Details","AdminTrips", new { id = t.Id })">Details</a>
+                                    </div>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="list-group-item">No upcoming trips</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Active Trips</strong></div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @if (Model.ActiveTrips?.Any() == true)
+                        {
+                            foreach (var t in Model.ActiveTrips)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@t.TripNumber</strong><br />
+                                        <small>@t.VehiclePlateNo — @t.DriverName</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small>@t.ScheduledStartDate.ToLocalTime().ToString("g")</small>
+                                        <a class="btn btn-sm btn-outline-primary mt-1" href="@Url.Action("Details","AdminTrips", new { id = t.Id })">Details</a>
+                                    </div>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="list-group-item">No active trips</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Pending Approvals</strong></div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @if (Model.PendingApprovalTrips?.Any() == true)
+                        {
+                            foreach (var t in Model.PendingApprovalTrips)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@t.TripNumber</strong><br />
+                                        <small>@t.VehiclePlateNo — @t.Origin → @t.Destination</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small>@t.CreatedDate.ToLocalTime().ToString("g")</small>
+                                        <a class="btn btn-sm btn-outline-primary mt-1" href="@Url.Action("Details","AdminTrips", new { id = t.Id })">Details</a>
+                                    </div>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="list-group-item">No pending approvals</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    (function () {
+        const jsonOpts = @Html.Raw(JsonSerializer.Serialize(new { }, jsonOptions)); // ensures import of options in Razor (noop, but keeps consistent)
+        // StatusCounts: ensure camelCase serializer used server-side; we expect { "scheduled": 2, "assigned": 1, ... }
+        var statusCounts = @Html.Raw(JsonSerializer.Serialize(Model.StatusCounts ?? new Dictionary<string,int>(), jsonOptions));
+        var statusLabels = Object.keys(statusCounts || {});
+        var statusData = statusLabels.map(l => statusCounts[l] || 0);
+
+        if (!statusLabels.length || statusData.every(d => d === 0)) {
+            $('#statusDoughnut').hide();
+            $('#statusEmpty').show();
+        } else {
+            $('#statusEmpty').hide();
+        }
+
+        if (statusLabels.length) {
+            var ctxD = document.getElementById('statusDoughnut').getContext('2d');
+            new Chart(ctxD, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: statusLabels.map((_, i) => [
+                            '#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc949','#af7aa1','#ff9da7','#9c755f','#bab0ac'
+                        ][i % 10])
+                    }]
+                },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // Seven day trend - using camelCase date: { date: "2025-10-01T00:00:00", count: 2 }
+        var trend = @Html.Raw(JsonSerializer.Serialize(Model.SevenDayTrend ?? new List<DailySeriesPoint>(), jsonOptions));
+        if (!trend || !trend.length || trend.every(p => !p.count)) {
+            $('#sevenDayTrend').hide();
+            $('#trendEmpty').show();
+        } else {
+            $('#trendEmpty').hide();
+            var trendLabels = trend.map(p => (new Date(p.date)).toLocaleDateString());
+            var trendData = trend.map(p => p.count);
+
+            var ctxL = document.getElementById('sevenDayTrend').getContext('2d');
+            new Chart(ctxL, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Trips created',
+                        data: trendData,
+                        fill: true,
+                        tension: 0.25,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    })();
+</script>
+ *@

@@ -1,7 +1,9 @@
 ﻿using FleetManager.Business;
 using FleetManager.Business.DataObjects.TripsDto;
 using FleetManager.Business.Enums;
+using FleetManager.Business.Implementations.TripModule;
 using FleetManager.Business.Interfaces.TripModule;
+using FleetManager.Business.UtilityModels;
 using FleetManager.Business.ViewModels.TripsViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,17 +29,53 @@ namespace FleetManager.App.Areas.Admin.Controllers
             return View(response.Result);
         }
 
-        public async Task<IActionResult> Index(string search, int page = 1, int pageSize = 20)
+        //public async Task<IActionResult> Index(string search, int page = 1, int pageSize = 20)
+        //{
+        //    var filter = new TripFilterDto
+        //    {
+        //        SearchTerm = search,
+        //        Page = page,
+        //        PageSize = pageSize
+        //    };
+
+        //    var resp = await _tripService.GetTripsAsync(filter);
+        //    if (!resp.Success) TempData["Error"] = resp.Message;
+        //    return View(resp.Result);
+        //}
+
+        public async Task<IActionResult> Index(string search, string startDate = null, string endDate = null, int page = 1, int pageSize = 20)
         {
+            // parse and convert client-supplied date strings (flatpickr ISO e.g. "2025-10-02T14:30")
+            DateTime? sUtc = null, eUtc = null;
+            if (!string.IsNullOrWhiteSpace(startDate) && DateTime.TryParse(startDate, out var parsedS))
+            {
+                // Treat parsed value as client-local and convert to UTC
+                sUtc = DateTimeUtils.ToUtcFromLocal(parsedS);
+            }
+            if (!string.IsNullOrWhiteSpace(endDate) && DateTime.TryParse(endDate, out var parsedE))
+            {
+                eUtc = DateTimeUtils.ToUtcFromLocal(parsedE);
+            }
+
             var filter = new TripFilterDto
             {
                 SearchTerm = search,
+                StartDate = sUtc,
+                EndDate = eUtc,
                 Page = page,
                 PageSize = pageSize
             };
 
             var resp = await _tripService.GetTripsAsync(filter);
             if (!resp.Success) TempData["Error"] = resp.Message;
+
+            // preserve the filter values for the view so the UI can show them
+            ViewBag.FilterSearch = search;
+            ViewBag.FilterStartDate = startDate; // pass original input (ISO local) so flatpickr can show it directly
+            ViewBag.FilterEndDate = endDate;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+
             return View(resp.Result);
         }
 
@@ -175,7 +213,8 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 Drivers = new SelectList(driversResp.Result ?? Enumerable.Empty<SimpleDriverDto>(), "Id", "FullName")
             };
 
-            return View(vm);
+            return PartialView("_AssignTripPartial", vm);
+            //return View(vm);
         }
 
         [HttpPost]
@@ -244,14 +283,28 @@ namespace FleetManager.App.Areas.Admin.Controllers
         {
             DateTime? s = null, e = null;
             if (!string.IsNullOrWhiteSpace(scheduledStart) && DateTime.TryParse(scheduledStart, out var parsedS))
-                s = DateTime.SpecifyKind(parsedS, DateTimeKind.Utc);
+                s = DateTimeUtils.ToUtcFromLocal(parsedS);
             if (!string.IsNullOrWhiteSpace(scheduledEnd) && DateTime.TryParse(scheduledEnd, out var parsedE))
-                e = DateTime.SpecifyKind(parsedE, DateTimeKind.Utc);
+                e = DateTimeUtils.ToUtcFromLocal(parsedE);
 
             var resp = await _tripService.GetVehiclesForDriverAsync(driverId, s, e, excludeOverlap);
             if (!resp.Success) return BadRequest(resp.Message);
             return Json(resp.Result);
         }
+
+        //[HttpGet]
+        //public async Task<IActionResult> GetVehiclesForDriver(long driverId, string scheduledStart = null, string scheduledEnd = null, bool excludeOverlap = true)
+        //{
+        //    DateTime? s = null, e = null;
+        //    if (!string.IsNullOrWhiteSpace(scheduledStart) && DateTime.TryParse(scheduledStart, out var parsedS))
+        //        s = DateTime.SpecifyKind(parsedS, DateTimeKind.Utc);
+        //    if (!string.IsNullOrWhiteSpace(scheduledEnd) && DateTime.TryParse(scheduledEnd, out var parsedE))
+        //        e = DateTime.SpecifyKind(parsedE, DateTimeKind.Utc);
+
+        //    var resp = await _tripService.GetVehiclesForDriverAsync(driverId, s, e, excludeOverlap);
+        //    if (!resp.Success) return BadRequest(resp.Message);
+        //    return Json(resp.Result);
+        //}
     }
 
 }

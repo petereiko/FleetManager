@@ -22,5 +22,6 @@ namespace FleetManager.Business.DataObjects.TripsDto
         public TripPriority Priority { get; set; }
         public string PriorityDisplay { get; set; }
         public DateTime CreatedDate { get; set; }
+        public bool RequiresApproval { get; set; }
     }
 }

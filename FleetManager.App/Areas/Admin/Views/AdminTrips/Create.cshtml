@@ -1,0 +1,158 @@
+﻿@using FleetManager.Business.DataObjects.TripsDto
+@model CreateTripDto
+@{
+    ViewData["Title"] = "Create Trip";
+}
+
+<div class="container">
+    <h1>Create Trip</h1>
+
+    <form asp-action="Create" method="post" class="mb-4" id="createTripForm">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger" id="formSummary"></div>
+
+        <div class="mb-3">
+            <label asp-for="DriverId" class="form-label">Driver</label>
+            <select id="DriverId" name="DriverId" class="form-select" asp-items="ViewBag.Drivers" required>
+                <option value="">-- Select driver (required) --</option>
+            </select>
+            <span asp-validation-for="DriverId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="VehicleId" class="form-label">Vehicle</label>
+            <select id="VehicleId" name="VehicleId" class="form-select" required>
+                <option value="">-- Select driver to load vehicles (required) --</option>
+            </select>
+            <span asp-validation-for="VehicleId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Origin" class="form-label"></label>
+            <input asp-for="Origin" class="form-control" required />
+            <span asp-validation-for="Origin" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Destination" class="form-label"></label>
+            <input asp-for="Destination" class="form-control" required />
+            <span asp-validation-for="Destination" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="ScheduledStartDate" class="form-label"></label>
+                <input asp-for="ScheduledStartDate" id="ScheduledStartDate" class="form-control flat-datetime" type="text" placeholder="Select start date & time" required autocomplete="off" />
+                <span asp-validation-for="ScheduledStartDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="ScheduledEndDate" class="form-label"></label>
+                <input asp-for="ScheduledEndDate" id="ScheduledEndDate" class="form-control flat-datetime" type="text" placeholder="Select end date & time" required autocomplete="off" />
+                <span asp-validation-for="ScheduledEndDate" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input asp-for="RequiresApproval" class="form-check-input" id="RequiresApproval" />
+            <label asp-for="RequiresApproval" class="form-check-label">Require admin approval</label>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Purpose" class="form-label"></label>
+            <input asp-for="Purpose" class="form-control" required />
+            <span asp-validation-for="Purpose" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Notes" class="form-label"></label>
+            <textarea asp-for="Notes" class="form-control"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="createSubmit">Create Trip</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+
+
+<script>
+    // initialize flatpickr on the two datetime fields
+    $(function () {
+
+    // Initialize Flatpickr
+               flatpickr(".flat-datetime", {
+                   enableTime: true,
+                    dateFormat: "Y-m-d\\TH:i", // value suitable for server-side DateTime parsing (e.g. 2025-10-02T14:30)
+                    altInput: true,
+                    altFormat: "F j, Y H:i",
+                    time_24hr: false,
+                    allowInput: true,
+                    defaultDate: "today"
+               });
+
+        // load vehicles when driver changes or dates change
+        function loadVehiclesForDriver(driverId, start, end, selectedVehicleId) {
+            var $vehicle = $('#VehicleId');
+            $vehicle.empty();
+            $vehicle.append($('<option>').text('-- Select vehicle (required) --').attr('value', ''));
+
+            if (!driverId) {
+                return;
+            }
+
+            $.get('@Url.Action("GetVehiclesForDriver", "AdminTrips")', { driverId: driverId, scheduledStart: start, scheduledEnd: end })
+                .done(function (data) {
+                    $.each(data || [], function (i, v) {
+                        // 'display' property used earlier; fallback to PlateNo + Make/Model
+                        var text = v.display || (v.plateNo + (v.make ? ' (' + v.make + ' ' + (v.model || '') + ')' : ''));
+                        var $opt = $('<option>').val(v.id).text(text);
+                        if (selectedVehicleId && selectedVehicleId == v.id) $opt.prop('selected', true);
+                        $vehicle.append($opt);
+                    });
+                })
+                .fail(function (xhr) {
+                    alert('Failed to load vehicles: ' + (xhr.responseText || xhr.statusText));
+                });
+        }
+
+        $('#DriverId').on('change', function () {
+            var driverId = $(this).val();
+            var start = $('#ScheduledStartDate').val();
+            var end = $('#ScheduledEndDate').val();
+            loadVehiclesForDriver(driverId, start, end, null);
+        });
+
+        $('#ScheduledStartDate, #ScheduledEndDate').on('change', function () {
+            $('#DriverId').trigger('change');
+        });
+
+        // basic client-side pre-submit validation: end > start
+        $('#createTripForm').on('submit', function (e) {
+            var s = $('#ScheduledStartDate').val();
+            var eVal = $('#ScheduledEndDate').val();
+            if (!s || !eVal) {
+                // let server-side validation show message
+                return true;
+            }
+            var start = new Date(s);
+            var end = new Date(eVal);
+            if (end <= start) {
+                e.preventDefault();
+                $('#formSummary').text('Scheduled end date/time must be after start date/time.');
+                return false;
+            }
+            // allow submit
+            $('#createSubmit').prop('disabled', true);
+        });
+    });
+</script>
+
+
+
+
+
+
+

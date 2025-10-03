@@ -1,0 +1,42 @@
+﻿@using FleetManager.Business.ViewModels.TripsViewModels
+@model AssignTripViewModel
+@{
+    Layout = null; // partial
+}
+
+@await Html.PartialAsync("_AssignTripPartial", Model)
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.ViewModels.TripsViewModels
+@model AssignTripViewModel
+@{
+    ViewData["Title"] = "Assign Trip";
+}
+
+<h1>Assign Trip @Model.TripNumber</h1>
+
+<form asp-action="Assign" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="TripId" />
+    <div class="mb-3">
+        <label asp-for="DriverId" class="form-label"></label>
+        <select asp-for="DriverId" class="form-select" asp-items="Model.Drivers">
+            <option value="">-- Select driver --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Notes" class="form-label"></label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Assign</button>
+    <a asp-action="Details" asp-route-id="@Model.TripId" class="btn btn-secondary ms-2">Back</a>
+</form>
+ *@

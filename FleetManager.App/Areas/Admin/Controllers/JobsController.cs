@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FleetManager.App.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "SuperAdmin,CompanyAdmin")] 
+    //[Authorize(Roles = "SuperAdmin,CompanyAdmin")] 
     public class JobsController : Controller
     {
         public IActionResult Dashboard()

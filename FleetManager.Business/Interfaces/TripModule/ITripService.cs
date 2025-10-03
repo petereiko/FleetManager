@@ -37,6 +37,7 @@ namespace FleetManager.Business.Interfaces.TripModule
 
         // Reports & Analytics
         Task<MessageResponse<TripStatistics>> GetTripStatisticsAsync(DateTime? startDate, DateTime? endDate);
+        Task<MessageResponse<DashboardSeriesDto>> GetDashboardSeriesAsync();
         Task<MessageResponse<TripDashboardViewModel>> GetDashboardDataAsync();
         Task<MessageResponse<List<TripListDto>>> GetDriverTripsAsync(long driverId, int page, int pageSize);
         Task<MessageResponse<List<TripListDto>>> GetVehicleTripsAsync(long vehicleId, int page, int pageSize);
