@@ -1,5 +1,6 @@
 ﻿using FleetManager.Business;
 using FleetManager.Business.DataObjects.TripsDto;
+using FleetManager.Business.Implementations.TripModule;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.TripModule;
 using FleetManager.Business.Interfaces.UserModule;
@@ -48,6 +49,7 @@ namespace FleetManager.App.Controllers
         }
 
         // GET: Start form modal/page
+        [HttpGet]
         public async Task<IActionResult> Start(long id)
         {
             var driverId = await _assignmentService.GetDriverIdByUserAsync(_authUser.UserId);
@@ -55,39 +57,98 @@ namespace FleetManager.App.Controllers
             var tripResp = await _tripService.GetTripByIdAsync(id);
             if (!tripResp.Success) return NotFound();
 
-            if (tripResp.Result.DriverId != driverId) return Forbid();
+            if (tripResp.Result.DriverId != driverId && !User.IsInRole("Admin")) return Forbid();
 
-            var vm = new StartTripViewModel { TripId = id };
+            // Prefill suggestion: use vehicle mileage if available, otherwise use trip's StartOdometer
+            var vm = new StartTripViewModel
+            {
+                TripId = id,
+                PreferredStartOdometer = tripResp.Result.VehicleMileage ?? tripResp.Result.StartOdometer ?? 0,
+                CurrentVehicleMileage = tripResp.Result.VehicleMileage
+            };
+
             return PartialView("_StartPartial", vm);
-            //return View(vm);
         }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Start(StartTripViewModel vm)
+        //{
+        //    if (!ModelState.IsValid) return View(vm);
+
+        //    var dto = new StartTripDto
+        //    {
+        //        TripId = vm.TripId,
+        //        StartOdometer = vm.StartOdometer,
+        //        Latitude = vm.Latitude, 
+        //        Longitude = vm.Longitude,
+        //        LatitudeAccuracy = vm.LatitudeAccuracy,
+        //        Notes = vm.Notes
+        //    };
+
+        //    var resp = await _tripService.StartTripAsync(dto);
+        //    if (!resp.Success)
+        //    {
+        //        ModelState.AddModelError(string.Empty, resp.Message);
+        //        return View(vm);
+        //    }
+
+        //    TempData["Success"] = resp.Message;
+        //    return RedirectToAction("Details", new { id = vm.TripId });
+        //}
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Start(StartTripViewModel vm)
         {
-            if (!ModelState.IsValid) return View(vm);
+            if (!ModelState.IsValid)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return BadRequest(new { success = false, message = string.Join(" | ", errors) });
+                }
+                return PartialView("_StartPartial", vm);
+            }
 
             var dto = new StartTripDto
             {
                 TripId = vm.TripId,
                 StartOdometer = vm.StartOdometer,
-                Latitude = vm.Latitude, 
+                Latitude = vm.Latitude,
                 Longitude = vm.Longitude,
                 LatitudeAccuracy = vm.LatitudeAccuracy,
                 Notes = vm.Notes
             };
 
             var resp = await _tripService.StartTripAsync(dto);
+
             if (!resp.Success)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return BadRequest(new { success = false, message = resp.Message });
+                }
                 ModelState.AddModelError(string.Empty, resp.Message);
-                return View(vm);
+                // repopulate UX helpers (in case we want to re-render the partial with the hint)
+                var tripInfo = await _tripService.GetTripByIdAsync(vm.TripId);
+                if (tripInfo.Success)
+                {
+                    vm.PreferredStartOdometer = tripInfo.Result.VehicleMileage ?? tripInfo.Result.StartOdometer ?? vm.StartOdometer;
+                    vm.CurrentVehicleMileage = tripInfo.Result.VehicleMileage;
+                }
+                return PartialView("_StartPartial", vm);
             }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, message = resp.Message });
 
             TempData["Success"] = resp.Message;
             return RedirectToAction("Details", new { id = vm.TripId });
         }
+
 
         // GET Complete
         public async Task<IActionResult> Complete(long id)
@@ -99,16 +160,30 @@ namespace FleetManager.App.Controllers
 
             if (tripResp.Result.DriverId != driverId) return Forbid();
 
-            var vm = new CompleteTripViewModel { TripId = id };
+            var vm = new CompleteTripViewModel 
+            {
+                TripId = id,
+                //PreferredEndOdometer = tripResp.Result.VehicleMileage ?? tripResp.Result.StartOdometer ?? + 10
+            };
             return PartialView("_CompletePartial", vm);
             //return View(vm);
         }
 
+        // POST: Complete (AJAX-friendly)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Complete(CompleteTripViewModel vm)
         {
-            if (!ModelState.IsValid) return View(vm);
+            if (!ModelState.IsValid)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return BadRequest(new { success = false, message = string.Join(" | ", errors) });
+                }
+                return PartialView("_CompletePartial", vm);
+            }
+
 
             var dto = new CompleteTripDto
             {
@@ -122,14 +197,50 @@ namespace FleetManager.App.Controllers
             };
 
             var resp = await _tripService.CompleteTripAsync(dto);
+
             if (!resp.Success)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return BadRequest(new { success = false, message = resp.Message });
+
                 ModelState.AddModelError(string.Empty, resp.Message);
-                return View(vm);
+                return PartialView("_CompletePartial", vm);
             }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, message = resp.Message });
 
             TempData["Success"] = resp.Message;
             return RedirectToAction("Details", new { id = vm.TripId });
         }
+
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Complete(CompleteTripViewModel vm)
+        //{
+        //    if (!ModelState.IsValid) return View(vm);
+
+        //    var dto = new CompleteTripDto
+        //    {
+        //        TripId = vm.TripId,
+        //        EndOdometer = vm.EndOdometer,
+        //        ActualFuelCost = vm.ActualFuelCost,
+        //        Latitude = vm.Latitude,
+        //        Longitude = vm.Longitude,
+        //        LatitudeAccuracy = vm.LatitudeAccuracy,
+        //        Notes = vm.Notes
+        //    };
+
+        //    var resp = await _tripService.CompleteTripAsync(dto);
+        //    if (!resp.Success)
+        //    {
+        //        ModelState.AddModelError(string.Empty, resp.Message);
+        //        return View(vm);
+        //    }
+
+        //    TempData["Success"] = resp.Message;
+        //    return RedirectToAction("Details", new { id = vm.TripId });
+        //}
     }
 }

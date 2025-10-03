@@ -55,39 +55,36 @@
 
     @* Additional sections (expenses, checkpoints) would go here if available *@
 
-    <!-- Start Modal -->
-<div class="modal fade" id="startModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-md modal-dialog-centered">
-    <div class="modal-content">
-      <form id="startModalForm" method="post" asp-action="Start" asp-controller="DriverTrips">
-        <div class="modal-header">
-          <h5 class="modal-title">Start Trip</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Start Modal (no outer <form> — partial provides the form) -->
+    <div class="modal fade" id="startModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Start Trip</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="startModalBody">
+                    <div class="text-center py-4"><div class="spinner-border" role="status"></div></div>
+                </div>
+            </div>
         </div>
-        <div class="modal-body" id="startModalBody">
-          <div class="text-center py-4"><div class="spinner-border" role="status"></div></div>
-        </div>
-      </form>
     </div>
-  </div>
-</div>
 
-<!-- Complete Modal -->
-<div class="modal fade" id="completeModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-md modal-dialog-centered">
-    <div class="modal-content">
-      <form id="completeModalForm" method="post" asp-action="Complete" asp-controller="DriverTrips" >
-        <div class="modal-header">
-          <h5 class="modal-title">Complete Trip</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Complete Modal (no outer <form>) -->
+    <div class="modal fade" id="completeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Trip</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="completeModalBody">
+                    <div class="text-center py-4"><div class="spinner-border" role="status"></div></div>
+                </div>
+            </div>
         </div>
-        <div class="modal-body" id="completeModalBody">
-          <div class="text-center py-4"><div class="spinner-border" role="status"></div></div>
-        </div>
-      </form>
     </div>
-  </div>
-</div>
+
 
 </div>
 
@@ -95,28 +92,41 @@
 
       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // server-side templates (Razor will fill this string)
+    window.startUrlTemplate = '@Url.Action("Start", "DriverTrips", new { area = "User", id = "__id__" })';
+    window.completeUrlTemplate = '@Url.Action("Complete", "DriverTrips", new { area = "User", id = "__id__" })';
+
+    function buildUrlFromTemplate(tpl, id) {
+        return tpl.replace('__id__', encodeURIComponent(id));
+    }
+
     function loadStartModal(tripId) {
-        var url = '@Url.Action("Start", "DriverTrips", new { area = "User" })' + '&id=' + tripId;
+        var url = buildUrlFromTemplate(window.startUrlTemplate, tripId);
         $('#startModalBody').html('<div class="text-center py-4"><div class="spinner-border" role="status"></div></div>');
         var modal = new bootstrap.Modal(document.getElementById('startModal'));
         modal.show();
+
         $.get(url, function (html) {
             $('#startModalBody').html(html);
-            // ensure form has TripId hidden input (partial does), or set it:
+            // ensure the partial's hidden TripId exists / set it anyway:
             $('#startModalBody').find('input[name="TripId"]').val(tripId);
+            // call partial init hook if present (binds submit handler & geo)
+            if (window.bindStartForm) window.bindStartForm();
         }).fail(function (xhr) {
             $('#startModalBody').html('<div class="p-3 text-danger">Failed to load form: ' + xhr.responseText + '</div>');
         });
     }
 
     function loadCompleteModal(tripId) {
-        var url = '@Url.Action("Complete", "DriverTrips", new { area = "User" })' + '&id=' + tripId;
+        var url = buildUrlFromTemplate(window.completeUrlTemplate, tripId);
         $('#completeModalBody').html('<div class="text-center py-4"><div class="spinner-border" role="status"></div></div>');
         var modal = new bootstrap.Modal(document.getElementById('completeModal'));
         modal.show();
+
         $.get(url, function (html) {
             $('#completeModalBody').html(html);
             $('#completeModalBody').find('input[name="TripId"]').val(tripId);
+            if (window.bindCompleteForm) window.bindCompleteForm();
         }).fail(function (xhr) {
             $('#completeModalBody').html('<div class="p-3 text-danger">Failed to load form: ' + xhr.responseText + '</div>');
         });

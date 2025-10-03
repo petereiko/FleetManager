@@ -19,6 +19,7 @@ namespace FleetManager.Business.DataObjects.TripsDto
         public string VehiclePlateNo { get; set; }
         public string VehicleMake { get; set; }
         public string VehicleModel { get; set; }
+        public int? VehicleMileage { get; set; }
 
         // Driver Info
         public long? DriverId { get; set; }

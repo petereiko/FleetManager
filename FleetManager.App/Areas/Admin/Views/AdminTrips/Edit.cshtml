@@ -4,88 +4,587 @@
     ViewData["Title"] = "Edit Trip";
 }
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-<div class="container">
-    <h1>Edit Trip</h1>
+<style>
+    .edit-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding-bottom: 3rem;
+    }
 
-    <form asp-action="Edit" method="post" class="mb-4" id="editTripForm">
-        @Html.AntiForgeryToken()
-        <input asp-for="Id" type="hidden" />
+    .page-header {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 2rem;
+        margin: -1rem -1rem 2rem -1rem;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
 
-        <div asp-validation-summary="ModelOnly" class="text-danger" id="formSummary"></div>
+        .page-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
-        <div class="mb-3">
-            <label asp-for="DriverId" class="form-label">Driver</label>
-            <select id="DriverId" name="DriverId" class="form-select" asp-items="ViewBag.Drivers" required>
-                <option value="">-- Select driver (required) --</option>
-            </select>
-            <span asp-validation-for="DriverId" class="text-danger"></span>
-        </div>
+    .page-header-subtitle {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1rem;
+    }
 
-        <div class="mb-3">
-            <label asp-for="VehicleId" class="form-label">Vehicle</label>
-            <select id="VehicleId" name="VehicleId" class="form-select" required>
-                <option value="">-- Select vehicle (required) --</option>
-            </select>
-            <span asp-validation-for="VehicleId" class="text-danger"></span>
-        </div>
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
 
-        <div class="mb-3">
-            <label asp-for="Origin" class="form-label"></label>
-            <input asp-for="Origin" class="form-control" required />
-            <span asp-validation-for="Origin" class="text-danger"></span>
-        </div>
+    .form-section {
+        padding: 2rem;
+        border-bottom: 2px solid #f1f3f5;
+    }
 
-        <div class="mb-3">
-            <label asp-for="Destination" class="form-label"></label>
-            <input asp-for="Destination" class="form-control" required />
-            <span asp-validation-for="Destination" class="text-danger"></span>
-        </div>
+        .form-section:last-child {
+            border-bottom: none;
+        }
 
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label asp-for="ScheduledStartDate" class="form-label"></label>
-                <input asp-for="ScheduledStartDate" id="ScheduledStartDate" class="form-control flat-datetime" type="text" placeholder="Select start date & time" required autocomplete="off" />
-                <span asp-validation-for="ScheduledStartDate" class="text-danger"></span>
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    .icon-driver {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .icon-route {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .icon-schedule {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .icon-details {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.75rem;
+        font-size: 0.938rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .required-indicator {
+        color: #ef4444;
+        font-weight: 700;
+    }
+
+    .form-control-custom,
+    .form-select-custom {
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s;
+        font-size: 0.938rem;
+    }
+
+        .form-control-custom:focus,
+        .form-select-custom:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+            outline: none;
+        }
+
+    .form-select-custom {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23f59e0b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+    }
+
+        .form-control-custom:disabled,
+        .form-select-custom:disabled {
+            background-color: #f8fafc;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+    .helper-text {
+        color: #64748b;
+        font-size: 0.813rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .validation-error {
+        color: #ef4444;
+        font-size: 0.813rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-weight: 500;
+    }
+
+    .form-check-custom {
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+
+        .form-check-custom:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e0;
+        }
+
+        .form-check-custom .form-check-input {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #cbd5e0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .form-check-custom .form-check-input:checked {
+                background-color: #f59e0b;
+                border-color: #f59e0b;
+            }
+
+        .form-check-custom .form-check-label {
+            font-weight: 500;
+            color: #2d3748;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+    .form-actions {
+        padding: 2rem;
+        background: #f8f9fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-submit-custom {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+        padding: 0.875rem 2.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-submit-custom:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+            color: white;
+        }
+
+        .btn-submit-custom:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .btn-cancel-custom {
+        background: white;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        padding: 0.875rem 2.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+        .btn-cancel-custom:hover {
+            background: #f8fafc;
+            border-color: #cbd5e0;
+            color: #475569;
+        }
+
+    .btn-delete-custom {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-delete-custom:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.4);
+            color: white;
+        }
+
+    .alert-custom {
+        border-radius: 8px;
+        border: none;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+    }
+
+    .alert-danger-custom {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    .alert-info-custom {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+    }
+
+    .loading-state {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    .input-icon {
+        position: relative;
+    }
+
+        .input-icon i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        .input-icon .form-control-custom {
+            padding-left: 2.75rem;
+        }
+
+    textarea.form-control-custom {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .trip-id-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="edit-wrapper">
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-edit"></i>
+                Edit Trip
+            </h1>
+            <p class="page-header-subtitle">Update trip information and assignments</p>
+            <div class="trip-id-badge">
+                <i class="fas fa-hashtag"></i>
+                Trip ID: @Model.Id
             </div>
-            <div class="col-md-6 mb-3">
-                <label asp-for="ScheduledEndDate" class="form-label"></label>
-                <input asp-for="ScheduledEndDate" id="ScheduledEndDate" class="form-control flat-datetime" type="text" placeholder="Select end date & time" required autocomplete="off" />
-                <span asp-validation-for="ScheduledEndDate" class="text-danger"></span>
+        </div>
+
+        <form asp-action="Edit" method="post" id="editTripForm">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+
+            <div class="form-card">
+                <!-- Validation Summary -->
+                <div asp-validation-summary="ModelOnly" class="alert-custom alert-danger-custom m-3" id="formSummary" style="display:none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span></span>
+                </div>
+
+                <!-- Info Alert -->
+                <div class="alert-custom alert-info-custom m-3">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Make changes to the trip details below. All fields marked with * are required.</span>
+                </div>
+
+                <!-- Driver & Vehicle Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <div class="section-icon icon-driver">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        Driver & Vehicle Assignment
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DriverId" class="form-label-custom">
+                                <i class="fas fa-user"></i>
+                                Driver
+                                <span class="required-indicator">*</span>
+                            </label>
+                            <select id="DriverId" name="DriverId" class="form-select form-select-custom" asp-items="ViewBag.Drivers" required>
+                                <option value="">-- Select driver --</option>
+                            </select>
+                            <span asp-validation-for="DriverId" class="validation-error">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </span>
+                            <div class="helper-text">
+                                <i class="fas fa-info-circle"></i>
+                                Change the assigned driver for this trip
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="VehicleId" class="form-label-custom">
+                                <i class="fas fa-car"></i>
+                                Vehicle
+                                <span class="required-indicator">*</span>
+                            </label>
+                            <select id="VehicleId" name="VehicleId" class="form-select form-select-custom" required>
+                                <option value="">-- Loading vehicles... --</option>
+                            </select>
+                            <span asp-validation-for="VehicleId" class="validation-error">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </span>
+                            <div class="helper-text">
+                                <i class="fas fa-info-circle"></i>
+                                Available vehicles based on driver and schedule
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Route Information Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <div class="section-icon icon-route">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        Route Information
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Origin" class="form-label-custom">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Origin
+                                <span class="required-indicator">*</span>
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-map-pin"></i>
+                                <input asp-for="Origin" class="form-control form-control-custom" placeholder="Enter origin location" required />
+                            </div>
+                            <span asp-validation-for="Origin" class="validation-error">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Destination" class="form-label-custom">
+                                <i class="fas fa-flag-checkered"></i>
+                                Destination
+                                <span class="required-indicator">*</span>
+                            </label>
+                            <div class="input-icon">
+                                <i class="fas fa-map-pin"></i>
+                                <input asp-for="Destination" class="form-control form-control-custom" placeholder="Enter destination location" required />
+                            </div>
+                            <span asp-validation-for="Destination" class="validation-error">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <div class="section-icon icon-schedule">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        Trip Schedule
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ScheduledStartDate" class="form-label-custom">
+                                <i class="fas fa-calendar-check"></i>
+                                Start Date & Time
+                                <span class="required-indicator">*</span>
+                            </label>
+                            <input asp-for="ScheduledStartDate" id="ScheduledStartDate"
+                                   class="form-control form-control-custom flat-datetime"
+                                   type="text"
+                                   placeholder="Select start date & time"
+                                   required
+                                   autocomplete="off" />
+                            <span asp-validation-for="ScheduledStartDate" class="validation-error">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ScheduledEndDate" class="form-label-custom">
+                                <i class="fas fa-calendar-times"></i>
+                                End Date & Time
+                                <span class="required-indicator">*</span>
+                            </label>
+                            <input asp-for="ScheduledEndDate" id="ScheduledEndDate"
+                                   class="form-control form-control-custom flat-datetime"
+                                   type="text"
+                                   placeholder="Select end date & time"
+                                   required
+                                   autocomplete="off" />
+                            <span asp-validation-for="ScheduledEndDate" class="validation-error">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </span>
+                            <div class="helper-text">
+                                <i class="fas fa-info-circle"></i>
+                                End time must be after start time
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trip Details Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <div class="section-icon icon-details">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        Trip Details
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Purpose" class="form-label-custom">
+                            <i class="fas fa-bullseye"></i>
+                            Purpose
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input asp-for="Purpose" class="form-control form-control-custom"
+                               placeholder="Enter trip purpose (e.g., Client meeting, Delivery, etc.)"
+                               required />
+                        <span asp-validation-for="Purpose" class="validation-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Notes" class="form-label-custom">
+                            <i class="fas fa-sticky-note"></i>
+                            Additional Notes
+                            <small class="text-muted fw-normal">(Optional)</small>
+                        </label>
+                        <textarea asp-for="Notes" class="form-control form-control-custom"
+                                  placeholder="Add any additional notes or special instructions..."></textarea>
+                        <span asp-validation-for="Notes" class="validation-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </span>
+                    </div>
+
+                    <div class="form-check form-check-custom">
+                        <input asp-for="RequiresApproval" class="form-check-input" id="RequiresApproval" type="checkbox" />
+                        <label asp-for="RequiresApproval" class="form-check-label" for="RequiresApproval">
+                            <i class="fas fa-user-shield me-2"></i>
+                            Require administrator approval before trip starts
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <div>
+                        <form method="post" asp-action="Delete" asp-route-id="@Model.Id" style="display:inline"
+                              onsubmit="return confirm('Are you sure you want to delete this trip? This action cannot be undone.');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-delete-custom">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete Trip
+                            </button>
+                        </form>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <a asp-action="Index" class="btn-cancel-custom">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn-submit-custom" id="editSubmit">
+                            <i class="fas fa-save"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <div class="mb-3 form-check">
-            <input asp-for="RequiresApproval" class="form-check-input" id="RequiresApproval" />
-            <label asp-for="RequiresApproval" class="form-check-label">Require admin approval</label>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Purpose" class="form-label"></label>
-            <input asp-for="Purpose" class="form-control" required />
-            <span asp-validation-for="Purpose" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Notes" class="form-label"></label>
-            <textarea asp-for="Notes" class="form-control"></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary" id="editSubmit">Save</button>
-        <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
-    </form>
+        </form>
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 
 <script>
     $(function () {
+        // Initialize Flatpickr
         var fpOptions = {
             enableTime: true,
             dateFormat: "Y-m-d\\TH:i",
             altInput: true,
-            altFormat: "F j, Y H:i",
+            altFormat: "F j, Y h:i K",
             time_24hr: false,
             allowInput: true
         };
@@ -93,55 +592,121 @@
 
         var selectedVehicleId = '@(Model.VehicleId.ToString() ?? "")';
 
+        // Load vehicles when driver changes or dates change
         function loadVehiclesForDriver(driverId, start, end, selectedVehicleId) {
             var $vehicle = $('#VehicleId');
             $vehicle.empty();
-            $vehicle.append($('<option>').text('-- Select vehicle (required) --').attr('value', ''));
+            $vehicle.append($('<option>').text('-- Select vehicle --').attr('value', ''));
 
             if (!driverId) {
+                $vehicle.prop('disabled', true);
+                $vehicle.empty().append($('<option>').text('-- Select driver first --').attr('value', ''));
                 return;
             }
 
-            $.get('@Url.Action("GetVehiclesForDriver", "AdminTrips")', { driverId: driverId, scheduledStart: start, scheduledEnd: end })
-                .done(function (data) {
-                    $.each(data || [], function (i, v) {
+            // Show loading state
+            $vehicle.prop('disabled', true);
+            $vehicle.empty().append($('<option>').text('-- Loading vehicles... --').attr('value', ''));
+
+            $.get('@Url.Action("GetVehiclesForDriver", "AdminTrips")', {
+                driverId: driverId,
+                scheduledStart: start,
+                scheduledEnd: end
+            })
+            .done(function (data) {
+                $vehicle.empty();
+                $vehicle.append($('<option>').text('-- Select vehicle --').attr('value', ''));
+
+                if (data && data.length > 0) {
+                    $.each(data, function (i, v) {
                         var text = v.display || (v.plateNo + (v.make ? ' (' + v.make + ' ' + (v.model || '') + ')' : ''));
                         var $opt = $('<option>').val(v.id).text(text);
-                        if (selectedVehicleId && selectedVehicleId == v.id) $opt.prop('selected', true);
+                        if (selectedVehicleId && selectedVehicleId == v.id) {
+                            $opt.prop('selected', true);
+                        }
                         $vehicle.append($opt);
                     });
-                })
-                .fail(function (xhr) {
-                    alert('Failed to load vehicles: ' + (xhr.responseText || xhr.statusText));
-                });
+                    $vehicle.prop('disabled', false);
+                } else {
+                    $vehicle.append($('<option>').text('-- No vehicles available --').attr('value', ''));
+                    $vehicle.prop('disabled', true);
+                }
+            })
+            .fail(function (xhr) {
+                $vehicle.empty();
+                $vehicle.append($('<option>').text('-- Failed to load vehicles --').attr('value', ''));
+                $vehicle.prop('disabled', true);
+
+                var errorMsg = 'Failed to load vehicles: ' + (xhr.responseText || xhr.statusText);
+                showValidationError(errorMsg);
+            });
         }
 
-        // initial load: call loadVehiclesForDriver using pre-selected driver (if any)
+        // Initial load with pre-selected driver
         var initialDriver = $('#DriverId').val();
-        loadVehiclesForDriver(initialDriver, $('#ScheduledStartDate').val(), $('#ScheduledEndDate').val(), selectedVehicleId);
+        if (initialDriver) {
+            loadVehiclesForDriver(initialDriver, $('#ScheduledStartDate').val(), $('#ScheduledEndDate').val(), selectedVehicleId);
+        }
 
+        // Driver selection change
         $('#DriverId').on('change', function () {
             var driverId = $(this).val();
-            loadVehiclesForDriver(driverId, $('#ScheduledStartDate').val(), $('#ScheduledEndDate').val(), null);
+            var start = $('#ScheduledStartDate').val();
+            var end = $('#ScheduledEndDate').val();
+            loadVehiclesForDriver(driverId, start, end, null);
         });
 
+        // Date change triggers vehicle reload
         $('#ScheduledStartDate, #ScheduledEndDate').on('change', function () {
-            $('#DriverId').trigger('change');
+            var driverId = $('#DriverId').val();
+            if (driverId) {
+                loadVehiclesForDriver(driverId, $('#ScheduledStartDate').val(), $('#ScheduledEndDate').val(), selectedVehicleId);
+            }
         });
 
-        // client-side check end > start
+        // Form validation and submission
         $('#editTripForm').on('submit', function (e) {
             var s = $('#ScheduledStartDate').val();
             var eVal = $('#ScheduledEndDate').val();
-            if (!s || !eVal) return true;
+
+            if (!s || !eVal) {
+                return true; // Let server-side validation handle it
+            }
+
             var start = new Date(s);
             var end = new Date(eVal);
+
             if (end <= start) {
                 e.preventDefault();
-                $('#formSummary').text('Scheduled end date/time must be after start date/time.');
+                showValidationError('Scheduled end date/time must be after start date/time.');
                 return false;
             }
-            $('#editSubmit').prop('disabled', true);
+
+            // Disable submit button and show loading state
+            $('#editSubmit').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Saving Changes...');
+            $('.form-card').addClass('loading-state');
+        });
+
+        // Helper function to show validation errors
+        function showValidationError(message) {
+            var $summary = $('#formSummary');
+            $summary.find('span').text(message);
+            $summary.show();
+
+            // Scroll to top to show error
+            $('html, body').animate({
+                scrollTop: $summary.offset().top - 100
+            }, 300);
+
+            // Auto-hide after 5 seconds
+            setTimeout(function() {
+                $summary.fadeOut();
+            }, 5000);
+        }
+
+        // Hide validation summary when user starts fixing issues
+        $('input, select, textarea').on('input change', function() {
+            $('#formSummary').fadeOut();
         });
     });
 </script>

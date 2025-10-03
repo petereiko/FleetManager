@@ -23,7 +23,10 @@ namespace FleetManager.Business.ViewModels.TripsViewModels
         
 
         [DataType(DataType.MultilineText)]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
+
+        public int? PreferredStartOdometer { get; set; }   // value to prefill StartOdometer input
+        public int? CurrentVehicleMileage { get; set; }    // display-only hint
     }
 
 
@@ -44,7 +47,10 @@ namespace FleetManager.Business.ViewModels.TripsViewModels
         public decimal? LatitudeAccuracy { get; set; }
 
         [DataType(DataType.MultilineText)]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
+
+        public int? PreferredEndOdometer { get; set; }   // value to prefill StartOdometer input
+        public int? CurrentVehicleMileage { get; set; }    // display-only hint
     }
 }
 

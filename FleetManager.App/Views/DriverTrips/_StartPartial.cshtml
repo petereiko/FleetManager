@@ -1,7 +1,201 @@
-﻿@using FleetManager.Business.ViewModels.TripsViewModels
+﻿@model FleetManager.Business.ViewModels.TripsViewModels.StartTripViewModel
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+<form id="startForm" asp-action="Start" asp-controller="DriverTrips" asp-area="User" method="post" novalidate>
+    @Html.AntiForgeryToken()
+
+    <input asp-for="TripId" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="StartOdometer" class="form-label">Start Odometer (km)</label>
+        <!-- Prefill: prefer vm.PreferredStartOdometer, otherwise leave model value -->
+        <input asp-for="StartOdometer" class="form-control" type="number" value="@(Model?.PreferredStartOdometer ?? Model?.StartOdometer ?? 0)" />
+        <span asp-validation-for="StartOdometer" class="text-danger"></span>
+
+        @if (Model?.CurrentVehicleMileage.HasValue == true)
+        {
+            <small class="form-text text-muted mt-1">
+                Current vehicle mileage: <strong>@Model.CurrentVehicleMileage.Value</strong> km — enter a reading greater than or equal to this.
+            </small>
+        }
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Location</label>
+        <div class="d-flex align-items-start">
+            <div class="input-group me-2" style="min-width:320px;">
+                <input asp-for="Latitude" class="form-control geo-lat" placeholder="Latitude" />
+                <input asp-for="Longitude" class="form-control geo-lon" placeholder="Longitude" />
+                <button type="button" class="btn btn-outline-secondary geo-fill-btn" id="fillLocationBtn">
+                    <span id="geoBtnSpinner" class="spinner-border spinner-border-sm visually-hidden" role="status" aria-hidden="true"></span>
+                    <span id="geoBtnText">Use my location</span>
+                </button>
+            </div>
+
+            <div class="d-flex flex-column">
+                <span id="geoAccuracy" class="badge geo-accuracy-badge bg-secondary">No location</span>
+                <small id="geoStatus" class="text-muted mt-2 geo-status"></small>
+            </div>
+        </div>
+
+        <input asp-for="LatitudeAccuracy" type="hidden" class="geo-acc" />
+        <div id="geoAddress" class="form-text mt-1 geo-address"></div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Notes" class="form-label">Notes</label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+    </div>
+
+    <div id="startFormAlert"></div>
+
+    <div class="text-end">
+        <button type="submit" class="btn btn-success">Start Trip</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function($) {
+            if (!window.jQuery) return;
+
+            function showAlert(html) { $('#startFormAlert').html('<div class="alert alert-danger">' + html + '</div>'); }
+
+            // Ensure only one delegated handler
+            if (!$(document).data('startFormHandlerAttached')) {
+                $(document).on('submit.startForm', '#startForm', function (e) {
+                    e.preventDefault();
+                    var $form = $(this);
+                    var url = $form.attr('action') || '@Url.Action("Start", "DriverTrips", new { area = "User" })';
+                    var token = $form.find('input[name="__RequestVerificationToken"]').val();
+
+                    // quick client validation
+                    var startOdo = $form.find('[name="StartOdometer"]').val();
+                    if (!startOdo || isNaN(Number(startOdo))) {
+                        showAlert('Start odometer is required and must be numeric.');
+                        return;
+                    }
+
+                    var data = $form.serialize();
+
+                    var $submit = $form.find('button[type="submit"]');
+                    $submit.prop('disabled', true);
+                    $('#startFormAlert').html('');
+
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: data,
+                        headers: {
+                            'RequestVerificationToken': token,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        success: function (resp) {
+                            if (resp && resp.success) {
+                                var modalEl = document.getElementById('startModal');
+                                if (modalEl) {
+                                    var inst = bootstrap.Modal.getInstance(modalEl);
+                                    if (inst) inst.hide();
+                                }
+                                location.reload();
+                            } else {
+                                var msg = (resp && resp.message) ? resp.message : 'Unable to start trip';
+                                showAlert(msg);
+                            }
+                        },
+                        error: function (xhr) {
+                            var message = 'Failed to start trip';
+                            try {
+                                if (xhr && xhr.responseJSON && xhr.responseJSON.message) message = xhr.responseJSON.message;
+                                else if (xhr && xhr.responseText) message = xhr.responseText;
+                            } catch (ex) { message = 'Server error'; }
+                            showAlert(message);
+                            console.warn('Start POST error', xhr);
+                        },
+                        complete: function () { $submit.prop('disabled', false); }
+                    });
+                });
+
+                $(document).data('startFormHandlerAttached', true);
+            }
+
+            // Geolocation helpers
+            function setGeoSpinner(on) { $('#geoBtnSpinner').toggleClass('visually-hidden', !on); $('#geoBtnText').text(on ? 'Locating…' : 'Use my location'); }
+            function setGeoAccuracyText(txt, isErr) { $('#geoAccuracy').text(txt).toggleClass('bg-danger', isErr).toggleClass('bg-secondary', !isErr); }
+            function setGeoStatus(txt, isErr) { $('#geoStatus').text(txt).toggleClass('text-danger', isErr).toggleClass('text-muted', !isErr); }
+            function setGeoAddress(txt) { $('#geoAddress').text(txt || ''); }
+
+            async function reverseGeocodeNominatim(lat, lon) {
+                try {
+                    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+                    const resp = await fetch(url, { headers: { 'Accept': 'application/json' }});
+                    if (!resp.ok) return null;
+                    const data = await resp.json();
+                    return data.display_name || null;
+                } catch (e) { console.warn('Reverse geocode failed', e); return null; }
+            }
+
+            async function attemptGeolocationLocal($container) {
+                const $lat = $container.find('.geo-lat');
+                const $lon = $container.find('.geo-lon');
+                const $acc = $container.find('.geo-acc');
+
+                if (!navigator.geolocation) { setGeoStatus('Geolocation not supported', true); setGeoAccuracyText('No location', true); return; }
+                setGeoSpinner(true); setGeoStatus('Requesting location…', false);
+
+                navigator.geolocation.getCurrentPosition(async function (pos) {
+                    const lat = pos.coords.latitude; const lon = pos.coords.longitude; const acc = pos.coords.accuracy || 0;
+                    if ($lat.length) $lat.val(lat);
+                    if ($lon.length) $lon.val(lon);
+                    if ($acc.length) $acc.val(acc);
+                    setGeoSpinner(false); setGeoAccuracyText(`±${Math.round(acc)} m`, false); setGeoStatus('Location captured');
+                    const addr = await reverseGeocodeNominatim(lat, lon);
+                    if (addr) setGeoAddress(addr);
+                }, function (err) {
+                    setGeoSpinner(false);
+                    let msg = 'Could not get location';
+                    if (err && typeof err.code !== 'undefined') {
+                        if (err.code === 1) msg = 'Permission denied. Enable location in browser settings and retry.';
+                        else if (err.code === 2) msg = 'Position unavailable. Try again outdoors.';
+                        else if (err.code === 3) msg = 'Timeout. Try again.';
+                    }
+                    setGeoStatus(msg, true); setGeoAccuracyText('No location', true);
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            }
+
+            // hook button in partial
+            $(document).off('click.startGeo', '#fillLocationBtn').on('click.startGeo', '#fillLocationBtn', function (e) {
+                e.preventDefault();
+                var $form = $(this).closest('form');
+                attemptGeolocationLocal($form);
+            });
+
+            // auto-run if partial present
+            if ($('#startForm').length) {
+                setTimeout(function () { attemptGeolocationLocal($('#startForm')); }, 250);
+            }
+
+            // no-op bind hook for loader
+            window.bindStartForm = function () { console.log('bindStartForm called'); };
+        })(jQuery);
+    </script>
+}
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.ViewModels.TripsViewModels
 @model StartTripViewModel
 
-@* Partial for modal body: Start Trip *@
 @Html.AntiForgeryToken()
 
 <input asp-for="TripId" type="hidden" />
@@ -88,3 +282,4 @@ $(function () {
 });
 </script>
 }
+ *@
