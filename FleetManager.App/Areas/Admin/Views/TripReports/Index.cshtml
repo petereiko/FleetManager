@@ -1,0 +1,240 @@
+﻿@{
+    ViewData["Title"] = "Trip Reports Dashboard";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #chartDaily {
+        height: 320px;
+    }
+
+    #chartVehicles {
+        height: 320px;
+    }
+
+    #chartDrivers {
+        height: 320px;
+    }
+
+    #mapMini {
+        height: 300px;
+    }
+</style>
+
+<div class="container-fluid">
+    <h1>Reports & Analytics</h1>
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <input id="rangeStart" class="form-control" placeholder="Start date" />
+        </div>
+        <div class="col-md-3">
+            <input id="rangeEnd" class="form-control" placeholder="End date" />
+        </div>
+        <div class="col-md-6 d-flex align-items-center">
+            <button id="btnLoad" class="btn btn-primary me-2">Load</button>
+            <button id="btnRecompute" class="btn btn-outline-secondary me-2">Recompute Range (BG job)</button>
+            <small class="text-muted">Recompute enqueues background jobs to refresh aggregates</small>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">Daily Trips & Distance</div>
+                <div class="card-body">
+                    <div id="chartDaily"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">Top Vehicles (Distance)</div>
+                <div class="card-body">
+                    <div id="chartVehicles"></div>
+                    <table class="table table-sm mt-3" id="tblVehicles">
+                        <thead><tr><th>Vehicle</th><th>Distance (km)</th><th>Trips</th><th></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">Top Drivers</div>
+                <div class="card-body">
+                    <div id="chartDrivers"></div>
+                    <table class="table table-sm mt-3" id="tblDrivers">
+                        <thead><tr><th>Driver</th><th>Trips</th><th>Distance (km)</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">Fuel (sample trips)</div>
+                <div class="card-body">
+                    <table class="table table-sm" id="tblFuel">
+                        <thead><tr><th>Trip</th><th>Vehicle</th><th>Driver</th><th>Distance</th><th>Fuel Cost</th><th>Fuel/Km</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Drilldown modal -->
+<div class="modal fade" id="drillModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 id="drillTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div id="mapMini"></div>
+                <hr />
+                <div id="drillTrips"></div>
+                <nav id="drillPager" class="mt-3"></nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    flatpickr('#rangeStart', { defaultDate: new Date(new Date().setDate(new Date().getDate()-30)), dateFormat: 'Y-m-d' });
+    flatpickr('#rangeEnd', { defaultDate: new Date(), dateFormat: 'Y-m-d' });
+
+    async function loadAll() {
+        var s = document.getElementById('rangeStart').value;
+        var e = document.getElementById('rangeEnd').value;
+        if (!s || !e) return;
+
+        // Daily summary
+        var r = await fetch('@Url.Action("GetDailySummary", "TripReports", new { area = "Admin" })?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+        var daily = await r.json();
+        var dates = daily.map(d => (new Date(d.date)).toLocaleDateString());
+        var trips = daily.map(d => d.totalTrips);
+        var distances = daily.map(d => d.totalDistance);
+
+        var optionsDaily = {
+            chart: { type: 'bar' },
+            series: [{ name: 'Trips', data: trips }, { name: 'Distance (km)', data: distances }],
+            xaxis: { categories: dates }
+        };
+        var chartDaily = new ApexCharts(document.querySelector("#chartDaily"), optionsDaily);
+        chartDaily.render();
+
+        // Vehicle distance
+        var rv = await fetch('@Url.Action("GetDistanceByVehicle", "TripReports", new { area = "Admin" })?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+        var vehicles = await rv.json();
+        var vlabels = vehicles.map(v => v.entityName || v.entityId);
+        var vvals = vehicles.map(v => v.totalDistance);
+
+        var optionsVeh = { chart: { type: 'bar' }, series: [{ name: 'Distance', data: vvals }], xaxis: { categories: vlabels } };
+        var chartVehicles = new ApexCharts(document.querySelector("#chartVehicles"), optionsVeh);
+        chartVehicles.render();
+
+        // populate vehicle table
+        var tbody = document.querySelector('#tblVehicles tbody'); tbody.innerHTML = '';
+        vehicles.forEach(v => {
+            var tr = document.createElement('tr');
+            tr.innerHTML = `<td>${v.entityName}</td><td>${v.totalDistance.toFixed(2)}</td><td>${v.tripCount}</td><td><button class="btn btn-sm btn-link btn-drill" data-vehicleid="${v.entityId}">Drill</button></td>`;
+            tbody.appendChild(tr);
+        });
+
+        // Drivers
+        var dr = await fetch('@Url.Action("GetTopDrivers", "TripReports", new { area = "Admin" })?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+        var drivers = await dr.json();
+        var dlabels = drivers.map(d => d.driverName);
+        var dvals = drivers.map(d => d.tripCount);
+        var optionsDrv = { chart:{ type: 'bar' }, series:[{ name:'Trips', data: dvals }], xaxis: { categories: dlabels } };
+        var chartDrivers = new ApexCharts(document.querySelector('#chartDrivers'), optionsDrv);
+        chartDrivers.render();
+
+        var tbodyD = document.querySelector('#tblDrivers tbody'); tbodyD.innerHTML='';
+        drivers.forEach(d => { var tr = document.createElement('tr'); tr.innerHTML = `<td>${d.driverName}</td><td>${d.tripCount}</td><td>${d.totalDistance}</td>`; tbodyD.appendChild(tr); });
+
+        // Fuel sample
+        var rf = await fetch('@Url.Action("GetFuelPerTrip", "TripReports", new { area = "Admin" })?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+        var fuels = await rf.json();
+        var tb = document.querySelector('#tblFuel tbody'); tb.innerHTML='';
+        fuels.slice(0,20).forEach(f => {
+            var fuelPerKm = f.actualDistance && f.actualFuelCost ? (f.actualFuelCost / f.actualDistance).toFixed(2) : '';
+            var tr = document.createElement('tr');
+            tr.innerHTML = `<td>${f.tripNumber}</td><td>${f.vehiclePlateNo}</td><td>${f.driverName || ''}</td><td>${f.actualDistance || ''}</td><td>${f.actualFuelCost || ''}</td><td>${fuelPerKm}</td>`;
+            tb.appendChild(tr);
+        });
+
+        // wire drill buttons
+        document.querySelectorAll('.btn-drill').forEach(btn => {
+            btn.addEventListener('click', function () {
+                var vehicleId = this.dataset.vehicleid;
+                openDrill(vehicleId);
+            });
+        });
+    }
+
+    async function openDrill(vehicleId) {
+        document.getElementById('drillTitle').textContent = 'Trips for vehicle: ' + vehicleId;
+        var modalEl = document.getElementById('drillModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+
+        // load first page of trips
+        var tripsResp = await fetch('@Url.Action("GetTripsForVehicle", "TripReports", new { area = "Admin" })?vehicleId=' + vehicleId + '&page=1&pageSize=10');
+        var payload = await tripsResp.json();
+
+        // show list and allow clicking trip to see route
+        var html = '<ul class="list-group">';
+        payload.items.forEach(t => {
+            html += `<li class="list-group-item"><strong>${t.tripNumber}</strong> ${t.origin} → ${t.destination} on ${new Date(t.scheduledStartDate).toLocaleString()} <button class="btn btn-sm btn-link ms-2 btn-view-route" data-tripid="${t.id}">View Route</button></li>`;
+        });
+        html += '</ul>';
+        document.getElementById('drillTrips').innerHTML = html;
+
+        document.querySelectorAll('.btn-view-route').forEach(b => {
+            b.addEventListener('click', async function () {
+                var tripId = this.dataset.tripid;
+                var chk = await fetch('@Url.Action("GetTripCheckpoints", "TripReports", new { area = "Admin" })?tripId=' + tripId);
+                var cps = await chk.json();
+                renderMiniRoute(cps);
+            });
+        });
+    }
+
+    var miniMap, miniLayer;
+    function renderMiniRoute(checkpoints) {
+        if (!miniMap) {
+            miniMap = L.map('mapMini').setView([0,0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OSM' }).addTo(miniMap);
+        }
+        if (miniLayer) miniLayer.remove();
+
+        var latlngs = checkpoints.map(c => [c.latitude, c.longitude]).filter(p => p[0] && p[1]);
+        if (!latlngs.length) return alert('No route checkpoints available');
+
+        miniLayer = L.polyline(latlngs, { color: 'blue' }).addTo(miniMap);
+        miniMap.fitBounds(miniLayer.getBounds(), { padding: [20,20] });
+    }
+
+    document.getElementById('btnLoad').addEventListener('click', loadAll);
+    document.getElementById('btnRecompute').addEventListener('click', function () {
+        // enqueue recompute for range
+        var s = document.getElementById('rangeStart').value;
+        var e = document.getElementById('rangeEnd').value;
+        if (!s || !e) return alert('Pick range');
+        fetch('/Admin/TripReports/RecomputeRange?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e))
+            .then(r => { if (r.ok) alert('Recompute enqueued'); else r.text().then(t => alert(t)); });
+    });
+
+    // initial load
+    loadAll();
+</script>

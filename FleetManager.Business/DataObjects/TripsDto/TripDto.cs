@@ -37,6 +37,8 @@ namespace FleetManager.Business.DataObjects.TripsDto
         public DateTime ScheduledEndDate { get; set; }
         public DateTime? ActualStartDate { get; set; }
         public DateTime? ActualEndDate { get; set; }
+        public DateTime? StartTrip {get; set;}
+        public DateTime? EndTrip {get; set; }
 
         // Metrics
         public decimal? EstimatedDistance { get; set; }

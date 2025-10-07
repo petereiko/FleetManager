@@ -4,6 +4,574 @@
 
 @{
     ViewData["Title"] = "Trip Details";
+
+    var statusClass = "";
+    var statusIcon = "";
+    var statusBg = "";
+
+    if (Model.StatusDisplay?.ToLower().Contains("assigned") == true)
+    {
+        statusClass = "assigned";
+        statusIcon = "fa-calendar-check";
+        statusBg = "#dbeafe";
+    }
+    else if (Model.StatusDisplay?.ToLower().Contains("progress") == true)
+    {
+        statusClass = "inprogress";
+        statusIcon = "fa-truck-moving";
+        statusBg = "#fef3c7";
+    }
+    else if (Model.StatusDisplay?.ToLower().Contains("completed") == true)
+    {
+        statusClass = "completed";
+        statusIcon = "fa-circle-check";
+        statusBg = "#d1fae5";
+    }
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    .details-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .details-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .trip-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .trip-number-large {
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .status-badge-large {
+        padding: 0.6rem 1.2rem;
+        border-radius: 25px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: white;
+    }
+
+        .status-badge-large.assigned {
+            color: #1e40af;
+        }
+
+        .status-badge-large.inprogress {
+            color: #92400e;
+        }
+
+        .status-badge-large.completed {
+            color: #065f46;
+        }
+
+    .route-display-large {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1.3rem;
+        margin-top: 0.5rem;
+    }
+
+    .route-location {
+        font-weight: 600;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-back {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background: #667eea;
+            color: white;
+        }
+
+    .btn-refresh {
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 2px solid #e5e7eb;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-refresh:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .info-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f3f4f6;
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.1rem;
+    }
+
+    .info-card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .info-item {
+        margin-bottom: 1rem;
+    }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+
+    .info-value {
+        color: #1f2937;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .info-value-large {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .trip-actions-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    .btn-start-trip {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+        .btn-start-trip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+    .btn-complete-trip {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+        .btn-complete-trip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+
+    .schedule-timeline {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .timeline-point {
+        flex: 1;
+    }
+
+    .timeline-connector {
+        height: 2px;
+        width: 40px;
+        background: #e5e7eb;
+        position: relative;
+    }
+
+        .timeline-connector::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: -3px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid #e5e7eb;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+        }
+
+    @@media (max-width: 768px) {
+        .trip-title {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .route-display-large {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+
+<div class="details-container">
+    <div class="details-header">
+        <div class="trip-title">
+            <div class="trip-number-large">
+                <i class="fas fa-route"></i>
+                Trip @Model.TripNumber
+            </div>
+            <span class="status-badge-large @statusClass">
+                <i class="fas @statusIcon"></i>
+                @Model.StatusDisplay
+            </span>
+        </div>
+        <div class="route-display-large">
+            <span class="route-location">
+                <i class="fas fa-map-marker-alt"></i> @Model.Origin
+            </span>
+            <i class="fas fa-arrow-right"></i>
+            <span class="route-location">
+                <i class="fas fa-flag-checkered"></i> @Model.Destination
+            </span>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="action-buttons">
+        <a class="btn-back" asp-action="Index">
+            <i class="fas fa-arrow-left"></i>
+            Back to Trips
+        </a>
+        <a class="btn-refresh" asp-action="Details" asp-route-id="@Model.Id">
+            <i class="fas fa-sync-alt"></i>
+            Refresh
+        </a>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card">
+            <div class="info-card-header">
+                <div class="info-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <h3 class="info-card-title">Vehicle & Driver</h3>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Vehicle</div>
+                <div class="info-value info-value-large">
+                    <i class="fas fa-id-card"></i> @(Model.VehiclePlateNo ?? "Not assigned")
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Driver</div>
+                <div class="info-value">
+                    <i class="fas fa-user"></i> @(Model.DriverName ?? "Not assigned")
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <div class="info-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3 class="info-card-title">Schedule</h3>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Start Time</div>
+                <div class="info-value">
+                    <i class="fas fa-calendar-day"></i> @Model.ScheduledStartDate.ToLocalTime().ToString("MMM dd, yyyy")
+                    <br />
+                    <i class="fas fa-clock"></i> @Model.ScheduledStartDate.ToLocalTime().ToString("h:mm tt")
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">End Time</div>
+                <div class="info-value">
+                    <i class="fas fa-calendar-day"></i> @Model.ScheduledEndDate.ToLocalTime().ToString("MMM dd, yyyy")
+                    <br />
+                    <i class="fas fa-clock"></i> @Model.ScheduledEndDate.ToLocalTime().ToString("h:mm tt")
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <div class="info-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h3 class="info-card-title">Trip Information</h3>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Purpose</div>
+                <div class="info-value">@Model.Purpose</div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Notes))
+            {
+                <div class="info-item">
+                    <div class="info-label">Notes</div>
+                    <div class="info-value">@Model.Notes</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (Model.Status == TripStatus.Assigned || Model.Status == TripStatus.InProgress)
+    {
+        <div class="trip-actions-card">
+            @if (Model.Status == TripStatus.Assigned)
+            {
+                <h3 style="margin-bottom: 1.5rem; color: #1f2937;">
+                    <i class="fas fa-play-circle"></i> Ready to Start Your Trip?
+                </h3>
+                <button class="btn-start-trip openStartModal" data-tripid="@Model.Id">
+                    <i class="fas fa-play"></i>
+                    Start Trip
+                </button>
+            }
+            else if (Model.Status == TripStatus.InProgress)
+            {
+                <h3 style="margin-bottom: 1.5rem; color: #1f2937;">
+                    <i class="fas fa-flag-checkered"></i> Ready to Complete Your Trip?
+                </h3>
+                <button class="btn-complete-trip openCompleteModal" data-tripid="@Model.Id">
+                    <i class="fas fa-check-circle"></i>
+                    Complete Trip
+                </button>
+            }
+        </div>
+    }
+</div>
+
+<!-- Start Modal -->
+<div class="modal fade" id="startModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-play-circle"></i>
+                    Start Trip
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="startModalBody">
+                <div class="text-center py-4"><div class="spinner-border text-success" role="status"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-flag-checkered"></i>
+                    Complete Trip
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="completeModalBody">
+                <div class="text-center py-4"><div class="spinner-border text-warning" role="status"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    window.startUrlTemplate = '@Url.Action("Start", "DriverTrips", new { area = "User", id = "__id__" })';
+    window.completeUrlTemplate = '@Url.Action("Complete", "DriverTrips", new { area = "User", id = "__id__" })';
+
+    function buildUrlFromTemplate(tpl, id) {
+        return tpl.replace('__id__', encodeURIComponent(id));
+    }
+
+    function loadStartModal(tripId) {
+        var url = buildUrlFromTemplate(window.startUrlTemplate, tripId);
+        $('#startModalBody').html('<div class="text-center py-4"><div class="spinner-border text-success" role="status"></div></div>');
+        var modal = new bootstrap.Modal(document.getElementById('startModal'));
+        modal.show();
+
+        $.get(url, function (html) {
+            $('#startModalBody').html(html);
+            $('#startModalBody').find('input[name="TripId"]').val(tripId);
+            if (window.bindStartForm) window.bindStartForm();
+        }).fail(function (xhr) {
+            $('#startModalBody').html('<div class="p-3 text-danger"><i class="fas fa-exclamation-triangle"></i> Failed to load form: ' + xhr.responseText + '</div>');
+        });
+    }
+
+    function loadCompleteModal(tripId) {
+        var url = buildUrlFromTemplate(window.completeUrlTemplate, tripId);
+        $('#completeModalBody').html('<div class="text-center py-4"><div class="spinner-border text-warning" role="status"></div></div>');
+        var modal = new bootstrap.Modal(document.getElementById('completeModal'));
+        modal.show();
+
+        $.get(url, function (html) {
+            $('#completeModalBody').html(html);
+            $('#completeModalBody').find('input[name="TripId"]').val(tripId);
+            if (window.bindCompleteForm) window.bindCompleteForm();
+        }).fail(function (xhr) {
+            $('#completeModalBody').html('<div class="p-3 text-danger"><i class="fas fa-exclamation-triangle"></i> Failed to load form: ' + xhr.responseText + '</div>');
+        });
+    }
+
+    $(function () {
+        $(document).on('click', '.openStartModal', function (e) {
+            e.preventDefault();
+            var id = $(this).data('tripid');
+            loadStartModal(id);
+        });
+        $(document).on('click', '.openCompleteModal', function (e) {
+            e.preventDefault();
+            var id = $(this).data('tripid');
+            loadCompleteModal(id);
+        });
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.Enums
+@model TripDto
+
+@{
+    ViewData["Title"] = "Trip Details";
 }
 
 <div class="container mt-3">
@@ -53,7 +621,7 @@
         }
     </div>
 
-    @* Additional sections (expenses, checkpoints) would go here if available *@
+    @* Additional sections (expenses, checkpoints) would go here if available 
 
     <!-- Start Modal (no outer <form> — partial provides the form) -->
     <div class="modal fade" id="startModal" tabindex="-1" aria-hidden="true">
@@ -146,3 +714,4 @@
         });
     });
 </script>
+ *@

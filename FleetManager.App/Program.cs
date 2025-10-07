@@ -33,6 +33,7 @@ using FleetManager.Business.Implementations.RepairModule;
 using FleetManager.Business.Implementations.ReportModule;
 using FleetManager.Business.Implementations.ScheduleModule;
 using FleetManager.Business.Implementations.TripModule;
+using FleetManager.Business.Implementations.TripReportModule;
 using FleetManager.Business.Implementations.UserModule;
 using FleetManager.Business.Implementations.VehicleModule;
 using FleetManager.Business.Implementations.VendorModule;
@@ -57,6 +58,7 @@ using FleetManager.Business.Interfaces.RepairModule;
 using FleetManager.Business.Interfaces.ReportModule;
 using FleetManager.Business.Interfaces.ScheduleModule;
 using FleetManager.Business.Interfaces.TripModule;
+using FleetManager.Business.Interfaces.TripReportModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
@@ -220,6 +222,7 @@ builder.Services.AddTransient<IRepairService, RepairService>();
 builder.Services.AddTransient<IWebhookDispatcher, WebhookDispatcher>();
 builder.Services.AddTransient<NotificationWorker>();
 builder.Services.AddTransient<ITripService, TripService>();
+builder.Services.AddTransient<ITripReportService, TripReportService>();
 
 
 
@@ -393,7 +396,7 @@ app.MapHub<NotificationHub>("/notificationHub");
 
 
 RecurringJob.AddOrUpdate<IPublicHolidayService>("GetHolidays", svc => svc.FetchAndStoreHolidaysAsync("NG", DateTime.UtcNow.Year), Cron.Yearly(1, 1)); // every Jan 1
-
+RecurringJob.AddOrUpdate<ITripReportService>("recompute-daily-aggregrates", svc => svc.RecomputeDailyAggregateAsync(DateTime.UtcNow.Date.AddDays(-1)), Cron.Daily); // every midnight
 
 //Create a scope to resolve scoped services
 using (var scope = app.Services.CreateScope())

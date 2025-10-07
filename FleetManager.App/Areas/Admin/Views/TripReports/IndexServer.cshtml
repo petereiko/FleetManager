@@ -1,0 +1,50 @@
+﻿@{
+    ViewData["Title"] = "Reports - Server Table";
+}
+
+<h1>Vehicle Trips (Server-side)</h1>
+
+<form id="filterForm" method="get" class="row g-2 mb-3">
+    <div class="col-md-3"><input id="start" name="start" class="form-control" placeholder="Start date" /></div>
+    <div class="col-md-3"><input id="end" name="end" class="form-control" placeholder="End date" /></div>
+    <div class="col-md-2"><input id="vehicleId" name="vehicleId" class="form-control" placeholder="VehicleId" /></div>
+    <div class="col-md-2"><button id="btnFilter" class="btn btn-primary">Filter</button></div>
+</form>
+
+<div id="serverTableContainer">
+    <!-- JS will load server-side table via GetTripsForVehicle endpoint and render simple table + pager -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    flatpickr('#start', { dateFormat: 'Y-m-d' });
+    flatpickr('#end', { dateFormat: 'Y-m-d' });
+
+    async function loadServerTable(page = 1) {
+        var vid = document.getElementById('vehicleId').value || 0;
+        var resp = await fetch('@Url.Action("GetTripsForVehicle", "TripReports", new { area = "Admin" })?vehicleId=' + vid + '&page=' + page + '&pageSize=20');
+        var data = await resp.json();
+        var html = '<table class="table"><thead><tr><th>Trip #</th><th>Driver</th><th>Origin</th><th>Destination</th><th>Start</th><th>Status</th></tr></thead><tbody>';
+        data.items.forEach(t => {
+            html += `<tr><td>${t.tripNumber}</td><td>${t.driverName || ''}</td><td>${t.origin}</td><td>${t.destination}</td><td>${new Date(t.scheduledStartDate).toLocaleString()}</td><td>${t.statusDisplay}</td></tr>`;
+        });
+        html += '</tbody></table>';
+        html += `<nav><ul class="pagination">`;
+        for (let p=1;p<=data.totalPages;p++){
+            html += `<li class="page-item ${p===data.page?'active':''}"><a class="page-link" href="#" data-page="${p}">${p}</a></li>`;
+        }
+        html += `</ul></nav>`;
+        document.getElementById('serverTableContainer').innerHTML = html;
+
+        document.querySelectorAll('#serverTableContainer .page-link').forEach(a => {
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+                loadServerTable(Number(this.dataset.page));
+            });
+        });
+    }
+
+    document.getElementById('btnFilter').addEventListener('click', function (e) { e.preventDefault(); loadServerTable(1); });
+    // initial
+    loadServerTable(1);
+</script>

@@ -66,6 +66,7 @@ namespace FleetManager.Business
         public DbSet<CompanyAdmin> CompanyAdmins { get; set; }
         public DbSet<ContactDirectory> ContactDirectories { get; set; }
         public DbSet<ContactRating> ContactRatings { get; set; }
+        public DbSet<DailyTripAggregate> DailyTripAggregates { get; set; }
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<DriverDocument> DriverDocuments { get; set; }
         public DbSet<DriverVehicle> DriverVehicles { get; set; }
@@ -99,6 +100,7 @@ namespace FleetManager.Business
         public DbSet<TimeOffCategory> TimeOffCategories { get; set; }
         public DbSet<Trip> Trips { get; set; }
         public DbSet<TripCheckpoint> TripCheckpoints { get; set; }
+        
         public DbSet<TripDocument> TripDocuments { get; set; }
         public DbSet<TripExpense> TripExpenses { get; set; }    
         public DbSet<Vehicle> Vehicles { get; set; }

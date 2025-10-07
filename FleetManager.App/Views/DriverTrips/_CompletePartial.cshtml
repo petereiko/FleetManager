@@ -1,194 +1,557 @@
-﻿@using FleetManager.Business.ViewModels.TripsViewModels
-@model CompleteTripViewModel
+﻿@model FleetManager.Business.ViewModels.TripsViewModels.CompleteTripViewModel
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
 
-<form id="completeForm" asp-action="Complete" asp-controller="DriverTrips" asp-area="User" method="post" novalidate>
+<style>
+    .complete-form-container {
+        padding: 1rem;
+    }
+
+    .form-group-enhanced {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label-enhanced {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control-enhanced {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+        .form-control-enhanced:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+            outline: none;
+        }
+
+    .location-card {
+        background: #fffbeb;
+        border: 2px solid #fde68a;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .location-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .location-title {
+        font-weight: 600;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-get-location {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .btn-get-location:hover:not(:disabled) {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .btn-get-location:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .location-status {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .accuracy-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .accuracy-excellent {
+        background: #d1fae5;
+        color: #065f46;
+        border: 2px solid #10b981;
+    }
+
+    .accuracy-good {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 2px solid #3b82f6;
+    }
+
+    .accuracy-fair {
+        background: #fef3c7;
+        color: #92400e;
+        border: 2px solid #f59e0b;
+    }
+
+    .accuracy-poor {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 2px solid #ef4444;
+    }
+
+    .accuracy-none {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 2px solid #d1d5db;
+    }
+
+    .location-address {
+        flex: 1;
+        background: white;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 0.95rem;
+        color: #4b5563;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: 46px;
+    }
+
+        .location-address i {
+            color: #f59e0b;
+        }
+
+    .location-message {
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .location-message.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .location-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .location-message.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+    .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        padding-top: 1rem;
+        border-top: 2px solid #f3f4f6;
+        margin-top: 1.5rem;
+    }
+
+    .btn-submit-complete {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+        .btn-submit-complete:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+    .btn-cancel {
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 2px solid #e5e7eb;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .btn-cancel:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+    .spinner-inline {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner-rotate 0.75s linear infinite;
+    }
+
+    .input-group-enhanced {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+        .input-group-enhanced .form-control-enhanced {
+            flex: 1;
+        }
+
+    @@keyframes spinner-rotate {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .location-status {
+            flex-direction: column;
+        }
+
+        .location-address {
+            width: 100%;
+        }
+    }
+</style>
+
+<form id="completeForm" asp-action="Complete" asp-controller="DriverTrips" asp-area="User" method="post" novalidate class="complete-form-container">
     @Html.AntiForgeryToken()
-
     <input asp-for="TripId" type="hidden" />
 
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
-
-    <div class="mb-3">
-        <label asp-for="EndOdometer" class="form-label">End Odometer (km)</label>
-        <!-- Prefill with PreferredEndOdometer if provided, otherwise model value -->
-        <input asp-for="EndOdometer" class="form-control" type="number"
-               value="@(Model?.PreferredEndOdometer ?? Model?.EndOdometer ?? 0)" />
+    <div class="form-group-enhanced">
+        <label asp-for="EndOdometer" class="form-label-enhanced">
+            <i class="fas fa-tachometer-alt"></i>
+            End Odometer Reading (km)
+        </label>
+        <input asp-for="EndOdometer" class="form-control form-control-enhanced" type="number" step="0.1" placeholder="Enter final odometer reading" />
         <span asp-validation-for="EndOdometer" class="text-danger"></span>
-
-        @* Show current vehicle mileage as a hint if available (helps avoid invalid readings) *@
-        @if (Model?.CurrentVehicleMileage.HasValue == true)
-        {
-            <small class="form-text text-muted mt-1">
-                Current vehicle mileage: <strong>@Model.CurrentVehicleMileage.Value</strong> km — enter a reading greater than or equal to this.
-            </small>
-        }
     </div>
 
-    <div class="mb-3">
-        <label asp-for="ActualFuelCost" class="form-label">Actual Fuel Cost</label>
-        <input asp-for="ActualFuelCost" class="form-control" />
+    <div class="form-group-enhanced">
+        <label asp-for="ActualFuelCost" class="form-label-enhanced">
+            <i class="fas fa-gas-pump"></i>
+            Actual Fuel Cost
+        </label>
+        <input asp-for="ActualFuelCost" class="form-control form-control-enhanced" type="number" step="0.01" placeholder="Enter total fuel cost" />
         <span asp-validation-for="ActualFuelCost" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Location</label>
-        <div class="d-flex align-items-start">
-            <div class="input-group me-2" style="min-width:320px;">
-                <input asp-for="Latitude" class="form-control geo-lat" placeholder="Latitude" />
-                <input asp-for="Longitude" class="form-control geo-lon" placeholder="Longitude" />
-                <button type="button" class="btn btn-outline-secondary geo-fill-btn" id="fillLocationBtnComplete">
-                    <span id="geoBtnSpinnerComplete" class="spinner-border spinner-border-sm visually-hidden" role="status" aria-hidden="true"></span>
-                    <span id="geoBtnTextComplete">Use my location</span>
-                </button>
+    <div class="location-card">
+        <div class="location-header">
+            <div class="location-title">
+                <i class="fas fa-map-marker-alt"></i>
+                Completion Location
             </div>
+            <button type="button" class="btn-get-location" id="fillLocationBtnComplete">
+                <span id="geoBtnSpinnerComplete" class="spinner-inline" style="display: none;"></span>
+                <i id="geoBtnIconComplete" class="fas fa-crosshairs"></i>
+                <span id="geoBtnTextComplete">Get My Location</span>
+            </button>
+        </div>
 
-            <div class="d-flex flex-column">
-                <span id="geoAccuracyComplete" class="badge geo-accuracy-badge bg-secondary">No location</span>
-                <small id="geoStatusComplete" class="text-muted mt-2 geo-status"></small>
+        <div class="location-status">
+            <span id="geoAccuracyComplete" class="accuracy-badge accuracy-none">
+                <i class="fas fa-circle-question"></i>
+                No Location
+            </span>
+            <div id="geoAddressComplete" class="location-address">
+                <i class="fas fa-map-pin"></i>
+                <span>Click "Get My Location" to capture your current position</span>
             </div>
         </div>
 
-        <input asp-for="LatitudeAccuracy" type="hidden" class="geo-acc" />
-        <div id="geoAddressComplete" class="form-text mt-1 geo-address"></div>
+        <div id="geoMessageComplete" class="location-message info" style="display: none;">
+            <i class="fas fa-info-circle"></i>
+            <span></span>
+        </div>
+
+        <input asp-for="Latitude" type="hidden" />
+        <input asp-for="Longitude" type="hidden" />
+        <input asp-for="LatitudeAccuracy" type="hidden" />
     </div>
 
-    <div class="mb-3">
-        <label asp-for="Notes" class="form-label">Notes</label>
-        <textarea asp-for="Notes" class="form-control"></textarea>
+    <div class="form-group-enhanced">
+        <label asp-for="Notes" class="form-label-enhanced">
+            <i class="fas fa-sticky-note"></i>
+            Notes (Optional)
+        </label>
+        <textarea asp-for="Notes" class="form-control form-control-enhanced" rows="3" placeholder="Add any notes about trip completion..."></textarea>
     </div>
 
     <div id="completeFormAlert"></div>
 
-    <div class="text-end">
-        <button type="submit" class="btn btn-primary">Complete Trip</button>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+    <div class="modal-actions">
+        <button type="button" class="btn-cancel" data-bs-dismiss="modal">
+            <i class="fas fa-times"></i>
+            Cancel
+        </button>
+        <button type="submit" class="btn-submit-complete">
+            <i class="fas fa-check-circle"></i>
+            Complete Trip Now
+        </button>
     </div>
 </form>
 
-@section Scripts {
-    <script>
-        (function($){
-            if (!window.jQuery) return;
+<script>
+    (function($) {
+        if (!window.jQuery) return;
 
-            function showCompleteAlert(html) { $('#completeFormAlert').html('<div class="alert alert-danger">' + html + '</div>'); }
+        let isLocating = false;
 
-            // ensure single delegated handler
-            if (!$(document).data('completeFormHandlerAttached')) {
-                $(document).on('submit.completeForm', '#completeForm', function (e) {
-                    e.preventDefault();
-                    var $form = $(this);
-                    var url = $form.attr('action') || '@Url.Action("Complete", "DriverTrips", new { area = "User" })';
-                    var token = $form.find('input[name="__RequestVerificationToken"]').val();
+        function showCompleteAlert(html, type) {
+            const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+            const icon = type === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            $('#completeFormAlert').html('<div class="alert ' + alertClass + '"><i class="fas ' + icon + '"></i> ' + html + '</div>');
+        }
 
-                    // client validation for end odometer
-                    var endOdo = $form.find('[name="EndOdometer"]').val();
-                    if (!endOdo || isNaN(Number(endOdo))) {
-                        showCompleteAlert('End odometer is required and must be numeric.');
-                        return;
-                    }
+        function setGeoSpinner(on) {
+            isLocating = on;
+            $('#geoBtnSpinnerComplete').toggle(on);
+            $('#geoBtnIconComplete').toggle(!on);
+            $('#geoBtnTextComplete').text(on ? 'Locating...' : 'Get My Location');
+            $('#fillLocationBtnComplete').prop('disabled', on);
+        }
 
-                    var data = $form.serialize();
-                    var $submit = $form.find('button[type="submit"]');
-                    $submit.prop('disabled', true);
-                    $('#completeFormAlert').html('');
+        function setGeoAccuracy(accuracy) {
+            const $badge = $('#geoAccuracyComplete');
+            $badge.removeClass('accuracy-excellent accuracy-good accuracy-fair accuracy-poor accuracy-none');
 
-                    $.ajax({
-                        url: url,
-                        method: 'POST',
-                        data: data,
-                        headers: {
-                            'RequestVerificationToken': token,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        success: function (resp) {
-                            if (resp && resp.success) {
-                                var modalEl = document.getElementById('completeModal');
-                                if (modalEl) {
-                                    var inst = bootstrap.Modal.getInstance(modalEl);
-                                    if (inst) inst.hide();
-                                }
-                                location.reload();
-                            } else {
-                                var msg = (resp && resp.message) ? resp.message : 'Unable to complete trip';
-                                showCompleteAlert(msg);
-                            }
-                        },
-                        error: function (xhr) {
-                            var message = 'Failed to complete trip';
-                            try {
-                                if (xhr && xhr.responseJSON && xhr.responseJSON.message) message = xhr.responseJSON.message;
-                                else if (xhr && xhr.responseText) message = xhr.responseText;
-                            } catch (ex) { message = 'Server error'; }
-                            showCompleteAlert(message);
-                        },
-                        complete: function () { $submit.prop('disabled', false); }
-                    });
+            if (accuracy === null) {
+                $badge.addClass('accuracy-none');
+                $badge.html('<i class="fas fa-circle-question"></i> No Location');
+            } else if (accuracy <= 10) {
+                $badge.addClass('accuracy-excellent');
+                $badge.html('<i class="fas fa-check-circle"></i> Excellent (±' + Math.round(accuracy) + 'm)');
+            } else if (accuracy <= 50) {
+                $badge.addClass('accuracy-good');
+                $badge.html('<i class="fas fa-check-circle"></i> Good (±' + Math.round(accuracy) + 'm)');
+            } else if (accuracy <= 100) {
+                $badge.addClass('accuracy-fair');
+                $badge.html('<i class="fas fa-exclamation-circle"></i> Fair (±' + Math.round(accuracy) + 'm)');
+            } else {
+                $badge.addClass('accuracy-poor');
+                $badge.html('<i class="fas fa-exclamation-triangle"></i> Poor (±' + Math.round(accuracy) + 'm)');
+            }
+        }
+
+        function setGeoAddress(address) {
+            if (address) {
+                $('#geoAddressComplete').html('<i class="fas fa-map-pin"></i> <span>' + address + '</span>');
+            } else {
+                $('#geoAddressComplete').html('<i class="fas fa-map-pin"></i> <span>Address unavailable</span>');
+            }
+        }
+
+        function showGeoMessage(text, type) {
+            const $msg = $('#geoMessageComplete');
+            const icons = {
+                'info': 'fa-info-circle',
+                'error': 'fa-exclamation-triangle',
+                'success': 'fa-check-circle'
+            };
+
+            $msg.removeClass('info error success').addClass(type);
+            $msg.find('i').removeClass().addClass('fas ' + icons[type]);
+            $msg.find('span').text(text);
+            $msg.show();
+        }
+
+        function hideGeoMessage() {
+            $('#geoMessageComplete').hide();
+        }
+
+        async function reverseGeocode(lat, lon) {
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+                const resp = await fetch(url, {
+                    headers: { 'Accept': 'application/json' }
                 });
+                if (!resp.ok) return null;
+                const data = await resp.json();
+                return data.display_name || null;
+            } catch (e) {
+                console.warn('Reverse geocode failed', e);
+                return null;
+            }
+        }
 
-                $(document).data('completeFormHandlerAttached', true);
+        async function attemptGeolocation() {
+            if (!navigator.geolocation) {
+                showGeoMessage('Geolocation is not supported by your browser', 'error');
+                return;
             }
 
-            // geolocation helpers (complete modal)
-            function setGeoSpinner(on) { $('#geoBtnSpinnerComplete').toggleClass('visually-hidden', !on); $('#geoBtnTextComplete').text(on ? 'Locating…' : 'Use my location'); }
-            function setGeoAccuracyText(txt, isErr) { $('#geoAccuracyComplete').text(txt).toggleClass('bg-danger', isErr).toggleClass('bg-secondary', !isErr); }
-            function setGeoStatus(txt, isErr) { $('#geoStatusComplete').text(txt).toggleClass('text-danger', isErr).toggleClass('text-muted', !isErr); }
-            function setGeoAddress(txt) { $('#geoAddressComplete').text(txt || ''); }
+            setGeoSpinner(true);
+            showGeoMessage('Requesting your location...', 'info');
 
-            async function reverseGeocodeNominatim(lat, lon) {
-                try {
-                    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
-                    const resp = await fetch(url, { headers: { 'Accept': 'application/json' }});
-                    if (!resp.ok) return null;
-                    const data = await resp.json();
-                    return data.display_name || null;
-                } catch (e) { console.warn('Reverse geocode failed', e); return null; }
-            }
+            const $form = $('#completeForm');
 
-            async function attemptGeolocationLocalComplete($container) {
-                const $lat = $container.find('.geo-lat');
-                const $lon = $container.find('.geo-lon');
-                const $acc = $container.find('.geo-acc');
+            navigator.geolocation.getCurrentPosition(
+                async function(pos) {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    const acc = pos.coords.accuracy || 0;
 
-                if (!navigator.geolocation) { setGeoStatus('Geolocation not supported', true); setGeoAccuracyText('No location', true); return; }
-                setGeoSpinner(true); setGeoStatus('Requesting location…', false);
+                    $form.find('[name="Latitude"]').val(lat);
+                    $form.find('[name="Longitude"]').val(lon);
+                    $form.find('[name="LatitudeAccuracy"]').val(acc);
 
-                navigator.geolocation.getCurrentPosition(async function (pos) {
-                    const lat = pos.coords.latitude; const lon = pos.coords.longitude; const acc = pos.coords.accuracy || 0;
-                    if ($lat.length) $lat.val(lat);
-                    if ($lon.length) $lon.val(lon);
-                    if ($acc.length) $acc.val(acc);
-                    setGeoSpinner(false); setGeoAccuracyText(`±${Math.round(acc)} m`, false); setGeoStatus('Location captured');
-                    const addr = await reverseGeocodeNominatim(lat, lon);
-                    if (addr) setGeoAddress(addr);
-                }, function (err) {
                     setGeoSpinner(false);
-                    let msg = 'Could not get location';
-                    if (err && typeof err.code !== 'undefined') {
-                        if (err.code === 1) msg = 'Permission denied. Enable location in browser settings and retry.';
-                        else if (err.code === 2) msg = 'Position unavailable. Try again outdoors.';
-                        else if (err.code === 3) msg = 'Timeout. Try again.';
-                    }
-                    setGeoStatus(msg, true); setGeoAccuracyText('No location', true);
-                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-            }
+                    setGeoAccuracy(acc);
 
-            // bind fill button
-            $(document).off('click.completeGeo', '#fillLocationBtnComplete').on('click.completeGeo', '#fillLocationBtnComplete', function (e) {
+                    showGeoMessage('Location captured successfully!', 'success');
+
+                    // Fetch address
+                    setGeoAddress('Loading address...');
+                    const address = await reverseGeocode(lat, lon);
+                    if (address) {
+                        setGeoAddress(address);
+                    } else {
+                        setGeoAddress('Address lookup failed');
+                    }
+
+                    // Hide success message after 3 seconds
+                    setTimeout(hideGeoMessage, 3000);
+                },
+                function(err) {
+                    setGeoSpinner(false);
+                    setGeoAccuracy(null);
+
+                    let msg = 'Could not get your location';
+                    if (err.code === 1) {
+                        msg = 'Location permission denied. Please enable location access in your browser settings.';
+                    } else if (err.code === 2) {
+                        msg = 'Location unavailable. Make sure GPS is enabled and try again outdoors.';
+                    } else if (err.code === 3) {
+                        msg = 'Location request timed out. Please try again.';
+                    }
+
+                    showGeoMessage(msg, 'error');
+                    setGeoAddress('Click "Get My Location" to capture your current position');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Form submission handler
+        if (!$(document).data('completeFormHandlerAttached')) {
+            $(document).on('submit.completeForm', '#completeForm', function (e) {
                 e.preventDefault();
-                var $form = $(this).closest('form');
-                attemptGeolocationLocalComplete($form);
+                var $form = $(this);
+                var url = $form.attr('action') || '@Url.Action("Complete", "DriverTrips", new { area = "User" })';
+                var token = $form.find('input[name="__RequestVerificationToken"]').val();
+
+                // Client validation
+                var endOdo = $form.find('[name="EndOdometer"]').val();
+                if (!endOdo || isNaN(Number(endOdo))) {
+                    showCompleteAlert('End odometer is required and must be numeric.', 'error');
+                    return;
+                }
+
+                var data = $form.serialize();
+                var $submit = $form.find('button[type="submit"]');
+                $submit.prop('disabled', true).html('<span class="spinner-inline"></span> Processing...');
+                $('#completeFormAlert').html('');
+
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: data,
+                    headers: {
+                        'RequestVerificationToken': token,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function (resp) {
+                        if (resp && resp.success) {
+                            var modalEl = document.getElementById('completeModal');
+                            if (modalEl) {
+                                var inst = bootstrap.Modal.getInstance(modalEl);
+                                if (inst) inst.hide();
+                            }
+                            location.reload();
+                        } else {
+                            var msg = (resp && resp.message) ? resp.message : 'Unable to complete trip';
+                            showCompleteAlert(msg, 'error');
+                        }
+                    },
+                    error: function (xhr) {
+                        var message = 'Failed to complete trip';
+                        try {
+                            if (xhr && xhr.responseJSON && xhr.responseJSON.message) message = xhr.responseJSON.message;
+                            else if (xhr && xhr.responseText) message = xhr.responseText;
+                        } catch (ex) { message = 'Server error'; }
+                        showCompleteAlert(message, 'error');
+                    },
+                    complete: function () {
+                        $submit.prop('disabled', false).html('<i class="fas fa-check-circle"></i> Complete Trip Now');
+                    }
+                });
             });
 
-            // auto-run if partial present
-            if ($('#completeForm').length) {
-                setTimeout(function () { attemptGeolocationLocalComplete($('#completeForm')); }, 250);
-            }
+            $(document).data('completeFormHandlerAttached', true);
+        }
 
-            // bind hook for loader
-            window.bindCompleteForm = function () { console.log('bindCompleteForm called'); };
-        })(jQuery);
-    </script>
-}
+        // Auto-attempt geolocation on modal load
+        $(function() {
+            setTimeout(attemptGeolocation, 500);
+        });
+
+        // Manual button click
+        $(document).off('click.completeGeo', '#fillLocationBtnComplete').on('click.completeGeo', '#fillLocationBtnComplete', function (e) {
+            e.preventDefault();
+            if (!isLocating) {
+                attemptGeolocation();
+            }
+        });
+
+        window.bindCompleteForm = function () {
+            console.log('bindCompleteForm called');
+        };
+    })(jQuery);
+</script>
+
+
 
 
 
