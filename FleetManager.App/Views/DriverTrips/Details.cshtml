@@ -547,6 +547,146 @@
             loadCompleteModal(id);
         });
     });
+
+
+
+        /* Put this after your existing scripts on the Details page (where startUrlTemplate and loadStartModal live) */
+    window.bindStartForm = function() {
+        console.log('global bindStartForm called');
+
+        const $container = $('#startModalBody');
+        if (!$container.length) {
+            console.warn('bindStartForm: #startModalBody not found');
+            return;
+        }
+
+        const $fillBtn = $container.find('#fillLocationBtn');
+        const $geoAccuracy = $container.find('#geoAccuracy');
+        const $geoAddress = $container.find('#geoAddress');
+        const $geoMessage = $container.find('#geoMessage');
+        const $lat = $container.find('#lat');
+        const $lon = $container.find('#lon');
+        const $latAcc = $container.find('#latAcc');
+
+        let isLocating = false;
+
+        function setGeoSpinner(on) {
+            isLocating = on;
+            $fillBtn.find('#geoBtnSpinner').toggle(on);
+            $fillBtn.find('#geoBtnIcon').toggle(!on);
+            $fillBtn.find('#geoBtnText').text(on ? 'Locating...' : 'Get My Location');
+            $fillBtn.prop('disabled', on);
+        }
+
+        function setGeoAccuracy(accuracy) {
+            $geoAccuracy.removeClass('accuracy-excellent accuracy-good accuracy-fair accuracy-poor accuracy-none');
+
+            if (accuracy === null) {
+                $geoAccuracy.addClass('accuracy-none')
+                    .html('<i class="fas fa-circle-question"></i> No Location');
+            } else if (accuracy <= 10) {
+                $geoAccuracy.addClass('accuracy-excellent')
+                    .html('<i class="fas fa-check-circle"></i> Excellent (±' + Math.round(accuracy) + 'm)');
+            } else if (accuracy <= 50) {
+                $geoAccuracy.addClass('accuracy-good')
+                    .html('<i class="fas fa-check-circle"></i> Good (±' + Math.round(accuracy) + 'm)');
+            } else if (accuracy <= 100) {
+                $geoAccuracy.addClass('accuracy-fair')
+                    .html('<i class="fas fa-exclamation-circle"></i> Fair (±' + Math.round(accuracy) + 'm)');
+            } else {
+                $geoAccuracy.addClass('accuracy-poor')
+                    .html('<i class="fas fa-exclamation-triangle"></i> Poor (±' + Math.round(accuracy) + 'm)');
+            }
+        }
+
+        function setGeoAddress(address) {
+            if (address) {
+                $geoAddress.html('<i class="fas fa-map-pin"></i> <span>' + address + '</span>');
+            } else {
+                $geoAddress.html('<i class="fas fa-map-pin"></i> <span>Address unavailable</span>');
+            }
+        }
+
+        function showGeoMessage(text, type) {
+            const icons = { 'info': 'fa-info-circle', 'error': 'fa-exclamation-triangle', 'success': 'fa-check-circle' };
+            $geoMessage.removeClass('info error success').addClass(type);
+            $geoMessage.find('i').removeClass().addClass('fas ' + icons[type]);
+            $geoMessage.find('span').text(text);
+            $geoMessage.show();
+        }
+
+        function hideGeoMessage() { $geoMessage.hide(); }
+
+        async function reverseGeocode(lat, lon) {
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1`;
+                const resp = await fetch(url, { headers: { 'Accept': 'application/json' } }); // no User-Agent header in browsers
+                if (!resp.ok) {
+                    console.warn('reverseGeocode response not ok', resp.status);
+                    return null;
+                }
+                const data = await resp.json();
+                console.log('Reverse geocode data:', data);
+                return data.display_name || null;
+            } catch (err) {
+                console.error('reverseGeocode failed', err);
+                return null;
+            }
+        }
+
+        async function attemptGeolocation() {
+            if (!navigator.geolocation) {
+                showGeoMessage('Geolocation is not supported by your browser', 'error');
+                return;
+            }
+
+            setGeoSpinner(true);
+            showGeoMessage('Requesting your location...', 'info');
+
+            navigator.geolocation.getCurrentPosition(
+                async function(pos) {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    const acc = pos.coords.accuracy || 0;
+
+                    $lat.val(lat);
+                    $lon.val(lon);
+                    $latAcc.val(acc);
+
+                    setGeoSpinner(false);
+                    setGeoAccuracy(acc);
+                    showGeoMessage('Location captured successfully!', 'success');
+
+                    setGeoAddress('Loading address...');
+                    const address = await reverseGeocode(lat, lon);
+                    setGeoAddress(address || 'Address lookup failed');
+
+                    setTimeout(hideGeoMessage, 3000);
+                },
+                function(err) {
+                    setGeoSpinner(false);
+                    setGeoAccuracy(null);
+                    let msg = 'Could not get your location';
+                    if (err.code === 1) msg = 'Location permission denied. Enable location access in your browser settings.';
+                    else if (err.code === 2) msg = 'Location unavailable. Make sure GPS is enabled and try again outdoors.';
+                    else if (err.code === 3) msg = 'Location request timed out. Please try again.';
+                    showGeoMessage(msg, 'error');
+                    setGeoAddress('Click "Get My Location" to capture your current position');
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        }
+
+        // auto-run once the partial is injected
+        setTimeout(attemptGeolocation, 500);
+
+        // click handler
+        $fillBtn.off('click').on('click', function(e) {
+            e.preventDefault();
+            if (!isLocating) attemptGeolocation();
+        });
+    };
+
 </script>
 
 

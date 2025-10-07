@@ -502,6 +502,8 @@ namespace FleetManager.Business.Implementations.VehicleModule
         }
 
 
+        #region Load Vehicles Helper
+
         //public async Task LoadMakes()
         //{
         //    VehicleMakeResponseDto vehicleMakeResponse = new();
@@ -577,6 +579,7 @@ namespace FleetManager.Business.Implementations.VehicleModule
 
         //}
 
+        #endregion
     }
 
 }

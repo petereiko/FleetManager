@@ -41,9 +41,9 @@ namespace FleetManager.Business.ViewModels
         [DataType(DataType.Date)]
         public DateTime? LicenseExpiryDate { get; set; }
 
-        [Required]
-        [Display(Name = "Branch")]
-        public long CompanyBranchId { get; set; }
+        //[Required]
+        //[Display(Name = "Branch")]
+        //public long CompanyBranchId { get; set; }
 
         [Required]
         public LicenseCategory LicenseCategory { get; set; }

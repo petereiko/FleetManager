@@ -146,6 +146,10 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 var vm = new VehicleEditViewModel(input);
                 await PopulateSelectsAsync(vm);
 
+                // clean up any string fields you don't need
+                ModelState.Remove(nameof(vm.Make));
+                ModelState.Remove(nameof(vm.Model));
+
                 if (!ModelState.IsValid)
                     return View(vm);
 
@@ -439,6 +443,8 @@ namespace FleetManager.App.Areas.Admin.Controllers
             Id = m.Id,
             Make = m.Make,
             Model = m.Model,
+            VehicleMakeId = m.VehicleMakeId,
+            VehicleModelId = m.VehicleModelId,
             Year = m.Year,
             VIN = m.VIN,
             PlateNo = m.PlateNo,

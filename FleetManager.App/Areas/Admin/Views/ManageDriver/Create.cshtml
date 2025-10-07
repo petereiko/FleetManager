@@ -213,7 +213,7 @@
                 <div class="card-body">
                     <form asp-action="Create" method="post" enctype="multipart/form-data" id="driverForm">
                         <div class="row">
-
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                             <!-- Personal Information -->
                             <div class="col-12">
                                 <div class="section-header" data-section="personal">
@@ -360,7 +360,7 @@
                                 <span asp-validation-for="@Model.Input.ShiftStatus" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-4 form-group">
+                            @* <div class="col-md-4 form-group">
                                 <label asp-for="@Model.Input.CompanyBranchId" class="required-field">Assigned Branch</label>
                                 <div class="input-wrapper">
                                     <select asp-for="@Model.Input.CompanyBranchId" class="form-control" asp-items="Model.Branches" data-required="true" disabled>
@@ -369,7 +369,7 @@
                                     <div class="validation-icon"></div>
                                 </div>
                                 <span asp-validation-for="@Model.Input.CompanyBranchId" class="text-danger"></span>
-                            </div>
+                            </div> *@
 
                             <!-- Document Uploads -->
                             <div class="col-12">
@@ -428,7 +428,6 @@
             // Initialize date pickers
             flatpickr(".datetimepicker", {
                 dateFormat: "Y-m-d",
-                maxDate: "today",
                 locale: {
                     firstDayOfWeek: 1
                 }

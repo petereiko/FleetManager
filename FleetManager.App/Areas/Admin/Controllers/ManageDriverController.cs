@@ -137,7 +137,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     {
                     new SelectListItem(branch?.Name ?? "Unknown", myBranchId.ToString())
                 };
-                    vm.Input.CompanyBranchId = myBranchId;
+                    //vm.Input.CompanyBranchId = myBranchId;
                 }
 
                 // Populate all your dropdowns
@@ -179,7 +179,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     EmploymentStatus = i.EmploymentStatus,
                     LicenseNumber = i.LicenseNumber,
                     LicenseExpiryDate = i.LicenseExpiryDate,
-                    //CompanyBranchId = branch.Value,
+                    CompanyBranchId = branch.Value,
                     LicenseCategory = i.LicenseCategory,
                     ShiftStatus = i.ShiftStatus,
 
