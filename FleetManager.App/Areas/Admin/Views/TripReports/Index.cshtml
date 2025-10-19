@@ -2,6 +2,988 @@
     ViewData["Title"] = "Trip Reports Dashboard";
 }
 
+@{
+    ViewData["Title"] = "Trip Reports Dashboard";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06);
+        --card-hover-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+        background: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .dashboard-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+        .dashboard-header h1 {
+            font-weight: 700;
+            font-size: 2.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dashboard-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.95;
+            font-size: 1.05rem;
+        }
+
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+    }
+
+        .filter-card:hover {
+            box-shadow: var(--card-hover-shadow);
+        }
+
+    .filter-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 0.6rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+        }
+
+    .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            transform: translateY(-2px);
+        }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+    }
+
+        .card:hover {
+            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-5px);
+        }
+
+    .card-header {
+        background: white;
+        border-bottom: 3px solid #f8f9fa;
+        padding: 1.25rem 1.5rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #2d3748;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+        .card-header i {
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table thead th {
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 700;
+            color: #495057;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem 0.75rem;
+        }
+
+        .table tbody td {
+            padding: 0.9rem 0.75rem;
+            vertical-align: middle;
+            color: #495057;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+
+    .btn-drill {
+        background: var(--info-gradient);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-drill:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(79, 172, 254, 0.4);
+            color: white;
+        }
+
+    .badge-metric {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .badge-success {
+        background: var(--success-gradient);
+    }
+
+    .badge-warning {
+        background: var(--warning-gradient);
+    }
+
+    #mapMini {
+        height: 400px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+    }
+
+    .modal-header {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 1.5rem;
+    }
+
+        .modal-header h5 {
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+    .list-group-item {
+        border: none;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+        .list-group-item:hover {
+            background: #f8f9fa;
+            padding-left: 1.5rem;
+        }
+
+    .btn-view-route {
+        background: var(--success-gradient);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-view-route:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(17, 153, 142, 0.4);
+            color: white;
+        }
+
+    .chart-container {
+        min-height: 350px;
+        padding: 1rem 0;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.3rem;
+        color: #667eea;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+    .trip-route-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+        .trip-route-info i {
+            color: #667eea;
+        }
+
+    .container-fluid {
+        padding-bottom: 3rem;
+    }
+
+    @@media (max-width: 768px) {
+        .dashboard-header h1 {
+            font-size: 1.6rem;
+        }
+
+        .filter-card {
+            padding: 1rem;
+        }
+
+        .card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+
+<div class="dashboard-header">
+    <div class="container-fluid">
+        <h1><i class="fas fa-chart-line"></i> Reports & Analytics</h1>
+        <p>Comprehensive insights into your fleet performance and operations</p>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="filter-card">
+        <div class="row align-items-end">
+            <div class="col-md-3">
+                <div class="filter-label"><i class="far fa-calendar"></i> Start Date</div>
+                <input id="rangeStart" class="form-control" placeholder="Select start date" />
+            </div>
+            <div class="col-md-3">
+                <div class="filter-label"><i class="far fa-calendar"></i> End Date</div>
+                <input id="rangeEnd" class="form-control" placeholder="Select end date" />
+            </div>
+            <div class="col-md-6">
+                <button id="btnLoad" class="btn btn-primary me-2">
+                    <i class="fas fa-sync-alt me-2"></i>Load Data
+                </button>
+                @* <button id="btnRecompute" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-calculator me-2"></i>Recompute Range
+                </button> *@
+                <small class="text-muted d-block mt-2">
+                    <i class="fas fa-info-circle"></i> Recompute enqueues background jobs to refresh aggregates
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Loading analytics data...</p>
+    </div>
+
+    <div class="row g-4" id="dashboardContent">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-area"></i>
+                    Daily Trips & Distance Overview
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" id="chartDaily"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-car"></i>
+                    Top Performing Vehicles
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" id="chartVehicles"></div>
+                    <div class="table-responsive mt-3">
+                        <table class="table table-hover" id="tblVehicles">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-hashtag"></i> Plate No</th>
+                                    <th><i class="fas fa-road"></i> Distance (km)</th>
+                                    <th><i class="fas fa-route"></i> Trips</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-tie"></i>
+                    Top Drivers Performance
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" id="chartDrivers"></div>
+                    <div class="table-responsive mt-3">
+                        <table class="table table-hover" id="tblDrivers">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-user"></i> Driver</th>
+                                    <th><i class="fas fa-route"></i> Trips</th>
+                                    <th><i class="fas fa-road"></i> Distance (km)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-gas-pump"></i>
+                    Fuel Consumption Analysis
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="tblFuel">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-hashtag"></i> Trip</th>
+                                    <th><i class="fas fa-car"></i> Vehicle</th>
+                                    <th><i class="fas fa-user"></i> Driver</th>
+                                    <th><i class="fas fa-road"></i> Distance</th>
+                                    <th><i class="fas fa-money-bill"></i> Fuel Cost</th>
+                                    <th><i class="fas fa-tachometer-alt"></i> Cost/Km</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Drilldown modal -->
+<div class="modal fade" id="drillModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="drillTitle"><i class="fas fa-search-plus me-2"></i>Vehicle Trip Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="mapMini"></div>
+                <hr class="my-4" />
+                <h6 class="mb-3"><i class="fas fa-list me-2"></i>Trip History</h6>
+                <div id="drillTrips"></div>
+                <nav id="drillPager" class="mt-3"></nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmYes">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Modal -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="alertModalHeader">
+                <h5 class="modal-title" id="alertModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="alertModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Initialize date pickers
+    flatpickr('#rangeStart', {
+        defaultDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+        dateFormat: 'Y-m-d',
+        maxDate: 'today'
+    });
+    flatpickr('#rangeEnd', {
+        defaultDate: new Date(),
+        dateFormat: 'Y-m-d',
+        maxDate: 'today'
+    });
+
+    let chartDaily, chartVehicles, chartDrivers;
+
+    function showAlert(message, type = 'info') {
+        const modal = new bootstrap.Modal(document.getElementById('alertModal'));
+        const header = document.getElementById('alertModalHeader');
+        const title = document.getElementById('alertModalTitle');
+        const messageEl = document.getElementById('alertModalMessage');
+
+        if (type === 'success') {
+            header.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+            title.innerHTML = '<i class="fas fa-check-circle me-2"></i>Success';
+        } else if (type === 'error') {
+            header.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+            title.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Error';
+        } else {
+            header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            title.innerHTML = '<i class="fas fa-info-circle me-2"></i>Information';
+        }
+
+        messageEl.textContent = message;
+        modal.show();
+    }
+
+    function showConfirm(message, callback) {
+        const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        document.getElementById('confirmMessage').textContent = message;
+
+        const yesBtn = document.getElementById('confirmYes');
+        const newYesBtn = yesBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+
+        newYesBtn.addEventListener('click', function() {
+            modal.hide();
+            callback();
+        });
+
+        modal.show();
+    }
+
+    function showLoading(show) {
+        document.getElementById('loadingSpinner').classList.toggle('active', show);
+        document.getElementById('dashboardContent').style.opacity = show ? '0.5' : '1';
+    }
+
+    async function loadAll() {
+        var s = document.getElementById('rangeStart').value;
+        var e = document.getElementById('rangeEnd').value;
+        if (!s || !e) {
+            showAlert('Please select both start and end dates', 'error');
+            return;
+        }
+
+        showLoading(true);
+
+        try {
+            // Daily summary
+            var r = await fetch('@Url.Action("GetDailySummary", "TripReports", new { area = "Admin" })?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+            var daily = await r.json();
+
+            var dates = daily.map(d => {
+                const date = new Date(d.date);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            var trips = daily.map(d => d.totalTrips);
+            var distances = daily.map(d => Math.round(d.totalDistance * 100) / 100);
+
+            if (chartDaily) chartDaily.destroy();
+
+            var optionsDaily = {
+                chart: {
+                    type: 'area',
+                    height: 350,
+                    toolbar: { show: true },
+                    animations: { enabled: true, speed: 800 }
+                },
+                series: [
+                    { name: 'Trips', data: trips },
+                    { name: 'Distance (km)', data: distances }
+                ],
+                xaxis: {
+                    categories: dates,
+                    labels: { rotate: -45, style: { fontSize: '11px' } }
+                },
+                yaxis: [
+                    { title: { text: 'Number of Trips' }, seriesName: 'Trips' },
+                    { opposite: true, title: { text: 'Distance (km)' }, seriesName: 'Distance (km)' }
+                ],
+                colors: ['#667eea', '#38ef7d'],
+                fill: {
+                    type: 'gradient',
+                    gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.3 }
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3 },
+                legend: { position: 'top' },
+                tooltip: { shared: true, intersect: false }
+            };
+            chartDaily = new ApexCharts(document.querySelector("#chartDaily"), optionsDaily);
+            chartDaily.render();
+
+            // Vehicle distance
+            var rv = await fetch('@Url.Action("GetDistanceByVehicle", "TripReports", new { area = "Admin" })?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+            var vehicles = await rv.json();
+
+            var vlabels = vehicles.map(v => v.entityName || 'N/A');
+            var vvals = vehicles.map(v => Math.round(v.totalDistance * 100) / 100);
+
+            if (chartVehicles) chartVehicles.destroy();
+
+            var optionsVeh = {
+                chart: {
+                    type: 'bar',
+                    height: 350,
+                    toolbar: { show: false },
+                    animations: { enabled: true, speed: 800 }
+                },
+                series: [{ name: 'Distance (km)', data: vvals }],
+                xaxis: {
+                    categories: vlabels,
+                    labels: { rotate: -45, style: { fontSize: '11px' } }
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 8,
+                        horizontal: false,
+                        distributed: true
+                    }
+                },
+                colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#38ef7d'],
+                dataLabels: { enabled: false },
+                legend: { show: false },
+                tooltip: { y: { formatter: (val) => val.toFixed(2) + ' km' } }
+            };
+            chartVehicles = new ApexCharts(document.querySelector("#chartVehicles"), optionsVeh);
+            chartVehicles.render();
+
+            // Populate vehicle table
+            var tbody = document.querySelector('#tblVehicles tbody');
+            tbody.innerHTML = '';
+            if (vehicles.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No data available</td></tr>';
+            } else {
+                vehicles.forEach(v => {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${v.entityName || 'N/A'}</strong></td>
+                        <td><span class="badge-metric badge-success">${v.totalDistance.toFixed(2)}</span></td>
+                        <td><span class="badge-metric">${v.tripCount}</span></td>
+                        <td><button class="btn btn-drill btn-sm" data-vehicleid="${v.entityId}" data-vehicleplate="${v.entityName || 'N/A'}">
+                            <i class="fas fa-search me-1"></i>Details
+                        </button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Drivers
+            var dr = await fetch('@Url.Action("GetTopDrivers", "TripReports", new { area = "Admin" })?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+            var drivers = await dr.json();
+
+            var dlabels = drivers.map(d => d.driverName || 'Unknown');
+            var dvals = drivers.map(d => d.tripCount);
+
+            if (chartDrivers) chartDrivers.destroy();
+
+            var optionsDrv = {
+                chart: {
+                    type: 'bar',
+                    height: 350,
+                    toolbar: { show: false },
+                    animations: { enabled: true, speed: 800 }
+                },
+                series: [{ name: 'Trips', data: dvals }],
+                xaxis: {
+                    categories: dlabels,
+                    labels: { rotate: -45, style: { fontSize: '11px' } }
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 8,
+                        horizontal: true,
+                        distributed: true
+                    }
+                },
+                colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#38ef7d'],
+                dataLabels: { enabled: false },
+                legend: { show: false },
+                tooltip: { y: { formatter: (val) => val + ' trips' } }
+            };
+            chartDrivers = new ApexCharts(document.querySelector('#chartDrivers'), optionsDrv);
+            chartDrivers.render();
+
+            var tbodyD = document.querySelector('#tblDrivers tbody');
+            tbodyD.innerHTML = '';
+            if (drivers.length === 0) {
+                tbodyD.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No data available</td></tr>';
+            } else {
+                drivers.forEach(d => {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${d.driverName || 'Unknown'}</strong></td>
+                        <td><span class="badge-metric">${d.tripCount}</span></td>
+                        <td><span class="badge-metric badge-success">${d.totalDistance.toFixed(2)}</span></td>
+                    `;
+                    tbodyD.appendChild(tr);
+                });
+            }
+
+            // Fuel sample
+            var rf = await fetch('@Url.Action("GetFuelPerTrip", "TripReports", new { area = "Admin" })?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+            var fuels = await rf.json();
+            var tb = document.querySelector('#tblFuel tbody');
+            tb.innerHTML = '';
+
+            if (fuels.length === 0) {
+                tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No fuel data available</td></tr>';
+            } else {
+                fuels.slice(0, 20).forEach(f => {
+                    var fuelPerKm = f.actualDistance && f.actualFuelCost ? (f.actualFuelCost / f.actualDistance).toFixed(2) : '-';
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${f.tripNumber || 'N/A'}</strong></td>
+                        <td>${f.vehiclePlateNo || 'N/A'}</td>
+                        <td>${f.driverName || '-'}</td>
+                        <td>${f.actualDistance ? f.actualDistance.toFixed(2) + ' km' : '-'}</td>
+                        <td>${f.actualFuelCost ? '₦' + f.actualFuelCost.toFixed(2) : '-'}</td>
+                        <td><span class="badge-metric badge-warning">${fuelPerKm !== '-' ? '₦' + fuelPerKm : '-'}</span></td>
+                    `;
+                    tb.appendChild(tr);
+                });
+            }
+
+            // Wire drill buttons
+            document.querySelectorAll('.btn-drill').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    var vehicleId = this.dataset.vehicleid;
+                    var vehiclePlate = this.dataset.vehicleplate;
+                    openDrill(vehicleId, vehiclePlate);
+                });
+            });
+
+        } catch (error) {
+            console.error('Error loading data:', error);
+            showAlert('Error loading dashboard data. Please try again.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function openDrill(vehicleId, vehiclePlate) {
+        document.getElementById('drillTitle').innerHTML = `<i class="fas fa-search-plus me-2"></i>Trip Details - ${vehiclePlate}`;
+        var modalEl = document.getElementById('drillModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+
+        try {
+            // Load first page of trips
+            var tripsResp = await fetch('@Url.Action("GetTripsForVehicle", "TripReports", new { area = "Admin" })?vehicleId=' + vehicleId + '&page=1&pageSize=10');
+            var payload = await tripsResp.json();
+
+            var html = '<div class="list-group">';
+            if (payload.items && payload.items.length > 0) {
+                payload.items.forEach(t => {
+                    const schedDate = new Date(t.scheduledStartDate);
+                    const dateStr = schedDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    html += `
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-2"><i class="fas fa-route me-2" style="color: #667eea;"></i><strong>${t.tripNumber}</strong></h6>
+                                    <div class="trip-route-info">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>${t.origin || 'N/A'}</span>
+                                        <i class="fas fa-arrow-right mx-2"></i>
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>${t.destination || 'N/A'}</span>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="far fa-clock me-1"></i>${dateStr}
+                                    </small>
+                                </div>
+                                <button class="btn btn-view-route btn-sm" data-tripid="${t.id}">
+                                    <i class="fas fa-map me-1"></i>View Route
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<div class="empty-state"><i class="fas fa-inbox"></i><p>No trips found for this vehicle</p></div>';
+            }
+            html += '</div>';
+            document.getElementById('drillTrips').innerHTML = html;
+
+            document.querySelectorAll('.btn-view-route').forEach(b => {
+                b.addEventListener('click', async function () {
+                    var tripId = this.dataset.tripid;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+                    this.disabled = true;
+
+                    try {
+                        var chk = await fetch('@Url.Action("GetTripCheckpoints", "TripReports", new { area = "Admin" })?tripId=' + tripId);
+                        var cps = await chk.json();
+                        renderMiniRoute(cps);
+                    } catch (error) {
+                        showAlert('Error loading route data', 'error');
+                    } finally {
+                        this.innerHTML = '<i class="fas fa-map me-1"></i>View Route';
+                        this.disabled = false;
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Error loading trip details:', error);
+            document.getElementById('drillTrips').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error loading trip details</p></div>';
+        }
+    }
+
+    var miniMap, miniLayer;
+    function renderMiniRoute(checkpoints) {
+        if (!miniMap) {
+            miniMap = L.map('mapMini').setView([9.0820, 8.6753], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(miniMap);
+        }
+
+        if (miniLayer) {
+            miniMap.removeLayer(miniLayer);
+        }
+
+        var latlngs = checkpoints.map(c => [c.latitude, c.longitude]).filter(p => p[0] && p[1]);
+
+        if (!latlngs.length) {
+            showAlert('No route checkpoints available for this trip', 'info');
+            return;
+        }
+
+        miniLayer = L.polyline(latlngs, {
+            color: '#667eea',
+            weight: 4,
+            opacity: 0.8,
+            smoothFactor: 1
+        }).addTo(miniMap);
+
+        if (latlngs.length > 0) {
+            L.marker(latlngs[0], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background: #38ef7d; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [20, 20]
+                })
+            }).addTo(miniMap).bindPopup('Start Point');
+
+            if (latlngs.length > 1) {
+                L.marker(latlngs[latlngs.length - 1], {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background: #f5576c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                        iconSize: [20, 20]
+                    })
+                }).addTo(miniMap).bindPopup('End Point');
+            }
+        }
+
+        miniMap.fitBounds(miniLayer.getBounds(), { padding: [30, 30] });
+
+        setTimeout(() => {
+            miniMap.invalidateSize();
+        }, 250);
+    }
+
+    document.getElementById('btnLoad').addEventListener('click', loadAll);
+
+    document.getElementById('btnRecompute').addEventListener('click', async function () {
+        var s = document.getElementById('rangeStart').value;
+        var e = document.getElementById('rangeEnd').value;
+
+        if (!s || !e) {
+            showAlert('Please select both start and end dates', 'error');
+            return;
+        }
+
+        showConfirm('This will enqueue background jobs to recompute all aggregates for the selected date range. Continue?', async () => {
+            const btn = document.getElementById('btnRecompute');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+            try {
+                const response = await fetch('/Admin/TripReports/RecomputeRange?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e));
+
+                if (response.ok) {
+                    showAlert('Recompute job has been enqueued successfully. The data will be refreshed in the background.', 'success');
+                } else {
+                    const errorText = await response.text();
+                    showAlert(errorText || 'An error occurred while processing your request', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('An error occurred while enqueuing the recompute job', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-calculator me-2"></i>Recompute Range';
+            }
+        });
+    });
+
+    document.getElementById('drillModal').addEventListener('hidden.bs.modal', function () {
+        if (miniMap && miniLayer) {
+            miniMap.removeLayer(miniLayer);
+            miniLayer = null;
+        }
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadAll);
+    } else {
+        loadAll();
+    }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @{
+    ViewData["Title"] = "Trip Reports Dashboard";
+}
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
@@ -238,3 +1220,4 @@
     // initial load
     loadAll();
 </script>
+ *@

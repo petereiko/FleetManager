@@ -116,6 +116,7 @@ namespace FleetManager.App.Controllers
                 }
                 else if (roles.Contains("Driver"))
                 {
+                    //return RedirectToAction("Index", "Dashboard");
                     return RedirectToAction("Index", "Dashboard", new { area = "User" });
                 }
                 else if (roles.Contains("Vendor"))

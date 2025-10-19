@@ -1,16 +1,16 @@
 ﻿using FleetManager.Business.Interfaces.DriverDashboardModule;
-using FleetManager.Business.Interfaces.UserModule;
-using FleetManager.Business.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FleetManager.App.Controllers
 {
-    public class DashboardController : Controller
+    
+    [Authorize(Roles = "Driver")]
+    public class DriverDashboardController : Controller
     {
         private readonly IDriverDashboardService _dashboardService;
 
-        public DashboardController(IDriverDashboardService dashboardService)
+        public DriverDashboardController(IDriverDashboardService dashboardService)
         {
             _dashboardService = dashboardService;
         }
@@ -20,11 +20,6 @@ namespace FleetManager.App.Controllers
             var resp = await _dashboardService.GetDriverDashboardAsync();
             if (!resp.Success) return View("Error", resp.Message);
             return View(resp.Result);
-        }
-
-        public IActionResult Details()
-        {
-            return View();
         }
     }
 }

@@ -20,6 +20,7 @@ using FleetManager.Business.Implementations.CompanyDashboardModule;
 using FleetManager.Business.Implementations.CompanyModule;
 using FleetManager.Business.Implementations.CompanyOnboardingModule;
 using FleetManager.Business.Implementations.ContactDirectoryModule;
+using FleetManager.Business.Implementations.DriverDashboardModule;
 using FleetManager.Business.Implementations.DriverVehicleModule;
 using FleetManager.Business.Implementations.DutyOfCareModule;
 using FleetManager.Business.Implementations.EmailModule;
@@ -44,6 +45,7 @@ using FleetManager.Business.Interfaces.CompanyDashboardModule;
 using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.CompanyOnboardingModule;
 using FleetManager.Business.Interfaces.ContactDirectoryModule;
+using FleetManager.Business.Interfaces.DriverDashboardModule;
 using FleetManager.Business.Interfaces.DriverProfileModule;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.DutyOfCareModule;
@@ -223,6 +225,7 @@ builder.Services.AddTransient<IWebhookDispatcher, WebhookDispatcher>();
 builder.Services.AddTransient<NotificationWorker>();
 builder.Services.AddTransient<ITripService, TripService>();
 builder.Services.AddTransient<ITripReportService, TripReportService>();
+builder.Services.AddTransient<IDriverDashboardService, DriverDashboardService>();
 
 
 
