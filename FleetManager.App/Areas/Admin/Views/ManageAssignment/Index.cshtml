@@ -709,7 +709,7 @@
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" asp-controller="ManageAssignment" asp-action="Edit" asp-route-id="@assignment.Id">
+                                            <a class="dropdown-item" asp-action="Edit" asp-protect-route-id="@assignment.Id">
                                                 <i class="fas fa-edit me-2"></i>Edit Assignment
                                             </a>
                                             <hr class="dropdown-divider">

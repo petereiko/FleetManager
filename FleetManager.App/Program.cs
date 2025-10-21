@@ -66,6 +66,7 @@ using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
 using FleetManager.Business.Interfaces.WebhookModule;
 using FleetManager.Business.UtilityModels;
+using FleetManager.Business.UtilityModels.CommonSecurity;
 using FleetManager.Business.UtilityModels.PdfService;
 using Hangfire;
 using Hangfire.SqlServer;
@@ -241,11 +242,24 @@ builder.Services.AddTransient<BackgroundJobService>();
 //builder.Services.AddDbContextFactory<FleetManagerDbContext>(options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddDataProtection()
+    // .PersistKeysToFileSystem(new DirectoryInfo(builder.Configuration["DataProtection:KeyRingPath"]))
+    // .SetApplicationName("FleetManager")
+    ;
+// --- Id protector + filter registration ----------------------------------
+builder.Services.AddSingleton<IIdProtector, DataProtectionIdProtector>();
+builder.Services.AddScoped<UnprotectIdActionFilter>();
+
+// Add MVC and register the UnprotectIdActionFilter globally so it runs for all actions
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.AddService<UnprotectIdActionFilter>();
+});
 
 
 //Pdf Serivce
 // 1) MVC + Razor‑to‑string
-builder.Services.AddControllersWithViews();
+//builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<ITempDataProvider, SessionStateTempDataProvider>();
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 builder.Services.AddScoped<IRazorViewToStringRenderer, RazorViewToStringRenderer>();

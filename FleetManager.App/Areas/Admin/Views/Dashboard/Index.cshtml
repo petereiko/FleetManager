@@ -716,7 +716,11 @@
                                 {
                                     <tr>
                                         <td>
-                                            <a href="@Url.Action("Details", "Maintenance", new { id = t.TicketId })"
+                                            @* <a href="@Url.Action("Details", "Maintenance", new { id = t.TicketId })"
+                                               class="text-primary fw-bold">
+                                                #@t.TicketId
+                                            </a> *@
+                                            <a asp-action="Details" asp-controller="Maintenance" asp-protect-route-id="t.TicketId"
                                                class="text-primary fw-bold">
                                                 #@t.TicketId
                                             </a>

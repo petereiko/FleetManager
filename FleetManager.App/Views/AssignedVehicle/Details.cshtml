@@ -697,7 +697,7 @@
                 <div class="col-md-4">
                     <div class="btn-group w-100" role="group">
                         <button id="showRepairHistoryBtn" class="btn btn-outline-info btn-sm">
-                            <i class="fas fa-history me-1"></i>View Repair History
+                            <i class="fas fa-history me-1"></i>Make a complain
                         </button>
                     </div>
                 </div>
@@ -1014,23 +1014,7 @@
             }
         }
 
-        // Bind show button with error handling
-        const showBtn = document.getElementById('showRepairHistoryBtn');
-        if (showBtn) {
-            showBtn.addEventListener('click', function (ev) {
-                ev.preventDefault();
-
-                if (!vehicleId || vehicleId === 0) {
-                    AlertManager.show('Vehicle ID not found. Please refresh the page and try again.', 'error');
-                    return;
-                }
-
-                loadRepairHistoryPage(1, 10);
-            });
-        } else {
-            console.warn('Repair history button not found in DOM');
-            AlertManager.show('Repair history button not found. Please refresh the page.', 'warning');
-        }
+        
     })();
 
     // Photo viewer functionality with error handling

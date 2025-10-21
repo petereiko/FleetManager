@@ -784,7 +784,7 @@
                 </div>
 
                 <div class="hero-actions">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                    <a asp-action="Edit" asp-protect-route-id="@Model.Id" class="btn btn-primary">
                         <i class="feather-edit" style="width: 16px; height: 16px;"></i>
                         Edit Profile
                     </a>
@@ -1085,7 +1085,7 @@
 
     <!-- Floating Action Buttons -->
     <div class="fab-container">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="fab fab-primary" title="Edit Driver Profile">
+        <a asp-action="Edit" asp-protect-route-id="@Model.Id" class="fab fab-primary" title="Edit Driver Profile">
             <i class="feather-edit" style="width: 24px; height: 24px;"></i>
         </a>
         <a href="#" onclick="window.history.back(); return false;" class="fab fab-secondary" title="Go Back">
