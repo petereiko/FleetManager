@@ -1,0 +1,684 @@
+﻿@using FleetManager.Business.DataObjects.ReportsCenter
+@model List<VehicleUtilizationDto>
+@{
+    ViewBag.Title = "Vehicle Utilization";
+    ViewBag.ExportFileName = "vehicle_utilization";
+    var filter = ViewBag.Filter as ReportFilter ?? new ReportFilter();
+}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --purple-color: #8b5cf6;
+            --teal-color: #14b8a6;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            background-color: var(--gray-50);
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .report-header h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .report-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.95;
+            font-size: 0.9375rem;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+
+        .report-card-body {
+            padding: 2rem;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--accent-color);
+            transition: all 0.2s;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            background: var(--icon-bg);
+            color: var(--icon-color);
+        }
+
+        .summary-label {
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            color: var(--gray-600);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            line-height: 1;
+        }
+
+        .summary-value small {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .table-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--gray-50);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .table-header h5 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-responsive {
+            border-radius: 0 0 12px 12px;
+            overflow-x: auto;
+        }
+
+        .exportable-table {
+            margin: 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .exportable-table thead {
+            background: var(--gray-800);
+            color: white;
+        }
+
+        .exportable-table thead th {
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .exportable-table tbody tr {
+            border-bottom: 1px solid var(--gray-200);
+            transition: all 0.2s;
+        }
+
+        .exportable-table tbody tr:hover {
+            background-color: var(--gray-50);
+        }
+
+        .exportable-table tbody tr.underutilized {
+            background: rgba(239, 68, 68, 0.03);
+        }
+
+        .exportable-table tbody tr.underutilized:hover {
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .exportable-table tbody td {
+            padding: 1.25rem 1.25rem;
+            vertical-align: middle;
+            color: var(--gray-700);
+        }
+
+        .exportable-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .vehicle-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .vehicle-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.125rem;
+        }
+
+        .vehicle-icon.excellent {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .vehicle-icon.good {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        }
+
+        .vehicle-icon.average {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .vehicle-icon.poor {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .vehicle-plate {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--gray-900);
+        }
+
+        .utilization-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .utilization-indicator.excellent {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .utilization-indicator.good {
+            background: rgba(20, 184, 166, 0.1);
+            color: var(--teal-color);
+        }
+
+        .utilization-indicator.average {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .utilization-indicator.poor {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .usage-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .usage-percentage {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .usage-bar-container {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .usage-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .usage-bar.excellent {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        }
+
+        .usage-bar.good {
+            background: linear-gradient(90deg, #14b8a6 0%, #0d9488 100%);
+        }
+
+        .usage-bar.average {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .usage-bar.poor {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .hours-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--purple-color);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .time-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .idle-time {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .downtime {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray-600);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--gray-400);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h4 {
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        @@media (max-width: 768px) {
+            .report-header {
+                padding: 1.5rem 0;
+            }
+
+            .report-card-body {
+                padding: 1rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .table-responsive {
+                font-size: 0.8125rem;
+            }
+
+            .exportable-table thead th,
+            .exportable-table tbody td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .vehicle-cell {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+
+<div class="report-header">
+    <div class="container">
+        <h2>
+            <i class="fas fa-chart-bar"></i>
+            Vehicle Utilization Report
+        </h2>
+        <p>Track fleet efficiency, operation hours, and idle time analysis</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="report-card">
+        <div class="report-card-body">
+            @await Html.PartialAsync("_ReportFilters", filter)
+            
+            @await Html.PartialAsync("_ExportControls")
+
+            @if (Model != null && Model.Any())
+            {
+                <!-- Summary Statistics -->
+                <div class="summary-cards">
+                    @{
+                        var avgUtilization = Model.Average(v => v.UsagePercentage);
+                        var totalRevenueHours = Model.Sum(v => v.RevenueHours);
+                        var totalIdleMinutes = Model.Sum(v => v.IdleTime.TotalMinutes);
+                        var totalDowntimeMinutes = Model.Sum(v => v.Downtime.TotalMinutes);
+                        var underutilizedCount = Model.Count(v => v.UsagePercentage < 50);
+                        var vehicleCount = Model.Count;
+                    }
+
+                    <div class="summary-card" style="--accent-color: #14b8a6; --icon-bg: rgba(20, 184, 166, 0.1); --icon-color: #14b8a6;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">Avg Utilization</div>
+                                <div class="summary-value">@avgUtilization.ToString("N1")<small>%</small></div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card" style="--accent-color: #8b5cf6; --icon-bg: rgba(139, 92, 246, 0.1); --icon-color: #8b5cf6;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">Revenue Hours</div>
+                                <div class="summary-value">@totalRevenueHours.ToString("N0")<small> hrs</small></div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-business-time"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card" style="--accent-color: #f59e0b; --icon-bg: rgba(245, 158, 11, 0.1); --icon-color: #f59e0b;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">Total Idle Time</div>
+                                <div class="summary-value">@TimeSpan.FromMinutes(totalIdleMinutes).ToString(@"hh\:mm")</div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-pause-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card" style="--accent-color: #ef4444; --icon-bg: rgba(239, 68, 68, 0.1); --icon-color: #ef4444;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">Total Downtime</div>
+                                <div class="summary-value">@TimeSpan.FromMinutes(totalDowntimeMinutes).ToString(@"hh\:mm")</div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card" style="--accent-color: #ef4444; --icon-bg: rgba(239, 68, 68, 0.1); --icon-color: #ef4444;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">Underutilized (&lt;50%)</div>
+                                <div class="summary-value">@underutilizedCount<small>/@vehicleCount</small></div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Utilization Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h5>
+                            <i class="fas fa-list-ul"></i>
+                            Utilization Breakdown
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table exportable-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-car me-2"></i>Vehicle</th>
+                                    <th><i class="fas fa-chart-line me-2"></i>Usage %</th>
+                                    <th><i class="fas fa-business-time me-2"></i>Revenue Hours</th>
+                                    <th><i class="fas fa-pause-circle me-2"></i>Idle Time</th>
+                                    <th><i class="fas fa-tools me-2"></i>Downtime</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var v in Model.OrderByDescending(x => x.UsagePercentage))
+                                {
+                                    // Categorize utilization levels
+                                    var utilizationClass = v.UsagePercentage >= 80 ? "excellent" :
+                                                          v.UsagePercentage >= 60 ? "good" :
+                                                          v.UsagePercentage >= 40 ? "average" : "poor";
+                                    
+                                    var utilizationText = v.UsagePercentage >= 80 ? "Excellent" :
+                                                         v.UsagePercentage >= 60 ? "Good" :
+                                                         v.UsagePercentage >= 40 ? "Average" : "Underutilized";
+                                    
+                                    var utilizationIcon = v.UsagePercentage >= 80 ? "fa-star" :
+                                                         v.UsagePercentage >= 60 ? "fa-thumbs-up" :
+                                                         v.UsagePercentage >= 40 ? "fa-minus-circle" : "fa-exclamation-triangle";
+
+                                    var rowClass = v.UsagePercentage < 40 ? "underutilized" : "";
+
+                                    <tr class="@rowClass">
+                                        <td>
+                                            <div class="vehicle-cell">
+                                                <div class="vehicle-icon @utilizationClass">
+                                                    <i class="fas fa-car"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="vehicle-plate">@v.PlateNo</span>
+                                                    <div class="utilization-indicator @utilizationClass">
+                                                        <i class="fas @utilizationIcon"></i>
+                                                        @utilizationText
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="usage-cell">
+                                                <span class="usage-percentage">@v.UsagePercentage.ToString("N1")%</span>
+                                                <div class="usage-bar-container">
+                                                    <div class="usage-bar @utilizationClass" style="width: @v.UsagePercentage%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="hours-badge">
+                                                <i class="fas fa-clock"></i>
+                                                @v.RevenueHours.ToString("N2") hrs
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="time-badge idle-time">
+                                                <i class="fas fa-pause"></i>
+                                                @v.IdleTime.ToString(@"hh\:mm")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="time-badge downtime">
+                                                <i class="fas fa-wrench"></i>
+                                                @v.Downtime.ToString(@"hh\:mm")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <h4>No utilization data found</h4>
+                    <p>Try adjusting your filters to see vehicle utilization results</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // Animate usage bars on load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.querySelectorAll('.usage-bar').forEach(function(bar) {
+                    bar.style.opacity = '1';
+                });
+            }, 100);
+        });
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.ReportsCenter
+@model List<VehicleUtilizationDto>
+@{
+    ViewBag.Title = "Vehicle Utilization";
+    ViewBag.ExportFileName = "vehicle_utilization";
+    var filter = ViewBag.Filter as ReportFilter ?? new ReportFilter();
+}
+<div class="card">
+    <div class="card-body">
+        <h3 class="mb-3">Vehicle Utilization</h3>
+
+        @await Html.PartialAsync("_ReportFilters", filter)
+
+        @await Html.PartialAsync("_ExportControls")
+
+        <div class="table-responsive">
+            <table class="table table-striped table-sm exportable-table">
+                <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Usage %</th>
+                        <th>Operation Hours</th>
+                        <th>Idle Time (hh:mm)</th>
+                        <th>Downtime (hh:mm)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model?.Any() != true)
+                    {
+                        <tr><td colspan="5" class="text-center">No data for the selected filters.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var v in Model)
+                        {
+                            <tr>
+                                <td>@v.PlateNo</td>
+                                <td>@v.UsagePercentage.ToString("N2")%</td>
+                                <td>@v.RevenueHours.ToString("N2")</td>
+                                <td>@(v.IdleTime.ToString(@"hh\:mm"))</td>
+                                <td>@(v.Downtime.ToString(@"hh\:mm"))</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+ *@

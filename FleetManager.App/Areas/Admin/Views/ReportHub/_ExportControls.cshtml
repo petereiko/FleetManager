@@ -1,0 +1,17 @@
+﻿<div class="export-controls mb-3">
+    <h4 class="export-title">
+        <i class="fas fa-download"></i>
+        Export Table Data
+    </h4>
+    <div class="d-flex flex-wrap">
+        <button class="btn export-btn export-btn-excel" onclick="TableExporter && TableExporter.exportToExcel('.exportable-table', '@ViewBag.ExportFileName ?? " report"')">
+            <i class="fas fa-file-excel me-2"></i>Export to Excel
+        </button>
+        <button class="btn export-btn export-btn-pdf" onclick="TableExporter && TableExporter.exportToPDF('.exportable-table', '@ViewBag.ExportFileName ?? " report"')">
+            <i class="fas fa-file-pdf me-2"></i>Export to PDF
+        </button>
+        <button class="btn export-btn export-btn-csv" onclick="TableExporter && TableExporter.exportToCSV('.exportable-table', '@ViewBag.ExportFileName ?? " report"')">
+            <i class="fas fa-file-csv me-2"></i>Export to CSV
+        </button>
+    </div>
+</div>

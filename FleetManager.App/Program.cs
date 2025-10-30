@@ -31,6 +31,7 @@ using FleetManager.Business.Implementations.ManageDriverModule;
 using FleetManager.Business.Implementations.NotificationModule;
 using FleetManager.Business.Implementations.RentalModule;
 using FleetManager.Business.Implementations.RepairModule;
+using FleetManager.Business.Implementations.ReportHubModule;
 using FleetManager.Business.Implementations.ReportModule;
 using FleetManager.Business.Implementations.ScheduleModule;
 using FleetManager.Business.Implementations.TripModule;
@@ -57,6 +58,7 @@ using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.RentalModule;
 using FleetManager.Business.Interfaces.RepairModule;
+using FleetManager.Business.Interfaces.ReportHubModule;
 using FleetManager.Business.Interfaces.ReportModule;
 using FleetManager.Business.Interfaces.ScheduleModule;
 using FleetManager.Business.Interfaces.TripModule;
@@ -227,6 +229,7 @@ builder.Services.AddTransient<NotificationWorker>();
 builder.Services.AddTransient<ITripService, TripService>();
 builder.Services.AddTransient<ITripReportService, TripReportService>();
 builder.Services.AddTransient<IDriverDashboardService, DriverDashboardService>();
+builder.Services.AddTransient<IReportHubService, ReportHubService>();
 
 
 

@@ -1,0 +1,777 @@
+﻿@using FleetManager.Business.DataObjects.ReportsCenter
+@model ReportSummaryViewModel
+
+@{
+    ViewBag.Title = "Reports Dashboard";
+
+    var fromDt = ViewBag.From as DateTime? ?? DateTime.UtcNow.AddDays(-7);
+    var toDt = ViewBag.To as DateTime? ?? DateTime.UtcNow;
+
+    string fromIso() => fromDt.ToString("yyyy-MM-dd");
+    string toIso() => toDt.ToString("yyyy-MM-dd");
+
+    var today = DateTime.UtcNow.Date;
+    var last7From = today.AddDays(-6);
+    var last30From = today.AddDays(-29);
+    var monthStart = new DateTime(today.Year, today.Month, 1);
+
+    // Calculate percentages and trends
+    var activeVehiclePercent = Model.TotalVehicles > 0 ? (Model.ActiveVehicles * 100.0 / Model.TotalVehicles) : 0;
+    var avgFuelPerTrip = Model.TotalTrips > 0 ? (Model.TotalFuelCost / Model.TotalTrips) : 0;
+}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+        }
+
+        body {
+            background-color: var(--gray-50);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+            .dashboard-header h2 {
+                font-size: 2rem;
+                font-weight: 700;
+                margin: 0;
+            }
+
+            .dashboard-header p {
+                opacity: 0.95;
+                margin: 0.5rem 0 0 0;
+                font-size: 1rem;
+            }
+
+        .filter-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .date-input-group {
+            position: relative;
+        }
+
+            .date-input-group label {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--gray-700);
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+
+            .date-input-group input {
+                border: 2px solid var(--gray-200);
+                border-radius: 10px;
+                padding: 0.625rem 1rem;
+                font-size: 0.9375rem;
+                transition: all 0.2s;
+                width: 100%;
+            }
+
+                .date-input-group input:focus {
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+                    outline: none;
+                }
+
+        .btn-apply {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.625rem 1.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+            .btn-apply:hover {
+                background: var(--primary-dark);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+
+        .btn-reset {
+            border: 2px solid var(--gray-200);
+            background: white;
+            color: var(--gray-700);
+            border-radius: 10px;
+            padding: 0.625rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+            .btn-reset:hover {
+                border-color: var(--gray-600);
+                background: var(--gray-50);
+            }
+
+        .quick-filter-btn {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .quick-filter-btn:hover {
+                background: var(--primary-color);
+                color: white;
+                transform: translateY(-1px);
+            }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .stat-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 4px;
+                height: 100%;
+                background: var(--accent-color);
+            }
+
+            .stat-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            }
+
+            .stat-card.trips::before {
+                background: #3b82f6;
+            }
+
+            .stat-card.fuel::before {
+                background: #10b981;
+            }
+
+            .stat-card.vehicles::before {
+                background: #8b5cf6;
+            }
+
+            .stat-card.incidents::before {
+                background: #f59e0b;
+            }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .stat-card.trips .stat-icon {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .stat-card.fuel .stat-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .stat-card.vehicles .stat-icon {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+
+        .stat-card.incidents .stat-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stat-meta {
+            font-size: 0.8125rem;
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .progress-bar-container {
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .reports-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 3rem;
+        }
+
+            .reports-section h4 {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: var(--gray-800);
+                margin-bottom: 1.5rem;
+            }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .report-item {
+            background: var(--gray-50);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-decoration: none;
+            color: var(--gray-800);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+            .report-item:hover {
+                background: white;
+                border-color: var(--primary-color);
+                transform: translateX(4px);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                color: var(--primary-color);
+            }
+
+        .report-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .report-item:hover .report-icon {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .report-content {
+            flex: 1;
+        }
+
+        .report-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .report-description {
+            font-size: 0.8125rem;
+            color: var(--gray-600);
+            margin: 0;
+        }
+
+        .flatpickr-calendar {
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-header {
+                padding: 1.5rem 0;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+
+<div class="dashboard-header">
+    <div class="container">
+        <h2><i class="fas fa-chart-line me-2"></i>Reports Center</h2>
+        <p>Comprehensive fleet analytics and insights at your fingertips</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Date Range Filter -->
+    <div class="filter-card">
+        <form class="row g-3 align-items-end" method="get" asp-action="Index" asp-controller="ReportHub" asp-area="Admin">
+            <div class="col-lg-3 col-md-4">
+                <div class="date-input-group">
+                    <label>From Date</label>
+                    <input name="from" id="fromDate" type="text" class="form-control" value="@fromIso()" readonly />
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4">
+                <div class="date-input-group">
+                    <label>To Date</label>
+                    <input name="to" id="toDate" type="text" class="form-control" value="@toIso()" readonly />
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-4">
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-apply">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 0.5rem; vertical-align: middle;">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                        </svg>
+                        Apply Filter
+                    </button>
+                    <a class="btn btn-reset" href="@Url.Action("Index", "ReportHub", new { area = "Admin" })">
+                        Reset
+                    </a>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <small class="text-muted fw-semibold">Quick select:</small>
+                    <a class="quick-filter-btn" href="@Url.Action("Index", "ReportHub", new { area = "Admin", from = last7From.ToString("yyyy-MM-dd"), to = today.ToString("yyyy-MM-dd") })">
+                        Last 7 days
+                    </a>
+                    <a class="quick-filter-btn" href="@Url.Action("Index", "ReportHub", new { area = "Admin", from = last30From.ToString("yyyy-MM-dd"), to = today.ToString("yyyy-MM-dd") })">
+                        Last 30 days
+                    </a>
+                    <a class="quick-filter-btn" href="@Url.Action("Index", "ReportHub", new { area = "Admin", from = monthStart.ToString("yyyy-MM-dd"), to = today.ToString("yyyy-MM-dd") })">
+                        This month
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card trips" style="--accent-color: #3b82f6;">
+                <div class="stat-icon"><i class="fas fa-route"></i></div>
+                <div class="stat-label">Total Trips</div>
+                <div class="stat-value">@Model.TotalTrips.ToString("N0")</div>
+                <div class="stat-meta">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+                    </svg>
+                    @fromDt.ToString("MMM d") - @toDt.ToString("MMM d, yyyy")
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card fuel" style="--accent-color: #10b981;">
+                <div class="stat-icon"><i class="fas fa-gas-pump"></i></div>
+                <div class="stat-label">Fuel Cost</div>
+                <div class="stat-value">₦@Model.TotalFuelCost.ToString("N2")</div>
+                <div class="stat-meta">
+                    @if (Model.TotalTrips > 0)
+                    {
+                        <span>₦@avgFuelPerTrip.ToString("N2") per trip</span>
+                    }
+                    else
+                    {
+                        <span>No trips in range</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card vehicles" style="--accent-color: #8b5cf6;">
+                <div class="stat-icon"><i class="fas fa-car"></i></div>
+                <div class="stat-label">Active Vehicles</div>
+                <div class="stat-value">@Model.ActiveVehicles<span style="font-size: 1.25rem; color: var(--gray-600);">/@Model.TotalVehicles</span></div>
+                <div class="stat-meta">
+                    <span>@activeVehiclePercent.ToString("F1")% utilization</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: @activeVehiclePercent%; --accent-color: #8b5cf6;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card incidents" style="--accent-color: #f59e0b;">
+                <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="stat-label">Incidents</div>
+                <div class="stat-value">@Model.TotalIncidents.ToString("N0")</div>
+                <div class="stat-meta">
+                    @if (Model.TotalTrips > 0)
+                    {
+                        var incidentRate = (Model.TotalIncidents * 100.0 / Model.TotalTrips);
+                        <span>@incidentRate.ToString("F2")% incident rate</span>
+                    }
+                    else
+                    {
+                        <span>No data available</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Reports -->
+    <div class="reports-section">
+        <h4><i class="fas fa-file-alt me-2"></i>Available Reports</h4>
+        <div class="report-grid">
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="TripSummary"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-map-marked-alt"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Trip Summary</div>
+                    <p class="report-description">Detailed trip analytics and patterns</p>
+                </div>
+            </a>
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="DailyFleetActivity"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-clipboard-list"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Daily Fleet Activity</div>
+                    <p class="report-description">Today's operations and analysis</p>
+                </div>
+            </a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="DriverPerformance"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-user-check"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Driver Performance</div>
+                    <p class="report-description">Individual driver metrics & ratings</p>
+                </div>
+            </a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="FuelConsumption"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-gas-pump"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Fuel Consumption</div>
+                    <p class="report-description">Fuel usage trends and efficiency</p>
+                </div>
+            </a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="VehicleUtilization"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Vehicle Utilization</div>
+                    <p class="report-description">Fleet usage and availability stats</p>
+                </div>
+            </a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="IncidentReport"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Incident Report</div>
+                    <p class="report-description">Safety incidents and analysis</p>
+                </div>
+            </a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="LicenseExpiry"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-id-card"></i></div>
+                <div class="report-content">
+                    <div class="report-title">License Expiry</div>
+                    <p class="report-description">Driver license expiration tracking</p>
+                </div>
+            </a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="VehicleDocs"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-file-contract"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Vehicle Documentation</div>
+                    <p class="report-description">Registration and compliance docs</p>
+                </div>
+            </a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="MaintenanceSchedule"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-wrench"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Maintenance Schedule</div>
+                    <p class="report-description">Upcoming and overdue maintenance</p>
+                </div>
+            </a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="VehicleComparison"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()"
+               class="report-item">
+                <div class="report-icon"><i class="fas fa-balance-scale"></i></div>
+                <div class="report-content">
+                    <div class="report-title">Vehicle Comparison</div>
+                    <p class="report-description">Side-by-side vehicle analytics</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Flatpickr for date inputs
+            flatpickr("#fromDate", {
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Update the toDate minDate when fromDate changes
+                    const toDatePicker = document.querySelector("#toDate")._flatpickr;
+                    if (toDatePicker) {
+                        toDatePicker.set('minDate', dateStr);
+                    }
+                }
+            });
+
+            flatpickr("#toDate", {
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+                minDate: "@fromIso()"
+            });
+
+            // Animate progress bars on load
+            setTimeout(function() {
+                document.querySelectorAll('.progress-bar').forEach(function(bar) {
+                    bar.style.opacity = '1';
+                });
+            }, 100);
+        });
+    </script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.ReportsCenter
+@model ReportSummaryViewModel
+
+@{
+    ViewBag.Title = "Reports Dashboard";
+
+    // Ensure ViewBag.From/To have values to avoid null reference
+    var fromDt = ViewBag.From as DateTime? ?? DateTime.UtcNow.AddDays(-7);
+    var toDt = ViewBag.To as DateTime? ?? DateTime.UtcNow;
+
+    // Helper route values
+    string fromIso() => fromDt.ToString("yyyy-MM-dd");
+    string toIso() => toDt.ToString("yyyy-MM-dd");
+
+    // Quick presets
+    var today = DateTime.UtcNow.Date;
+    var last7From = today.AddDays(-6); // inclusive 7 days
+    var last30From = today.AddDays(-29);
+    var monthStart = new DateTime(today.Year, today.Month, 1);
+}
+
+<div class="container">
+    <h2 class="mb-3">Reports Center</h2>
+
+    <!-- Date range filter -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form class="row gx-2 gy-2 align-items-end" method="get" asp-action="Index" asp-controller="ReportHub" asp-area="Admin">
+                <div class="col-auto">
+                    <label class="form-label mb-1">From</label>
+                    <input name="from" type="date" class="form-control" value="@fromIso()" />
+                </div>
+                <div class="col-auto">
+                    <label class="form-label mb-1">To</label>
+                    <input name="to" type="date" class="form-control" value="@toIso()" />
+                </div>
+
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                    <a class="btn btn-outline-secondary ms-1" href="@Url.Action("Index", "ReportHub", new { area = "Admin" })">Reset</a>
+                </div>
+
+                <div class="col-auto">
+                    <small class="text-muted">Quick:</small>
+                    <a class="btn btn-sm btn-link" href="@Url.Action("Index", "ReportHub", new { area = "Admin", from = last7From.ToString("yyyy-MM-dd"), to = today.ToString("yyyy-MM-dd") })">Last 7 days</a>
+                    <a class="btn btn-sm btn-link" href="@Url.Action("Index", "ReportHub", new { area = "Admin", from = last30From.ToString("yyyy-MM-dd"), to = today.ToString("yyyy-MM-dd") })">Last 30 days</a>
+                    <a class="btn btn-sm btn-link" href="@Url.Action("Index", "ReportHub", new { area = "Admin", from = monthStart.ToString("yyyy-MM-dd"), to = today.ToString("yyyy-MM-dd") })">This month</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card p-3 h-100">
+                <h6 class="text-muted mb-2">Total Trips</h6>
+                <h3 class="mb-0">@Model.TotalTrips</h3>
+                <small class="text-muted">(@fromDt:yyyy-MM-dd → @toDt:yyyy-MM-dd)</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-3 h-100">
+                <h6 class="text-muted mb-2">Fuel Cost</h6>
+                <h3 class="mb-0">@Model.TotalFuelCost.ToString("C")</h3>
+                <small class="text-muted">Range: @fromDt:yyyy-MM-dd → @toDt:yyyy-MM-dd</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-3 h-100">
+                <h6 class="text-muted mb-2">Active Vehicles</h6>
+                <h3 class="mb-0">@Model.ActiveVehicles / @Model.TotalVehicles</h3>
+                <small class="text-muted">As of @DateTime.UtcNow.ToString("yyyy-MM-dd")</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card p-3 h-100">
+                <h6 class="text-muted mb-2">Incidents</h6>
+                <h3 class="mb-0">@Model.TotalIncidents</h3>
+                <small class="text-muted">(@fromDt:yyyy-MM-dd → @toDt:yyyy-MM-dd)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-2 mb-4">
+        <h4>Quick Reports</h4>
+        <div class="list-group">
+            
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="TripSummary"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Trip Summary</a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="DriverPerformance"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Driver Performance</a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="FuelConsumption"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Fuel Consumption</a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="VehicleUtilization"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Vehicle Utilization</a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="IncidentReport"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Incident Report</a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="LicenseExpiry"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Driver License Expiry</a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="VehicleDocs"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Vehicle Documentation</a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="MaintenanceSchedule"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Maintenance Schedule</a>
+
+            <a asp-area="Admin" asp-controller="ReportHub" asp-action="VehicleComparison"
+               class="list-group-item list-group-item-action"
+               asp-route-from="@fromIso()" asp-route-to="@toIso()">Vehicle Comparison</a>
+        </div>
+    </div>
+</div>
+
+
+
+
+ *@

@@ -1,0 +1,624 @@
+﻿@using FleetManager.Business.DataObjects.ReportsCenter
+@model List<OvertimeAnalysisDto>
+@{
+    ViewBag.Title = "Overtime Analysis";
+    ViewBag.ExportFileName = "overtime_analysis";
+    var filter = ViewBag.Filter as ReportFilter ?? new ReportFilter();
+}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --purple-color: #8b5cf6;
+            --pink-color: #ec4899;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            background-color: var(--gray-50);
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+            .report-header h2 {
+                font-size: 1.75rem;
+                font-weight: 700;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .report-header p {
+                margin: 0.5rem 0 0 0;
+                opacity: 0.95;
+                font-size: 0.9375rem;
+            }
+
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+
+        .report-card-body {
+            padding: 2rem;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--accent-color);
+            transition: all 0.2s;
+        }
+
+            .summary-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+
+        .summary-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            background: var(--icon-bg);
+            color: var(--icon-color);
+        }
+
+        .summary-label {
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            color: var(--gray-600);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            line-height: 1;
+        }
+
+            .summary-value small {
+                font-size: 0.875rem;
+                color: var(--gray-600);
+                font-weight: 500;
+            }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .table-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--gray-50);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+            .table-header h5 {
+                margin: 0;
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--gray-800);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+        .table-responsive {
+            border-radius: 0 0 12px 12px;
+            overflow-x: auto;
+        }
+
+        .exportable-table {
+            margin: 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+            .exportable-table thead {
+                background: var(--gray-800);
+                color: white;
+            }
+
+                .exportable-table thead th {
+                    padding: 1rem 1.25rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.05em;
+                    border: none;
+                    white-space: nowrap;
+                }
+
+            .exportable-table tbody tr {
+                border-bottom: 1px solid var(--gray-200);
+                transition: all 0.2s;
+            }
+
+                .exportable-table tbody tr:hover {
+                    background-color: var(--gray-50);
+                    transform: scale(1.005);
+                }
+
+                .exportable-table tbody tr.high-overtime {
+                    background: rgba(239, 68, 68, 0.03);
+                }
+
+                    .exportable-table tbody tr.high-overtime:hover {
+                        background: rgba(239, 68, 68, 0.05);
+                    }
+
+            .exportable-table tbody td {
+                padding: 1.25rem 1.25rem;
+                vertical-align: middle;
+                color: var(--gray-700);
+            }
+
+            .exportable-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .driver-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .driver-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .driver-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .driver-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.9375rem;
+        }
+
+        .overtime-level {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.125rem;
+        }
+
+            .overtime-level.high {
+                color: var(--danger-color);
+                font-weight: 600;
+            }
+
+            .overtime-level.moderate {
+                color: var(--warning-color);
+                font-weight: 600;
+            }
+
+            .overtime-level.low {
+                color: var(--success-color);
+            }
+
+        .hours-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+            .hours-badge.high {
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--danger-color);
+            }
+
+            .hours-badge.moderate {
+                background: rgba(245, 158, 11, 0.1);
+                color: var(--warning-color);
+            }
+
+            .hours-badge.low {
+                background: rgba(59, 130, 246, 0.1);
+                color: var(--info-color);
+            }
+
+        .cost-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(236, 72, 153, 0.1);
+            color: var(--pink-color);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            margin-right: 0.5rem;
+        }
+
+            .rank-badge.top {
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                color: white;
+            }
+
+            .rank-badge.high {
+                background: rgba(239, 68, 68, 0.2);
+                color: var(--danger-color);
+            }
+
+            .rank-badge.normal {
+                background: var(--gray-200);
+                color: var(--gray-700);
+            }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray-600);
+        }
+
+            .empty-state i {
+                font-size: 4rem;
+                color: var(--gray-400);
+                margin-bottom: 1rem;
+            }
+
+            .empty-state h4 {
+                color: var(--gray-700);
+                margin-bottom: 0.5rem;
+            }
+
+        @@media (max-width: 768px) {
+            .report-header
+
+        {
+            padding: 1.5rem 0;
+        }
+
+        .report-card-body {
+            padding: 1rem;
+        }
+
+        .summary-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .table-responsive {
+            font-size: 0.8125rem;
+        }
+
+        .exportable-table thead th,
+        .exportable-table tbody td {
+            padding: 0.75rem 0.5rem;
+        }
+
+        .driver-cell {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        }
+    </style>
+
+<div class="report-header">
+    <div class="container">
+        <h2>
+            <i class="fas fa-user-clock"></i>
+            Overtime Analysis Report
+        </h2>
+        <p>Track driver overtime hours and associated costs</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="report-card">
+        <div class="report-card-body">
+            @await Html.PartialAsync("_ReportFilters", filter)
+
+            @await Html.PartialAsync("_ExportControls")
+
+            @if (Model != null && Model.Any())
+            {
+                <!-- Summary Statistics -->
+                <div class="summary-cards">
+                    @{
+                        var totalHours = Model.Sum(o => o.OvertimeHours);
+                        var totalCost = Model.Sum(o => o.Cost);
+                        var avgHours = Model.Average(o => o.OvertimeHours);
+                        var totalDrivers = Model.Count;
+                        var highOvertimeCount = Model.Count(o => o.OvertimeHours > 40);
+                    }
+
+                    <div class="summary-card" style="--accent-color: #ec4899; --icon-bg: rgba(236, 72, 153, 0.1); --icon-color: #ec4899;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">Total OT Hours</div>
+                                <div class="summary-value">@totalHours.ToString("N1")<small> hrs</small></div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card" style="--accent-color: #10b981; --icon-bg: rgba(16, 185, 129, 0.1); --icon-color: #10b981;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">Total OT Cost</div>
+                                <div class="summary-value">₦@totalCost.ToString("N2")</div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card" style="--accent-color: #3b82f6; --icon-bg: rgba(59, 130, 246, 0.1); --icon-color: #3b82f6;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">Average OT/Driver</div>
+                                <div class="summary-value">@avgHours.ToString("N1")<small> hrs</small></div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card" style="--accent-color: #ef4444; --icon-bg: rgba(239, 68, 68, 0.1); --icon-color: #ef4444;">
+                        <div class="summary-card-header">
+                            <div>
+                                <div class="summary-label">High OT (>40hrs)</div>
+                                <div class="summary-value">@highOvertimeCount<small>/@totalDrivers</small></div>
+                            </div>
+                            <div class="summary-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overtime Analysis Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h5>
+                            <i class="fas fa-list-ul"></i>
+                            Driver Overtime Breakdown
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table exportable-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-hashtag me-2"></i>Rank</th>
+                                    <th><i class="fas fa-user me-2"></i>Driver</th>
+                                    <th><i class="fas fa-clock me-2"></i>Overtime Hours</th>
+                                    <th><i class="fas fa-money-bill-wave me-2"></i>Overtime Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var rankedDrivers = Model.OrderByDescending(o => o.OvertimeHours).ToList();
+                                    var rank = 1;
+                                }
+                                @foreach (var o in rankedDrivers)
+                                {
+                                    var initials = string.IsNullOrEmpty(o.DriverName) ? "?" :
+                                    o.DriverName.Split(' ').Take(2)
+                                    .Select(n => n.FirstOrDefault())
+                                    .Aggregate("", (acc, c) => acc + c);
+
+                                    // Categorize overtime levels
+                                    var hoursClass = o.OvertimeHours > 40 ? "high" :
+                                    o.OvertimeHours > 20 ? "moderate" : "low";
+
+                                    var levelText = o.OvertimeHours > 40 ? "High Overtime" :
+                                    o.OvertimeHours > 20 ? "Moderate Overtime" : "Low Overtime";
+
+                                    var levelIcon = o.OvertimeHours > 40 ? "fa-exclamation-circle" :
+                                    o.OvertimeHours > 20 ? "fa-exclamation-triangle" : "fa-check-circle";
+
+                                    var rankClass = rank <= 3 ? "top" : rank <= 10 ? "high" : "normal";
+                                    var rowClass = o.OvertimeHours > 40 ? "high-overtime" : "";
+
+                                    <tr class="@rowClass">
+                                        <td>
+                                            <span class="rank-badge @rankClass">
+                                                @if (rank <= 3)
+                                                {
+                                                    <i class="fas fa-crown"></i>
+                                                }
+                                                else
+                                                {
+                                                    @rank
+                                                }
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="driver-cell">
+                                                <div class="driver-avatar">@initials</div>
+                                                <div class="driver-info">
+                                                    <span class="driver-name">@o.DriverName</span>
+                                                    <span class="overtime-level @hoursClass">
+                                                        <i class="fas @levelIcon"></i>
+                                                        @levelText
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="hours-badge @hoursClass">
+                                                <i class="fas fa-clock"></i>
+                                                @o.OvertimeHours.ToString("N2") hrs
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="cost-badge">
+                                                <i class="fas fa-naira-sign"></i>
+                                                ₦@o.Cost.ToString("N2")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    rank++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-user-clock"></i>
+                    <h4>No overtime recorded</h4>
+                    <p>No drivers worked overtime during the selected period</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.ReportsCenter
+@model List<OvertimeAnalysisDto>
+@{
+    ViewBag.Title = "Overtime Analysis";
+    ViewBag.ExportFileName = "overtime_analysis";
+    var filter = ViewBag.Filter as ReportFilter ?? new ReportFilter();
+}
+<div class="card">
+    <div class="card-body">
+        <h3 class="mb-3">Overtime Analysis</h3>
+
+        @await Html.PartialAsync("_ReportFilters", filter)
+
+        @await Html.PartialAsync("_ExportControls")
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm exportable-table">
+                <thead>
+                    <tr>
+                        <th>Driver</th>
+                        <th>Overtime Hours</th>
+                        <th>Overtime Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model?.Any() != true)
+                    {
+                        <tr><td colspan="3" class="text-center">No overtime recorded for the selected period.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var o in Model)
+                        {
+                            <tr>
+                                <td>@o.DriverName</td>
+                                <td>@o.OvertimeHours.ToString("N2")</td>
+                                <td>@o.Cost.ToString("C")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+ *@
