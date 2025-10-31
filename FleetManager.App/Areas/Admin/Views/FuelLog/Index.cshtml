@@ -6,6 +6,7 @@
     var totalVolume = Model?.Sum(x => x.Volume) ?? 0;
     var logCount = Model?.Count() ?? 0;
     Layout = "_Layout";
+    ViewBag.ExportFileName = "fuel_log";
 }
 
 <style>
@@ -195,6 +196,7 @@
         </div>
     </div>
 
+
     <!-- Filters and Search -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
@@ -260,6 +262,26 @@
             </div>
         </div>
     </div>
+    @await Html.PartialAsync("_ExportControls")
+    @*  <!-- Export Controls -->
+    <div class="export-controls">
+        <h4 class="export-title">
+            <i class="fas fa-download"></i>
+            Export Table Data
+        </h4>
+        <div class="d-flex flex-wrap">
+            <button class="btn export-btn export-btn-excel" onclick="TableExporter && TableExporter.exportToExcel('.exportable-table', 'fuel_log')">
+                <i class="fas fa-file-excel me-2"></i>Export to Excel
+            </button>
+            <button class="btn export-btn export-btn-pdf" onclick="TableExporter && TableExporter.exportToPDF('.exportable-table', 'fuel_log')">
+                <i class="fas fa-file-pdf me-2"></i>Export to PDF
+            </button>
+            <button class="btn export-btn export-btn-csv" onclick="TableExporter && TableExporter.exportToCSV('.exportable-table', 'fuel_log')">
+                <i class="fas fa-file-csv me-2"></i>Export to CSV
+            </button>
+        </div>
+    </div> *@
+
 
     <!-- Filter Results Info -->
     <div id="filterResults" class="filter-results" style="display: none;">
@@ -511,6 +533,8 @@
 
 
 <script>
+     
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Flatpickr for date inputs
     const dateFromPicker = flatpickr("#dateFrom", {
