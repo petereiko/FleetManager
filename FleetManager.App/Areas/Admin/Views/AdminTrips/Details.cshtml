@@ -297,7 +297,7 @@
 				</a>
 				@if (Model.Status != TripStatus.Completed)
 				{
-					<a class="btn btn-primary action-btn" asp-action="Edit" asp-route-id="@Model.Id">
+					<a class="btn btn-primary action-btn" asp-action="Edit" asp-protect-route-id="@Model.Id">
 						<i class="fas fa-edit"></i> Edit
 					</a>
 					<button class="btn btn-info action-btn" id="openAssignBtn" data-tripid="@Model.Id">
@@ -529,7 +529,7 @@
 				}
 				@if (Model.Status != TripStatus.Completed)
 				{
-					<a class="btn btn-outline-primary w-100 action-btn mb-2" asp-action="Edit" asp-route-id="@Model.Id">
+					<a class="btn btn-outline-primary w-100 action-btn mb-2" asp-action="Edit" asp-protect-route-id="@Model.Id">
 						<i class="fas fa-edit"></i> Edit Trip
 					</a>
 				}

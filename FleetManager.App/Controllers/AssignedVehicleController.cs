@@ -23,15 +23,12 @@ namespace FleetManager.App.Controllers
         private readonly IAdminVehicleService _vehicleService;
         private readonly ILogger<AssignedVehicleController> _logger;
         private readonly IRepairService _service;
-        private readonly IDataProtector _protector;
 
-        public AssignedVehicleController(IAuthUser authUser, IDriverVehicleService assignmentService, IAdminVehicleService vehicleService, IDataProtectionProvider dataProtectionProvider, IRepairService service)
+        public AssignedVehicleController(IAuthUser authUser, IDriverVehicleService assignmentService, IAdminVehicleService vehicleService, IRepairService service)
         {
             _authUser = authUser;
             _assignmentService = assignmentService;
             _vehicleService = vehicleService;
-            _protector = dataProtectionProvider
-            .CreateProtector("VehicleIdProtector");
             _service = service;
         }
 
@@ -95,7 +92,7 @@ namespace FleetManager.App.Controllers
                         PlateNo = a.PlateNo,
                         StartDate = a.StartDate,
                         EndDate = a.EndDate,
-                        EncodedVehicleId = _protector.Protect(a.VehicleId.ToString())
+                        EncodedVehicleId = a.VehicleId
                     }).ToList()
                 };
 
@@ -156,23 +153,9 @@ namespace FleetManager.App.Controllers
         //}
 
         [HttpGet]
-        public async Task<IActionResult> Details(string protectedId)
+        public async Task<IActionResult> Details(long vehicleId)
         {
-            if (string.IsNullOrWhiteSpace(protectedId))
-                return BadRequest("Missing vehicle identifier.");
-
-            long vehicleId;
-            try
-            {
-                var unwrapped = _protector.Unprotect(protectedId);
-                vehicleId = long.Parse(unwrapped);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Invalid vehicle identifier");
-                return View("Error");
-            }
-
+            
             var dto = await _vehicleService.GetVehicleByIdAsync(vehicleId);
             if (dto == null) return NotFound();
 

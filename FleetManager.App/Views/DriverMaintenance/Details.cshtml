@@ -921,7 +921,7 @@
                                 <i class="fas fa-print me-2"></i>
                                 Print Ticket
                             </a>
-                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary w-100 mb-2">
+                            <a asp-action="Edit" asp-protect-route-id="@Model.Id" class="btn btn-outline-primary w-100 mb-2">
                                 <i class="fas fa-edit me-2"></i>
                                 Edit Ticket
                             </a>
@@ -1132,7 +1132,7 @@
                        asp-area=""
                        asp-controller="Invoice"
                        asp-action="Download"
-                       asp-route-id="@Model.Invoice.Id">
+                       asp-protect-route-id="@Model.Invoice.Id">
                         <i class="fas fa-download me-2"></i>
                         Download PDF
                     </a>

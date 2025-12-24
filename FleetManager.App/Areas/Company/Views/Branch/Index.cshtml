@@ -1005,7 +1005,7 @@
                                             <i class="feather-more-vertical"></i>
                                         </button>
                                         <div class="action-dropdown">
-                                            <a asp-action="Edit" asp-route-id="@branch.Id" class="dropdown-item">
+                                            <a asp-action="Edit" asp-protect-route-id="@branch.Id" class="dropdown-item">
                                                 <i class="feather-edit"></i>Edit Branch
                                             </a>
                                             <button class="dropdown-item" onclick="viewBranchDetails('@branch.Id')">
@@ -1094,7 +1094,7 @@
                                     <i class="feather-more-vertical"></i>
                                 </button>
                                 <div class="action-dropdown">
-                                    <a asp-action="Edit" asp-route-id="@branch.Id" class="dropdown-item">
+                                    <a asp-action="Edit" asp-protect-route-id="@branch.Id" class="dropdown-item">
                                         <i class="feather-edit"></i>Edit Branch
                                     </a>
                                     <button class="dropdown-item" onclick="viewBranchDetails('@branch.Id')">

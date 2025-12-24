@@ -20,6 +20,7 @@ using FleetManager.Business.Implementations.CompanyDashboardModule;
 using FleetManager.Business.Implementations.CompanyModule;
 using FleetManager.Business.Implementations.CompanyOnboardingModule;
 using FleetManager.Business.Implementations.ContactDirectoryModule;
+using FleetManager.Business.Implementations.DriverDashboardModule;
 using FleetManager.Business.Implementations.DriverVehicleModule;
 using FleetManager.Business.Implementations.DutyOfCareModule;
 using FleetManager.Business.Implementations.EmailModule;
@@ -30,6 +31,7 @@ using FleetManager.Business.Implementations.ManageDriverModule;
 using FleetManager.Business.Implementations.NotificationModule;
 using FleetManager.Business.Implementations.RentalModule;
 using FleetManager.Business.Implementations.RepairModule;
+using FleetManager.Business.Implementations.ReportHubModule;
 using FleetManager.Business.Implementations.ReportModule;
 using FleetManager.Business.Implementations.ScheduleModule;
 using FleetManager.Business.Implementations.TripModule;
@@ -44,6 +46,7 @@ using FleetManager.Business.Interfaces.CompanyDashboardModule;
 using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.CompanyOnboardingModule;
 using FleetManager.Business.Interfaces.ContactDirectoryModule;
+using FleetManager.Business.Interfaces.DriverDashboardModule;
 using FleetManager.Business.Interfaces.DriverProfileModule;
 using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.DutyOfCareModule;
@@ -55,6 +58,7 @@ using FleetManager.Business.Interfaces.ManageDriverModule;
 using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.RentalModule;
 using FleetManager.Business.Interfaces.RepairModule;
+using FleetManager.Business.Interfaces.ReportHubModule;
 using FleetManager.Business.Interfaces.ReportModule;
 using FleetManager.Business.Interfaces.ScheduleModule;
 using FleetManager.Business.Interfaces.TripModule;
@@ -64,6 +68,7 @@ using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
 using FleetManager.Business.Interfaces.WebhookModule;
 using FleetManager.Business.UtilityModels;
+using FleetManager.Business.UtilityModels.CommonSecurity;
 using FleetManager.Business.UtilityModels.PdfService;
 using Hangfire;
 using Hangfire.SqlServer;
@@ -223,6 +228,8 @@ builder.Services.AddTransient<IWebhookDispatcher, WebhookDispatcher>();
 builder.Services.AddTransient<NotificationWorker>();
 builder.Services.AddTransient<ITripService, TripService>();
 builder.Services.AddTransient<ITripReportService, TripReportService>();
+builder.Services.AddTransient<IDriverDashboardService, DriverDashboardService>();
+builder.Services.AddTransient<IReportHubService, ReportHubService>();
 
 
 
@@ -238,11 +245,24 @@ builder.Services.AddTransient<BackgroundJobService>();
 //builder.Services.AddDbContextFactory<FleetManagerDbContext>(options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddDataProtection()
+    // .PersistKeysToFileSystem(new DirectoryInfo(builder.Configuration["DataProtection:KeyRingPath"]))
+    // .SetApplicationName("FleetManager")
+    ;
+// --- Id protector + filter registration ----------------------------------
+builder.Services.AddSingleton<IIdProtector, DataProtectionIdProtector>();
+builder.Services.AddScoped<UnprotectIdActionFilter>();
+
+// Add MVC and register the UnprotectIdActionFilter globally so it runs for all actions
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.AddService<UnprotectIdActionFilter>();
+});
 
 
 //Pdf Serivce
 // 1) MVC + Razor‑to‑string
-builder.Services.AddControllersWithViews();
+//builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<ITempDataProvider, SessionStateTempDataProvider>();
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 builder.Services.AddScoped<IRazorViewToStringRenderer, RazorViewToStringRenderer>();

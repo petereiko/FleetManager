@@ -440,7 +440,7 @@
             
             <!-- New Action Buttons -->
             <div class="action-buttons">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+                <a asp-action="Edit" asp-protect-route-id="@Model.Id" class="btn btn-primary me-2">
                     <i class="feather-edit-2 me-1"></i> Update Vehicle Information
                 </a>
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteVehicleModal">
@@ -643,7 +643,7 @@
                         </li>
                         <li class="detail-item">
                             <div class="action-buttons">
-                                <a asp-controller="RepairHistory" asp-action="VehicleRepairs" asp-route-VehicleId="@Model.Id" class="btn btn-primary me-2">
+                                <a asp-controller="RepairHistory" asp-action="VehicleRepairs" asp-protect-route-id="@Model.Id" class="btn btn-primary me-2">
                                     <i class="feather-file me-1"></i> View Repair & Fixes History
                                 </a>
                             </div>

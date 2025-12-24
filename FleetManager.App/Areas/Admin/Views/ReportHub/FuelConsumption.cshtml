@@ -1,0 +1,585 @@
+﻿@using FleetManager.Business.DataObjects.ReportsCenter
+@model FuelConsumptionReportDto
+@{
+    ViewBag.Title = "Fuel Consumption";
+    ViewBag.ExportFileName = "fuel_consumption";
+}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --purple-color: #8b5cf6;
+            --pink-color: #ec4899;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            background-color: var(--gray-50);
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+            .report-header h2 {
+                font-size: 1.75rem;
+                font-weight: 700;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .report-header p {
+                margin: 0.5rem 0 0 0;
+                opacity: 0.95;
+                font-size: 0.9375rem;
+            }
+
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+
+        .report-card-body {
+            padding: 2rem;
+        }
+
+        .fuel-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .fuel-metric-card {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .fuel-metric-card::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                pointer-events: none;
+            }
+
+            .fuel-metric-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+            }
+
+        .fuel-metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .fuel-metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .fuel-metric-label {
+            font-size: 0.8125rem;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .fuel-metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+            .fuel-metric-value small {
+                font-size: 1rem;
+                font-weight: 500;
+                opacity: 0.9;
+            }
+
+        .fuel-metric-subtext {
+            font-size: 0.8125rem;
+            opacity: 0.85;
+            margin-top: 0.5rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .table-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--gray-50);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+            .table-header h5 {
+                margin: 0;
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--gray-800);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+        .table-responsive {
+            border-radius: 0 0 12px 12px;
+            overflow-x: auto;
+        }
+
+        .exportable-table {
+            margin: 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+            .exportable-table thead {
+                background: var(--gray-800);
+                color: white;
+            }
+
+                .exportable-table thead th {
+                    padding: 1rem 1.25rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.05em;
+                    border: none;
+                    white-space: nowrap;
+                }
+
+            .exportable-table tbody tr {
+                border-bottom: 1px solid var(--gray-200);
+                transition: all 0.2s;
+            }
+
+                .exportable-table tbody tr:hover {
+                    background-color: var(--gray-50);
+                    transform: scale(1.005);
+                }
+
+            .exportable-table tbody td {
+                padding: 1.25rem 1.25rem;
+                vertical-align: middle;
+                color: var(--gray-700);
+            }
+
+            .exportable-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .vehicle-plate-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .plate-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.125rem;
+        }
+
+        .plate-number {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--gray-900);
+        }
+
+        .volume-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--purple-color);
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .cost-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .distance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .efficiency-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9375rem;
+        }
+
+            .efficiency-badge.excellent {
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success-color);
+            }
+
+            .efficiency-badge.good {
+                background: rgba(59, 130, 246, 0.1);
+                color: var(--info-color);
+            }
+
+            .efficiency-badge.average {
+                background: rgba(245, 158, 11, 0.1);
+                color: var(--warning-color);
+            }
+
+            .efficiency-badge.poor {
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--danger-color);
+            }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray-600);
+        }
+
+            .empty-state i {
+                font-size: 4rem;
+                color: var(--gray-400);
+                margin-bottom: 1rem;
+            }
+
+            .empty-state h4 {
+                color: var(--gray-700);
+                margin-bottom: 0.5rem;
+            }
+
+        @@media (max-width: 768px) {
+            .report-header
+
+        {
+            padding: 1.5rem 0;
+        }
+
+        .report-card-body {
+            padding: 1rem;
+        }
+
+        .fuel-metrics-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .fuel-metric-value {
+            font-size: 1.5rem;
+        }
+
+        .table-responsive {
+            font-size: 0.8125rem;
+        }
+
+        .exportable-table thead th,
+        .exportable-table tbody td {
+            padding: 0.75rem 0.5rem;
+        }
+
+        .vehicle-plate-cell {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        }
+    </style>
+
+<div class="report-header">
+    <div class="container">
+        <h2>
+            <i class="fas fa-gas-pump"></i>
+            Fuel Consumption Report
+        </h2>
+        <p>Track fuel usage, costs, and efficiency across your fleet</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="report-card">
+        <div class="report-card-body">
+            @await Html.PartialAsync("_ReportFilters", ViewBag.Filter as ReportFilter ?? new ReportFilter())
+
+            @await Html.PartialAsync("_ExportControls")
+
+            @if (Model?.ByVehicle != null && Model.ByVehicle.Any())
+            {
+                <!-- Fuel Metrics Cards -->
+                <div class="fuel-metrics-grid">
+                    <div class="fuel-metric-card" style="--gradient-start: #8b5cf6; --gradient-end: #7c3aed;">
+                        <div class="fuel-metric-header">
+                            <div>
+                                <div class="fuel-metric-label">Total Volume</div>
+                                <div class="fuel-metric-value">@Model.TotalVolume.ToString("N2")<small> L</small></div>
+                                <div class="fuel-metric-subtext">Liters consumed</div>
+                            </div>
+                            <div class="fuel-metric-icon">
+                                <i class="fas fa-tint"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fuel-metric-card" style="--gradient-start: #10b981; --gradient-end: #059669;">
+                        <div class="fuel-metric-header">
+                            <div>
+                                <div class="fuel-metric-label">Total Cost</div>
+                                <div class="fuel-metric-value">₦@Model.TotalCost.ToString("N2")</div>
+                                <div class="fuel-metric-subtext">Nigerian Naira</div>
+                            </div>
+                            <div class="fuel-metric-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fuel-metric-card" style="--gradient-start: #3b82f6; --gradient-end: #2563eb;">
+                        <div class="fuel-metric-header">
+                            <div>
+                                <div class="fuel-metric-label">Average Cost/Km</div>
+                                <div class="fuel-metric-value">₦@Model.CostPerKm.ToString("N2")</div>
+                                <div class="fuel-metric-subtext">Efficiency metric</div>
+                            </div>
+                            <div class="fuel-metric-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Fuel Consumption Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h5>
+                            <i class="fas fa-list-alt"></i>
+                            Vehicle Breakdown
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table exportable-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-car me-2"></i>Vehicle</th>
+                                    <th><i class="fas fa-tint me-2"></i>Volume (L)</th>
+                                    <th><i class="fas fa-money-bill-wave me-2"></i>Cost</th>
+                                    <th><i class="fas fa-road me-2"></i>Distance</th>
+                                    <th><i class="fas fa-chart-bar me-2"></i>Efficiency</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var v in Model.ByVehicle)
+                                {
+                                    // Calculate efficiency rating based on cost per km
+                                    var efficiencyClass = v.CostPerKm <= 50 ? "excellent" :
+                                    v.CostPerKm <= 80 ? "good" :
+                                    v.CostPerKm <= 120 ? "average" : "poor";
+
+                                    var efficiencyIcon = v.CostPerKm <= 50 ? "fa-star" :
+                                    v.CostPerKm <= 80 ? "fa-thumbs-up" :
+                                    v.CostPerKm <= 120 ? "fa-exclamation-circle" : "fa-exclamation-triangle";
+
+                                    var efficiencyText = v.CostPerKm <= 50 ? "Excellent" :
+                                    v.CostPerKm <= 80 ? "Good" :
+                                    v.CostPerKm <= 120 ? "Average" : "Poor";
+
+                                    <tr>
+                                        <td>
+                                            <div class="vehicle-plate-cell">
+                                                <div class="plate-icon">
+                                                    <i class="fas fa-car"></i>
+                                                </div>
+                                                <div class="plate-number">@v.PlateNo</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="volume-badge">
+                                                <i class="fas fa-gas-pump"></i>
+                                                @v.Volume.ToString("N2") L
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="cost-badge">
+                                                <i class="fas fa-naira-sign"></i>
+                                                ₦@v.Cost.ToString("N2")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="distance-badge">
+                                                <i class="fas fa-route"></i>
+                                                @v.DistanceKm.ToString("N2") km
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="efficiency-badge @efficiencyClass">
+                                                <i class="fas @efficiencyIcon"></i>
+                                                ₦@v.CostPerKm.ToString("N2")/km
+                                            </span>
+                                            <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.25rem;">
+                                                @efficiencyText
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-gas-pump"></i>
+                    <h4>No fuel consumption data found</h4>
+                    <p>Try adjusting your filters to see more results</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.ReportsCenter
+@model FuelConsumptionReportDto
+@{
+    ViewBag.Title = "Fuel Consumption";
+    ViewBag.ExportFileName = "fuel_consumption";
+}
+<div class="card">
+    <div class="card-body">
+        @await Html.PartialAsync("_ReportFilters", new ReportFilter())
+        @await Html.PartialAsync("_ExportControls")
+
+        <div class="mb-3">
+            <strong>Total Volume:</strong> @Model.TotalVolume
+            <strong class="ms-3">Total Cost:</strong> @Model.TotalCost.ToString("C")
+            <strong class="ms-3">Cost / Km:</strong> @Model.CostPerKm.ToString("N2")
+        </div>
+
+        <table class="table table-striped exportable-table">
+            <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Volume</th>
+                    <th>Cost</th>
+                    <th>Distance (km)</th>
+                    <th>Cost / Km</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model.ByVehicle)
+                {
+                    <tr>
+                        <td>@v.PlateNo</td>
+                        <td>@v.Volume</td>
+                        <td>@v.Cost.ToString("C")</td>
+                        <td>@v.DistanceKm.ToString("N2")</td>
+                        <td>@v.CostPerKm.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+ *@

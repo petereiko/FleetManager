@@ -7,6 +7,7 @@ using FleetManager.Business.Interfaces.CompanyModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -21,17 +22,21 @@ namespace FleetManager.App.Areas.Admin.Controllers
         private readonly IBranchService _branchService;
         private readonly IAuthUser _authUser;
         private readonly ILogger<AdminVehicleController> _logger;
+        private readonly IDataProtector _protector;
 
         public AdminVehicleController(
             IAdminVehicleService vehicleService,
             IBranchService branchService,
             IAuthUser authUser,
-            ILogger<AdminVehicleController> logger)
+            ILogger<AdminVehicleController> logger,
+            IDataProtectionProvider dataProtectionProvider)
         {
             _vehicleService = vehicleService;
             _branchService = branchService;
             _authUser = authUser;
             _logger = logger;
+            _protector = dataProtectionProvider
+            .CreateProtector("VehicleIdProtector");
         }
 
         // ─── INDEX / LIST ────────────────────────────────────────────────────────────

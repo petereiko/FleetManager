@@ -1,0 +1,119 @@
+﻿@{
+    // Server-side values
+    var exportConfig = ViewBag.ExportConfig;
+    var exportFileName = (ViewBag.ExportFileName as string) ?? "report";
+
+    // Serialize config safely (only used if exportConfig != null)
+    var exportConfigJson = exportConfig != null
+        ? System.Text.Json.JsonSerializer.Serialize(exportConfig)
+        : "null";
+}
+
+<div class="export-controls mb-3">
+    <h4 class="export-title">
+        <i class="fas fa-download"></i>
+        Export Table Data
+    </h4>
+
+    <div class="d-flex flex-wrap">
+        <button class="btn export-btn export-btn-excel"
+                onclick="TableExporter && TableExporter.exportToExcel('.exportable-table', '@exportFileName')">
+            <i class="fas fa-file-excel me-2"></i>Export to Excel
+        </button>
+
+        <button class="btn export-btn export-btn-pdf"
+                onclick="TableExporter && TableExporter.exportToPDF('.exportable-table', '@exportFileName')">
+            <i class="fas fa-file-pdf me-2"></i>Export to PDF
+        </button>
+
+        <button class="btn export-btn export-btn-csv"
+                onclick="TableExporter && TableExporter.exportToCSV('.exportable-table', '@exportFileName')">
+            <i class="fas fa-file-csv me-2"></i>Export to CSV
+        </button>
+    </div>
+</div>
+
+@* Only emit the config script if the server has an ExportConfig object *@
+@if (exportConfig != null)
+{
+    <script>
+        // Make sure TableExporter script has loaded first — try to set on load if not yet available.
+        (function () {
+            try {
+                window.exportConfig = @Html.Raw(exportConfigJson);
+            } catch (e) {
+                window.exportConfig = null;
+            }
+
+            function applyExportConfig() {
+                if (window.TableExporter && typeof TableExporter.setConfig === 'function' && window.exportConfig) {
+                    TableExporter.setConfig(window.exportConfig);
+                }
+            }
+
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                applyExportConfig();
+            } else {
+                document.addEventListener('DOMContentLoaded', applyExportConfig);
+            }
+        })();
+    </script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* <div class="export-controls mb-3">
+    <h4 class="export-title">
+        <i class="fas fa-download"></i>
+        Export Table Data
+    </h4>
+
+    <div class="d-flex flex-wrap">
+        <button class="btn export-btn export-btn-excel" onclick="TableExporter && TableExporter.exportToExcel('.exportable-table', '@ViewBag.ExportFileName ?? " report"')">
+            <i class="fas fa-file-excel me-2"></i>Export to Excel
+        </button>
+        <button class="btn export-btn export-btn-pdf" onclick="TableExporter && TableExporter.exportToPDF('.exportable-table', '@ViewBag.ExportFileName ?? " report"')">
+            <i class="fas fa-file-pdf me-2"></i>Export to PDF
+        </button>
+        <button class="btn export-btn export-btn-csv" onclick="TableExporter && TableExporter.exportToCSV('.exportable-table', '@ViewBag.ExportFileName ?? " report"')">
+            <i class="fas fa-file-csv me-2"></i>Export to CSV
+        </button>
+    </div>
+</div>
+
+<script>
+
+     // Export configuration (if ViewBag.ExportConfig exists)
+        if (typeof ViewBag !== 'undefined' && ViewBag.ExportConfig) {
+            window.exportConfig = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+                companyName = ViewBag.ExportConfig.CompanyName,
+                companyAddress = ViewBag.ExportConfig.CompanyAddress,
+                companyPhone = ViewBag.ExportConfig.CompanyPhone,
+                companyEmail = ViewBag.ExportConfig.CompanyEmail,
+                userName = ViewBag.ExportConfig.UserName,
+                userRole = ViewBag.ExportConfig.UserRole,
+                exportedBy = ViewBag.ExportConfig.ExportedBy
+            }));
+
+            // Apply config to TableExporter if it exists
+            if (window.TableExporter && typeof TableExporter.setConfig === 'function') {
+                TableExporter.setConfig(window.exportConfig);
+            }
+        }
+
+</script> *@

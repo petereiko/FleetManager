@@ -1,0 +1,825 @@
+﻿@using FleetManager.Business.DataObjects.ReportsCenter
+@using FleetManager.Business.UtilityModels.CommonSecurity
+@model ReportFilter
+
+@inject IIdProtector IdProtector
+
+@{
+    var today = DateTime.UtcNow.Date;
+    var last7From = today.AddDays(-6);
+    var last30From = today.AddDays(-29);
+    var monthStart = new DateTime(today.Year, today.Month, 1);
+
+    var fromVal = Model?.From?.ToString("yyyy-MM-dd") ?? "";
+    var toVal = Model?.To?.ToString("yyyy-MM-dd") ?? "";
+
+    var selectedDriverProtected = Model?.DriverId != null ? IdProtector.ProtectId(Model.DriverId.Value) : "";
+    var selectedVehicleProtected = Model?.VehicleId != null ? IdProtector.ProtectId(Model.VehicleId.Value) : "";
+}
+
+<style>
+    .filter-section {
+        background: var(--gray-50, #f9fafb);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid var(--gray-200, #e5e7eb);
+    }
+
+        .filter-section h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-800, #1f2937);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    .filter-input-group {
+        position: relative;
+    }
+
+        .filter-input-group label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray-700, #374151);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+            .filter-input-group label i {
+                color: var(--primary-color, #2563eb);
+                font-size: 0.75rem;
+            }
+
+        .filter-input-group input,
+        .filter-input-group select {
+            border: 2px solid var(--gray-200, #e5e7eb);
+            border-radius: 10px;
+            padding: 0.625rem 1rem;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+            width: 100%;
+            background: white;
+        }
+
+            .filter-input-group input:focus,
+            .filter-input-group select:focus {
+                border-color: var(--primary-color, #2563eb);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+                outline: none;
+            }
+
+    .btn-filter-apply {
+        background: var(--primary-color, #2563eb);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.625rem 1.75rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-filter-apply:hover {
+            background: var(--primary-dark, #1e40af);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+    .btn-back {
+        border: 2px solid var(--gray-200, #e5e7eb);
+        background: white;
+        color: var(--gray-700, #374151);
+        border-radius: 10px;
+        padding: 0.625rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-back:hover {
+            border-color: var(--gray-600, #4b5563);
+            background: var(--gray-50, #f9fafb);
+            color: var(--gray-800, #1f2937);
+        }
+
+    .quick-filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        border-top: 2px solid var(--gray-200, #e5e7eb);
+        margin-top: 1rem;
+    }
+
+    .quick-filters-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--gray-600, #4b5563);
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .quick-filter-btn {
+        background: white;
+        color: var(--gray-700, #374151);
+        border: 2px solid var(--gray-200, #e5e7eb);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+        .quick-filter-btn:hover {
+            background: var(--primary-color, #2563eb);
+            color: white;
+            border-color: var(--primary-color, #2563eb);
+            transform: translateY(-1px);
+        }
+
+    .select2-container--default .select2-selection--single {
+        border: 2px solid var(--gray-200, #e5e7eb) !important;
+        border-radius: 10px !important;
+        padding: 0.375rem 0.5rem !important;
+        height: auto !important;
+    }
+
+        .select2-container--default .select2-selection--single:focus,
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: var(--primary-color, #2563eb) !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+        }
+
+    @@media (max-width: 768px) {
+        .filter-section
+
+    {
+        padding: 1rem;
+    }
+
+    .quick-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .quick-filter-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    }
+</style>
+
+<form id="reportFilterForm" class="filter-section" method="get">
+    <h5>
+        <i class="fas fa-filter"></i>
+        Filter Options
+    </h5>
+
+    <div class="row g-3 align-items-end">
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <div class="filter-input-group">
+                <label>
+                    <i class="fas fa-calendar"></i>
+                    From Date
+                </label>
+                <input id="filterFrom" name="from" class="form-control" type="text" value="@fromVal" readonly />
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <div class="filter-input-group">
+                <label>
+                    <i class="fas fa-calendar"></i>
+                    To Date
+                </label>
+                <input id="filterTo" name="to" class="form-control" type="text" value="@toVal" readonly />
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="filter-input-group">
+                <label>
+                    <i class="fas fa-user"></i>
+                    Driver
+                </label>
+                <select id="driverSelect" name="driverId" class="form-control">
+                    @if (!string.IsNullOrEmpty(selectedDriverProtected))
+                    {
+                        <option value="@selectedDriverProtected">Loading...</option>
+                    }
+                    else
+                    {
+                        <option value="">All Drivers</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="filter-input-group">
+                <label>
+                    <i class="fas fa-car"></i>
+                    Vehicle
+                </label>
+                <select id="vehicleSelect" name="vehicleId" class="form-control">
+                    @if (!string.IsNullOrEmpty(selectedVehicleProtected))
+                    {
+                        <option value="@selectedVehicleProtected">Loading...</option>
+                    }
+                    else
+                    {
+                        <option value="">All Vehicles</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <div class="row g-2 mt-2">
+        <div class="col-auto">
+            <a class="btn btn-back" href="@Url.Action("Index", "ReportHub", new { area = "Admin" })">
+                <i class="fas fa-arrow-left"></i>
+                Back to Hub
+            </a>
+        </div>
+        <div class="col-lg-2 col-md-6 col-sm-6">
+            <button type="submit" class="btn btn-filter-apply w-100">
+                <i class="fas fa-search"></i>
+                Apply
+            </button>
+        </div>
+    </div>
+
+    <div class="quick-filters">
+        <span class="quick-filters-label">
+            <i class="fas fa-bolt"></i>
+            Quick select:
+        </span>
+        <button type="button" id="quickLast7" class="quick-filter-btn">
+            <i class="fas fa-calendar-week"></i>
+            Last 7 days
+        </button>
+        <button type="button" id="quickLast30" class="quick-filter-btn">
+            <i class="fas fa-calendar-alt"></i>
+            Last 30 days
+        </button>
+        <button type="button" id="quickThisMonth" class="quick-filter-btn">
+            <i class="fas fa-calendar"></i>
+            This month
+        </button>
+    </div>
+</form>
+
+<script>
+    (function () {
+        const driverSearchUrl = '@Url.Action("SearchDrivers", "ReportHub", new { area = "Admin" })';
+        const driverByIdUrl = '@Url.Action("GetDriverById", "ReportHub", new { area = "Admin" })';
+        const driversListUrl = '@Url.Action("GetDrivers", "ReportHub", new { area = "Admin" })';
+
+        const vehicleSearchUrl = '@Url.Action("SearchVehicles", "ReportHub", new { area = "Admin" })';
+        const vehicleByIdUrl = '@Url.Action("GetVehicleById", "ReportHub", new { area = "Admin" })';
+        const vehiclesListUrl = '@Url.Action("GetVehicles", "ReportHub", new { area = "Admin" })';
+
+        const selectedDriverId = '@selectedDriverProtected';
+        const selectedVehicleId = '@selectedVehicleProtected';
+
+        const last7From = '@last7From.ToString("yyyy-MM-dd")';
+        const last30From = '@last30From.ToString("yyyy-MM-dd")';
+        const monthStart = '@monthStart.ToString("yyyy-MM-dd")';
+        const today = '@today.ToString("yyyy-MM-dd")';
+
+        function setupQuickButtons() {
+            const btn7 = document.getElementById('quickLast7');
+            const btn30 = document.getElementById('quickLast30');
+            const btnMonth = document.getElementById('quickThisMonth');
+            const form = document.getElementById('reportFilterForm');
+            const fromInput = document.getElementById('filterFrom');
+            const toInput = document.getElementById('filterTo');
+
+            if (btn7) {
+                btn7.addEventListener('click', () => {
+                    fromInput._flatpickr.setDate(last7From);
+                    toInput._flatpickr.setDate(today);
+                    form.submit();
+                });
+            }
+
+            if (btn30) {
+                btn30.addEventListener('click', () => {
+                    fromInput._flatpickr.setDate(last30From);
+                    toInput._flatpickr.setDate(today);
+                    form.submit();
+                });
+            }
+
+            if (btnMonth) {
+                btnMonth.addEventListener('click', () => {
+                    fromInput._flatpickr.setDate(monthStart);
+                    toInput._flatpickr.setDate(today);
+                    form.submit();
+                });
+            }
+        }
+
+        function initFlatpickr() {
+            const fromInput = document.getElementById('filterFrom');
+            const toInput = document.getElementById('filterTo');
+
+            if (fromInput && typeof flatpickr !== 'undefined') {
+                flatpickr(fromInput, {
+                    dateFormat: 'Y-m-d',
+                    maxDate: 'today',
+                    onChange: function(selectedDates, dateStr) {
+                        if (toInput._flatpickr) {
+                            toInput._flatpickr.set('minDate', dateStr);
+                        }
+                    }
+                });
+            }
+
+            if (toInput && typeof flatpickr !== 'undefined') {
+                flatpickr(toInput, {
+                    dateFormat: 'Y-m-d',
+                    maxDate: 'today',
+                    minDate: fromInput.value || null
+                });
+            }
+        }
+
+        function initDriverSelect() {
+            const sel = document.getElementById('driverSelect');
+            if (!sel) return;
+
+            if (window.jQuery && jQuery().select2) {
+                $(sel).select2({
+                    placeholder: 'Search driver name...',
+                    allowClear: true,
+                    width: '100%',
+                    ajax: {
+                        url: driverSearchUrl,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return { q: params.term, page: params.page || 1 };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return { results: data.results, pagination: { more: data.pagination && data.pagination.more } };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 1,
+                    templateResult: function (item) { return item.text; },
+                    templateSelection: function (item) { return item.text || item.id; }
+                });
+
+                if (selectedDriverId && selectedDriverId !== "") {
+                    fetch(driverByIdUrl + '?id=' + encodeURIComponent(selectedDriverId), { credentials: 'same-origin' })
+                        .then(r => r.ok ? r.json() : Promise.reject('Driver by id fetch failed'))
+                        .then(obj => {
+                            if (obj && obj.id) {
+                                const option = new Option(obj.text, obj.id, true, true);
+                                $(sel).empty().append(option).trigger('change');
+                            }
+                        })
+                        .catch(err => {
+                            console.warn('Could not load selected driver:', err);
+                            populateDriversFallback(sel, selectedDriverId);
+                        });
+                }
+            } else {
+                populateDriversFallback(sel, selectedDriverId);
+            }
+        }
+
+        function initVehicleSelect() {
+            const sel = document.getElementById('vehicleSelect');
+            if (!sel) return;
+
+            if (window.jQuery && jQuery().select2) {
+                $(sel).select2({
+                    placeholder: 'Search vehicle (make/model/plate)...',
+                    allowClear: true,
+                    width: '100%',
+                    ajax: {
+                        url: vehicleSearchUrl,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return { q: params.term, page: params.page || 1 };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return { results: data.results, pagination: { more: data.pagination && data.pagination.more } };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 1,
+                    templateResult: function (item) { return item.text; },
+                    templateSelection: function (item) { return item.text || item.id; }
+                });
+
+                if (selectedVehicleId && selectedVehicleId !== "") {
+                    fetch(vehicleByIdUrl + '?id=' + encodeURIComponent(selectedVehicleId), { credentials: 'same-origin' })
+                        .then(r => r.ok ? r.json() : Promise.reject('Vehicle by id fetch failed'))
+                        .then(obj => {
+                            if (obj && obj.id) {
+                                const option = new Option(obj.text, obj.id, true, true);
+                                $(sel).empty().append(option).trigger('change');
+                            }
+                        })
+                        .catch(err => {
+                            console.warn('Could not load selected vehicle:', err);
+                            populateVehiclesFallback(sel, selectedVehicleId);
+                        });
+                }
+            } else {
+                populateVehiclesFallback(sel, selectedVehicleId);
+            }
+        }
+
+        async function populateDriversFallback(selElement, selectedId) {
+            try {
+                const res = await fetch(driversListUrl, { credentials: 'same-origin' });
+                if (!res.ok) throw new Error('Failed to fetch drivers list');
+                const data = await res.json();
+
+                for (let i = selElement.options.length - 1; i >= 0; i--) {
+                    if (selElement.options[i].value !== "") selElement.remove(i);
+                }
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.value;
+                    opt.textContent = item.text;
+                    selElement.appendChild(opt);
+                });
+                if (selectedId) selElement.value = selectedId;
+            } catch (err) {
+                console.error('populateDriversFallback error', err);
+            }
+        }
+
+        async function populateVehiclesFallback(selElement, selectedId) {
+            try {
+                const res = await fetch(vehiclesListUrl, { credentials: 'same-origin' });
+                if (!res.ok) throw new Error('Failed to fetch vehicles list');
+                const data = await res.json();
+
+                for (let i = selElement.options.length - 1; i >= 0; i--) {
+                    if (selElement.options[i].value !== "") selElement.remove(i);
+                }
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.value;
+                    opt.textContent = item.text;
+                    selElement.appendChild(opt);
+                });
+                if (selectedId) selElement.value = selectedId;
+            } catch (err) {
+                console.error('populateVehiclesFallback error', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                initFlatpickr();
+                setupQuickButtons();
+                initDriverSelect();
+                initVehicleSelect();
+            } catch (e) {
+                console.error('ReportFilters init error', e);
+            }
+        });
+    })();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.ReportsCenter
+@using FleetManager.Business.UtilityModels.CommonSecurity
+@model ReportFilter
+
+@inject IIdProtector IdProtector
+
+@{
+    // Dates used for quick actions
+    var today = DateTime.UtcNow.Date;
+    var last7From = today.AddDays(-6);
+    var last30From = today.AddDays(-29);
+    var monthStart = new DateTime(today.Year, today.Month, 1);
+
+    var fromVal = Model?.From?.ToString("yyyy-MM-dd") ?? "";
+    var toVal = Model?.To?.ToString("yyyy-MM-dd") ?? "";
+
+    // Protected selected ids (rendered as option values)
+    var selectedDriverProtected = Model?.DriverId != null ? IdProtector.ProtectId(Model.DriverId.Value) : "";
+    var selectedVehicleProtected = Model?.VehicleId != null ? IdProtector.ProtectId(Model.VehicleId.Value) : "";
+}
+
+<form id="reportFilterForm" class="mb-3 row g-2 align-items-end" method="get">
+    <div class="col-auto">
+        <label class="form-label mb-1">From</label>
+        <input id="filterFrom" name="from" class="form-control" type="date" value="@fromVal" />
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label mb-1">To</label>
+        <input id="filterTo" name="to" class="form-control" type="date" value="@toVal" />
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label mb-1">Driver</label>
+        <select id="driverSelect" name="driverId" class="form-control" style="width:260px;">
+            @if (!string.IsNullOrEmpty(selectedDriverProtected))
+            {
+                <option value="@selectedDriverProtected">Loading...</option>
+            }
+            else
+            {
+                <option value="">All</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <label class="form-label mb-1">Vehicle</label>
+        <select id="vehicleSelect" name="vehicleId" class="form-control" style="width:320px;">
+            @if (!string.IsNullOrEmpty(selectedVehicleProtected))
+            {
+                <option value="@selectedVehicleProtected">Loading...</option>
+            }
+            else
+            {
+                <option value="">All</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Apply</button>
+    </div>
+
+    <div class="col-auto">
+        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "ReportHub", new { area = "Admin" })">Back to Report Hub</a>
+    </div>
+
+    <div class="col-12 mt-2">
+        <small class="text-muted">Quick:</small>
+        <button type="button" id="quickLast7" class="btn btn-sm btn-link">Last 7 days</button>
+        <button type="button" id="quickLast30" class="btn btn-sm btn-link">Last 30 days</button>
+        <button type="button" id="quickThisMonth" class="btn btn-sm btn-link">This month</button>
+    </div>
+</form>
+
+<script>
+    (function () {
+        // URLs (ReportHub controller)
+        const driverSearchUrl = '@Url.Action("SearchDrivers", "ReportHub", new { area = "Admin" })';
+        const driverByIdUrl = '@Url.Action("GetDriverById", "ReportHub", new { area = "Admin" })';
+        const driversListUrl = '@Url.Action("GetDrivers", "ReportHub", new { area = "Admin" })';
+
+        const vehicleSearchUrl = '@Url.Action("SearchVehicles", "ReportHub", new { area = "Admin" })';
+        const vehicleByIdUrl = '@Url.Action("GetVehicleById", "ReportHub", new { area = "Admin" })';
+        const vehiclesListUrl = '@Url.Action("GetVehicles", "ReportHub", new { area = "Admin" })';
+
+        // Protected selected ids provided by server
+        const selectedDriverId = '@selectedDriverProtected';
+        const selectedVehicleId = '@selectedVehicleProtected';
+
+        const last7From = '@last7From.ToString("yyyy-MM-dd")';
+        const last30From = '@last30From.ToString("yyyy-MM-dd")';
+        const monthStart = '@monthStart.ToString("yyyy-MM-dd")';
+        const today = '@today.ToString("yyyy-MM-dd")';
+
+        // Quick button handlers: set inputs and submit current form
+        function setupQuickButtons() {
+            const btn7 = document.getElementById('quickLast7');
+            const btn30 = document.getElementById('quickLast30');
+            const btnMonth = document.getElementById('quickThisMonth');
+            const form = document.getElementById('reportFilterForm');
+            const fromInput = document.getElementById('filterFrom');
+            const toInput = document.getElementById('filterTo');
+
+            btn7 && btn7.addEventListener('click', () => {
+                fromInput.value = last7From;
+                toInput.value = today;
+                form.submit();
+            });
+            btn30 && btn30.addEventListener('click', () => {
+                fromInput.value = last30From;
+                toInput.value = today;
+                form.submit();
+            });
+            btnMonth && btnMonth.addEventListener('click', () => {
+                fromInput.value = monthStart;
+                toInput.value = today;
+                form.submit();
+            });
+        }
+
+        // Select init (Select2 if present; fallback otherwise). Select2 expects JSON.id to be the protected id string.
+        function initDriverSelect() {
+            const sel = document.getElementById('driverSelect');
+            if (!sel) return;
+
+            if (window.jQuery && jQuery().select2) {
+                $(sel).select2({
+                    placeholder: 'Search driver name...',
+                    allowClear: true,
+                    width: 'resolve',
+                    ajax: {
+                        url: driverSearchUrl,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return { q: params.term, page: params.page || 1 };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return { results: data.results, pagination: { more: data.pagination && data.pagination.more } };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 1,
+                    templateResult: function (item) { return item.text; },
+                    templateSelection: function (item) { return item.text || item.id; }
+                });
+
+                if (selectedDriverId && selectedDriverId !== "") {
+                    // selectedDriverId is the protected id already
+                    fetch(driverByIdUrl + '?id=' + encodeURIComponent(selectedDriverId), { credentials: 'same-origin' })
+                        .then(r => r.ok ? r.json() : Promise.reject('Driver by id fetch failed'))
+                        .then(obj => {
+                            if (obj && obj.id) {
+                                const option = new Option(obj.text, obj.id, true, true);
+                                $(sel).empty().append(option).trigger('change');
+                            }
+                        })
+                        .catch(err => {
+                            console.warn('Could not load selected driver:', err);
+                            populateDriversFallback(sel, selectedDriverId);
+                        });
+                }
+            } else {
+                populateDriversFallback(sel, selectedDriverId);
+            }
+        }
+
+        function initVehicleSelect() {
+            const sel = document.getElementById('vehicleSelect');
+            if (!sel) return;
+
+            if (window.jQuery && jQuery().select2) {
+                $(sel).select2({
+                    placeholder: 'Search vehicle (make/model/plate)...',
+                    allowClear: true,
+                    width: 'resolve',
+                    ajax: {
+                        url: vehicleSearchUrl,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return { q: params.term, page: params.page || 1 };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return { results: data.results, pagination: { more: data.pagination && data.pagination.more } };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 1,
+                    templateResult: function (item) { return item.text; },
+                    templateSelection: function (item) { return item.text || item.id; }
+                });
+
+                if (selectedVehicleId && selectedVehicleId !== "") {
+                    fetch(vehicleByIdUrl + '?id=' + encodeURIComponent(selectedVehicleId), { credentials: 'same-origin' })
+                        .then(r => r.ok ? r.json() : Promise.reject('Vehicle by id fetch failed'))
+                        .then(obj => {
+                            if (obj && obj.id) {
+                                const option = new Option(obj.text, obj.id, true, true);
+                                $(sel).empty().append(option).trigger('change');
+                            }
+                        })
+                        .catch(err => {
+                            console.warn('Could not load selected vehicle:', err);
+                            populateVehiclesFallback(sel, selectedVehicleId);
+                        });
+                }
+            } else {
+                populateVehiclesFallback(sel, selectedVehicleId);
+            }
+        }
+
+        async function populateDriversFallback(selElement, selectedId) {
+            try {
+                const res = await fetch(driversListUrl, { credentials: 'same-origin' });
+                if (!res.ok) throw new Error('Failed to fetch drivers list');
+                const data = await res.json();
+
+                for (let i = selElement.options.length - 1; i >= 0; i--) {
+                    if (selElement.options[i].value !== "") selElement.remove(i);
+                }
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.value;   // item.value should be protected id
+                    opt.textContent = item.text;
+                    selElement.appendChild(opt);
+                });
+                if (selectedId) selElement.value = selectedId;
+            } catch (err) {
+                console.error('populateDriversFallback error', err);
+            }
+        }
+
+        async function populateVehiclesFallback(selElement, selectedId) {
+            try {
+                const res = await fetch(vehiclesListUrl, { credentials: 'same-origin' });
+                if (!res.ok) throw new Error('Failed to fetch vehicles list');
+                const data = await res.json();
+
+                for (let i = selElement.options.length - 1; i >= 0; i--) {
+                    if (selElement.options[i].value !== "") selElement.remove(i);
+                }
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.value; // item.value should be protected id
+                    opt.textContent = item.text;
+                    selElement.appendChild(opt);
+                });
+                if (selectedId) selElement.value = selectedId;
+            } catch (err) {
+                console.error('populateVehiclesFallback error', err);
+            }
+        }
+
+        // bootstrap all
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                setupQuickButtons();
+                initDriverSelect();
+                initVehicleSelect();
+            } catch (e) {
+                console.error('ReportFilters init error', e);
+            }
+        });
+    })();
+</script> *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

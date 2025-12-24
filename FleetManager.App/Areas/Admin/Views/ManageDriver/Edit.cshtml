@@ -610,7 +610,7 @@
                                 <button type="submit" class="btn btn-warning" id="submitBtn">
                                     <i class="fas fa-save"></i> Update Driver
                                 </button>
-                                <a asp-action="Details" asp-route-id="@Model.Input.Id" class="btn btn-outline-info">
+                                <a asp-action="Details" asp-protect-route-id="@Model.Input.Id" class="btn btn-outline-info">
                                     <i class="fas fa-eye"></i> View Details
                                 </a>
                                 <a asp-action="Index" class="btn btn-secondary">

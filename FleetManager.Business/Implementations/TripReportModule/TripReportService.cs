@@ -225,12 +225,13 @@ namespace FleetManager.Business.Implementations.TripReportModule
             var branchId = _authUser.CompanyBranchId.Value;
             var q = _db.Trips
                 .AsNoTracking()
-                .Include(t => t.Vehicle)
+                .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                 .Where(t => t.CompanyBranchId == branchId && t.IsActive && t.ActualDistance.HasValue
                             && t.CreatedDate >= startUtc && t.CreatedDate <= endUtc);
 
             var result = await q
-                .GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? t.Vehicle.PlateNo : "" })
+                .GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? (t.Vehicle.VehicleMake.Name + " " +t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo) : "" })
                 .Select(g => new DistanceByEntityDto
                 {
                     EntityId = g.Key.VehicleId,
@@ -282,7 +283,8 @@ namespace FleetManager.Business.Implementations.TripReportModule
             var branchId = _authUser.CompanyBranchId.Value;
             var q = _db.Trips
                 .AsNoTracking()
-                .Include(t => t.Vehicle)
+                .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                 .Include(t => t.Driver).ThenInclude(d => d.User)
                 .Where(t => t.CompanyBranchId == branchId && t.IsActive && t.CreatedDate >= startUtc && t.CreatedDate <= endUtc);
 
@@ -293,7 +295,7 @@ namespace FleetManager.Business.Implementations.TripReportModule
                 DriverId = t.DriverId,
                 DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                 VehicleId = t.VehicleId,
-                VehiclePlateNo = t.Vehicle != null ? t.Vehicle.PlateNo : null,
+                VehiclePlateNo = t.Vehicle != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo : null,
                 ActualDistance = t.ActualDistance,
                 ActualFuelCost = t.ActualFuelCost,
                 CreatedDate = t.CreatedDate
@@ -331,13 +333,14 @@ namespace FleetManager.Business.Implementations.TripReportModule
             // Use trips that have ActualStartDate/ActualEndDate to compute usage duration
             var q = _db.Trips
                 .AsNoTracking()
-                .Include(t => t.Vehicle)
+                .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                 .Where(t => t.CompanyBranchId == branchId && t.IsActive
                             && t.ActualStartDate.HasValue && t.ActualEndDate.HasValue
                             && t.ActualStartDate >= startUtc && t.ActualEndDate <= endUtc);
 
             var list = await q
-                .GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? t.Vehicle.PlateNo : "" })
+                .GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? (t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo) : "" })
                 .Select(g => new VehicleUtilizationDto
                 {
                     VehicleId = g.Key.VehicleId,
@@ -392,7 +395,8 @@ namespace FleetManager.Business.Implementations.TripReportModule
 
             var query = _db.Trips
                 .AsNoTracking()
-                .Include(t => t.Vehicle)
+                .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
+                .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
                 .Include(t => t.Driver).ThenInclude(d => d.User)
                 .Where(t => t.VehicleId == vehicleId && t.CompanyBranchId == branchId && t.IsActive)
                 .OrderByDescending(t => t.ScheduledStartDate);
@@ -402,7 +406,7 @@ namespace FleetManager.Business.Implementations.TripReportModule
             {
                 Id = t.Id,
                 TripNumber = t.TripNumber,
-                VehiclePlateNo = t.Vehicle != null ? t.Vehicle.PlateNo : "",
+                VehiclePlateNo = t.Vehicle != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo : "",
                 DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                 Origin = t.Origin,
                 Destination = t.Destination,

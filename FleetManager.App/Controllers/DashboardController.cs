@@ -1,26 +1,25 @@
-﻿using FleetManager.Business.Interfaces.UserModule;
+﻿using FleetManager.Business.Interfaces.DriverDashboardModule;
+using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FleetManager.App.Controllers
 {
-
-    [Authorize]
     public class DashboardController : Controller
     {
-        //private readonly IAuthUser _authUser;
-        //public DashboardController(IAuthUser authUser): base(authUser)
-        //{
-        //    _authUser = authUser;
-        //}
+        private readonly IDriverDashboardService _dashboardService;
 
-        public IActionResult Index()
+        public DashboardController(IDriverDashboardService dashboardService)
         {
-            
-            //var obj = _authUser;
+            _dashboardService = dashboardService;
+        }
 
-            return View();
+        public async Task<IActionResult> Index()
+        {
+            var resp = await _dashboardService.GetDriverDashboardAsync();
+            if (!resp.Success) return View("Error", resp.Message);
+            return View(resp.Result);
         }
 
         public IActionResult Details()

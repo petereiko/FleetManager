@@ -88,7 +88,7 @@
                                                     <i class="fa fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-end">
-                                                    <a asp-action="Edit" asp-route-id="@a.Id" class="dropdown-item">
+                                                    <a asp-action="Edit" asp-protect-route-id="@a.Id" class="dropdown-item">
                                                         <i class="fa-solid fa-pen-to-square m-r-5"></i> Edit
                                                     </a>
                                                     <form asp-action="Delete" method="post" class="d-inline">
