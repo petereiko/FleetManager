@@ -53,6 +53,99 @@ namespace FleetManager.App.Controllers
         }
 
         #region Login
+        //[HttpPost]
+        //public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        model.Errors.Add(
+        //            ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
+        //        );
+        //        return View(model);
+        //    }
+
+        //    var user = await _userManager.FindByEmailAsync(model.Email);
+        //    if (user == null)
+        //    {
+        //        model.Errors.Add("Invalid Email/Password");
+        //        return View(model);
+        //    }
+
+        //    if (!user.EmailConfirmed)
+        //    {
+        //        model.Errors.Add("Your email has not been activated. Kindly activate your email first.");
+        //        return View(model);
+        //    }
+
+        //    if (!user.IsActive)
+        //    {
+        //        model.Errors.Add("Your account has been deactivated. Contact the administrators.");
+        //        return View(model);
+        //    }
+
+        //    if (user.IsFirstLogin)
+        //    {
+        //        string token = await _userService.GeneratePasswordResetToken(user.Id);
+        //        return RedirectToAction("ResetPassword", new { id = user.Id, token });
+        //    }
+
+        //    var signInResult = await _signInManager.PasswordSignInAsync(user, model.Password!, model.RememberMe, false);
+
+        //    if (signInResult.Succeeded)
+        //    {
+        //        TempData["SuccessMessage"] = "Login successful.";
+
+        //        var roles = await _userManager.GetRolesAsync(user);
+
+        //        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        //        {
+        //            return Redirect(returnUrl);
+        //        }
+
+        //        if (roles.Contains("Super Admin"))
+        //        {
+        //            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+        //        }
+        //        else if (roles.Contains("Company Owner"))
+        //        {
+        //            return RedirectToAction("Index", "Dashboard", new { area = "Company" });
+        //        }
+        //        else if (roles.Contains("Company Admin"))
+        //        {
+        //            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+        //        }
+        //        else if (roles.Contains("Driver"))
+        //        {
+        //            //return RedirectToAction("Index", "Dashboard");
+        //            return RedirectToAction("Index", "Dashboard", new { area = "User" });
+        //        }
+        //        else if (roles.Contains("Vendor"))
+        //        {
+        //            return RedirectToAction("Index", "Dashboard", new { area = "Vendor" });
+        //        }
+        //        else
+        //        {
+        //            TempData["ErrorMessage"] = "No recognized role assigned. Contact support.";
+        //            return RedirectToAction("Login");
+        //        }
+        //    }
+        //    else if (signInResult.IsLockedOut)
+        //    {
+        //        model.Errors.Add("You have been locked out");
+        //        return View(model);
+        //    }
+        //    else if (signInResult.IsNotAllowed)
+        //    {
+        //        model.Errors.Add("Not allowed at this time");
+        //        return View(model);
+        //    }
+        //    else
+        //    {
+        //        model.Errors.Add("Invalid Email/Password");
+        //        return View(model);
+        //    }
+        //}
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
         {
@@ -89,10 +182,14 @@ namespace FleetManager.App.Controllers
                 return RedirectToAction("ResetPassword", new { id = user.Id, token });
             }
 
-            var signInResult = await _signInManager.PasswordSignInAsync(user, model.Password!, model.RememberMe, false);
+            // ✅ Verify password WITHOUT signing in yet
+            var passwordCheck = await _signInManager.CheckPasswordSignInAsync(user, model.Password!, lockoutOnFailure: false);
 
-            if (signInResult.Succeeded)
+            if (passwordCheck.Succeeded)
             {
+                // ✅ Call CookieHere to sign in with proper claims
+                await CookieHere(user, model.RememberMe);
+
                 TempData["SuccessMessage"] = "Login successful.";
 
                 var roles = await _userManager.GetRolesAsync(user);
@@ -116,7 +213,6 @@ namespace FleetManager.App.Controllers
                 }
                 else if (roles.Contains("Driver"))
                 {
-                    //return RedirectToAction("Index", "Dashboard");
                     return RedirectToAction("Index", "Dashboard", new { area = "User" });
                 }
                 else if (roles.Contains("Vendor"))
@@ -129,12 +225,12 @@ namespace FleetManager.App.Controllers
                     return RedirectToAction("Login");
                 }
             }
-            else if (signInResult.IsLockedOut)
+            else if (passwordCheck.IsLockedOut)
             {
                 model.Errors.Add("You have been locked out");
                 return View(model);
             }
-            else if (signInResult.IsNotAllowed)
+            else if (passwordCheck.IsNotAllowed)
             {
                 model.Errors.Add("Not allowed at this time");
                 return View(model);
@@ -145,8 +241,6 @@ namespace FleetManager.App.Controllers
                 return View(model);
             }
         }
-
-
 
         #endregion
 

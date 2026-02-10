@@ -336,19 +336,25 @@ namespace FleetManager.Business.Implementations.TripModule
         {
             try
             {
-                if (_authUser?.CompanyBranchId == null) return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch." };
+                if (_authUser?.CompanyBranchId == null)
+                    return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch." };
 
                 var trip = await _context.Trips
                     .AsNoTracking()
-                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleMake)
-                    .Include(t => t.Vehicle).ThenInclude(v => v.VehicleModel)
-                    .Include(t => t.Driver).ThenInclude(d => d.User)
+                    .Include(t => t.Vehicle)
+                        .ThenInclude(v => v.VehicleMake)
+                    .Include(t => t.Vehicle)
+                        .ThenInclude(v => v.VehicleModel)
+                    .Include(t => t.Driver)
+                        .ThenInclude(d => d.User)
                     .Include(t => t.TripCheckpoints)
+                    .Include(t => t.TripExpenses) // Added
                     .FirstOrDefaultAsync(t => t.Id == id &&
                                               t.CompanyBranchId == _authUser.CompanyBranchId &&
                                               t.IsActive);
 
-                if (trip == null) return new MessageResponse<TripDto> { Success = false, Message = "Trip not found" };
+                if (trip == null)
+                    return new MessageResponse<TripDto> { Success = false, Message = "Trip not found" };
 
                 var tripDto = MapTripToDto(trip);
 
@@ -356,11 +362,10 @@ namespace FleetManager.Business.Implementations.TripModule
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving trip");
+                _logger.LogError(ex, "Error retrieving trip with ID {TripId}", id);
                 return new MessageResponse<TripDto> { Success = false, Message = "An error occurred while retrieving the trip" };
             }
         }
-
         public async Task<MessageResponse<PaginatedResult<TripListDto>>> GetTripsAsync(TripFilterDto filter)
         {
             try
@@ -2021,6 +2026,8 @@ namespace FleetManager.Business.Implementations.TripModule
                 ScheduledEndDate = trip.ScheduledEndDate,
                 ActualStartDate = trip.ActualStartDate,
                 ActualEndDate = trip.ActualEndDate,
+                StartTrip = trip.StartTime,
+                EndTrip = trip.EndTime,
                 EstimatedDistance = trip.EstimatedDistance,
                 ActualDistance = trip.ActualDistance,
                 EstimatedFuelCost = trip.EstimatedFuelCost,
@@ -2048,24 +2055,91 @@ namespace FleetManager.Business.Implementations.TripModule
                 ModifiedBy = trip.ModifiedBy
             };
 
-            // New: detect suspicious checkpoints (case-insensitive)
-            try
+            // Map Trip Checkpoints
+            if (trip.TripCheckpoints != null && trip.TripCheckpoints.Any())
             {
-                tripDto.HasSuspiciousLocation =
-                    trip.TripCheckpoints?.Any(c =>
-                        !string.IsNullOrWhiteSpace(c.Notes) &&
-                        c.Notes.IndexOf("SUSPICIOUS LOCATION", StringComparison.OrdinalIgnoreCase) >= 0
-                    ) ?? false;
+                tripDto.TripCheckpoints = trip.TripCheckpoints
+                    .OrderBy(c => c.CheckpointTime)
+                    .Select(c => new TripCheckpointDto
+                    {
+                        Id = c.Id,
+                        TripId = c.TripId,
+                        Location = c.Location,
+                        Description = c.Description,
+                        CheckpointTime = c.CheckpointTime,
+                        Latitude = c.Latitude,
+                        Longitude = c.Longitude,
+                        CheckpointType = c.CheckpointType,
+                        CheckpointTypeDisplay = c.CheckpointType.ToString(),
+                        Notes = c.Notes,
+                        ReadableAddress = GetReadableAddress(c.Location, c.Latitude, c.Longitude)
+                    })
+                    .ToList();
+
+                // Detect suspicious checkpoints (case-insensitive)
+                tripDto.HasSuspiciousLocation = trip.TripCheckpoints.Any(c =>
+                    !string.IsNullOrWhiteSpace(c.Notes) &&
+                    c.Notes.IndexOf("SUSPICIOUS LOCATION", StringComparison.OrdinalIgnoreCase) >= 0
+                );
             }
-            catch
+
+            // Map Trip Expenses
+            if (trip.TripExpenses != null && trip.TripExpenses.Any())
             {
-                // Defensive: if TripCheckpoints wasn't loaded or anything goes wrong, default to false
-                tripDto.HasSuspiciousLocation = false;
+                tripDto.TripExpenses = trip.TripExpenses
+                    .OrderByDescending(e => e.ExpenseDate)
+                    .Select(e => new TripExpenseDto
+                    {
+                        Id = e.Id,
+                        TripId = e.TripId,
+                        ExpenseType = e.ExpenseType,
+                        ExpenseTypeDisplay = e.ExpenseType.ToString(),
+                        Description = e.Description,
+                        Amount = e.Amount,
+                        Currency = e.Currency,
+                        ExpenseDate = e.ExpenseDate,
+                        ReceiptFileName = e.ReceiptFileName,
+                        ReceiptUrl = e.ReceiptUrl,
+                        IsVerified = e.IsVerified,
+                        VerifiedBy = e.VerifiedBy,
+                        VerificationDate = e.VerificationDate
+                    })
+                    .ToList();
             }
 
             return tripDto;
         }
 
+        // Helper method to get readable address
+        private string GetReadableAddress(string location, decimal? latitude, decimal? longitude)
+        {
+            // If location already has a readable address, use it
+            if (!string.IsNullOrWhiteSpace(location) && !location.Contains(",") && !IsCoordinateFormat(location))
+            {
+                return location;
+            }
+
+            // If we have coordinates but no readable address, format them nicely
+            if (latitude.HasValue && longitude.HasValue)
+            {
+                return $"{latitude.Value:F6}, {longitude.Value:F6}";
+            }
+
+            // Return the location as-is if we can't improve it
+            return location ?? "Unknown Location";
+        }
+
+        // Helper method to check if a string looks like coordinates
+        private bool IsCoordinateFormat(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return false;
+
+            // Check if the text contains both numbers and comma (basic coordinate pattern)
+            var parts = text.Split(',');
+            if (parts.Length != 2) return false;
+
+            return decimal.TryParse(parts[0].Trim(), out _) && decimal.TryParse(parts[1].Trim(), out _);
+        }
 
         #endregion
     }

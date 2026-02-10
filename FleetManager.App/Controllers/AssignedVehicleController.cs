@@ -8,6 +8,7 @@ using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.ViewModels;
 using FleetManager.Business.ViewModels.RepairHistoryViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace FleetManager.App.Controllers
 {
+    [Authorize(Policy = "DriverWeb")]
     public class AssignedVehicleController : Controller
     {
         
@@ -31,45 +33,6 @@ namespace FleetManager.App.Controllers
             _vehicleService = vehicleService;
             _service = service;
         }
-
-        //public async Task<IActionResult> Index()
-        //{
-        //    try
-        //    {
-        //        var userId = _authUser.UserId;
-        //        var driverId = await _assignmentService.GetDriverIdByUserAsync(userId);
-
-        //        // query assignments
-        //        var q = _assignmentService
-        //            .QueryAssignmentsByDriver(driverId);
-
-
-
-        //        var assignments = q
-        //            .OrderBy(a => a.StartDate)
-        //            .ToList();
-
-
-        //        var vm = new AssignmentIndexViewModel
-        //        {
-        //            DriverFilterId = driverId,
-        //            Assignments = assignments
-        //        };
-
-        //        return View(vm);
-        //    }
-        //    catch (UnauthorizedAccessException)
-        //    {
-        //        return Forbid();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error loading assignments");
-        //        return View("Error");
-        //    }
-        //}
-
-
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -105,52 +68,6 @@ namespace FleetManager.App.Controllers
                 return View("Error");
             }
         }
-
-
-
-         //─── DETAILS ─────────────────────────────────────────────────────────────────
-        //public async Task<IActionResult> Details(long id)
-        //{
-        //    try
-        //    {
-        //        var dto = await _vehicleService.GetVehicleByIdAsync(id);
-        //        if (dto == null) return NotFound();
-        //        return View(dto);
-        //    }
-        //    catch (UnauthorizedAccessException) { return Forbid(); }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error fetching vehicle details");
-        //        return View("Error");
-        //    }
-        //}
-
-
-        //[HttpGet]
-        //public async Task<IActionResult> Details(string protectedId)
-        //{
-        //    if (string.IsNullOrWhiteSpace(protectedId))
-        //        return BadRequest("Missing vehicle identifier.");
-
-        //    long vehicleId;
-        //    try
-        //    {
-        //        var unwrapped = _protector.Unprotect(protectedId);
-        //        vehicleId = long.Parse(unwrapped);
-        //    }
-        //    catch
-        //    {
-        //        return BadRequest("Invalid vehicle identifier.");
-        //    }
-
-        //    var dto = await _vehicleService.GetVehicleByIdAsync(vehicleId);
-        //    if (dto == null) return NotFound();
-
-        //    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-        //        return PartialView("_VehicleDetailsPartial", dto);
-
-        //    return View(dto);
-        //}
 
         [HttpGet]
         public async Task<IActionResult> Details(long vehicleId)
@@ -234,4 +151,54 @@ namespace FleetManager.App.Controllers
             }
         }
     }
+
+
+
+
+
+
+    //─── DETAILS ─────────────────────────────────────────────────────────────────
+    //public async Task<IActionResult> Details(long id)
+    //{
+    //    try
+    //    {
+    //        var dto = await _vehicleService.GetVehicleByIdAsync(id);
+    //        if (dto == null) return NotFound();
+    //        return View(dto);
+    //    }
+    //    catch (UnauthorizedAccessException) { return Forbid(); }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error fetching vehicle details");
+    //        return View("Error");
+    //    }
+    //}
+
+
+    //[HttpGet]
+    //public async Task<IActionResult> Details(string protectedId)
+    //{
+    //    if (string.IsNullOrWhiteSpace(protectedId))
+    //        return BadRequest("Missing vehicle identifier.");
+
+    //    long vehicleId;
+    //    try
+    //    {
+    //        var unwrapped = _protector.Unprotect(protectedId);
+    //        vehicleId = long.Parse(unwrapped);
+    //    }
+    //    catch
+    //    {
+    //        return BadRequest("Invalid vehicle identifier.");
+    //    }
+
+    //    var dto = await _vehicleService.GetVehicleByIdAsync(vehicleId);
+    //    if (dto == null) return NotFound();
+
+    //    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+    //        return PartialView("_VehicleDetailsPartial", dto);
+
+    //    return View(dto);
+    //}
+
 }

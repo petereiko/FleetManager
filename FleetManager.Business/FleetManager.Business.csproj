@@ -43,6 +43,7 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.15" />
     <PackageReference Include="Polly" Version="8.6.4" />
     <PackageReference Include="PuppeteerSharp" Version="20.2.2" />
+    <PackageReference Include="StackExchange.Redis" Version="2.10.14" />
   </ItemGroup>
 
 </Project>

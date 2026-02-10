@@ -16,6 +16,8 @@ namespace FleetManager.Business.DataObjects.TripsDto
         public string Origin { get; set; }
         public string Destination { get; set; }
         public DateTime ScheduledStartDate { get; set; }
+        public DateTime ActualStartDate { get; set; }
+        public decimal? EstimatedDistance { get; set; }
         public DateTime ScheduledEndDate { get; set; }
         public TripStatus Status { get; set; }
         public string StatusDisplay { get; set; }

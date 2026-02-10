@@ -1,18 +1,19 @@
 ﻿
+using FleetManager.Business;
 using FleetManager.Business.Database.Entities;
+using FleetManager.Business.DataObjects;
+using FleetManager.Business.DataObjects.ApiModels;
 using FleetManager.Business.DataObjects.VehicleDto;
 using FleetManager.Business.Enums;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.UtilityModels;
-using FleetManager.Business;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Net;
-using FleetManager.Business.DataObjects;
 
 
 namespace FleetManager.Business.Implementations.VehicleModule
@@ -501,6 +502,51 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 .ToListAsync();
         }
 
+        // Business/Implementations/VehicleModule/AdminVehicleService.cs
+        public async Task<string?> GetVehicleMainImageUrlAsync(long vehicleId)
+        {
+            try
+            {
+                var mainPhoto = await _context.VehicleDocuments
+                    .AsNoTracking()
+                    .Where(d => d.VehicleId == vehicleId && d.DocumentType == VehicleDocumentType.Photo)
+                    .OrderBy(d => d.Id)
+                    .Select(d => d.FilePath)
+                    .FirstOrDefaultAsync();
+
+                return mainPhoto; // Returns the relative path like "/VehicleImages/abc123_car.jpg"
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error getting main image for vehicle {VehicleId}", vehicleId);
+                return null;
+            }
+        }
+
+        public async Task<List<VehiclePhotoDto>> GetVehiclePhotosAsync(long vehicleId)
+        {
+            try
+            {
+                var photos = await _context.VehicleDocuments
+                    .AsNoTracking()
+                    .Where(d => d.VehicleId == vehicleId && d.DocumentType == VehicleDocumentType.Photo)
+                    .OrderBy(d => d.Id)
+                    .Select(d => new VehiclePhotoDto
+                    {
+                        Id = d.Id,
+                        FileName = d.FileName,
+                        FilePath = d.FilePath // Relative path: "/VehicleImages/abc123_car.jpg"
+                    })
+                    .ToListAsync();
+
+                return photos;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting photos for vehicle {VehicleId}", vehicleId);
+                return new List<VehiclePhotoDto>();
+            }
+        }
 
         #region Load Vehicles Helper
 

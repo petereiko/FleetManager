@@ -79,5 +79,9 @@ namespace FleetManager.Business.DataObjects.TripsDto
         public DateTime? ModifiedDate { get; set; }
         public string? CreatedBy { get; set; }
         public string? ModifiedBy { get; set; }
+        // Collections
+        public List<TripExpenseDto> TripExpenses { get; set; } = new List<TripExpenseDto>();
+        public List<TripCheckpointDto> TripCheckpoints { get; set; } = new List<TripCheckpointDto>();
+
     }
 }

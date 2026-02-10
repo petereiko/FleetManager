@@ -1,4 +1,5 @@
-﻿using FleetManager.Business.DataObjects.VehicleDto;
+﻿using FleetManager.Business.DataObjects.ApiModels;
+using FleetManager.Business.DataObjects.VehicleDto;
 using FleetManager.Business.Enums;
 using FleetManager.Business.UtilityModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -38,7 +39,8 @@ namespace FleetManager.Business.Interfaces.VehicleModule
         List<SelectListItem> GetVehicleMakes();
         Task<List<SelectListItem>> GetVehicleModelsByMakeId(int makeId);
 
-
+        Task<string?> GetVehicleMainImageUrlAsync(long vehicleId);
+        Task<List<VehiclePhotoDto>> GetVehiclePhotosAsync(long vehicleId);
 
 
         /// <summary>

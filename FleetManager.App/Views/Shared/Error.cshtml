@@ -1,12 +1,5 @@
 ﻿@model ErrorViewModel
 
-
-@* @{
-    ViewData["Title"] = "Something went wrong";
-    //Layout = "_Layout"; // Remove this line if you want a standalone error page
-} *@
-
-
 @{
     int statusCode;
     if (!int.TryParse(Model.RequestId, out statusCode))
@@ -14,7 +7,7 @@
         statusCode = 500;
     }
     ViewData["Title"] = $"Error {statusCode}";
-    Layout = "_Layout"; // Remove this line if you want a standalone error page
+    Layout = null; // Remove this line if you want a standalone error page
     
     // Define status code specific messages
     string title, message, icon, actionText = "Go Home", actionUrl = "/";

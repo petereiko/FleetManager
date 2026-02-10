@@ -34,6 +34,7 @@ using FleetManager.Business.Implementations.RepairModule;
 using FleetManager.Business.Implementations.ReportHubModule;
 using FleetManager.Business.Implementations.ReportModule;
 using FleetManager.Business.Implementations.ScheduleModule;
+using FleetManager.Business.Implementations.TripLocationModule;
 using FleetManager.Business.Implementations.TripModule;
 using FleetManager.Business.Implementations.TripReportModule;
 using FleetManager.Business.Implementations.UserModule;
@@ -61,6 +62,7 @@ using FleetManager.Business.Interfaces.RepairModule;
 using FleetManager.Business.Interfaces.ReportHubModule;
 using FleetManager.Business.Interfaces.ReportModule;
 using FleetManager.Business.Interfaces.ScheduleModule;
+using FleetManager.Business.Interfaces.TripLocationModule;
 using FleetManager.Business.Interfaces.TripModule;
 using FleetManager.Business.Interfaces.TripReportModule;
 using FleetManager.Business.Interfaces.UserModule;
@@ -68,11 +70,14 @@ using FleetManager.Business.Interfaces.VehicleModule;
 using FleetManager.Business.Interfaces.VendorModule;
 using FleetManager.Business.Interfaces.WebhookModule;
 using FleetManager.Business.UtilityModels;
+using FleetManager.Business.UtilityModels.AuthenticationModule;
 using FleetManager.Business.UtilityModels.CommonSecurity;
 using FleetManager.Business.UtilityModels.PdfService;
+using FleetManager.Business.UtilityModels.RedisConfiguration;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -81,9 +86,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using PuppeteerSharp;
+using StackExchange.Redis;
 using System.Configuration;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -101,7 +109,15 @@ builder.Services.AddDbContext<FleetManagerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //builder.Services.AddMemoryCache();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true; // For development
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+    options.MaximumReceiveMessageSize = 102400; // 100 KB
+});
+//builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 
 // Add Identity
@@ -124,57 +140,6 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 .AddDefaultTokenProviders();
 
 
-var tempProvider = builder.Services.BuildServiceProvider();
-// Add authentication services
-using (var scope = tempProvider.CreateScope())
-{
-
-    builder.Services.ConfigureApplicationCookie(options =>
-    {
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(540);
-        options.SlidingExpiration = true;
-        options.Cookie.Name = "AuthDemo.Cookie";
-        options.LoginPath = "/Account/Login";
-        options.LogoutPath = "/Account/Logout";
-        options.AccessDeniedPath = "/Account/AccessDenied";
-    });
-}
-
-
-// Add authentication services
-//builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-//    .AddCookie(options =>
-//    {
-//        options.Cookie.Name = "AuthDemo.Cookie";
-//        options.LoginPath = "/Account/Login";
-//        options.LogoutPath = "/Account/Logout";
-//        options.AccessDeniedPath = "/Account/AccessDenied";
-//        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-//        options.SlidingExpiration = true;
-//        options.Cookie.HttpOnly = true;
-//        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Use HTTPS
-
-
-
-//        // 👇 Custom redirect logic
-//        options.Events = new CookieAuthenticationEvents
-//        {
-//            OnRedirectToLogin = context =>
-//            {
-//                var isExpired = context.Request.Cookies["AuthDemo.Cookie"] != null;
-
-//                // If cookie exists but the session is invalid (likely expired)
-//                if (isExpired && !context.HttpContext.User.Identity.IsAuthenticated)
-//                {
-//                    context.Response.Redirect("/Account/SessionExpired");
-//                    return Task.CompletedTask;
-//                }
-
-//                context.Response.Redirect(context.RedirectUri); // default behavior
-//                return Task.CompletedTask;
-//            }
-//        };
-//    });
 builder.Services.AddAuthorization();
 
 builder.Services.AddHttpContextAccessor();
@@ -241,6 +206,14 @@ builder.Services.AddTransient<IAuthUser, AuthUser>();
 builder.Services.AddTransient<BackgroundJobService>();
 
 
+builder.Services.AddSingleton<IRedisService, RedisService>();
+
+// ✅ Location Service
+builder.Services.AddScoped<ITripLocationService, TripLocationService>();
+builder.Services.AddScoped<ILocationFilterService, LocationFilterService>();
+builder.Services.AddScoped<LocationProcessingJob>();
+
+
 // DbContextFActory
 //builder.Services.AddDbContextFactory<FleetManagerDbContext>(options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -279,24 +252,147 @@ builder.Services.AddSingleton(browser);
 // 3) Your PDF service
 builder.Services.AddScoped<IPdfService, PuppeteerPdfService>();
 
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Name = "FleetManager.Auth";
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(540);
+    options.SlidingExpiration = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
+
+// ------------------------
+// Add Authentication for JWT + Cookies together
+// ------------------------
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "SmartAuth";
+    options.DefaultChallengeScheme = "SmartAuth";
+})
+.AddPolicyScheme("SmartAuth", "JWT or Cookie", options =>
+{
+    options.ForwardDefaultSelector = context =>
+    {
+        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            return JwtBearerDefaults.AuthenticationScheme;
+
+        return IdentityConstants.ApplicationScheme; // Identity cookie
+    };
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]
+            ?? throw new InvalidOperationException("JWT Secret not configured"))
+        ),
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+// ------------------------
+// Authorization policies
+// ------------------------
+builder.Services.AddAuthorization(options =>
+{
+    // Web access for Drivers
+    options.AddPolicy("DriverWeb", policy => policy.RequireRole("Driver"));
+
+    // API access for Drivers using JWT
+    options.AddPolicy("DriverApi", policy =>
+    {
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireRole("Driver");
+    });
+});
+
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.AddPolicy("DriverWeb", policy => policy.RequireRole("Driver"));
+//    options.AddPolicy("DriverApi", policy =>
+//    {
+//        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+//        policy.RequireRole("Driver");
+//    });
+//});
+
+
+// ✅ Redis Configuration
+builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection("RedisSettings"));
+builder.Services.Configure<LocationTrackingSettings>(builder.Configuration.GetSection("LocationTrackingSettings"));
+
+var redisSettings = builder.Configuration.GetSection("RedisSettings").Get<RedisSettings>();
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = ConfigurationOptions.Parse(redisSettings.ConnectionString);
+    configuration.AbortOnConnectFail = redisSettings.AbortOnConnectFail;
+    configuration.ConnectTimeout = redisSettings.ConnectTimeout;
+    configuration.SyncTimeout = redisSettings.SyncTimeout;
+
+    return ConnectionMultiplexer.Connect(configuration);
+});
+
+
+
+//builder.Services.AddHangfire(configuration => configuration
+//    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+//    .UseSimpleAssemblyNameTypeSerializer()
+//    .UseDefaultTypeSerializer()
+//    .UseSqlServerStorage(builder.Configuration.GetConnectionString("HangfireConnection"), new SqlServerStorageOptions
+//    {
+//        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+//        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+//        QueuePollInterval = TimeSpan.FromSeconds(15),
+//        UseRecommendedIsolationLevel = true,
+//        DisableGlobalLocks = true
+//    }));
 
 builder.Services.AddHangfire(configuration => configuration
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
-    .UseDefaultTypeSerializer()
+    .UseRecommendedSerializerSettings()
     .UseSqlServerStorage(builder.Configuration.GetConnectionString("HangfireConnection"), new SqlServerStorageOptions
     {
         CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
         SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
         QueuePollInterval = TimeSpan.FromSeconds(15),
         UseRecommendedIsolationLevel = true,
-        DisableGlobalLocks = true
+        DisableGlobalLocks = true,
+        PrepareSchemaIfNecessary = true
     }));
 
-
-builder.Services.AddHangfireServer();
-
-
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = Environment.ProcessorCount * 2;
+    options.Queues = new[] { "default", "locations", "notifications" };
+});
 //Google Map
 
 builder.Services.Configure<GoogleRoutesApiOptions>(builder.Configuration.GetSection("GoogleRoutesApi"));
@@ -347,32 +443,6 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-//app.UseStaticFiles(new StaticFileOptions()
-//{
-//    FileProvider = new PhysicalFileProvider(
-//    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Template")),
-//    RequestPath = "/wwwroot/Template"
-//});
-//app.UseStaticFiles(new StaticFileOptions()
-//{
-//    FileProvider = new PhysicalFileProvider(
-//    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "AppFile")),
-//    RequestPath = "/wwwroot/AppFile"
-//});
-//app.UseStaticFiles(new StaticFileOptions()
-//{
-//    FileProvider = new PhysicalFileProvider(
-//    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "logos")),
-//    RequestPath = "/wwwroot/logos"
-//});
-
-//app.UseStaticFiles(new StaticFileOptions()
-//{
-//    FileProvider = new PhysicalFileProvider(
-//    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Passports")),
-//    RequestPath = "/passports"
-//});
-
 
 app.UseRouting();
 
@@ -391,7 +461,20 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     Authorization = new[] { new HangfireDashboardAuthorizationFilter() },
     DashboardTitle = "FleetGuard Background Jobs"
 });
+//// ✅ Schedule recurring location processing job
+//var locationSettings = builder.Configuration.GetSection("LocationTrackingSettings").Get<LocationTrackingSettings>();
 
+//RecurringJob.AddOrUpdate<LocationProcessingJob>(
+//    "process-location-queue",
+//    job => job.ProcessLocations(),
+//    $"*/{locationSettings.BackgroundJobIntervalMinutes} * * * *" // Every N minutes
+//);
+
+
+//app.MapControllerRoute(
+//    name: "admin",
+//    pattern: "admin/{controller=Dashboard}/{action=Index}/{id?}",
+//    defaults: new { area = "Admin" });
 
 app.MapControllerRoute(
     name: "areas",
@@ -401,11 +484,19 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
+// Map SignalR Hub
+//app.UseEndpoints(endpoints =>
+//{
+//    endpoints.MapHub<TripTrackingHub>("/hubs/trip-tracking");
+
+//    // Your other endpoints
+//    endpoints.MapControllers();
+//    endpoints.MapRazorPages();
+//});
+
+app.MapHub<TripTrackingHub>("/hubs/trip-tracking");
 app.MapHub<NotificationHub>("/notificationHub");
 
-//RecurringJob.AddOrUpdate<BackgroundJobService>("SendBulkEmail", service => service.SendBulkEmail(), "*/2 * * * *");
-//RecurringJob.AddOrUpdate<BackgroundJobService>("VerifyTransfers", service => service.VerifyPayments(), "*/1 * * * *");
-//RecurringJob.AddOrUpdate<BackgroundJobService>("PushVisualAssessmentResult", service => service.PushVisualAssessmentResult(), "*/2 * * * *");//Every 1 minute
 
 
 //using (var scope = app.Services.CreateScope())
@@ -417,6 +508,14 @@ app.MapHub<NotificationHub>("/notificationHub");
 
 RecurringJob.AddOrUpdate<IPublicHolidayService>("GetHolidays", svc => svc.FetchAndStoreHolidaysAsync("NG", DateTime.UtcNow.Year), Cron.Yearly(1, 1)); // every Jan 1
 RecurringJob.AddOrUpdate<ITripReportService>("recompute-daily-aggregrates", svc => svc.RecomputeDailyAggregateAsync(DateTime.UtcNow.Date.AddDays(-1)), Cron.Daily); // every midnight
+var locationSettings = builder.Configuration.GetSection("LocationTrackingSettings").Get<LocationTrackingSettings>();
+
+RecurringJob.AddOrUpdate<ITripLocationService>(
+    "process-location-queue",
+    service => service.ProcessLocationQueueAsync(),
+    $"*/{locationSettings.BackgroundJobIntervalMinutes} * * * *" // Every 2 minutes
+);
+
 
 //Create a scope to resolve scoped services
 using (var scope = app.Services.CreateScope())

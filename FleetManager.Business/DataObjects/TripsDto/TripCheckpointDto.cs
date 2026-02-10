@@ -14,8 +14,11 @@ namespace FleetManager.Business.DataObjects.TripsDto
         public string Location { get; set; }
         public string? Description { get; set; }
         public DateTime CheckpointTime { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
         public CheckpointType CheckpointType { get; set; }
         public string CheckpointTypeDisplay { get; set; }
         public string? Notes { get; set; }
+        public string? ReadableAddress { get; set; } // Human-readable address
     }
 }

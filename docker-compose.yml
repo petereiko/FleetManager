@@ -1,0 +1,58 @@
+#version: '3.8'
+
+services:
+  # SQL Server
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: fleetmanager_sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Roseline07011169508
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - fleetmanager_network
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: fleetmanager_redis
+    command: redis-server --appendonly yes --requirepass Roseline07011169508
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fleetmanager_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Commander (Optional - Redis GUI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: fleetmanager_redis_commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:Roseline07011169508
+    ports:
+      - "8081:8081"
+    networks:
+      - fleetmanager_network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+  redis_data:
+
+networks:
+  fleetmanager_network:
+    driver: bridge

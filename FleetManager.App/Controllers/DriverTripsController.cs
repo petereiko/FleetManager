@@ -5,11 +5,13 @@ using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.TripModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.ViewModels.TripsViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace FleetManager.App.Controllers
 {
+    [Authorize(Policy = "DriverWeb")]
     public class DriverTripsController : Controller
     {
         private readonly ITripService _tripService;
@@ -69,35 +71,6 @@ namespace FleetManager.App.Controllers
 
             return PartialView("_StartPartial", vm);
         }
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Start(StartTripViewModel vm)
-        //{
-        //    if (!ModelState.IsValid) return View(vm);
-
-        //    var dto = new StartTripDto
-        //    {
-        //        TripId = vm.TripId,
-        //        StartOdometer = vm.StartOdometer,
-        //        Latitude = vm.Latitude, 
-        //        Longitude = vm.Longitude,
-        //        LatitudeAccuracy = vm.LatitudeAccuracy,
-        //        Notes = vm.Notes
-        //    };
-
-        //    var resp = await _tripService.StartTripAsync(dto);
-        //    if (!resp.Success)
-        //    {
-        //        ModelState.AddModelError(string.Empty, resp.Message);
-        //        return View(vm);
-        //    }
-
-        //    TempData["Success"] = resp.Message;
-        //    return RedirectToAction("Details", new { id = vm.TripId });
-        //}
-
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -215,32 +188,5 @@ namespace FleetManager.App.Controllers
         }
 
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Complete(CompleteTripViewModel vm)
-        //{
-        //    if (!ModelState.IsValid) return View(vm);
-
-        //    var dto = new CompleteTripDto
-        //    {
-        //        TripId = vm.TripId,
-        //        EndOdometer = vm.EndOdometer,
-        //        ActualFuelCost = vm.ActualFuelCost,
-        //        Latitude = vm.Latitude,
-        //        Longitude = vm.Longitude,
-        //        LatitudeAccuracy = vm.LatitudeAccuracy,
-        //        Notes = vm.Notes
-        //    };
-
-        //    var resp = await _tripService.CompleteTripAsync(dto);
-        //    if (!resp.Success)
-        //    {
-        //        ModelState.AddModelError(string.Empty, resp.Message);
-        //        return View(vm);
-        //    }
-
-        //    TempData["Success"] = resp.Message;
-        //    return RedirectToAction("Details", new { id = vm.TripId });
-        //}
     }
 }

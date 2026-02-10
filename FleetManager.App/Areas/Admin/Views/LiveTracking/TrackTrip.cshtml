@@ -1,0 +1,977 @@
+@using FleetManager.Business.Enums
+@using FleetManager.Business.ViewModels.TripsViewModels
+@model TripTrackingViewModel
+@{
+    ViewData["Title"] = $"Live Tracking - {Model.Trip.TripNumber}";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    :root {
+        --primary-color: #000000;
+        --accent-color: #00b14f;
+        --danger-color: #dc3545;
+        --text-primary: #1a1a1a;
+        --text-secondary: #6c757d;
+        --border-color: #e0e0e0;
+        --background-light: #f8f9fa;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        overflow: hidden;
+    }
+
+    .tracking-container {
+        display: flex;
+        height: 100vh;
+        background: #fff;
+    }
+
+    /* Left Sidebar */
+    .tracking-sidebar {
+        width: 380px;
+        background: white;
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+        z-index: 1000;
+    }
+
+    .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border-color);
+        background: linear-gradient(135deg, var(--primary-color) 0%, #2c2c2c 100%);
+        color: white;
+    }
+
+    .sidebar-header h4 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .trip-number-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-top: 8px;
+    }
+
+    .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    /* Trip Status Card */
+    .trip-status-card {
+        background: linear-gradient(135deg, var(--accent-color) 0%, #009940 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0, 177, 79, 0.2);
+    }
+
+    .trip-status-card.completed {
+        background: linear-gradient(135deg, #28a745 0%, #20883b 100%);
+    }
+
+    .trip-status-card.scheduled {
+        background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    }
+
+    .status-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.9;
+        margin-bottom: 4px;
+    }
+
+    .status-value {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    /* Trip Details */
+    .trip-detail-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .trip-detail-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--background-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .detail-icon i {
+        font-size: 18px;
+        color: var(--primary-color);
+    }
+
+    .detail-content {
+        flex: 1;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+        font-size: 15px;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    /* Location Stats */
+    .location-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .stat-card {
+        background: var(--background-light);
+        padding: 16px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary-color);
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 11px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 4px;
+    }
+
+    /* Live Indicator */
+    .live-indicator {
+        display: inline-flex;
+        align-items: center;
+        background: var(--danger-color);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        margin-right: 6px;
+        animation: pulse 1.5s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    /* Map Container */
+    .map-container {
+        flex: 1;
+        position: relative;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Map Controls */
+    .map-controls {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 900;
+    }
+
+    .map-control-btn {
+        background: white;
+        border: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .map-control-btn:hover {
+        background: var(--background-light);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .map-control-btn i {
+        font-size: 18px;
+        color: var(--primary-color);
+    }
+
+    /* Connection Status */
+    .connection-status {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 900;
+        font-size: 13px;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--danger-color);
+    }
+
+    .status-dot.connected {
+        background: var(--accent-color);
+    }
+
+    /* Vehicle Marker */
+    .vehicle-marker {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-color);
+        border: 3px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+
+    .vehicle-marker:hover {
+        transform: scale(1.1);
+    }
+
+    .vehicle-marker i {
+        color: white;
+        font-size: 20px;
+    }
+
+    /* Info Window */
+    .gm-style-iw {
+        border-radius: 8px;
+    }
+
+    .info-window {
+        padding: 12px;
+        min-width: 200px;
+    }
+
+    .info-window h5 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .info-window p {
+        margin: 4px 0;
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .info-window .speed {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--accent-color);
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        flex-direction: column;
+    }
+
+    .loading-overlay .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--border-color);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .loading-overlay p {
+        margin-top: 16px;
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .tracking-sidebar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            transform: translateX(-100%);
+            transition: transform 0.3s;
+            z-index: 1001;
+        }
+
+        .tracking-sidebar.open {
+            transform: translateX(0);
+        }
+
+        .mobile-toggle {
+            display: block !important;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 900;
+        }
+    }
+
+    .mobile-toggle {
+        display: none;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        padding: 20px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-action {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #2c2c2c;
+    }
+
+    .btn-secondary {
+        background: var(--background-light);
+        color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+</style>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>Initializing live tracking...</p>
+</div>
+
+<!-- Main Container -->
+<div class="tracking-container">
+    <!-- Left Sidebar -->
+    <div class="tracking-sidebar" id="sidebar">
+        <!-- Header -->
+        <div class="sidebar-header">
+            <h4>Live Trip Tracking</h4>
+            <span class="trip-number-badge">@Model.Trip.TripNumber</span>
+        </div>
+
+        <!-- Content -->
+        <div class="sidebar-content">
+            @if (Model.IsActive)
+            {
+                <div class="live-indicator">
+                    <span class="live-dot"></span>
+                    LIVE TRACKING
+                </div>
+            }
+
+            <!-- Status Card -->
+            <div class="trip-status-card @(Model.Trip.Status == TripStatus.InProgress ? "" : Model.Trip.Status == TripStatus.Completed ? "completed" : "scheduled")">
+                <div class="status-label">Current Status</div>
+                <h2 class="status-value">@Model.Trip.Status.ToString()</h2>
+            </div>
+
+            <!-- Location Stats -->
+            @if (Model.LatestLocation != null)
+            {
+                <div class="location-stats">
+                    <div class="stat-card">
+                        <span class="stat-value" id="currentSpeed">
+                            @(Model.LatestLocation.Speed?.ToString("F0") ?? "0")
+                        </span>
+                        <span class="stat-label">km/h</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="lastUpdate">--</span>
+                        <span class="stat-label">Last Update</span>
+                    </div>
+                </div>
+            }
+
+            <!-- Trip Details -->
+            <div class="trip-detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-label">Vehicle</div>
+                    <div class="detail-value">@Model.Trip.VehiclePlateNo</div>
+                </div>
+            </div>
+
+            <div class="trip-detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-label">Driver</div>
+                    <div class="detail-value">@Model.Trip.DriverName</div>
+                </div>
+            </div>
+
+            <div class="trip-detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-label">Origin</div>
+                    <div class="detail-value">@Model.Trip.Origin</div>
+                </div>
+            </div>
+
+            <div class="trip-detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-flag-checkered"></i>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-label">Destination</div>
+                    <div class="detail-value">@Model.Trip.Destination</div>
+                </div>
+            </div>
+
+            <div class="trip-detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-route"></i>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-label">Distance</div>
+                    <div class="detail-value" id="totalDistance">
+                        @(Model.Trip.ActualDistance?.ToString("F1") ?? Model.Trip.EstimatedDistance?.ToString("F1") ?? "0") km
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Trip.ActualStartDate.HasValue)
+            {
+                <div class="trip-detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="detail-content">
+                        <div class="detail-label">Started</div>
+                        <div class="detail-value">
+                            @Model.Trip.ActualStartDate.Value.ToString("MMM dd, yyyy HH:mm")
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn-action btn-secondary" onclick="window.location.href='admin/livetracking/dashboard'">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button class="btn-action btn-primary" id="centerMapBtn">
+                <i class="fas fa-crosshairs"></i> Center
+            </button>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="map-container">
+        <div id="map"></div>
+
+        <!-- Mobile Toggle -->
+        <button class="map-control-btn mobile-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Map Controls -->
+        <div class="map-controls">
+            <button class="map-control-btn" id="zoomInBtn" title="Zoom In">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="map-control-btn" id="zoomOutBtn" title="Zoom Out">
+                <i class="fas fa-minus"></i>
+            </button>
+            <button class="map-control-btn" id="toggleRouteBtn" title="Toggle Route">
+                <i class="fas fa-route"></i>
+            </button>
+            <button class="map-control-btn" id="fullscreenBtn" title="Fullscreen">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="connection-status">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Connecting...</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
+<script>
+    // Configuration
+    const CONFIG = {
+        tripId: @Model.Trip.Id,
+            mapApiKey: 'AIzaSyDx29-c8amIRFLj1tNiI3bN3efiJZGcJSg', // Replace with your API key
+        updateInterval: 5000,
+        defaultZoom: 14,
+        routeColor: '#000000',
+        vehicleColor: '#00b14f'
+    };
+
+    // State
+    let map, vehicleMarker, routePolyline, infoWindow;
+    let signalRConnection;
+    let routeCoordinates = [];
+    let isRouteVisible = true;
+    let lastLocation = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        initSignalR();
+        initEventHandlers();
+    });
+
+    // Initialize Google Maps
+    function initMap() {
+        const defaultCenter = @if (Model.LatestLocation != null)
+        {
+            @:{ lat: @Model.LatestLocation.Latitude, lng: @Model.LatestLocation.Longitude };
+        }
+        else
+        {
+            @:{ lat: 0, lng: 0 };
+        }
+
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: CONFIG.defaultZoom,
+            center: defaultCenter,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            styles: [
+                {
+                    featureType: 'poi',
+                    elementType: 'labels',
+                    stylers: [{ visibility: 'off' }]
+                }
+            ]
+        });
+
+        // Initialize polyline for route
+        routePolyline = new google.maps.Polyline({
+            path: [],
+            geodesic: true,
+            strokeColor: CONFIG.routeColor,
+            strokeOpacity: 0.8,
+            strokeWeight: 4,
+            map: map
+        });
+
+        // Initialize info window
+        infoWindow = new google.maps.InfoWindow();
+
+        // Load historical route
+        loadRouteHistory();
+    }
+
+    // Initialize SignalR Connection
+    function initSignalR() {
+        signalRConnection = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/trip-tracking')
+            .withAutomaticReconnect([0, 2000, 5000, 10000])
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        // Connection events
+        signalRConnection.on('LocationUpdate', handleLocationUpdate);
+        signalRConnection.on('RouteHistory', handleRouteHistory);
+        signalRConnection.on('TrackingStarted', handleTrackingStarted);
+        signalRConnection.on('TrackingError', handleTrackingError);
+
+        signalRConnection.onclose(() => {
+            updateConnectionStatus(false);
+            console.log('SignalR connection closed');
+        });
+
+        signalRConnection.onreconnecting(() => {
+            updateConnectionStatus(false, 'Reconnecting...');
+        });
+
+        signalRConnection.onreconnected(() => {
+            updateConnectionStatus(true);
+            subscribeToTrip();
+        });
+
+        // Start connection
+        startSignalRConnection();
+    }
+
+    async function startSignalRConnection() {
+        try {
+            await signalRConnection.start();
+            console.log('SignalR connected');
+            updateConnectionStatus(true);
+            await subscribeToTrip();
+        } catch (err) {
+            console.error('SignalR connection error:', err);
+            updateConnectionStatus(false, 'Connection failed');
+            setTimeout(startSignalRConnection, 5000);
+        }
+    }
+
+    async function subscribeToTrip() {
+        try {
+            await signalRConnection.invoke('TrackTrip', CONFIG.tripId);
+            console.log('Subscribed to trip:', CONFIG.tripId);
+        } catch (err) {
+            console.error('Error subscribing to trip:', err);
+        }
+    }
+
+    // Load historical route
+    async function loadRouteHistory() {
+        try {
+            const response = await fetch(`admin/livetracking/api/trip/${CONFIG.tripId}/route`);
+            const data = await response.json();
+
+            if (data.success && data.locations && data.locations.length > 0) {
+                routeCoordinates = data.locations.map(loc => ({
+                    lat: loc.latitude,
+                    lng: loc.longitude,
+                    timestamp: loc.timestamp,
+                    speed: loc.speed
+                }));
+
+                routePolyline.setPath(routeCoordinates);
+
+                // Fit map to route
+                const bounds = new google.maps.LatLngBounds();
+                routeCoordinates.forEach(coord => bounds.extend(coord));
+                map.fitBounds(bounds);
+
+                // Create vehicle marker at latest location
+                if (routeCoordinates.length > 0) {
+                    const latest = routeCoordinates[routeCoordinates.length - 1];
+                    createVehicleMarker(latest);
+                }
+            }
+
+            hideLoading();
+        } catch (err) {
+            console.error('Error loading route history:', err);
+            hideLoading();
+        }
+    }
+
+    // SignalR Event Handlers
+    function handleLocationUpdate(data) {
+        console.log('Location update received:', data);
+
+        const location = {
+            lat: data.location.latitude,
+            lng: data.location.longitude,
+            speed: data.location.speed,
+            heading: data.location.heading,
+            accuracy: data.location.accuracy,
+            timestamp: data.location.timestamp
+        };
+
+        // Add to route
+        routeCoordinates.push(location);
+        routePolyline.setPath(routeCoordinates);
+
+        // Update vehicle marker
+        updateVehicleMarker(location);
+
+        // Update UI
+        updateLocationStats(location);
+        updateLastUpdateTime();
+
+        lastLocation = location;
+    }
+
+    function handleRouteHistory(data) {
+        console.log('Route history received:', data.totalPoints, 'points');
+    }
+
+    function handleTrackingStarted(data) {
+        console.log('Tracking started:', data);
+        updateConnectionStatus(true, 'Live');
+    }
+
+    function handleTrackingError(data) {
+        console.error('Tracking error:', data);
+        updateConnectionStatus(false, 'Error');
+    }
+
+    // Vehicle Marker Management
+    function createVehicleMarker(location) {
+        if (vehicleMarker) {
+            vehicleMarker.setMap(null);
+        }
+
+        const icon = {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 12,
+            fillColor: CONFIG.vehicleColor,
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 3
+        };
+
+        vehicleMarker = new google.maps.Marker({
+            position: location,
+            map: map,
+            icon: icon,
+            title: 'Vehicle Location',
+            zIndex: 1000
+        });
+
+        vehicleMarker.addListener('click', () => {
+            showVehicleInfo(location);
+        });
+    }
+
+    function updateVehicleMarker(location) {
+        if (!vehicleMarker) {
+            createVehicleMarker(location);
+        } else {
+            // Smooth animation
+            animateMarker(vehicleMarker, location);
+        }
+    }
+
+    function animateMarker(marker, newPosition) {
+        const startPosition = marker.getPosition();
+        const endPosition = new google.maps.LatLng(newPosition.lat, newPosition.lng);
+
+        let step = 0;
+        const numSteps = 30;
+        const delay = 50;
+
+        const animate = () => {
+            step++;
+            const progress = step / numSteps;
+
+            const lat = startPosition.lat() + (endPosition.lat() - startPosition.lat()) * progress;
+            const lng = startPosition.lng() + (endPosition.lng() - startPosition.lng()) * progress;
+
+            marker.setPosition(new google.maps.LatLng(lat, lng));
+
+            if (step < numSteps) {
+                setTimeout(animate, delay);
+            }
+        };
+
+        animate();
+    }
+
+    function showVehicleInfo(location) {
+        const content = `
+            <div class="info-window">
+                <h5><i class="fas fa-car"></i> @Model.Trip.VehiclePlateNo</h5>
+                <p><strong>Driver:</strong> @Model.Trip.DriverName</p>
+                <p><strong>Speed:</strong> <span class="speed">${location.speed ? location.speed.toFixed(0) : '0'} km/h</span></p>
+                <p><strong>Accuracy:</strong> ±${location.accuracy ? location.accuracy.toFixed(0) : 'N/A'}m</p>
+                <p><strong>Last Update:</strong> ${formatTimeAgo(location.timestamp)}</p>
+            </div>
+        `;
+
+        infoWindow.setContent(content);
+        infoWindow.open(map, vehicleMarker);
+    }
+
+    // UI Updates
+    function updateLocationStats(location) {
+        if (location.speed !== null && location.speed !== undefined) {
+            document.getElementById('currentSpeed').textContent = Math.round(location.speed);
+        }
+    }
+
+    function updateLastUpdateTime() {
+        const updateElement = document.getElementById('lastUpdate');
+        const now = new Date();
+        updateElement.textContent = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function updateConnectionStatus(connected, customMessage = null) {
+        const dot = document.getElementById('statusDot');
+        const text = document.getElementById('statusText');
+
+        if (connected) {
+            dot.classList.add('connected');
+            text.textContent = customMessage || 'Live';
+        } else {
+            dot.classList.remove('connected');
+            text.textContent = customMessage || 'Disconnected';
+        }
+    }
+
+    // Event Handlers
+    function initEventHandlers() {
+        // Center map on vehicle
+        document.getElementById('centerMapBtn').addEventListener('click', () => {
+            if (vehicleMarker) {
+                map.panTo(vehicleMarker.getPosition());
+                map.setZoom(CONFIG.defaultZoom);
+            }
+        });
+
+        // Zoom controls
+        document.getElementById('zoomInBtn').addEventListener('click', () => {
+            map.setZoom(map.getZoom() + 1);
+        });
+
+        document.getElementById('zoomOutBtn').addEventListener('click', () => {
+            map.setZoom(map.getZoom() - 1);
+        });
+
+        // Toggle route visibility
+        document.getElementById('toggleRouteBtn').addEventListener('click', () => {
+            isRouteVisible = !isRouteVisible;
+            routePolyline.setMap(isRouteVisible ? map : null);
+        });
+
+        // Fullscreen
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Mobile sidebar toggle
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // Auto-update last update time
+        setInterval(updateLastUpdateTime, 1000);
+    }
+
+    // Utilities
+    function formatTimeAgo(timestamp) {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diff = Math.floor((now - time) / 1000);
+
+        if (diff < 60) return `${diff}s ago`;
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        return time.toLocaleTimeString();
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', async () => {
+        if (signalRConnection) {
+            try {
+                await signalRConnection.invoke('UntrackTrip', CONFIG.tripId);
+                await signalRConnection.stop();
+            } catch (err) {
+                console.error('Error during cleanup:', err);
+            }
+        }
+    });
+</script>
+
+<!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDx29-c8amIRFLj1tNiI3bN3efiJZGcJSg&callback=initMap" async defer></script>
+}
