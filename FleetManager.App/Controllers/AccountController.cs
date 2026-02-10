@@ -151,8 +151,8 @@ namespace FleetManager.App.Controllers
         {
             if (!ModelState.IsValid)
             {
-                model.Errors.Add(
-                    ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
+                model.Errors.AddRange(
+                    ModelState.Values.SelectMany(v => v.Errors).Select(x => x.ErrorMessage)
                 );
                 return View(model);
             }

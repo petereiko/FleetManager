@@ -46,4 +46,8 @@
     <PackageReference Include="StackExchange.Redis" Version="2.10.14" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="APIManager\Auth\DTOs\" />
+  </ItemGroup>
+
 </Project>
