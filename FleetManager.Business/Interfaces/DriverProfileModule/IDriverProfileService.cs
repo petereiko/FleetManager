@@ -15,6 +15,8 @@ namespace FleetManager.Business.Interfaces.DriverProfileModule
         //Task<MessageResponse> UpdateProfileAsync(DriverDto dto, string modifiedBy);
         //Task<MessageResponse> UploadProfilePhotoAsync(long driverId, IFormFile photo, string uploadedBy);
         //Task<MessageResponse> UploadLicensePhotoAsync(long driverId, IFormFile photo, string uploadedBy);
+        Task<MessageResponse> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
+
     }
 
 }

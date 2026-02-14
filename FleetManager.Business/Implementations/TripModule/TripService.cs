@@ -2,15 +2,17 @@
 using FleetManager.Business.Database.Entities.MaintenanceTicket;
 using FleetManager.Business.DataObjects.TripsDto;
 using FleetManager.Business.Enums;
+using FleetManager.Business.Hubs;
 using FleetManager.Business.Interfaces.NotificationModule;
 using FleetManager.Business.Interfaces.TripModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.UtilityModels;
 using FleetManager.Business.ViewModels.TripsViewModels;
+using Hangfire;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Hangfire;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +30,7 @@ namespace FleetManager.Business.Implementations.TripModule
         private readonly IConfiguration _configuration;
         private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly IAuthUser _authUser;
+        private readonly IHubContext<TripTrackingHub> _hubContext;
 
         public TripService(
             FleetManagerDbContext context,
@@ -798,6 +801,21 @@ namespace FleetManager.Business.Implementations.TripModule
                     throw;
                 }
 
+                // ✅ BROADCAST TO SIGNALR - WITH ERROR HANDLING
+                try
+                {
+                    if (_hubContext != null)
+                    {
+                        await TripTrackingHub.BroadcastTripStarted(_hubContext, trip.Id);
+                        _logger.LogInformation("SignalR broadcast sent for trip {TripId} started", trip.Id);
+                    }
+                }
+                catch (Exception signalREx)
+                {
+                    // DON'T FAIL THE WHOLE REQUEST IF SIGNALR FAILS
+                    _logger.LogWarning(signalREx, "Failed to broadcast trip start via SignalR for trip {TripId}. Trip was started successfully.", trip.Id);
+                }
+
                 // background job
                 try
                 {
@@ -972,6 +990,21 @@ namespace FleetManager.Business.Implementations.TripModule
                     throw;
                 }
 
+                // ✅ BROADCAST TO SIGNALR - WITH ERROR HANDLING
+                try
+                {
+                    if (_hubContext != null)
+                    {
+                        await TripTrackingHub.BroadcastTripCompleted(_hubContext, trip.Id);
+                        _logger.LogInformation("SignalR broadcast sent for trip {TripId} completed", trip.Id);
+                    }
+                }
+                catch (Exception signalREx)
+                {
+                    // DON'T FAIL THE WHOLE REQUEST IF SIGNALR FAILS
+                    _logger.LogWarning(signalREx, "Failed to broadcast trip completion via SignalR for trip {TripId}. Trip was completed successfully.", trip.Id);
+                }
+
                 // background job
                 try
                 {
@@ -993,95 +1026,6 @@ namespace FleetManager.Business.Implementations.TripModule
                 return new MessageResponse<TripDto> { Success = false, Message = "An error occurred while completing the trip" };
             }
         }
-
-        //public async Task<MessageResponse<TripDto>> CompleteTripAsync(CompleteTripDto dto)
-        //{
-        //    EnsureDriverOnly();
-        //    try
-        //    {
-        //        if (_authUser?.CompanyBranchId == null) return new MessageResponse<TripDto> { Success = false, Message = "Invalid user context. Missing branch." };
-        //        var now = DateTime.UtcNow;
-
-        //        var trip = await _context.Trips
-        //            .Include(t => t.Vehicle)
-        //            .Include(t => t.Driver).ThenInclude(d => d.User)
-        //            .FirstOrDefaultAsync(t => t.Id == dto.TripId &&
-        //                                      t.CompanyBranchId == _authUser.CompanyBranchId &&
-        //                                      t.IsActive);
-
-        //        if (trip == null) return new MessageResponse<TripDto> { Success = false, Message = "Trip not found" };
-
-        //        if (trip.Status != TripStatus.InProgress) return new MessageResponse<TripDto> { Success = false, Message = $"Cannot complete trip with status '{trip.Status}'. Trip must be in progress." };
-
-        //        if (!trip.StartOdometer.HasValue) return new MessageResponse<TripDto> { Success = false, Message = "Trip does not have a start odometer reading" };
-
-        //        if (dto.EndOdometer <= trip.StartOdometer.Value) return new MessageResponse<TripDto> { Success = false, Message = $"End odometer reading ({dto.EndOdometer} km) must be greater than start odometer ({trip.StartOdometer.Value} km)" };
-
-        //        using var tx = await _context.Database.BeginTransactionAsync();
-        //        try
-        //        {
-        //            trip.ActualEndDate = now;
-        //            trip.EndOdometer = dto.EndOdometer;
-        //            trip.ActualDistance = dto.EndOdometer - trip.StartOdometer.Value;
-        //            trip.ActualFuelCost = dto.ActualFuelCost;
-        //            trip.Status = TripStatus.Completed;
-        //            trip.ModifiedDate = now;
-        //            trip.ModifiedBy = _authUser.UserId;
-
-        //            if (trip.Vehicle != null) trip.Vehicle.Mileage = dto.EndOdometer;
-
-        //            if (trip.Driver != null)
-        //            {
-        //                trip.Driver.ShiftStatus = ShiftStatus.Available;
-        //                trip.Driver.LastSeen = now;
-        //            }
-
-        //            var checkpoint = new TripCheckpoint
-        //            {
-        //                TripId = trip.Id,
-        //                Location = trip.Destination,
-        //                Description = "Trip completed",
-        //                CheckpointTime = now,
-        //                CheckpointType = CheckpointType.End,
-        //                Latitude = dto.Latitude,
-        //                Longitude = dto.Longitude,
-        //                Notes = dto.Notes,
-        //                IsActive = true,
-        //                CreatedDate = now,
-        //                CreatedBy = _authUser.UserId
-        //            };
-
-        //            _context.TripCheckpoints.Add(checkpoint);
-        //            await _context.SaveChangesAsync();
-        //            await tx.CommitAsync();
-        //        }
-        //        catch
-        //        {
-        //            await tx.RollbackAsync();
-        //            throw;
-        //        }
-
-        //        // Enqueue TripCompleted for background processing (notifications + webhook)
-        //        try
-        //        {
-        //            var correlationId = Guid.NewGuid().ToString();
-        //            _backgroundJobClient.Enqueue<NotificationWorker>(w => w.ProcessEvent("TripCompleted", trip.Id, correlationId));
-        //        }
-        //        catch (Exception bgEx)
-        //        {
-        //            _logger.LogWarning(bgEx, "Failed to enqueue TripCompleted job for trip {TripId}", trip.Id);
-        //        }
-
-        //        _logger.LogInformation("Trip {TripNumber} completed by {UserId} - Distance: {Distance}", trip.TripNumber, _authUser.UserId, trip.ActualDistance);
-        //        var result = await GetTripByIdAsync(trip.Id);
-        //        return new MessageResponse<TripDto> { Success = true, Message = $"Trip completed successfully. Distance covered: {trip.ActualDistance} km", Result = result.Result };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error completing trip");
-        //        return new MessageResponse<TripDto> { Success = false, Message = "An error occurred while completing the trip" };
-        //    }
-        //}
 
         public async Task<MessageResponse<TripDto>> CancelTripAsync(CancelTripDto dto)
         {
@@ -1107,6 +1051,8 @@ namespace FleetManager.Business.Implementations.TripModule
                 trip.ModifiedBy = _authUser.UserId;
 
                 await _context.SaveChangesAsync();
+                await TripTrackingHub.BroadcastTripStatusChange(_hubContext, trip.Id, "Cancelled");
+
 
                 // Enqueue TripCancelled notifications
                 try

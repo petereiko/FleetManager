@@ -332,15 +332,6 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("DriverWeb", policy => policy.RequireRole("Driver"));
-//    options.AddPolicy("DriverApi", policy =>
-//    {
-//        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
-//        policy.RequireRole("Driver");
-//    });
-//});
 
 
 // ✅ Redis Configuration
@@ -359,20 +350,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     return ConnectionMultiplexer.Connect(configuration);
 });
 
-
-
-//builder.Services.AddHangfire(configuration => configuration
-//    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-//    .UseSimpleAssemblyNameTypeSerializer()
-//    .UseDefaultTypeSerializer()
-//    .UseSqlServerStorage(builder.Configuration.GetConnectionString("HangfireConnection"), new SqlServerStorageOptions
-//    {
-//        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-//        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-//        QueuePollInterval = TimeSpan.FromSeconds(15),
-//        UseRecommendedIsolationLevel = true,
-//        DisableGlobalLocks = true
-//    }));
 
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -484,17 +461,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-// Map SignalR Hub
-//app.UseEndpoints(endpoints =>
-//{
-//    endpoints.MapHub<TripTrackingHub>("/hubs/trip-tracking");
 
-//    // Your other endpoints
-//    endpoints.MapControllers();
-//    endpoints.MapRazorPages();
-//});
-
-app.MapHub<TripTrackingHub>("/hubs/trip-tracking");
+app.MapHub<TripTrackingHub>("/hubs/tripTracking");
 app.MapHub<NotificationHub>("/notificationHub");
 
 

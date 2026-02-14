@@ -15,5 +15,7 @@ namespace FleetManager.Business.Interfaces.NotificationModule
         Task<List<NotificationDto>> GetRecentNotificationsAsync(string userId);
         Task<bool> MarkAsReadAsync(string userId, long notificationId);
         Task MarkAllReadAsync(string userId);
+        Task<int> GetUnreadCountAsync(string userId);
+        Task<bool> DeleteNotificationAsync(string userId, long notificationId);
     }
 }

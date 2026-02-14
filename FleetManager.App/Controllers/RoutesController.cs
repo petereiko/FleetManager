@@ -3,11 +3,13 @@ using FleetManager.Business.GoogleRoutesApi.Interfaces;
 using FleetManager.Business.GoogleRoutesApi.Models;
 using FleetManager.Business.ViewModels;
 using FleetManager.Business.ViewModels.GoogleViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace FleetManager.App.Controllers
 {
+    [Authorize(Policy = "DriverWeb")]
     public class RoutesController : Controller
     {
         private readonly IGoogleRoutesService _routesService;
@@ -70,20 +72,6 @@ namespace FleetManager.App.Controllers
             return View(vm);
         }
 
-        // GET: /Routes/Map?polyline=...
-        //[HttpGet]
-        //public IActionResult Map(string polyline)
-        //{
-        //    if (string.IsNullOrEmpty(polyline))
-        //        return BadRequest();
-
-        //    var mapVm = new MapViewModel
-        //    {
-        //        EncodedPolyline = polyline,
-        //        ApiKey = _apiKey
-        //    };
-        //    return View(mapVm);
-        //}
 
 
 

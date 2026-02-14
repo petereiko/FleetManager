@@ -4,10 +4,12 @@ using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.ScheduleModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.ViewModels.Schedule;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FleetManager.App.Controllers
 {
+    [Authorize(Policy = "DriverWeb")]
     public class DriverTimeOffController : Controller
     {
         private readonly ITimeOffService _timeOff;
@@ -61,42 +63,6 @@ namespace FleetManager.App.Controllers
             };
             return View(vm);
         }
-
-        // POST: /User/DriverTimeOff/Create
-        //[HttpPost, ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create(TimeOffCreateViewModel vm)
-        //{
-        //    // repopulate categories on failure
-        //    vm.Categories = await _timeOff.GetCategoriesAsync();
-
-        //    if (!ModelState.IsValid)
-        //        return View(vm);
-
-        //    try
-        //    {
-        //        var driverId = await _assignmentService.GetDriverIdByUserAsync(_auth.UserId!);
-        //        var dto = new TimeOffRequestDto
-        //        {
-        //            DriverId = driverId,
-        //            CategoryId = vm.CategoryId,
-        //            StartDate = vm.StartDate,
-        //            EndDate = vm.EndDate,
-        //            Reason = vm.Reason,
-        //            Status = TimeOffStatus.Pending,
-        //            CompanyBranchId = _auth.CompanyBranchId!.Value
-        //        };
-        //        await _timeOff.CreateRequestAsync(dto);
-
-        //        TempData["SuccessMessage"] = "Time‑off request submitted.";
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error creating time‑off request");
-        //        ModelState.AddModelError("", "An error occurred submitting your request.");
-        //        return View(vm);
-        //    }
-        //}
 
 
         [HttpPost, ValidateAntiForgeryToken]

@@ -12,11 +12,6 @@ using System.Threading.Tasks;
 
 namespace FleetManager.Business.Hubs
 {
-    /// <summary>
-    /// SignalR Hub for real-time trip location tracking
-    /// Supports multiple simultaneous trip tracking sessions
-    /// </summary>
-    //[Authorize]
     public class TripTrackingHub : Hub
     {
         private readonly ILogger<TripTrackingHub> _logger;
@@ -148,6 +143,24 @@ namespace FleetManager.Business.Hubs
         }
 
         /// <summary>
+        /// Subscribe to dashboard updates (all active trips)
+        /// </summary>
+        public async Task SubscribeToDashboard()
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, "dashboard");
+            _logger.LogInformation("Connection {ConnectionId} subscribed to dashboard", Context.ConnectionId);
+        }
+
+        /// <summary>
+        /// Unsubscribe from dashboard updates
+        /// </summary>
+        public async Task UnsubscribeFromDashboard()
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, "dashboard");
+            _logger.LogInformation("Connection {ConnectionId} unsubscribed from dashboard", Context.ConnectionId);
+        }
+
+        /// <summary>
         /// Get list of actively tracked trips for diagnostics
         /// </summary>
         public async Task GetActiveTracking()
@@ -170,6 +183,12 @@ namespace FleetManager.Business.Hubs
                     count = 0
                 });
             }
+        }
+
+        public override async Task OnConnectedAsync()
+        {
+            _logger.LogInformation("Client connected: {ConnectionId}", Context.ConnectionId);
+            await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
@@ -217,5 +236,250 @@ namespace FleetManager.Business.Hubs
                 viewerCount = viewerCount
             });
         }
+
+        // ========== SERVER-SIDE BROADCAST METHODS ==========
+        // These are called from your TripService to notify dashboard
+
+        /// <summary>
+        /// Broadcast when a trip status changes (called from TripService)
+        /// </summary>
+        public static async Task BroadcastTripStatusChange(IHubContext<TripTrackingHub> hubContext, long tripId, string newStatus)
+        {
+            await hubContext.Clients.Group("dashboard").SendAsync("TripStatusChanged", new
+            {
+                tripId = tripId,
+                status = newStatus,
+                timestamp = DateTime.UtcNow
+            });
+        }
+
+        /// <summary>
+        /// Broadcast when a trip starts (called from TripService)
+        /// </summary>
+        public static async Task BroadcastTripStarted(IHubContext<TripTrackingHub> hubContext, long tripId)
+        {
+            await hubContext.Clients.Group("dashboard").SendAsync("TripStarted", tripId);
+        }
+
+        /// <summary>
+        /// Broadcast when a trip completes (called from TripService)
+        /// </summary>
+        public static async Task BroadcastTripCompleted(IHubContext<TripTrackingHub> hubContext, long tripId)
+        {
+            await hubContext.Clients.Group("dashboard").SendAsync("TripCompleted", tripId);
+
+            // Notify specific trip watchers
+            await hubContext.Clients.Group($"trip-{tripId}").SendAsync("TripCompleted", tripId);
+
+        }
     }
+
+
+
+
+    ///// <summary>
+    ///// SignalR Hub for real-time trip location tracking
+    ///// Supports multiple simultaneous trip tracking sessions
+    ///// </summary>
+    //public class TripTrackingHub : Hub
+    //{
+    //    private readonly ILogger<TripTrackingHub> _logger;
+    //    private readonly ITripLocationService _locationService;
+
+    //    // Track which connections are monitoring which trips
+    //    private static readonly ConcurrentDictionary<string, HashSet<long>> _connectionTripMap = new();
+    //    private static readonly ConcurrentDictionary<long, HashSet<string>> _tripConnectionMap = new();
+
+    //    public TripTrackingHub(
+    //        ILogger<TripTrackingHub> logger,
+    //        ITripLocationService locationService)
+    //    {
+    //        _logger = logger;
+    //        _locationService = locationService;
+    //    }
+
+    //    /// <summary>
+    //    /// Client subscribes to track a specific trip
+    //    /// </summary>
+    //    public async Task TrackTrip(long tripId)
+    //    {
+    //        try
+    //        {
+    //            var connectionId = Context.ConnectionId;
+
+    //            // Add connection to trip group
+    //            await Groups.AddToGroupAsync(connectionId, $"trip-{tripId}");
+
+    //            // Track the subscription
+    //            _connectionTripMap.AddOrUpdate(
+    //                connectionId,
+    //                new HashSet<long> { tripId },
+    //                (_, trips) =>
+    //                {
+    //                    trips.Add(tripId);
+    //                    return trips;
+    //                });
+
+    //            _tripConnectionMap.AddOrUpdate(
+    //                tripId,
+    //                new HashSet<string> { connectionId },
+    //                (_, connections) =>
+    //                {
+    //                    connections.Add(connectionId);
+    //                    return connections;
+    //                });
+
+    //            _logger.LogInformation(
+    //                "Connection {ConnectionId} started tracking trip {TripId}",
+    //                connectionId,
+    //                tripId);
+
+    //            // Send current location immediately
+    //            var currentLocation = await _locationService.GetLatestLocationAsync(tripId);
+    //            if (currentLocation != null)
+    //            {
+    //                await Clients.Caller.SendAsync("LocationUpdate", currentLocation);
+    //            }
+
+    //            // Send historical route
+    //            var historicalLocations = await _locationService.GetTripLocationsAsync(tripId);
+    //            if (historicalLocations.Any())
+    //            {
+    //                await Clients.Caller.SendAsync("RouteHistory", new
+    //                {
+    //                    tripId = tripId,
+    //                    locations = historicalLocations,
+    //                    totalPoints = historicalLocations.Count
+    //                });
+    //            }
+
+    //            // Notify client of successful subscription
+    //            await Clients.Caller.SendAsync("TrackingStarted", new
+    //            {
+    //                tripId = tripId,
+    //                message = "Live tracking started",
+    //                timestamp = DateTime.UtcNow
+    //            });
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _logger.LogError(ex, "Error subscribing to trip {TripId}", tripId);
+    //            await Clients.Caller.SendAsync("TrackingError", new
+    //            {
+    //                tripId = tripId,
+    //                error = "Failed to start tracking"
+    //            });
+    //        }
+    //    }
+
+    //    /// <summary>
+    //    /// Client unsubscribes from tracking a specific trip
+    //    /// </summary>
+    //    public async Task UntrackTrip(long tripId)
+    //    {
+    //        try
+    //        {
+    //            var connectionId = Context.ConnectionId;
+
+    //            await Groups.RemoveFromGroupAsync(connectionId, $"trip-{tripId}");
+
+    //            // Remove from tracking maps
+    //            if (_connectionTripMap.TryGetValue(connectionId, out var trips))
+    //            {
+    //                trips.Remove(tripId);
+    //            }
+
+    //            if (_tripConnectionMap.TryGetValue(tripId, out var connections))
+    //            {
+    //                connections.Remove(connectionId);
+    //            }
+
+    //            _logger.LogInformation(
+    //                "Connection {ConnectionId} stopped tracking trip {TripId}",
+    //                connectionId,
+    //                tripId);
+
+    //            await Clients.Caller.SendAsync("TrackingStopped", new
+    //            {
+    //                tripId = tripId,
+    //                timestamp = DateTime.UtcNow
+    //            });
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _logger.LogError(ex, "Error unsubscribing from trip {TripId}", tripId);
+    //        }
+    //    }
+
+    //    /// <summary>
+    //    /// Get list of actively tracked trips for diagnostics
+    //    /// </summary>
+    //    public async Task GetActiveTracking()
+    //    {
+    //        var connectionId = Context.ConnectionId;
+
+    //        if (_connectionTripMap.TryGetValue(connectionId, out var trips))
+    //        {
+    //            await Clients.Caller.SendAsync("ActiveTrips", new
+    //            {
+    //                tripIds = trips.ToList(),
+    //                count = trips.Count
+    //            });
+    //        }
+    //        else
+    //        {
+    //            await Clients.Caller.SendAsync("ActiveTrips", new
+    //            {
+    //                tripIds = new List<long>(),
+    //                count = 0
+    //            });
+    //        }
+    //    }
+
+    //    public override async Task OnDisconnectedAsync(Exception? exception)
+    //    {
+    //        var connectionId = Context.ConnectionId;
+
+    //        // Clean up all subscriptions for this connection
+    //        if (_connectionTripMap.TryRemove(connectionId, out var trips))
+    //        {
+    //            foreach (var tripId in trips)
+    //            {
+    //                if (_tripConnectionMap.TryGetValue(tripId, out var connections))
+    //                {
+    //                    connections.Remove(connectionId);
+
+    //                    // Clean up empty trip entries
+    //                    if (connections.Count == 0)
+    //                    {
+    //                        _tripConnectionMap.TryRemove(tripId, out _);
+    //                    }
+    //                }
+    //            }
+    //        }
+
+    //        _logger.LogInformation(
+    //            "Connection {ConnectionId} disconnected. Tracked trips cleaned up.",
+    //            connectionId);
+
+    //        await base.OnDisconnectedAsync(exception);
+    //    }
+
+    //    /// <summary>
+    //    /// Get count of active viewers for a trip (admin only)
+    //    /// </summary>
+    //    [Authorize(Roles = "Admin")]
+    //    public async Task GetTripViewers(long tripId)
+    //    {
+    //        var viewerCount = _tripConnectionMap.TryGetValue(tripId, out var connections)
+    //            ? connections.Count
+    //            : 0;
+
+    //        await Clients.Caller.SendAsync("TripViewerCount", new
+    //        {
+    //            tripId = tripId,
+    //            viewerCount = viewerCount
+    //        });
+    //    }
+    //}
 }

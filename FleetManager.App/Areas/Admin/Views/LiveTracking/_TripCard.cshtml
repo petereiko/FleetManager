@@ -1,0 +1,58 @@
+@using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.Enums
+@model TripListDto
+
+<div class="trip-card">
+    <div class="trip-card-header">
+        <div class="trip-info">
+            <h3>@Model.VehiclePlateNo - @Model.Origin to @Model.Destination</h3>
+            <span class="trip-number">Trip #@Model.TripNumber</span>
+        </div>
+        <span class="trip-status in-progress">
+            <span class="pulse-dot"></span>
+            LIVE
+        </span>
+    </div>
+
+    <div class="trip-details">
+        <div class="detail-item">
+            <i class="fas fa-user"></i>
+            <span>@Model.DriverName</span>
+        </div>
+        <div class="detail-item">
+            <i class="fas fa-clock"></i>
+            <span>Started: @(Model.ActualStartDate != DateTime.MinValue ? Model.ActualStartDate.ToString("HH:mm") : "N/A")</span>
+        </div>
+        <div class="detail-item">
+            <i class="fas fa-route"></i>
+            <span>@(Model.EstimatedDistance.HasValue ? Model.EstimatedDistance.Value.ToString("F1") : "0") km</span>
+        </div>
+        @if (Model.Priority == TripPriority.High || Model.Priority == TripPriority.Urgent)
+        {
+            <div class="detail-item">
+                <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
+                <span style="color: #dc3545; font-weight: 600;">@Model.Priority Priority</span>
+            </div>
+        }
+    </div>
+
+    <div class="trip-actions">
+        <a asp-area="Admin"
+           asp-controller="LiveTracking"
+           asp-action="TrackTrip"
+           asp-route-tripId="@Model.Id"
+           class="btn-track">
+            <i class="fas fa-map-marked-alt"></i>
+            Track Live
+        </a>
+
+        <a asp-area="Admin"
+           asp-controller="Trips"
+           asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="btn-details">
+            <i class="fas fa-info-circle"></i>
+            Details
+        </a>
+    </div>
+</div>

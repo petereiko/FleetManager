@@ -1,0 +1,321 @@
+@{
+    ViewData["Title"] = "Notifications";
+    var userId = ViewBag.UserId;
+}
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4><i class="fas fa-bell me-2"></i>All Notifications</h4>
+                <h6>Manage your notifications</h6>
+            </div>
+            <div class="page-btn">
+                <button class="btn btn-primary" id="markAllReadBtn" style="display: none;">
+                    <i class="fas fa-check-double me-1"></i>Mark All as Read
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter and Stats Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Filter by Status</label>
+                            <select class="form-select" id="filterStatus">
+                                <option value="all">All Notifications</option>
+                                <option value="unread">Unread Only</option>
+                                <option value="read">Read Only</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label>Filter by Type</label>
+                            <select class="form-select" id="filterType">
+                                <option value="all">All Types</option>
+                                <option value="info">Info</option>
+                                <option value="success">Success</option>
+                                <option value="warning">Warning</option>
+                                <option value="error">Error</option>
+                                <option value="vehicle">Vehicle</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="driver">Driver</option>
+                                <option value="alert">Alert</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-12 col-12">
+                        <div class="notification-stats">
+                            <div class="row g-3 mt-2">
+                                <div class="col-6 col-md-4">
+                                    <div class="stat-card">
+                                        <div class="stat-icon bg-primary">
+                                            <i class="fas fa-bell"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3 id="totalCount">0</h3>
+                                            <p>Total</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="stat-card">
+                                        <div class="stat-icon bg-warning">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3 id="unreadCount">0</h3>
+                                            <p>Unread</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="stat-card">
+                                        <div class="stat-icon bg-success">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3 id="readCount">0</h3>
+                                            <p>Read</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+                <h5>Loading notifications...</h5>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="card" style="display: none;">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                <h4>No notifications</h4>
+                <p class="text-muted">You don't have any notifications yet.</p>
+            </div>
+        </div>
+
+        <!-- Notifications List -->
+        <div id="notificationsList" style="display: none;">
+            <!-- Notifications will be dynamically inserted here -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="paginationContainer" class="card mt-3" style="display: none;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span id="paginationInfo" class="text-muted"></span>
+                    </div>
+                    <nav>
+                        <ul class="pagination mb-0" id="pagination">
+                            <!-- Pagination will be dynamically inserted here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notification-stats .stat-card {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: transform 0.2s;
+    }
+
+    .notification-stats .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .notification-stats .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+    }
+
+    .notification-stats .stat-info h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .notification-stats .stat-info p {
+        margin: 0;
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+    }
+
+    .notification-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border: 1px solid #e8e8e8;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .notification-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .notification-card.unread {
+        background: linear-gradient(to right, #e3f2fd 0%, #ffffff 10%);
+        border-left: 4px solid #2196f3;
+    }
+
+    .notification-card.read {
+        opacity: 0.85;
+    }
+
+    .notification-header {
+        display: flex;
+        align-items: start;
+        gap: 15px;
+        margin-bottom: 12px;
+    }
+
+    .notification-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 6px;
+    }
+
+    .notification-message {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 8px;
+    }
+
+    .notification-meta {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .notification-time {
+        font-size: 12px;
+        color: #999;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .notification-type-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .notification-actions .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+        border-radius: 6px;
+    }
+
+    .unread-indicator {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 10px;
+        height: 10px;
+        background: #2196f3;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.2); }
+    }
+
+    .type-info { background: #e3f2fd; color: #1976d2; }
+    .type-success { background: #e8f5e9; color: #388e3c; }
+    .type-warning { background: #fff3e0; color: #f57c00; }
+    .type-error { background: #ffebee; color: #d32f2f; }
+    .type-vehicle { background: #f3e5f5; color: #7b1fa2; }
+    .type-maintenance { background: #fff8e1; color: #f57f17; }
+    .type-driver { background: #e0f2f1; color: #00796b; }
+    .type-alert { background: #e8eaf6; color: #3f51b5; }
+
+    .icon-info { background: linear-gradient(135deg, #2196f3, #1976d2); }
+    .icon-success { background: linear-gradient(135deg, #4caf50, #388e3c); }
+    .icon-warning { background: linear-gradient(135deg, #ff9800, #f57c00); }
+    .icon-error { background: linear-gradient(135deg, #f44336, #d32f2f); }
+    .icon-vehicle { background: linear-gradient(135deg, #9c27b0, #7b1fa2); }
+    .icon-maintenance { background: linear-gradient(135deg, #ffc107, #f57f17); }
+    .icon-driver { background: linear-gradient(135deg, #26a69a, #00796b); }
+    .icon-alert { background: linear-gradient(135deg, #5c6bc0, #3f51b5); }
+
+    .pagination .page-link {
+        border-radius: 6px;
+        margin: 0 3px;
+        border: 1px solid #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-color: #667eea;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        window.notificationUserId = '@userId';
+    </script>
+    <script src="~/js/notifications-page.js"></script>
+}

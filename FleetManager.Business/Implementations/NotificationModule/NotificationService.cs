@@ -130,5 +130,25 @@ namespace FleetManager.Business.Implementations.NotificationModule
                 await _db.SaveChangesAsync();
             }
         }
+
+        public async Task<int> GetUnreadCountAsync(string userId)
+        {
+            return await _db.Notifications
+                .AsNoTracking()
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .CountAsync();
+        }
+
+        public async Task<bool> DeleteNotificationAsync(string userId, long notificationId)
+        {
+            var notification = await _db.Notifications
+                .FirstOrDefaultAsync(n => n.Id == notificationId && n.UserId == userId);
+
+            if (notification == null) return false;
+
+            _db.Notifications.Remove(notification);
+            await _db.SaveChangesAsync();
+            return true;
+        }
     }
 }

@@ -16,9 +16,6 @@ namespace FleetManager.Business.Enums
         [Description("Passport Photo")]
         PassportPhoto,
 
-        [Description("Utility Bill")]
-        UtilityBill,
-
         [Description("Other")]
         Other
     }

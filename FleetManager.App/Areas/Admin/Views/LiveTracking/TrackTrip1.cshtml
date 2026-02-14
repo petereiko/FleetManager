@@ -624,14 +624,6 @@
 
     // Initialize Google Maps (called by API callback)
     function initMap() {
-        // Check if Google Maps is loaded
-        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-            console.error('Google Maps API failed to load');
-            hideLoading();
-            alert('Failed to load Google Maps. Please check your API key configuration.');
-            return;
-        }
-
         const defaultCenter = @if (Model.LatestLocation != null)
         {
             @:{ lat: @Model.LatestLocation.Latitude, lng: @Model.LatestLocation.Longitude };
@@ -641,48 +633,42 @@
             @:{ lat: 6.5244, lng: 3.3792 }; // Lagos, Nigeria default
         }
 
-        try {
-            map = new google.maps.Map(document.getElementById('map'), {
-                zoom: CONFIG.defaultZoom,
-                center: defaultCenter,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: false,
-                styles: [
-                    {
-                        featureType: 'poi',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'off' }]
-                    }
-                ]
-            });
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: CONFIG.defaultZoom,
+            center: defaultCenter,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            styles: [
+                {
+                    featureType: 'poi',
+                    elementType: 'labels',
+                    stylers: [{ visibility: 'off' }]
+                }
+            ]
+        });
 
-            // Initialize polyline for route
-            routePolyline = new google.maps.Polyline({
-                path: [],
-                geodesic: true,
-                strokeColor: CONFIG.routeColor,
-                strokeOpacity: 0.8,
-                strokeWeight: 4,
-                map: map
-            });
+        // Initialize polyline for route
+        routePolyline = new google.maps.Polyline({
+            path: [],
+            geodesic: true,
+            strokeColor: CONFIG.routeColor,
+            strokeOpacity: 0.8,
+            strokeWeight: 4,
+            map: map
+        });
 
-            // Initialize info window
-            infoWindow = new google.maps.InfoWindow();
+        // Initialize info window
+        infoWindow = new google.maps.InfoWindow();
 
-            // Load historical route
-            loadRouteHistory();
-            
-            // Initialize SignalR after map is ready
-            initSignalR();
-            
-            // Initialize event handlers
-            initEventHandlers();
-        } catch (error) {
-            console.error('Error initializing map:', error);
-            hideLoading();
-            alert('Error initializing map: ' + error.message);
-        }
+        // Load historical route
+        loadRouteHistory();
+        
+        // Initialize SignalR after map is ready
+        initSignalR();
+        
+        // Initialize event handlers
+        initEventHandlers();
     }
 
     // Initialize SignalR Connection
@@ -698,10 +684,6 @@
         signalRConnection.on('RouteHistory', handleRouteHistory);
         signalRConnection.on('TrackingStarted', handleTrackingStarted);
         signalRConnection.on('TrackingError', handleTrackingError);
-        
-        // Listen for trip status changes (e.g., trip completed)
-        signalRConnection.on('TripStatusChanged', handleTripStatusChanged);
-        signalRConnection.on('TripCompleted', handleTripCompleted);
 
         signalRConnection.onclose(() => {
             updateConnectionStatus(false);
@@ -782,32 +764,18 @@
     function handleLocationUpdate(data) {
         console.log('Location update received:', data);
 
-        // Fix: The data structure from your TripLocationService
-        // Check if data has nested location object or is flat
-        const locationData = data.location || data;
-
         const location = {
-            lat: locationData.latitude || data.latitude,
-            lng: locationData.longitude || data.longitude,
-            speed: locationData.speed || data.speed,
-            heading: locationData.heading || data.heading,
-            accuracy: locationData.accuracy || data.accuracy,
-            timestamp: locationData.timestamp || data.timestamp || new Date().toISOString()
+            lat: data.location.latitude,
+            lng: data.location.longitude,
+            speed: data.location.speed,
+            heading: data.location.heading,
+            accuracy: data.location.accuracy,
+            timestamp: data.location.timestamp
         };
-
-        // Validate we have coordinates
-        if (!location.lat || !location.lng) {
-            console.error('Invalid location data:', data);
-            return;
-        }
 
         // Add to route
         routeCoordinates.push(location);
-        
-        // Update polyline path
-        if (routePolyline) {
-            routePolyline.setPath(routeCoordinates);
-        }
+        routePolyline.setPath(routeCoordinates);
 
         // Update vehicle marker
         updateVehicleMarker(location);
@@ -831,53 +799,6 @@
     function handleTrackingError(data) {
         console.error('Tracking error:', data);
         updateConnectionStatus(false, 'Error');
-    }
-
-    // Handle trip status changes
-    function handleTripStatusChanged(data) {
-        console.log('Trip status changed:', data);
-        if (data.tripId === CONFIG.tripId) {
-            // Update status display
-            const statusCard = document.querySelector('.trip-status-card');
-            const statusValue = document.querySelector('.status-value');
-            
-            if (statusValue) {
-                statusValue.textContent = data.status;
-            }
-            
-            // Update card class based on status
-            if (statusCard) {
-                statusCard.className = 'trip-status-card';
-                if (data.status === 'Completed') {
-                    statusCard.classList.add('completed');
-                }
-            }
-        }
-    }
-
-    function handleTripCompleted(tripId) {
-        console.log('Trip completed:', tripId);
-        if (tripId === CONFIG.tripId) {
-            // Update status display
-            const statusValue = document.querySelector('.status-value');
-            if (statusValue) {
-                statusValue.textContent = 'Completed';
-            }
-            
-            const statusCard = document.querySelector('.trip-status-card');
-            if (statusCard) {
-                statusCard.className = 'trip-status-card completed';
-            }
-            
-            // Hide live indicator
-            const liveIndicator = document.querySelector('.live-indicator');
-            if (liveIndicator) {
-                liveIndicator.style.display = 'none';
-            }
-            
-            // Show completion message
-            alert('Trip has been completed successfully!');
-        }
     }
 
     // Vehicle Marker Management
@@ -1057,4 +978,6 @@
     });
 </script>
 
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDx29-c8amIRFLj1tNiI3bN3efiJZGcJSg&callback=initMap" async defer></script>
 }

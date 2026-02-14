@@ -9,7 +9,10 @@ namespace FleetManager.Business.GoogleRoutesApi.Models
 {
     public class TollInfo
     {
+        //[JsonProperty("estimatedPrice")]
+        //public List<Money> EstimatedPrice { get; set; } = new List<Money>();
+
         [JsonProperty("estimatedPrice")]
-        public List<Money> EstimatedPrice { get; set; } = new List<Money>();
+        public List<string> EstimatedPrice { get; set; } = new List<string>();
     }
 }

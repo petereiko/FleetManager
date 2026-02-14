@@ -1,9 +1,11 @@
-﻿using FleetManager.Business.DataObjects;
+﻿using FleetManager.Business.Database.IdentityModels;
+using FleetManager.Business.DataObjects;
 using FleetManager.Business.Enums;
 using FleetManager.Business.Interfaces.DriverProfileModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.UtilityModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -72,6 +74,57 @@ namespace FleetManager.Business.Implementations
                         UploadedDate = x.CreatedDate
                     }).ToList()
             };
+        }
+
+
+
+        public async Task<MessageResponse> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+        {
+            var response = new MessageResponse();
+
+            try
+            {
+                // Get the user
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                {
+                    response.Success = false;
+                    response.Message = "User not found";
+                    return response;
+                }
+
+                // Verify current password
+                var passwordHasher = new PasswordHasher<ApplicationUser>();
+                var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, currentPassword);
+
+                if (verificationResult == PasswordVerificationResult.Failed)
+                {
+                    response.Success = false;
+                    response.Message = "Current password is incorrect";
+                    return response;
+                }
+
+                // Hash and set new password
+                user.PasswordHash = passwordHasher.HashPassword(user, newPassword);
+                //user.ModifiedDate = DateTime.UtcNow;
+                //user.ModifiedBy = userId;
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Password changed successfully for user {UserId}", userId);
+
+                response.Success = true;
+                response.Message = "Password changed successfully";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing password for user {UserId}", userId);
+                response.Success = false;
+                response.Message = "An error occurred while changing password";
+            }
+
+            return response;
         }
 
     }

@@ -6,6 +6,7 @@ using FleetManager.Business.Interfaces.DriverVehicleModule;
 using FleetManager.Business.Interfaces.MaintenanceModule;
 using FleetManager.Business.Interfaces.UserModule;
 using FleetManager.Business.ViewModels.MaintenanceViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ using System.Diagnostics;
 
 namespace FleetManager.App.Controllers
 {
+    [Authorize(Policy = "DriverWeb")]
     public class DriverMaintenanceController : Controller
     {
         private readonly IMaintenanceService _service;

@@ -1,9 +1,11 @@
 ﻿using FleetManager.Business.Interfaces.DriverProfileModule;
 using FleetManager.Business.Interfaces.UserModule;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FleetManager.App.Controllers
 {
+    [Authorize(Policy = "DriverWeb")]
     public class ProfileController : Controller
     {
         private readonly IAuthUser _authUser; 
