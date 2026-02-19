@@ -139,6 +139,12 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 .AddRoleStore<RoleStore<ApplicationRole, FleetManagerDbContext, string, ApplicationUserRole, IdentityRoleClaim<string>>>()
 .AddDefaultTokenProviders();
 
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.FromMinutes(5);
+});
+
+
 
 builder.Services.AddAuthorization();
 
@@ -153,7 +159,7 @@ builder.Services.AddScoped<SignInManager<ApplicationUser>>();
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(540); // Set session duration
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session duration
     options.Cookie.HttpOnly = true; // Make the cookie HTTP only
     options.Cookie.IsEssential = true; // Make the cookie essential
 });
@@ -261,7 +267,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(540);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     options.SlidingExpiration = true;
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -426,6 +432,8 @@ app.UseRouting();
 app.UseAuthentication();
 
 app.UseSession();
+
+app.UseMiddleware<IdentitySessionSyncMiddleware>();
 
 app.UseAuthorization();
 

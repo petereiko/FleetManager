@@ -18,7 +18,9 @@ namespace FleetManager.Business.Interfaces.FineAndTollModule
         Task<MessageResponse<FineAndTollDto>> CreateAsync(FineAndTollInputDto input, string createdByUserId);
         Task<MessageResponse<FineAndTollDto>> UpdateStatusAsync(long id, FineTollStatus newStatus, string modifiedByUserId);
         //Task<MessageResponse> DeleteAsync(long id);
+        Task<MessageResponse> DeleteAsync(long id, string driverUserId);
         List<SelectListItem> GetFineStatusOptions();
         List<SelectListItem> GetFineTollTypeOptions();
+
     }
 }

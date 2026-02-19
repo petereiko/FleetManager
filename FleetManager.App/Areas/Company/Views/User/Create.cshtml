@@ -7,898 +7,886 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Company Registration - FleetManager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" type="image/x-icon" href="~/assets/img/favicon.png">
+    <title>Create Company Account — Fleetalia</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="~/assets/css/bootstrap.min.css">
+
 
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-dark: #1e40af;
-            --primary-light: #3b82f6;
-            --secondary-color: #f1f5f9;
-            --accent-color: #8b5cf6;
-            --success-color: #059669;
-            --danger-color: #dc2626;
-            --warning-color: #d97706;
-            --dark-color: #1e293b;
-            --light-color: #f8fafc;
-            --border-color: #e2e8f0;
-            --text-muted: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.08);
-            --shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.12);
-            --shadow-strong: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        * {
+        *, *::before, *::after {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: ghostwhite);
+        :root {
+            --navy: #1B2856;
+            --navy-deep: #0e1730;
+            --navy-mid: #223068;
+            --green: #00664c;
+            --green-light: #00875f;
+            --green-pale: #6ee7b7;
+            --white: #ffffff;
+            --surface: #f7f8fa;
+            --border: #e2e4e8;
+            --dark: #1a1c20;
+            --dark-60: rgba(26,28,32,0.60);
+            --dark-35: rgba(26,28,32,0.35);
+            --danger: #c0392b;
+            --danger-bg: #fdf2f2;
+            --success: #00664c;
+            --success-bg: #f0f9f5;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'DM Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            background: var(--surface);
+        }
+
+        /* ROOT */
+        .reg-root {
+            display: flex;
             min-height: 100vh;
+        }
+
+        /* LEFT PANEL */
+        .reg-panel-left {
+            flex: 0 0 44%;
+            position: relative;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-            position: relative;
-        }
-
-            body::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23667eea;stop-opacity:0.3" /><stop offset="100%" style="stop-color:%23764ba2;stop-opacity:0.2" /></linearGradient></defs><circle cx="20" cy="20" r="1.5" fill="url(%23grad1)"/><circle cx="80" cy="40" r="1" fill="url(%23grad1)"/><circle cx="40" cy="80" r="1.2" fill="url(%23grad1)"/></svg>');
-                pointer-events: none;
-                z-index: 1;
-            }
-
-        .main-container {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 750px;
-        }
-
-        .registration-card {
-            background: var(--glass-bg);
-            border-radius: 16px;
+            flex-direction: column;
             overflow: hidden;
-            box-shadow: var(--shadow-strong);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
+            background: var(--navy-deep);
         }
 
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
-            padding: 25px 30px 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-            .card-header::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-                animation: rotate 20s linear infinite;
-            }
-
-        @@keyframes rotate {
-            0%
-
-        {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-
-        }
-
-        .brand-logo {
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            z-index: 2;
-        }
-
-            .brand-logo i {
-                font-size: 1.5rem;
-                color: white;
-                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-            }
-
-        .card-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: white;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 2;
-        }
-
-        .card-subtitle {
-            font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 400;
-            position: relative;
-            z-index: 2;
-        }
-
-        .card-body {
-            padding: 25px 30px 30px;
-            background: white;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--dark-color);
-            margin-bottom: 20px;
-            text-align: center;
-            position: relative;
-        }
-
-            .section-title::after {
-                content: '';
-                position: absolute;
-                bottom: -8px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 40px;
-                height: 2px;
-                background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-                border-radius: 2px;
-            }
-
-        .form-group {
-            margin-bottom: 18px;
-            position: relative;
-        }
-
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: var(--dark-color);
-            margin-bottom: 6px;
-            font-size: 0.9rem;
-            letter-spacing: 0.3px;
-        }
-
-        .form-control {
-            width: 100%;
-            height: 45px;
-            padding: 12px 45px 12px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            background: white;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--dark-color);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-        }
-
-            .form-control:focus {
-                outline: none;
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
-                transform: translateY(-1px);
-            }
-
-            .form-control.is-valid {
-                border-color: var(--success-color);
-                background: rgba(5, 150, 105, 0.02);
-            }
-
-            .form-control.is-invalid {
-                border-color: var(--danger-color);
-                background: rgba(220, 38, 38, 0.02);
-            }
-
-        .input-icon {
+        .rpl-photo {
             position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1200&q=80&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.14;
+        }
+
+        .rpl-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( 150deg, rgba(14,23,48,0.98) 0%, rgba(27,40,86,0.94) 50%, rgba(0,70,52,0.82) 100% );
+        }
+
+        .rpl-dots {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 24px 24px;
             pointer-events: none;
-            margin-top: 15px;
         }
 
-        .form-group:has(.form-control:focus) .input-icon {
-            color: var(--primary-color);
-            transform: translateY(-50%) scale(1.05);
+        .rpl-ring {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
         }
 
-        .form-group:has(.form-control.is-valid) .input-icon {
-            color: var(--success-color);
+        .rpl-ring-a {
+            width: 480px;
+            height: 480px;
+            top: -160px;
+            right: -140px;
+            border: 1px solid rgba(0,135,95,0.10);
+            animation: ring-spin 32s linear infinite;
         }
 
-        .form-group:has(.form-control.is-invalid) .input-icon {
-            color: var(--danger-color);
+        .rpl-ring-b {
+            width: 300px;
+            height: 300px;
+            bottom: -80px;
+            left: -90px;
+            border: 1px solid rgba(255,255,255,0.04);
+            animation: ring-spin 22s linear infinite reverse;
         }
 
-        .validation-message {
+        @@keyframes ring-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .rpl-body {
+            position: relative;
+            z-index: 3;
             display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 40px 48px;
+        }
+
+        .rpl-logo img {
+            height: 42px;
+            width: auto;
+            display: block;
+            animation: logo-glow 3.5s ease-in-out infinite alternate;
+        }
+
+        @@keyframes logo-glow {
+            from {
+                filter: brightness(1.0) drop-shadow(0 2px 8px rgba(0,135,95,0.18));
+            }
+
+            to {
+                filter: brightness(1.12) drop-shadow(0 4px 20px rgba(0,135,95,0.48));
+            }
+        }
+
+        .rpl-hero {
+            margin-top: auto;
+        }
+
+        .rpl-tag {
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            margin-top: 6px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--danger-color);
+            background: rgba(0,102,76,0.16);
+            border: 1px solid rgba(0,135,95,0.28);
+            border-radius: 99px;
+            padding: 5px 13px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--green-pale);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
         }
 
-            .validation-message i {
-                font-size: 0.7rem;
+            .rpl-tag i {
+                font-size: 9px;
             }
 
-        .agreement-section {
-            background: rgba(37, 99, 235, 0.03);
-            border: 2px solid rgba(37, 99, 235, 0.1);
-            border-radius: 12px;
-            padding: 18px;
-            margin: 20px 0 15px;
-            position: relative;
-            transition: all 0.3s ease;
+        .rpl-headline {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 2.6rem;
+            font-weight: 400;
+            line-height: 1.2;
+            color: #fff;
+            margin-bottom: 16px;
+            letter-spacing: -0.015em;
         }
 
-            .agreement-section::before {
+            .rpl-headline em {
+                font-style: italic;
+                color: var(--green-pale);
+            }
+
+        .rpl-sub {
+            font-size: 14px;
+            color: rgba(255,255,255,0.52);
+            line-height: 1.65;
+            max-width: 400px;
+            margin-bottom: 28px;
+        }
+
+        .rpl-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 22px 0;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .rpl-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .rpl-step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(0,102,76,0.16);
+            border: 1px solid rgba(0,135,95,0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--green-pale);
+            flex-shrink: 0;
+            font-family: 'DM Mono', monospace;
+        }
+
+        .rpl-step-text strong {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1.3;
+            margin-bottom: 2px;
+        }
+
+        .rpl-step-text span {
+            font-size: 11.5px;
+            color: rgba(255,255,255,0.4);
+            line-height: 1.4;
+        }
+
+        /* RIGHT PANEL */
+        .reg-panel-right {
+            flex: 0 0 56%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            position: relative;
+        }
+
+            .reg-panel-right::before {
                 content: '';
                 position: absolute;
                 top: 0;
-                left: 0;
                 right: 0;
-                bottom: 0;
-                background: linear-gradient(135deg, rgba(37, 99, 235, 0.02) 0%, rgba(139, 92, 246, 0.02) 100%);
-                border-radius: 10px;
-                opacity: 0;
-                transition: opacity 0.3s ease;
+                width: 200px;
+                height: 200px;
+                background: radial-gradient(circle at top right, rgba(27,40,86,0.03), transparent 70%);
+                pointer-events: none;
             }
 
-            .agreement-section:has(.form-check-input:checked)::before {
-                opacity: 1;
+        .reg-form-box {
+            width: 100%;
+            max-width: 540px;
+            padding: 40px 28px;
+        }
+
+        /* FORM STYLES */
+        .rf-logo {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+
+            .rf-logo img {
+                height: 38px;
+                width: auto;
+                display: inline-block;
             }
 
-            .agreement-section:has(.form-check-input:checked) {
-                border-color: var(--primary-color);
-                background: rgba(37, 99, 235, 0.05);
-                box-shadow: 0 2px 12px rgba(37, 99, 235, 0.1);
+        .rf-welcome {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+            .rf-welcome h1 {
+                font-size: 24px;
+                font-weight: 800;
+                color: var(--navy);
+                letter-spacing: -0.025em;
+                margin: 0 0 7px;
             }
 
-        .form-check {
+            .rf-welcome p {
+                font-size: 13.5px;
+                color: var(--dark-60);
+                line-height: 1.5;
+            }
+
+        .rf-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .rf-divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .rf-divider-text {
+            font-size: 11px;
+            color: var(--dark-35);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Error alert */
+        .rf-errors {
+            background: var(--danger-bg);
+            border: 1px solid #f5c6c3;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: var(--danger);
+            margin-bottom: 18px;
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            position: relative;
-            z-index: 1;
+            gap: 8px;
         }
 
-        .form-check-input {
-            width: 20px;
-            height: 20px;
-            margin: 0;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            background: white;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-            .form-check-input:checked {
-                background-color: var(--primary-color);
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            .rf-errors i {
+                font-size: 14px;
+                flex-shrink: 0;
+                margin-top: 1px;
             }
 
-                .form-check-input:checked::after {
-                    content: '\f00c';
-                    font-family: 'Font Awesome 6 Free';
-                    font-weight: 900;
-                    color: white;
-                    font-size: 10px;
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                }
+            .rf-errors ul {
+                margin: 0;
+                padding-left: 18px;
+            }
 
-        .form-check-label {
-            font-weight: 500;
-            color: var(--dark-color);
-            line-height: 1.5;
-            cursor: pointer;
-            user-select: none;
-            font-size: 0.9rem;
+        /* Form row */
+        .rf-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
         }
 
-            .form-check-label a {
-                color: var(--primary-color);
-                text-decoration: none;
+        .rf-field {
+            margin-bottom: 16px;
+        }
+
+            .rf-field label {
+                display: block;
+                font-size: 12.5px;
                 font-weight: 600;
-                transition: color 0.2s ease;
+                color: var(--dark);
+                margin-bottom: 6px;
+                letter-spacing: -0.01em;
             }
 
-                .form-check-label a:hover {
-                    color: var(--primary-dark);
-                    text-decoration: underline;
+            .rf-field .req {
+                color: var(--danger);
+                margin-left: 2px;
+            }
+
+        .rf-field-wrap {
+            position: relative;
+        }
+
+        .rf-field-ico {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: rgba(26,28,32,0.28);
+            pointer-events: none;
+        }
+
+        .rf-field input,
+        .rf-field textarea {
+            width: 100%;
+            height: 46px;
+            padding: 0 14px 0 40px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            color: var(--dark);
+            background: #f9f9fb;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        .rf-field textarea {
+            height: 60px;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            resize: none;
+        }
+
+            .rf-field input:focus,
+            .rf-field textarea:focus {
+                border-color: var(--green);
+                background: #fff;
+                box-shadow: 0 0 0 3px rgba(0,102,76,0.12);
+            }
+
+            .rf-field input.is-valid,
+            .rf-field textarea.is-valid {
+                border-color: var(--success);
+                background: var(--success-bg);
+            }
+
+            .rf-field input.is-invalid,
+            .rf-field textarea.is-invalid {
+                border-color: var(--danger);
+                background: var(--danger-bg);
+            }
+
+            .rf-field input::placeholder,
+            .rf-field textarea::placeholder {
+                color: rgba(26,28,32,0.28);
+            }
+
+        .rf-field .text-danger {
+            font-size: 11.5px;
+            color: var(--danger);
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Agreement box */
+        .rf-agreement {
+            background: rgba(27,40,86,0.03);
+            border: 1.5px solid rgba(27,40,86,0.1);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+        }
+
+            .rf-agreement:has(input:checked) {
+                border-color: var(--green);
+                background: rgba(0,102,76,0.04);
+                box-shadow: 0 0 0 3px rgba(0,102,76,0.08);
+            }
+
+        .rf-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+            .rf-check input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                accent-color: var(--green);
+                cursor: pointer;
+                border-radius: 4px;
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+
+            .rf-check label {
+                font-size: 12.5px;
+                color: var(--dark-60);
+                line-height: 1.55;
+                cursor: pointer;
+                user-select: none;
+            }
+
+                .rf-check label a {
+                    color: var(--green);
+                    font-weight: 600;
+                    text-decoration: none;
                 }
 
-        .submit-btn {
+                    .rf-check label a:hover {
+                        color: var(--green-light);
+                        text-decoration: underline;
+                    }
+
+        /* Submit button */
+        .rf-btn {
             width: 100%;
             height: 50px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            background: var(--navy);
+            color: #fff;
             border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
             font-weight: 700;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
+            letter-spacing: -0.01em;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(27,40,86,0.22);
             position: relative;
             overflow: hidden;
-            box-shadow: var(--shadow-medium);
-            margin-top: 15px;
         }
 
-            .submit-btn::before {
+            .rf-btn::before {
                 content: '';
                 position: absolute;
                 top: 0;
                 left: -100%;
                 width: 100%;
                 height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
                 transition: left 0.5s;
             }
 
-            .submit-btn:hover::before {
+            .rf-btn:hover:not(:disabled)::before {
                 left: 100%;
             }
 
-            .submit-btn:hover:not(:disabled) {
-                transform: translateY(-2px);
-                box-shadow: 0 12px 25px rgba(37, 99, 235, 0.3);
+            .rf-btn:hover:not(:disabled) {
+                background: var(--navy-mid);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 22px rgba(27,40,86,0.3);
             }
 
-            .submit-btn:active:not(:disabled) {
-                transform: translateY(0px);
+            .rf-btn:active:not(:disabled) {
+                transform: translateY(0);
             }
 
-            .submit-btn:disabled {
-                background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
+            .rf-btn:disabled {
+                background: #94a3b8;
                 cursor: not-allowed;
-                transform: none;
-                box-shadow: var(--shadow-soft);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             }
 
-        .btn-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: opacity 0.3s ease;
-        }
+            .rf-btn.loading .btn-content {
+                opacity: 0.4;
+            }
 
-        .btn-spinner {
+        .rf-spinner {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s;
         }
 
-        .submit-btn.loading .btn-content {
-            opacity: 0;
-        }
-
-        .submit-btn.loading .btn-spinner {
+        .rf-btn.loading .rf-spinner {
             opacity: 1;
         }
 
-        .alert {
-            border: none;
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-soft);
-            border-left: 4px solid var(--danger-color);
-            font-size: 0.9rem;
+        /* Sign in link */
+        .rf-signin {
+            text-align: center;
+            font-size: 13px;
+            color: var(--dark-60);
+            margin-top: 20px;
         }
 
-        .alert-danger {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            color: var(--danger-color);
-        }
-
-        .floating-elements {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .floating-element {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 15s infinite linear;
-        }
-
-            .floating-element:nth-child(1) {
-                left: 10%;
-                animation-delay: -5s;
+            .rf-signin a {
+                font-weight: 700;
+                color: var(--green);
+                text-decoration: none;
             }
 
-            .floating-element:nth-child(2) {
-                left: 20%;
-                animation-delay: -10s;
-                animation-duration: 12s;
+                .rf-signin a:hover {
+                    color: var(--green-light);
+                }
+
+        /* RESPONSIVE */
+        @@media (max-width: 960px) {
+            .reg-root {
+                flex-direction: column;
             }
 
-            .floating-element:nth-child(3) {
-                left: 30%;
-                animation-delay: -2s;
-                animation-duration: 18s;
+            .reg-panel-left {
+                flex: 0 0 auto;
+                min-height: 280px;
             }
 
-            .floating-element:nth-child(4) {
-                left: 40%;
-                animation-delay: -8s;
+            .reg-panel-right {
+                flex: 1;
+                padding: 20px;
             }
 
-            .floating-element:nth-child(5) {
-                left: 50%;
-                animation-delay: -15s;
-                animation-duration: 14s;
+            .rpl-body {
+                padding: 28px 28px 32px;
             }
 
-            .floating-element:nth-child(6) {
-                left: 60%;
-                animation-delay: -4s;
+            .rpl-steps {
+                display: none;
             }
 
-        @@keyframes float {
-            0%
+            .rpl-headline {
+                font-size: 2rem;
+            }
 
-        {
-            opacity: 0;
-            transform: translateY(100vh) rotate(0deg);
-        }
-
-        10% {
-            opacity: 1;
-        }
-
-        90% {
-            opacity: 1;
-        }
-
-        100% {
-            opacity: 0;
-            transform: translateY(-10vh) rotate(360deg);
-        }
-
+            .reg-form-box {
+                padding: 32px 20px;
+            }
         }
 
         @@media (max-width: 768px) {
-            .card-header
-
-        {
-            padding: 20px 25px 15px;
-        }
-
-        .card-title {
-            font-size: 1.6rem;
-        }
-
-        .card-subtitle {
-            font-size: 0.9rem;
-        }
-
-        .card-body {
-            padding: 20px 25px 25px;
-        }
-
-        .brand-logo {
-            width: 45px;
-            height: 45px;
-        }
-
-            .brand-logo i {
-                font-size: 1.3rem;
+            .rf-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
             }
-
-        .main-container {
-            max-width: 500px;
-        }
-
-        }
-
-        .fade-in-up {
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-
-        @@keyframes fadeInUp {
-            from
-
-        {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
         }
     </style>
 </head>
+
 <body>
-    <div class="floating-elements">
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-    </div>
 
-    <div class="main-container fade-in-up">
-        <div class="registration-card">
-            <div class="card-header">
-                <div class="brand-logo">
-                    <i class="fas fa-truck-moving"></i>
+    <div class="reg-root">
+
+        <!-- LEFT PANEL -->
+        <div class="reg-panel-left">
+            <div class="rpl-photo"></div>
+            <div class="rpl-overlay"></div>
+            <div class="rpl-dots"></div>
+            <div class="rpl-ring rpl-ring-a"></div>
+            <div class="rpl-ring rpl-ring-b"></div>
+
+            <div class="rpl-body">
+
+                <div class="rpl-logo">
+                    <img src="~/assets/img/FULL-WHITE-AND-GREEN-LOGO.png" alt="Fleetalia">
                 </div>
-                <h1 class="card-title">FleetManager</h1>
-                <p class="card-subtitle">Register your company and take control of your fleet operations</p>
-            </div>
 
-            <div class="card-body">
-                <h2 class="section-title">Company Information</h2>
+                <div class="rpl-hero">
+
+                    <div class="rpl-tag">
+                        <i class="fa-solid fa-rocket"></i>
+                        Get started in minutes
+                    </div>
+
+                    <h2 class="rpl-headline">
+                        Start managing <em>your fleet</em> today.
+                    </h2>
+
+                    <p class="rpl-sub">
+                        Join 150+ companies using Fleetalia to streamline fleet operations,
+                        reduce costs, and gain real-time visibility across their entire vehicle network.
+                    </p>
+
+                    <div class="rpl-steps">
+                        <div class="rpl-step">
+                            <div class="rpl-step-num">1</div>
+                            <div class="rpl-step-text">
+                                <strong>Create your company account</strong>
+                                <span>Set up in under 3 minutes, no credit/debit card required</span>
+                            </div>
+                        </div>
+                        <div class="rpl-step">
+                            <div class="rpl-step-num">2</div>
+                            <div class="rpl-step-text">
+                                <strong>Add your vehicles & drivers</strong>
+                                <span>Enter Vehicles manually </span>
+                            </div>
+                        </div>
+                        <div class="rpl-step">
+                            <div class="rpl-step-num">3</div>
+                            <div class="rpl-step-text">
+                                <strong>Start tracking & managing</strong>
+                                <span>Real-time GPS, fuel logs, maintenance schedules & more</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="reg-panel-right">
+            <div class="reg-form-box">
+
+                <div class="rf-logo">
+                    <img src="~/assets/img/FULL-BLUE-AND-GREEN-LOGO.png" alt="Fleetalia">
+                </div>
+
+                <div class="rf-welcome">
+                    <h1>Create Company Account</h1>
+                    <p>Enter your company details to get started with Fleetalia</p>
+                </div>
+
+                <div class="rf-divider">
+                    <span class="rf-divider-line"></span>
+                    <span class="rf-divider-text">Company Registration</span>
+                    <span class="rf-divider-line"></span>
+                </div>
 
                 @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty] != null)
                 {
-                    <div class="alert alert-danger" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                    <div class="rf-errors">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <div>
+                            @Html.ValidationSummary(false, "", new { @class = "" })
+                        </div>
                     </div>
                 }
 
-                <form asp-action="Create" id="registrationForm" novalidate>
-                    <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label" asp-for="FirstName">First Name</label>
-                            <input type="text" class="form-control" asp-for="FirstName" placeholder="Enter your first name" required autocomplete="firstname" />
-                            <i class="fas fa-user input-icon"></i>
-                            @Html.ValidationMessageFor(model => model.FirstName, "", new { @class = "validation-message" })
+                <form asp-action="Create" id="regForm" novalidate>
+
+                    <!-- First name + Last name -->
+                    <div class="rf-row">
+                        <div class="rf-field">
+                            <label asp-for="FirstName">First Name <span class="req">*</span></label>
+                            <div class="rf-field-wrap">
+                                <i class="fa-solid fa-user rf-field-ico"></i>
+                                <input asp-for="FirstName" type="text" placeholder="Your first name" required autocomplete="given-name">
+                            </div>
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="rf-field">
+                            <label asp-for="LastName">Last Name <span class="req">*</span></label>
+                            <div class="rf-field-wrap">
+                                <i class="fa-solid fa-user rf-field-ico"></i>
+                                <input asp-for="LastName" type="text" placeholder="Your last name" required autocomplete="family-name">
+                            </div>
+                            <span asp-validation-for="LastName" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label" asp-for="LastName">Last Name</label>
-                            <input type="text" class="form-control" asp-for="LastName" placeholder="Enter your last name" required autocomplete="lastname" />
-                            <i class="fas fa-user input-icon"></i>
-                            @Html.ValidationMessageFor(model => model.LastName, "", new { @class = "validation-message" })
-                        </div>
-                    </div>
-            </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label" asp-for="Name">Company Name</label>
-                                <input type="text" class="form-control" asp-for="Name" placeholder="Enter your company name" required autocomplete="organization" />
-                                <i class="fas fa-building input-icon"></i>
-                                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "validation-message" })
+                    <!-- Company name + Email -->
+                    <div class="rf-row">
+                        <div class="rf-field">
+                            <label asp-for="Name">Company Name <span class="req">*</span></label>
+                            <div class="rf-field-wrap">
+                                <i class="fa-solid fa-building rf-field-ico"></i>
+                                <input asp-for="Name" type="text" placeholder="Acme Logistics Inc." required autocomplete="organization">
                             </div>
+                            <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label" asp-for="Email">Email Address</label>
-                                <input type="email" class="form-control" asp-for="Email" placeholder="company@example.com" required autocomplete="email" />
-                                <i class="fas fa-envelope input-icon"></i>
-                                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "validation-message" })
+                        <div class="rf-field">
+                            <label asp-for="Email">Email Address <span class="req">*</span></label>
+                            <div class="rf-field-wrap">
+                                <i class="fa-solid fa-envelope rf-field-ico"></i>
+                                <input asp-for="Email" type="email" placeholder="admin@company.com" required autocomplete="email">
                             </div>
+                            <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label" asp-for="PhoneNumber">Phone Number</label>
-                                <input type="tel" class="form-control" asp-for="PhoneNumber" placeholder="(555) 123-4567" required autocomplete="tel" />
-                                <i class="fas fa-phone input-icon"></i>
-                                @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "validation-message" })
+                    <!-- Phone + Address -->
+                    <div class="rf-row">
+                        <div class="rf-field">
+                            <label asp-for="PhoneNumber">Phone Number <span class="req">*</span></label>
+                            <div class="rf-field-wrap">
+                                <i class="fa-solid fa-phone rf-field-ico"></i>
+                                <input asp-for="PhoneNumber" type="tel" placeholder="(555) 123-4567" required autocomplete="tel">
                             </div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label" asp-for="Address">Business Address</label>
-                                <input asp-for="Address" class="form-control" placeholder="Enter your complete business address" required autocomplete="address-line1">
-                                <i class="fas fa-map-marker-alt input-icon"></i>
-                                @Html.ValidationMessageFor(model => model.Address, "", new { @class = "validation-message" })
+                        <div class="rf-field">
+                            <label asp-for="Address">Business Address <span class="req">*</span></label>
+                            <div class="rf-field-wrap">
+                                <i class="fa-solid fa-map-marker-alt rf-field-ico"></i>
+                                <input asp-for="Address" type="text" placeholder="123 Main St, City, State" required autocomplete="address-line1">
                             </div>
+                            <span asp-validation-for="Address" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <div class="agreement-section">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" asp-for="HasAgreed" id="HasAgreed" required>
-                            <label class="form-check-label" asp-for="HasAgreed">
-                                I acknowledge that I have read, understood, and agree to be bound by the
+                    <!-- Agreement -->
+                    <div class="rf-agreement">
+                        <div class="rf-check">
+                            <input asp-for="HasAgreed" type="checkbox" id="HasAgreed" required>
+                            <label for="HasAgreed">
+                                I have read and agree to the
                                 <a href="#" target="_blank">Terms of Service</a> and
-                                <a href="#" target="_blank">Privacy Policy</a>. I consent to the processing
-                                of my company's information as described in these documents.
+                                <a href="#" target="_blank">Privacy Policy</a>.
                             </label>
                         </div>
-                        @Html.ValidationMessageFor(model => model.HasAgreed, "", new { @class = "validation-message" })
+                        <span asp-validation-for="HasAgreed" class="text-danger"></span>
                     </div>
 
-                    <button class="submit-btn" id="btn-submit" disabled type="submit">
-                        <div class="btn-content">
-                            <i class="fas fa-rocket"></i>
-                            <span>Create Company Account</span>
-                        </div>
-                        <div class="btn-spinner">
-                            <i class="fas fa-spinner fa-spin"></i>
-                        </div>
+                    <!-- Submit -->
+                    <button type="submit" class="rf-btn" id="submitBtn" disabled>
+                        <span class="btn-content">
+                            <i class="fa-solid fa-rocket"></i>
+                            Create Company Account
+                        </span>
+                        <span class="rf-spinner">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                        </span>
                     </button>
+
                 </form>
+
+                <p class="rf-signin">
+                    Already have an account?
+                    <a asp-area="" asp-controller="Account" asp-action="Login">Sign in here</a>
+                </p>
+
             </div>
         </div>
+
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="~/assets/js/jquery-3.7.1.min.js"></script>
+    <script src="~/assets/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/jquery.validate.unobtrusive.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('registrationForm');
-            const submitBtn = document.getElementById('btn-submit');
-            const agreeCheckbox = document.getElementById('HasAgreed');
-            const formInputs = form.querySelectorAll('.form-control');
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('regForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const agreeBox = document.getElementById('HasAgreed');
+            const inputs = form.querySelectorAll('input[required]:not([type="checkbox"])');
 
-            // Checkbox validation
-            agreeCheckbox.addEventListener('change', function(e) {
-                updateSubmitButtonState();
+            // Phone number auto-format
+            const phoneInput = form.querySelector('input[type="tel"]');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function (e) {
+                    let val = e.target.value.replace(/\D/g, '');
+                    if (val.length >= 6) {
+                        val = val.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                    } else if (val.length >= 3) {
+                        val = val.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+                    }
+                    e.target.value = val;
+                });
+            }
+
+            // Update submit button state
+            function updateSubmitBtn() {
+                const allValid = Array.from(inputs).every(inp => inp.value.trim().length > 0);
+                const agreed = agreeBox.checked;
+                submitBtn.disabled = !(allValid && agreed);
+            }
+
+            inputs.forEach(inp => {
+                inp.addEventListener('input', function () {
+                    validateField(this);
+                    updateSubmitBtn();
+                });
+                inp.addEventListener('blur', function () { validateField(this); });
+                inp.addEventListener('focus', function () { this.classList.remove('is-invalid'); });
             });
 
-            // Real-time input validation
-            formInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    validateInput(this);
-                    updateSubmitButtonState();
-                });
+            agreeBox.addEventListener('change', updateSubmitBtn);
 
-                input.addEventListener('blur', function() {
-                    validateInput(this);
-                });
-
-                input.addEventListener('focus', function() {
-                    this.classList.remove('is-invalid');
-                });
-            });
-
-            function validateInput(input) {
-                const value = input.value.trim();
-                const isValid = input.checkValidity() && value.length > 0;
-
-                input.classList.remove('is-valid', 'is-invalid');
-
-                if (value.length > 0) {
-                    if (isValid) {
-                        input.classList.add('is-valid');
+            function validateField(inp) {
+                const val = inp.value.trim();
+                inp.classList.remove('is-valid', 'is-invalid');
+                if (val.length > 0) {
+                    if (inp.checkValidity()) {
+                        inp.classList.add('is-valid');
                     } else {
-                        input.classList.add('is-invalid');
+                        inp.classList.add('is-invalid');
                     }
                 }
             }
 
-            function updateSubmitButtonState() {
-                const isFormValid = Array.from(formInputs).every(input => {
-                    return input.value.trim().length > 0 && input.checkValidity();
-                });
-                const isAgreed = agreeCheckbox.checked;
-
-                submitBtn.disabled = !(isFormValid && isAgreed);
-            }
-
-            // Enhanced form submission
-            form.addEventListener('submit', function(e) {
-                if (!form.checkValidity() || !agreeCheckbox.checked) {
+            // Form submit
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity() || !agreeBox.checked) {
                     e.preventDefault();
-
-                    // Highlight invalid fields
-                    formInputs.forEach(input => {
-                        if (!input.checkValidity() || input.value.trim().length === 0) {
-                            input.classList.add('is-invalid');
+                    inputs.forEach(inp => {
+                        if (!inp.checkValidity() || inp.value.trim().length === 0) {
+                            inp.classList.add('is-invalid');
                         }
                     });
-
-                    // Scroll to first invalid field
                     const firstInvalid = form.querySelector('.is-invalid');
                     if (firstInvalid) {
                         firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         firstInvalid.focus();
                     }
-
                     return;
                 }
 
-                // Show loading state
+                // Show loading
                 submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
             });
-
-            // Phone number formatting
-            const phoneInput = document.querySelector('input[type="tel"]');
-            if (phoneInput) {
-                phoneInput.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length >= 6) {
-                        value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-                    } else if (value.length >= 3) {
-                        value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
-                    }
-                    e.target.value = value;
-                });
-            }
-
-            // Add subtle hover effects to form fields
-            formInputs.forEach(input => {
-                input.addEventListener('mouseenter', function() {
-                    if (!this.matches(':focus')) {
-                        this.style.transform = 'translateY(-1px)';
-                    }
-                });
-
-                input.addEventListener('mouseleave', function() {
-                    if (!this.matches(':focus')) {
-                        this.style.transform = 'translateY(0)';
-                    }
-                });
-            });
         });
     </script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@* @using FleetManager.Business.ViewModels
-@model CompanyRegistrationViewModel
-
-@{
-    // Layout = "~/Views/Shared/_AuthLayout.cshtml";
-    Layout = null;
-}
-<div class="card">
-
-    <div class="card-body">
-
-        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty] != null)
-        {
-            <div class="alert alert-danger d-flex align-items-center" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                <div>
-                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        }
-
-        <form asp-action="Create" >
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Name">Company Name</label>
-                    <input type="text" class="form-control" asp-for="Name" placeholder="Company Name" required autocomplete="off" />
-                    @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
-
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Email">Email</label>
-                    <input type="email" class="form-control" asp-for="Email" placeholder="Email" required autocomplete="off">
-                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
-
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="PhoneNumber">Phone</label>
-                    <input type="text" class="form-control" asp-for="PhoneNumber" placeholder="Phone" required autocomplete="off" />
-                    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
-
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Address">Address</label>
-                    <textarea asp-for="Address" class="form-control" required autocomplete="off"></textarea>
-                    @Html.ValidationMessageFor(model => model.Address, "", new { @class = "text-danger" })
-
-                </div>
-            </div>
-            <div class="input-block mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" asp-for="HasAgreed">
-                    <label class="form-check-label" asp-for="HasAgreed">
-                        Agree to terms and conditions
-                    </label>
-                    <div class="valid-feedback">
-                        You must agree before submitting.
-                    </div>
-                </div>
-            </div>
-            <button class="btn btn-primary" id="btn-submit" disabled type="submit">Submit form</button>
-        </form>
-    </div>
-</div>
-
-
-@section Scripts {
-    <script>
-
-        document.getElementById('HasAgreed').addEventListener('change',function(e){
-            console.log(e.target.checked)
-            $('#btn-submit').prop('disabled',!e.target.checked);
-
-        });
-    </script>
-} *@

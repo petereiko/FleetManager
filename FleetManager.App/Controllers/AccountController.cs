@@ -1,24 +1,25 @@
 ﻿
-using Microsoft.AspNetCore.Authentication.Cookies;
+using FleetManager.Business;
+using FleetManager.Business.Database.IdentityModels;
+using FleetManager.Business.Enums;
+using FleetManager.Business.Interfaces.UserModule;
+using FleetManager.Business.UtilityModels;
+using FleetManager.Business.ViewModels;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
-using FleetManager.Business.Interfaces.UserModule;
-using FleetManager.Business.Database.IdentityModels;
-using FleetManager.Business;
-using FleetManager.Business.ViewModels;
-using FleetManager.Business.UtilityModels;
-using FleetManager.Business.Enums;
 
 namespace FleetManager.App.Controllers
 {
@@ -417,5 +418,13 @@ namespace FleetManager.App.Controllers
         {
             return View();
         }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult ValidateSession()
+        {
+            return Ok();
+        }
+
     }
 }

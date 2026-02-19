@@ -1,4 +1,4 @@
-@using FleetManager.Business
+﻿@using FleetManager.Business
 @using FleetManager.Business.Database.IdentityModels
 @using FleetManager.Business.GoogleMap.Options
 @using FleetManager.Business.Interfaces.UserModule
@@ -65,12 +65,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-    @await Html.PartialAsync("_Favicons")
+    @Html.PartialAsync("_Favicons")
     <title>Fleetalia - Your solution to manage your fleet of vehicles</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <!--FlatPickr <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">-->
-
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
 
 
@@ -99,7 +99,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
+    
 
 
 
@@ -118,7 +118,7 @@
         <div class="header">
             <div class="header-left">
                 <a href="index.html" class="logo">
-                    <img src="~/assets/img/FULL-WHITE-AND-GREEN-LOGO.png" width="40" height="40" alt="">
+                    <img src="~/assets/img/FULL-WHITE-AND-GREEN-LOGO.png" width="40" height="40" alt=""> 
                     <!--  <span>@companyName</span>-->
                 </a>
             </div>
@@ -268,7 +268,7 @@
             </div>
         </div>
 
-
+        
     </div>
 
     <!-- Export Loading Indicator -->
@@ -285,12 +285,31 @@
         <span>Export completed successfully!</span>
     </div>
 
-
+    
 
 
     <div class="sidebar-overlay" data-reff=""></div>
 
     <audio id="notification-sound" src="/sounds/notify.mp3" preload="auto"></audio>
+
+    
+
+
+    <!-- Alert auto-hide script -->
+    <script>
+        // window.addEventListener('DOMContentLoaded', () => {
+        //     ['success', 'error', 'warning', 'info'].forEach(type => {
+        //         const alertBox = document.getElementById(`alert-${type}`);
+        //         if (alertBox) {
+        //             setTimeout(() => {
+        //                 const bsAlert = bootstrap.Alert.getOrCreateInstance(alertBox);
+        //                 bsAlert.close();
+        //             }, 5000);
+        //         }
+        //     });
+        // });
+    </script>
+
 
 
 
@@ -301,8 +320,8 @@
 
 
 
-    <!-- JQuery -->
-
+     <!-- JQuery -->
+    
     <script src="~/assets/js/jquery-3.7.1.min.js"></script>
 
     <!-- Table Export -->
@@ -314,7 +333,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 
     <script src="~/js/geo.js"></script>
-
+   
 
     <!--Google Map -->
 
@@ -383,41 +402,6 @@
     <!-- Custom JS -->
     <script src="~/assets/js/app.js"></script>
 
-    <script>
-                (function () {
-
-            // 30 minutes
-            const inactivityLimit = 30 * 60 * 1000;
-            let inactivityTimer;
-
-            function logout(reason) {
-                window.location.href = "/Account/Login?sessionExpired=true";
-            }
-
-            function resetTimer() {
-                clearTimeout(inactivityTimer);
-                inactivityTimer = setTimeout(logout, inactivityLimit);
-            }
-
-            ["click","mousemove","keydown","scroll"].forEach(evt =>
-                document.addEventListener(evt, resetTimer)
-            );
-
-            resetTimer();
-
-            // Server-side enforcement (every 60s)
-            setInterval(() => {
-                fetch('/Account/ValidateSession')
-                    .then(r => {
-                        if (!r.ok) logout();
-                    })
-                    .catch(logout);
-            }, 60000);
-
-        })();
-    </script>
-
-
 
     @await Html.PartialAsync("_DeleteModal")
     @await RenderSectionAsync("Scripts", required: false)
@@ -426,10 +410,6 @@
 
 
 </html>
-
-
-
-
 
 
 

@@ -1,80 +1,456 @@
-﻿@using FleetManager.Business.ViewModels
+@using FleetManager.Business.ViewModels
 @model LoginViewModel
 @{
-	Layout = "~/Views/Shared/_AuthLayout.cshtml";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
-<div class="login-right">
-	<div class="login-right-wrap">
-		<div class="account-logo">
-			@* <a href="index.html"><img src="~/assets/img/login-logo.png" alt=""></a> *@
-		</div>
-		<h2>Login</h2>
-		@if (Model?.Errors != null && Model.Errors.Any())
-		{
-			<div class="alert alert-danger">
-				@foreach (var error in Model.Errors)
-				{
-					<div>@error</div>
-				}
-			</div>
-		}
 
+<style>
+    /* ════════════════════════════════════════
+       LOGIN FORM — Fleetalia Theme
+       Scoped inside .lf- prefix, no conflicts
+    ════════════════════════════════════════ */
 
-		<!-- Form -->
-		<form asp-action="Login">
-			
-			<div class="input-block">
-				<label asp-for="Email">Email <span class="login-danger">*</span></label>
-				<input asp-for="Email" class="form-control" type="text">
-			</div>
-			<div class="input-block">
-				<label asp-for="Password">Password <span class="login-danger">*</span></label>
-				<input asp-for="Password" class="form-control pass-input" type="password">
-				<span asp-validation-for="Password" class="profile-views feather-eye-off toggle-password"></span>
-			</div>
-			<div class="forgotpass">
-				<div class="remember-me">
-					<label asp-for="RememberMe" class="custom_check mr-2 mb-0 d-inline-flex remember-me">
-						Remember me
-						<input asp-for="RememberMe" type="checkbox" name="radio">
-						<span asp-validation-for="RememberMe" class="checkmark"></span>
-					</label>
-				</div>
-				<a asp-action="ForgotPassword">Forgot Password?</a>
-			</div>
-			<div class="input-block login-btn">
-				<button class="btn btn-primary btn-block" type="submit">Login</button>
-			</div>
-		</form>
-		<!-- /Form -->
-		<div class="next-sign">
-			<p class="account-subtitle">Need Driver Management Software?  <a asp-action="Create" asp-controller="User" asp-area="Company">Sign Up</a></p>
+    /* Form logo */
+    .lf-logo {
+        text-align: center;
+        margin-bottom: 30px;
+    }
 
-			<!-- Social Login -->
-			@* <div class="social-login">
-				<a href="javascript:;"><img src="assets/img/icons/login-icon-01.svg" alt=""></a>
-				<a href="javascript:;"><img src="assets/img/icons/login-icon-02.svg" alt=""></a>
-				<a href="javascript:;"><img src="assets/img/icons/login-icon-03.svg" alt=""></a>
-			</div> *@
-			<!-- /Social Login -->
+    .lf-logo img {
+        height: 40px;
+        width: auto;
+        display: inline-block;
+    }
 
-		</div>
-	</div>
-</div
+    /* Welcome heading */
+    .lf-welcome {
+        text-align: center;
+        margin-bottom: 30px;
+    }
 
+    .lf-welcome h1 {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 25px;
+        font-weight: 800;
+        color: #1B2856;
+        letter-spacing: -0.025em;
+        margin: 0 0 8px;
+    }
 
+    .lf-welcome p {
+        font-size: 14px;
+        color: rgba(26,28,32,0.55);
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    /* Service mini-badges */
+    .lf-badges {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+    }
+
+    .lf-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #f0f9f5;
+        border: 1px solid #a7d7c5;
+        border-radius: 99px;
+        padding: 4px 11px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #00664c;
+        white-space: nowrap;
+    }
+
+    .lf-badge i { font-size: 10px; }
+
+    /* Divider between badges and form */
+    .lf-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .lf-divider-line {
+        flex: 1;
+        height: 1px;
+        background: #e2e4e8;
+    }
+
+    .lf-divider-text {
+        font-size: 11.5px;
+        color: rgba(26,28,32,0.38);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    /* Error alert */
+    .lf-errors {
+        background: #fdf2f2;
+        border: 1px solid #f5c6c3;
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 13.5px;
+        color: #c0392b;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .lf-errors i { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+    /* Form field */
+    .lf-field {
+        margin-bottom: 18px;
+    }
+
+    .lf-field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1a1c20;
+        margin-bottom: 7px;
+        letter-spacing: -0.01em;
+    }
+
+    .lf-field .req { color: #c0392b; margin-left: 2px; }
+
+    .lf-field-wrap {
+        position: relative;
+    }
+
+    .lf-field-ico {
+        position: absolute;
+        left: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 15px;
+        color: rgba(26,28,32,0.28);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .lf-field .form-control {
+        width: 100%;
+        height: 48px;
+        padding: 0 44px 0 42px;
+        border: 1.5px solid #e2e4e8;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        color: #1a1c20;
+        background: #f9f9fb;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .lf-field .form-control:focus {
+        border-color: #00664c;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(0,102,76,0.12);
+    }
+
+    .lf-field .form-control::placeholder { color: rgba(26,28,32,0.28); }
+
+    /* Password eye toggle */
+    .lf-pw-toggle {
+        position: absolute;
+        right: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 15px;
+        color: rgba(26,28,32,0.32);
+        background: none;
+        border: none;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        transition: color 0.12s ease;
+        z-index: 1;
+    }
+
+    .lf-pw-toggle:hover { color: #1B2856; }
+
+    /* Remember + forgot row */
+    .lf-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+    }
+
+    .lf-check {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: rgba(26,28,32,0.6);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .lf-check input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #00664c;
+        cursor: pointer;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .lf-forgot {
+        font-size: 13px;
+        font-weight: 600;
+        color: #00664c;
+        text-decoration: none;
+        transition: color 0.12s;
+    }
+
+    .lf-forgot:hover { color: #004d38; }
+
+    /* Login button */
+    .lf-btn {
+        width: 100%;
+        height: 50px;
+        background: #1B2856;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 16px rgba(27,40,86,0.22);
+        margin-bottom: 0;
+    }
+
+    .lf-btn:hover {
+        background: #223068;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 22px rgba(27,40,86,0.28);
+    }
+
+    .lf-btn:active { transform: translateY(0); }
+
+    /* Sign-up line */
+    .lf-signup {
+        text-align: center;
+        font-size: 13.5px;
+        color: rgba(26,28,32,0.55);
+        margin-top: 22px;
+    }
+
+    .lf-signup a {
+        font-weight: 700;
+        color: #00664c;
+        text-decoration: none;
+    }
+
+    .lf-signup a:hover { color: #004d38; }
+
+    /* Session-expired toast */
+    .lf-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #c0392b;
+        color: #fff;
+        padding: 13px 18px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        z-index: 99999;
+        max-width: 360px;
+        box-shadow: 0 6px 24px rgba(192,57,43,0.3);
+        animation: toast-in 0.35s cubic-bezier(0.34,1.06,0.64,1) both;
+    }
+
+    @@keyframes toast-in {
+        from { opacity: 0; transform: translateX(40px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .lf-toast-close {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.7);
+        cursor: pointer;
+        font-size: 16px;
+        margin-left: auto;
+        padding: 0;
+        transition: color 0.12s;
+        flex-shrink: 0;
+    }
+
+    .lf-toast-close:hover { color: #fff; }
+</style>
+
+<!-- Logo -->
+<div class="lf-logo">
+    <img src="~/assets/img/FULL-BLUE-AND-GREEN-LOGO.png" alt="Fleetalia">
+</div>
+
+<!-- Welcome message -->
+<div class="lf-welcome">
+    <h1>Welcome back! </h1>
+    <p>Sign in to your Fleetalia account to manage<br>your fleet, drivers and operations.</p>
+</div>
+
+<!-- Mini service badges — the "ad" -->
+<div class="lf-badges">
+    <span class="lf-badge"><i class="fa-solid fa-location-dot"></i> Live GPS Tracking</span>
+    <span class="lf-badge"><i class="fa-solid fa-mobile-screen"></i> Mobile App</span>
+    <span class="lf-badge"><i class="fa-solid fa-chart-pie"></i> Reports & Analytics</span>
+    <span class="lf-badge"><i class="fa-solid fa-wrench"></i> Maintenance Alerts</span>
+</div>
+
+<!-- Divider -->
+<div class="lf-divider">
+    <span class="lf-divider-line"></span>
+    <span class="lf-divider-text">Sign in to continue</span>
+    <span class="lf-divider-line"></span>
+</div>
+
+<!-- Error messages -->
+@if (Model?.Errors != null && Model.Errors.Any())
+{
+    <div class="lf-errors">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <div>
+            @foreach (var error in Model.Errors)
+            {
+                <div>@error</div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Login form -->
+<form asp-action="Login" autocomplete="on">
+
+    <!-- Email -->
+    <div class="lf-field">
+        <label asp-for="Email">Email address <span class="req">*</span></label>
+        <div class="lf-field-wrap">
+            <i class="fa-solid fa-envelope lf-field-ico"></i>
+            <input asp-for="Email"
+                   class="form-control"
+                   type="email"
+                   placeholder="you@company.com"
+                   autocomplete="email">
+        </div>
+        <span asp-validation-for="Email" class="text-danger" style="font-size:12px;"></span>
+    </div>
+
+    <!-- Password -->
+    <div class="lf-field">
+        <label asp-for="Password">Password <span class="req">*</span></label>
+        <div class="lf-field-wrap">
+            <i class="fa-solid fa-lock lf-field-ico"></i>
+            <input asp-for="Password"
+                   class="form-control"
+                   type="password"
+                   id="passwordField"
+                   placeholder="Enter your password"
+                   autocomplete="current-password">
+            <button type="button" class="lf-pw-toggle" id="pwToggle" title="Show/hide password">
+                <i class="fa-regular fa-eye" id="pwIcon"></i>
+            </button>
+        </div>
+        <span asp-validation-for="Password" class="text-danger" style="font-size:12px;"></span>
+    </div>
+
+    <!-- Remember me + Forgot password -->
+    <div class="lf-meta">
+        <label class="lf-check">
+            <input asp-for="RememberMe" type="checkbox">
+            Remember me
+        </label>
+        <a asp-action="ForgotPassword" class="lf-forgot">Forgot password?</a>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" class="lf-btn">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        Sign In to Fleetalia
+    </button>
+
+</form>
+
+<!-- Sign up -->
+<p class="lf-signup">
+    Need fleet management software?
+    <a asp-action="Create" asp-controller="User" asp-area="Company">Create an account</a>
+</p>
+
+<!-- Session expired toast (rendered server-side if needed, also JS-driven) -->
+<div class="lf-toast" id="sessionToast" style="display:none;">
+    <i class="fa-solid fa-clock"></i>
+    <span>You were logged out due to inactivity. Please sign in again.</span>
+    <button class="lf-toast-close" id="sessionToastClose" type="button">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('sessionExpired')) {
-            Toastify({
-                text: "You've been logged out due to inactivity. Please log in to continuew.",
-                duration: 5000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#ff6b6b"
-            }).showToast();
-        }
-    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ── Password visibility toggle ──
+            var pwField  = document.getElementById('passwordField');
+            var pwToggle = document.getElementById('pwToggle');
+            var pwIcon   = document.getElementById('pwIcon');
+
+            if (pwToggle && pwField) {
+                pwToggle.addEventListener('click', function () {
+                    var isText = pwField.type === 'text';
+                    pwField.type = isText ? 'password' : 'text';
+                    pwIcon.className = isText ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+                });
+            }
+
+            // ── Session expired toast ──
+            var params = new URLSearchParams(window.location.search);
+            if (params.has('sessionExpired')) {
+                var toast = document.getElementById('sessionToast');
+                if (toast) {
+                    toast.style.display = 'flex';
+                    // Auto-hide after 5 s
+                    setTimeout(function () { toast.style.display = 'none'; }, 5500);
+                }
+            }
+
+            var closeBtn = document.getElementById('sessionToastClose');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function () {
+                    document.getElementById('sessionToast').style.display = 'none';
+                });
+            }
+        });
+    </script>
+}

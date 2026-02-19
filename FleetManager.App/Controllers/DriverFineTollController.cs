@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FleetManager.App.Controllers
 {
     // ─── DriverFineTollController ─────────────────────────────────────────────────
-    [Authorize(Roles = "Driver")]
+    [Authorize(Policy = "DriverWeb")]
     public class DriverFineTollController : Controller
     {
         private readonly IFineAndTollService _fineService;

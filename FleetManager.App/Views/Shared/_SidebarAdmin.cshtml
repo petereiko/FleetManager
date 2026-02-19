@@ -3,6 +3,423 @@
 <div class="sidebar-inner slimscroll">
     <div id="sidebar-menu" class="sidebar-menu">
         <ul>
+            <li class="menu-title">
+                <span>Main Menu</span>
+            </li>
+
+            @* Dashboard *@
+            <li>
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </span>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            @* Drivers *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageDriver"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-id-card"></i>
+                    </span>
+                    <span>Drivers</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageDriver"
+                           asp-action="Index">
+                            Drivers on Book
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageDriver"
+                           asp-action="Create">
+                            Onboard Driver
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Vehicles *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="AdminVehicle"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-car-side"></i>
+                    </span>
+                    <span>Vehicles</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="AdminVehicle"
+                           asp-action="Index">
+                            List of Vehicles
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="AdminVehicle"
+                           asp-action="Create">
+                            Add Vehicle
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Assignments *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageAssignment"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-list-check"></i>
+                    </span>
+                    <span>Assignments</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageAssignment"
+                           asp-action="Index">
+                            View Assignments
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageAssignment"
+                           asp-action="Create">
+                            Assign New
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Trips *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="AdminTrips"
+                   asp-action="Dashboard">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-route"></i>
+                    </span>
+                    <span>Trips</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="LiveTracking"
+                           asp-action="Dashboard">
+                            Live Track
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="AdminTrips"
+                           asp-action="Dashboard">
+                            Manage Trips
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="TripReports"
+                           asp-action="Index">
+                            Reports &amp; Analytics
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="TripReports"
+                           asp-action="IndexServer">
+                            Reports Log
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Fuel Logs *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageFuelLog"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-gas-pump"></i>
+                    </span>
+                    <span>Fuel Logs</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="FuelLog"
+                           asp-action="Index">
+                            View Fuel Logs
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="FuelLog"
+                           asp-action="Create">
+                            Add Fuel Log
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Fines & Tolls *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageFineToll"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-receipt"></i>
+                    </span>
+                    <span>Fines &amp; Tolls</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageFineToll"
+                           asp-action="Index">
+                            View Fines &amp; Tolls
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Duty of Care *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageDutyOfCare"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </span>
+                    <span>Duty of Care</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageDutyOfCare"
+                           asp-action="Index">
+                            Duty of Care List
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageDutyOfCare"
+                           asp-action="Create">
+                            Add Care Record
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Vendors Directory *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ContactDirectory"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-address-book"></i>
+                    </span>
+                    <span>Vendors Directory</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ContactDirectory"
+                           asp-action="Index">
+                            View Contacts Info
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ContactDirectory"
+                           asp-action="Create">
+                            Add Contact
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Maintenance Tickets *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="ManageMaintenance"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-wrench"></i>
+                    </span>
+                    <span>Maintenance Tickets</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ManageMaintenance"
+                           asp-action="Index">
+                            Maintenance Tickets
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Repairs & Fixes *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="RepairHistory"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                    </span>
+                    <span>Repairs &amp; Fixes History</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="RepairHistory"
+                           asp-action="Index">
+                            Vehicle Repair Records
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Time Off *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="TimeOff"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-calendar-xmark"></i>
+                    </span>
+                    <span>Timeoff Requests</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="TimeOff"
+                           asp-action="Index">
+                            Review Requests
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="TimeOff"
+                           asp-action="Approved">
+                            Approved Requests
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="TimeOff"
+                           asp-action="Denied">
+                            Denied Requests
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="TimeOff"
+                           asp-action="Categories">
+                            Update Company's Category
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Reports *@
+            <li class="submenu">
+                <a asp-area="Admin"
+                   asp-controller="Reports"
+                   asp-action="Index">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </span>
+                    <span>Reports</span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <ul style="display: none;">
+                    <li>
+                        <a asp-area="Admin"
+                           asp-controller="ReportHub"
+                           asp-action="Index">
+                            Reports Hub
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            @* Logout *@
+            <li class="logout-btn">
+                <a asp-area="" asp-controller="Account" asp-action="Logout">
+                    <span class="menu-side">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </span>
+                    <span>Logout</span>
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="sidebar-inner slimscroll">
+    <div id="sidebar-menu" class="sidebar-menu">
+        <ul>
             <li class="menu-title">Admin</li>
 
             <li>
@@ -187,14 +604,8 @@
                             View Fines & Tolls
                         </a>
                     </li>
-@*                     <li>
-                        <a asp-area="Admin"
-                           asp-controller="FuelLog"
-                           asp-action="Create">
-                            Add Fuel Log
-                        </a>
-                    </li>
- *@                </ul>
+                    
+                </ul>
             </li>
 
             <li class="submenu">
@@ -271,13 +682,6 @@
                             Maintenance Tickets
                         </a>
                     </li>
-                    @* <li>
-                        <a asp-area="Admin"
-                           asp-controller="ManageMaintenance"
-                           asp-action="Dashboard">
-                            Reports Hub
-                        </a>
-                    </li> *@
                 </ul>
             </li>
             <li class="submenu">
@@ -369,17 +773,6 @@
                 </ul>
             </li>
 
-            
-
-            @* <li class="logout-btn">
-                <a asp-area="Vendor" asp-controller="Vendor" asp-action="Index" target="_blank">
-                    <span class="menu-side">
-                        <img src="~/assets/img/icons/logout.svg" alt="">
-                    </span>
-                    <span>Visit Vendors</span>
-                </a>
-            </li> *@
-
             <li class="logout-btn">
                 <a asp-area="" asp-controller="Account" asp-action="Logout">
                     <span class="menu-side">
@@ -391,3 +784,4 @@
         </ul>
     </div>
 </div>
+ *@

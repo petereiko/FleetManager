@@ -311,6 +311,60 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
             return resp;
         }
 
+        // Add to FineAndTollService.cs
+        public async Task<MessageResponse> DeleteAsync(long id, string driverUserId)
+        {
+            var resp = new MessageResponse();
+            try
+            {
+                var entity = await _context.FineAndTolls
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (entity == null)
+                {
+                    resp.Message = "Fine/Toll record not found";
+                    return resp;
+                }
+
+                // ✅ Driver can only delete their own records
+                if (entity.DriverId != driverUserId)
+                {
+                    throw new UnauthorizedAccessException(
+                        "You can only delete your own fine/toll records");
+                }
+
+                // ✅ Cannot delete already paid records
+                if (entity.Status == FineTollStatus.Paid)
+                {
+                    resp.Message = "Cannot delete a paid fine/toll record";
+                    return resp;
+                }
+
+                _context.FineAndTolls.Remove(entity);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Fine/Toll record {Id} deleted by driver {DriverUserId}",
+                    id, driverUserId);
+
+                resp.Success = true;
+                resp.Message = "Fine/Toll record deleted successfully";
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex,
+                    "Unauthorized delete attempt on Fine/Toll {Id} by {UserId}",
+                    id, driverUserId);
+                throw; // Re-throw so controller can return 403
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Fine/Toll record {Id}", id);
+                resp.Message = "An error occurred while deleting the record";
+            }
+
+            return resp;
+        }
         public List<SelectListItem> GetFineTollTypeOptions()
         {
             return Enum.GetValues<FineTollType>()

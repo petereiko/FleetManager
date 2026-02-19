@@ -1,0 +1,73 @@
+﻿@using FleetManager.Business.ViewModels
+@model LoginViewModel
+@{
+	Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+<div class="login-right">
+	<div class="login-right-wrap">
+		<div class="account-logo">
+			<p><img src="~/assets/img/FULL-BLUE-AND-GREEN-LOGO.png" alt=""></p>
+ 			Let like a nice and friendly message be here and let the Fleetalia logo be very visible and make it friendly and users have to log in because this is like the Landing page. When Fleetalia.com is visited, you'll have to login to access any further thing, you could maybe generate small advertisement about our services which is keep track of all fleets operations, track drivers and runs using our mobile apps and other stuff. Make it professional
+ 		</div>
+		<h2>Login</h2>
+		@if (Model?.Errors != null && Model.Errors.Any())
+		{
+			<div class="alert alert-danger">
+				@foreach (var error in Model.Errors)
+				{
+					<div>@error</div>
+				}
+			</div>
+		}
+
+
+		<!-- Form -->
+		<form asp-action="Login">
+			
+			<div class="input-block">
+				<label asp-for="Email">Email <span class="login-danger">*</span></label>
+				<input asp-for="Email" class="form-control" type="text">
+			</div>
+			<div class="input-block">
+				<label asp-for="Password">Password <span class="login-danger">*</span></label>
+				<input asp-for="Password" class="form-control pass-input" type="password">
+				<span asp-validation-for="Password" class="profile-views feather-eye-off toggle-password"></span>
+			</div>
+			<div class="forgotpass">
+				<div class="remember-me">
+					<label asp-for="RememberMe" class="custom_check mr-2 mb-0 d-inline-flex remember-me">
+						Remember me
+						<input asp-for="RememberMe" type="checkbox" name="radio">
+						<span asp-validation-for="RememberMe" class="checkmark"></span>
+					</label>
+				</div>
+				<a asp-action="ForgotPassword">Forgot Password?</a>
+			</div>
+			<div class="input-block login-btn">
+				<button class="btn btn-primary btn-block" type="submit">Login</button>
+			</div>
+		</form>
+		<!-- /Form -->
+		<div class="next-sign">
+			<p class="account-subtitle">Need Driver Management Software?  <a asp-action="Create" asp-controller="User" asp-area="Company">Sign Up</a></p>
+
+		</div>
+	</div>
+</div
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('sessionExpired')) {
+            Toastify({
+                text: "You've been logged out due to inactivity. Please log in to continuew.",
+                duration: 5000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#ff6b6b"
+            }).showToast();
+        }
+    </script>
+

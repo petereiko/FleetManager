@@ -178,7 +178,7 @@ namespace FleetManager.App.Controllers
         /// </summary>
         /// <returns>Dashboard data including stats, schedule, activities, etc.</returns>
         [HttpGet("dashboard")]
-        [Authorize(Roles = "Driver")]
+        [Authorize(Policy = "DriverApi")]
         [ProducesResponseType(typeof(ApiResponse<DriverDashboardDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -217,69 +217,13 @@ namespace FleetManager.App.Controllers
             }
         }
 
-        /// <summary>
-        /// Get Driver Profile - Returns current driver's profile information
-        /// </summary>
-        /// <returns>Driver profile details</returns>
-        //[HttpGet("profile")]
-        //[Authorize(Roles = "Driver")]
-        //[ProducesResponseType(typeof(ApiResponse<DriverProfileDto>), StatusCodes.Status200OK)]
-        //public async Task<IActionResult> GetProfile()
-        //{
-        //    try
-        //    {
-        //        var userId = _authUser.UserId;
-        //        var user = await _userManager.FindByIdAsync(userId);
-
-        //        if (user == null)
-        //        {
-        //            return NotFound(new ApiResponse<DriverProfileDto>
-        //            {
-        //                Success = false,
-        //                Message = "User not found"
-        //            });
-        //        }
-
-        //        var driver = await _context.Drivers
-        //            .AsNoTracking()
-        //            .FirstOrDefaultAsync(d => d.UserId == user.Id);
-
-        //        return Ok(new ApiResponse<DriverProfileDto>
-        //        {
-        //            Success = true,
-        //            Message = "Profile retrieved successfully",
-        //            Data = new DriverProfileDto
-        //            {
-        //                Id = user.Id,
-        //                Email = user.Email ?? string.Empty,
-        //                FullName = $"{user.FirstName} {user.LastName}".Trim(),
-        //                PhoneNumber = user.PhoneNumber ?? string.Empty,
-        //                DriverId = driver?.Id,
-        //                LicenseNumber = driver?.LicenseNumber
-        //            }
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error fetching driver profile");
-        //        return StatusCode(500, new ApiResponse<DriverProfileDto>
-        //        {
-        //            Success = false,
-        //            Message = "An error occurred while fetching profile"
-        //        });
-        //    }
-        //}
-
-
-
-
 
         /// <summary>
         /// Refresh Token - Generate a new JWT token
         /// </summary>
         /// <returns>New JWT token</returns>
         [HttpPost("refresh-token")]
-        [Authorize(Roles = "Driver")]
+        [Authorize(Policy = "DriverApi")]
         [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> RefreshToken()
         {

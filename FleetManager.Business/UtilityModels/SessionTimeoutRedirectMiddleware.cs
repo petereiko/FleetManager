@@ -21,6 +21,8 @@ namespace FleetManager.Business.UtilityModels
             var path = context.Request.Path;
             var method = context.Request.Method;
             var isAuthenticated = context.User?.Identity?.IsAuthenticated ?? false;
+            var isValidateSession = path.Equals("/Account/ValidateSession", StringComparison.OrdinalIgnoreCase);
+
 
             var isLoginPath = path.Equals("/Account/Login", StringComparison.OrdinalIgnoreCase);
             var isAccessingStatic = path.StartsWithSegments("/css") ||
@@ -35,7 +37,8 @@ namespace FleetManager.Business.UtilityModels
                 method.Equals("GET", StringComparison.OrdinalIgnoreCase) &&
                 !isLoginPath &&
                 !isAccessingStatic &&
-                !isApi)
+                !isApi &&
+                !isValidateSession)
             {
                 var returnUrl = context.Request.Path + context.Request.QueryString;
                 var loginUrl = $"/Account/Login?sessionExpired=true&returnUrl={Uri.EscapeDataString(returnUrl)}";

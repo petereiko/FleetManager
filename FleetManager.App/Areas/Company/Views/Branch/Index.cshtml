@@ -2,1602 +2,1311 @@
 @model List<CompanyBranchDto>
 
 <style>
+
     :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        --warning-gradient: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
-        --danger-gradient: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
-        --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-        --hover-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-        --border-radius: 20px;
-        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --navy: #1B2856;
+        --navy-mid: #223068;
+        --green: #00664c;
+        --green-light: #00875f;
+        --green-pale: #6ee7b7;
+        --white: #ffffff;
+        --surface: #f7f8fa;
+        --border: #e2e4e8;
+        --border-mid: #d0d4dc;
+        --dark: #1a1c20;
+        --dark-60: rgba(26,28,32,0.60);
+        --dark-35: rgba(26,28,32,0.35);
+        --danger: #c0392b;
+        --danger-bg: #fdf2f2;
+        --warn: #c07800;
+        --warn-bg: #fff9ee;
     }
 
-    * {
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        min-height: 100vh;
-        margin: 0;
-        padding: 0;
-    }
-
-    .main-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    /* Enhanced Header */
-    .page-header {
-        background: var(--primary-gradient);
-        border-radius: var(--border-radius);
-        padding: 40px;
-        margin-bottom: 30px;
+    /* Page header */
+    .bm-header {
+        background: var(--navy);
+        border-radius: 14px;
+        padding: 32px 36px;
+        margin-bottom: 28px;
         position: relative;
         overflow: hidden;
-        box-shadow: var(--card-shadow);
+        box-shadow: 0 2px 12px rgba(27,40,86,0.15);
     }
 
-        .page-header::before {
+        /* Subtle accent circle */
+        .bm-header::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 60%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.1);
+            top: -60px;
+            right: -60px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
-            transform: rotate(-15deg);
+            background: rgba(0,102,76,0.12);
+            pointer-events: none;
         }
 
-    .header-content {
+    .bm-header-content {
         position: relative;
         z-index: 2;
     }
 
-    .breadcrumb-nav {
+    .bm-breadcrumb {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 20px;
-        font-size: 0.9rem;
+        margin-bottom: 16px;
+        font-size: 13px;
     }
 
-        .breadcrumb-nav a {
-            color: rgba(255, 255, 255, 0.9);
+        .bm-breadcrumb a {
+            color: rgba(255,255,255,0.75);
             text-decoration: none;
-            transition: var(--transition);
+            transition: color 0.12s;
         }
 
-            .breadcrumb-nav a:hover {
-                color: white;
+            .bm-breadcrumb a:hover {
+                color: #fff;
             }
 
-    .breadcrumb-separator {
-        color: rgba(255, 255, 255, 0.6);
-    }
-
-    .page-title {
-        color: white;
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .page-subtitle {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 1.1rem;
-        margin-top: 8px;
-        font-weight: 400;
-    }
-
-    /* Statistics Cards */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 25px;
-        margin-bottom: 30px;
-    }
-
-    .stat-card {
-        background: white;
-        border-radius: var(--border-radius);
-        padding: 30px;
-        box-shadow: var(--card-shadow);
-        transition: var(--transition);
-        position: relative;
-        overflow: hidden;
-    }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--hover-shadow);
+        .bm-breadcrumb i {
+            font-size: 14px;
         }
 
-        .stat-card::before {
+    .bm-breadcrumb-sep {
+        color: rgba(255,255,255,0.45);
+    }
+
+    .bm-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 8px;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .bm-title i {
+            font-size: 24px;
+            color: var(--green-pale);
+        }
+
+    .bm-subtitle {
+        font-size: 14px;
+        color: rgba(255,255,255,0.65);
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Stats cards */
+    .bm-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 28px;
+    }
+
+    .bm-stat {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 22px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+    }
+
+        /* Top color bar */
+        .bm-stat::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
+            height: 3px;
+            background: var(--green);
         }
 
-    .stat-header {
+        .bm-stat:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+            transform: translateY(-2px);
+            border-color: var(--border-mid);
+        }
+
+    .bm-stat-top {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 15px;
-        background: var(--primary-gradient);
+    .bm-stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background: rgba(27,40,86,0.08);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 1.5rem;
-    }
-
-    .stat-number {
-        font-size: 3rem;
-        font-weight: 800;
-        color: #2c3e50;
-        line-height: 1;
-        margin-bottom: 5px;
-    }
-
-    .stat-label {
-        font-size: 1.1rem;
-        color: #6c757d;
-        font-weight: 500;
-    }
-
-    .stat-change {
-        font-size: 0.9rem;
-        font-weight: 600;
-        padding: 4px 12px;
-        border-radius: 20px;
-        background: rgba(17, 153, 142, 0.1);
-        color: #11998e;
-    }
-
-    /* Main Content Card */
-    .content-card {
-        background: white;
-        border-radius: var(--border-radius);
-        box-shadow: var(--card-shadow);
-        overflow: hidden;
-    }
-
-    .card-header {
-        background: var(--secondary-gradient);
-        color: white;
-        padding: 30px;
-        position: relative;
-    }
-
-        .card-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-    .card-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .card-description {
-        opacity: 0.9;
-        margin-top: 8px;
-        font-size: 1rem;
-    }
-
-    /* Control Panel */
-    .control-panel {
-        padding: 30px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-    }
-
-    .controls-grid {
-        display: grid;
-        grid-template-columns: 1fr auto auto;
-        gap: 20px;
-        align-items: center;
-    }
-
-    .search-wrapper {
-        position: relative;
-    }
-
-    .search-input {
-        width: 100%;
-        padding: 15px 50px 15px 20px;
-        border: 2px solid #e9ecef;
-        border-radius: 15px;
-        font-size: 1rem;
-        transition: var(--transition);
-        background: white;
-    }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-
-    .search-icon {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-        pointer-events: none;
-    }
-
-    .filter-controls {
-        display: flex;
-        gap: 15px;
-    }
-
-    .filter-select {
-        padding: 12px 16px;
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        background: white;
-        font-size: 0.95rem;
-        min-width: 150px;
-        transition: var(--transition);
-    }
-
-        .filter-select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-    .action-buttons {
-        display: flex;
-        gap: 12px;
-    }
-
-    .btn {
-        padding: 12px 24px;
-        border: none;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.95rem;
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        white-space: nowrap;
-    }
-
-    .btn-primary {
-        background: var(--primary-gradient);
-        color: white;
-    }
-
-    .btn-success {
-        background: var(--success-gradient);
-        color: white;
-    }
-
-    .btn-secondary {
-        background: #f8f9fa;
-        color: #495057;
-        border: 2px solid #e9ecef;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .export-menu {
-        position: relative;
-        display: inline-block;
-    }
-
-    .export-dropdown {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
-        padding: 15px 0;
-        min-width: 180px;
-        z-index: 1000;
-        display: none;
-    }
-
-        .export-dropdown.show {
-            display: block;
-            animation: fadeInUp 0.3s ease;
-        }
-
-    .export-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 20px;
-        color: #495057;
-        text-decoration: none;
-        transition: var(--transition);
-    }
-
-        .export-item:hover {
-            background: #f8f9fa;
-            color: #667eea;
-        }
-
-    /* Enhanced Table */
-    .table-wrapper {
-        overflow-x: auto;
-    }
-
-    .enhanced-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.95rem;
-    }
-
-        .enhanced-table thead th {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 20px;
-            font-weight: 700;
-            color: #495057;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.8rem;
-            border: none;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .enhanced-table tbody tr {
-            border: none;
-            transition: var(--transition);
-        }
-
-            .enhanced-table tbody tr:hover {
-                background: rgba(102, 126, 234, 0.05);
-                transform: scale(1.01);
-            }
-
-        .enhanced-table tbody td {
-            padding: 20px;
-            border: none;
-            border-bottom: 1px solid #f1f3f4;
-            vertical-align: middle;
-        }
-
-    /* Branch Cards for Mobile */
-    .branch-cards {
-        display: none;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 20px;
-        padding: 20px;
-    }
-
-    .branch-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        transition: var(--transition);
-        border-left: 4px solid #e9ecef;
-    }
-
-        .branch-card.head-office {
-            border-left-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-        }
-
-        .branch-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        }
-
-    /* Branch Elements */
-    .head-office-badge {
-        background: var(--danger-gradient);
-        color: white;
-        padding: 6px 15px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-block;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 10px rgba(252, 70, 107, 0.3);
-    }
-
-    .branch-name {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #2c3e50;
-        margin-bottom: 15px;
-    }
-
-    .manager-section {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 15px;
-    }
-
-    .manager-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: var(--primary-gradient);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 700;
-        font-size: 1.1rem;
+        color: var(--navy);
+        font-size: 20px;
         flex-shrink: 0;
     }
 
-    .manager-info h4 {
-        font-size: 1rem;
+    .bm-stat-badge {
+        background: rgba(0,102,76,0.12);
+        color: var(--green);
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 4px 10px;
+        border-radius: 99px;
+    }
+
+    .bm-stat-num {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--dark);
+        line-height: 1;
+        margin-bottom: 6px;
+        font-family: 'DM Mono', monospace;
+        letter-spacing: -0.03em;
+    }
+
+    .bm-stat-label {
+        font-size: 13px;
+        color: var(--dark-60);
         font-weight: 600;
-        color: #2c3e50;
-        margin: 0 0 4px 0;
     }
 
-    .contact-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 20px;
+    /* Main card */
+    .bm-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        overflow: hidden;
     }
 
-    .contact-item {
+    .bm-card-header {
+        background: var(--navy);
+        padding: 20px 28px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .bm-card-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 4px;
         display: flex;
         align-items: center;
+        gap: 9px;
+    }
+
+        .bm-card-title i {
+            font-size: 16px;
+            color: var(--green-pale);
+        }
+
+    .bm-card-desc {
+        font-size: 13px;
+        color: rgba(255,255,255,0.6);
+        margin: 0;
+    }
+
+    /* Controls */
+    .bm-controls {
+        padding: 24px 28px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .bm-controls-grid {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 16px;
+        align-items: center;
+    }
+
+    /* Search */
+    .bm-search-wrap {
+        position: relative;
+    }
+
+    .bm-search {
+        width: 100%;
+        height: 44px;
+        padding: 0 44px 0 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        color: var(--dark);
+        background: var(--white);
+        outline: none;
+        transition: border-color 0.12s, box-shadow 0.12s;
+    }
+
+        .bm-search::placeholder {
+            color: var(--dark-35);
+        }
+
+        .bm-search:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(0,102,76,0.12);
+        }
+
+    .bm-search-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--dark-35);
+        font-size: 15px;
+        pointer-events: none;
+    }
+
+    /* Filters */
+    .bm-filters {
+        display: flex;
+        gap: 12px;
+    }
+
+    .bm-select {
+        height: 44px;
+        padding: 0 14px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13.5px;
+        color: var(--dark);
+        background: var(--white);
+        min-width: 140px;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.12s, box-shadow 0.12s;
+    }
+
+        .bm-select:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(0,102,76,0.12);
+        }
+
+    /* Buttons */
+    .bm-btns {
+        display: flex;
         gap: 10px;
-        font-size: 0.9rem;
-        color: #6c757d;
     }
 
-    .contact-icon {
-        color: #667eea;
-        width: 16px;
-    }
-
-    .location-badge {
-        background: rgba(102, 126, 234, 0.1);
-        color: #667eea;
-        padding: 8px 15px;
-        border-radius: 20px;
-        font-size: 0.85rem;
+    .bm-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 18px;
+        border: none;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13.5px;
         font-weight: 600;
-        display: inline-block;
-        margin-bottom: 15px;
+        cursor: pointer;
+        transition: background 0.12s, transform 0.12s, box-shadow 0.12s;
+        text-decoration: none;
+        white-space: nowrap;
     }
 
-    .action-menu {
+    .bm-btn-primary {
+        background: var(--green);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(0,102,76,0.2);
+    }
+
+        .bm-btn-primary:hover {
+            background: var(--green-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0,102,76,0.28);
+            color: #fff;
+        }
+
+    .bm-btn-secondary {
+        background: var(--white);
+        color: var(--dark-60);
+        border: 1.5px solid var(--border);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+        .bm-btn-secondary:hover {
+            background: var(--surface);
+            border-color: var(--border-mid);
+            color: var(--dark);
+        }
+
+    .bm-btn i {
+        font-size: 14px;
+    }
+
+    /* Export menu */
+    .bm-export {
         position: relative;
         display: inline-block;
     }
 
-    .action-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--primary-gradient);
-        color: white;
-        border: none;
-        cursor: pointer;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-        .action-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-    .action-dropdown {
+    .bm-export-dropdown {
         position: absolute;
-        top: 100%;
+        top: calc(100% + 6px);
         right: 0;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
-        padding: 10px 0;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+        padding: 6px;
         min-width: 180px;
         z-index: 1000;
         display: none;
     }
 
-        .action-dropdown.show {
+        .bm-export-dropdown.show {
             display: block;
-            animation: fadeInUp 0.3s ease;
         }
 
-    .dropdown-item {
+    .bm-export-item {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 20px;
-        color: #495057;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 7px;
+        font-size: 13.5px;
+        font-weight: 500;
+        color: var(--dark);
         text-decoration: none;
-        transition: var(--transition);
+        transition: background 0.12s;
+        cursor: pointer;
+    }
+
+        .bm-export-item:hover {
+            background: var(--surface);
+            color: var(--navy);
+        }
+
+        .bm-export-item i {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+    /* Table */
+    .bm-table-wrap {
+        overflow-x: auto;
+    }
+
+    .bm-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .bm-table thead th {
+            background: var(--surface);
+            padding: 14px 18px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--dark-60);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+            .bm-table thead th i {
+                font-size: 12px;
+                margin-right: 4px;
+                color: var(--dark-35);
+            }
+
+        .bm-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+        }
+
+            .bm-table tbody tr:hover {
+                background: rgba(27,40,86,0.02);
+            }
+
+        .bm-table tbody td {
+            padding: 16px 18px;
+            font-size: 13.5px;
+            color: var(--dark);
+            vertical-align: middle;
+        }
+
+    /* HQ badge */
+    .bm-hq-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--danger);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 4px 10px;
+        border-radius: 99px;
+        margin-bottom: 6px;
+    }
+
+        .bm-hq-badge i {
+            font-size: 9px;
+        }
+
+    .bm-branch-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    /* Manager avatar */
+    .bm-mgr {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .bm-mgr-av {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(27,40,86,0.1);
+        border: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--navy);
+        flex-shrink: 0;
+        font-family: 'DM Mono', monospace;
+    }
+
+    .bm-mgr-name {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--dark);
+        line-height: 1.3;
+    }
+
+    /* Contact */
+    .bm-contact {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: var(--dark-60);
+    }
+
+        .bm-contact i {
+            font-size: 13px;
+            color: var(--green);
+            flex-shrink: 0;
+        }
+
+    /* Location badge */
+    .bm-loc-badge {
+        display: inline-block;
+        background: rgba(0,102,76,0.1);
+        color: var(--green);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 99px;
+        margin-bottom: 4px;
+    }
+
+    .bm-loc-sub {
+        font-size: 12px;
+        color: var(--dark-60);
+    }
+
+    /* Action menu */
+    .bm-action {
+        position: relative;
+        display: inline-block;
+    }
+
+    .bm-action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: rgba(27,40,86,0.06);
+        border: none;
+        color: var(--navy);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.12s, color 0.12s;
+    }
+
+        .bm-action-btn:hover {
+            background: var(--navy);
+            color: #fff;
+        }
+
+    .bm-action-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 0;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+        padding: 6px;
+        min-width: 170px;
+        z-index: 100;
+        display: none;
+    }
+
+        .bm-action-dropdown.show {
+            display: block;
+        }
+
+    .bm-action-item {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 12px;
+        border-radius: 7px;
+        font-size: 13.5px;
+        font-weight: 500;
+        color: var(--dark);
+        text-decoration: none;
+        transition: background 0.12s;
         border: none;
         background: none;
         width: 100%;
         cursor: pointer;
+        text-align: left;
     }
 
-        .dropdown-item:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
+        .bm-action-item:hover {
+            background: var(--surface);
+            color: var(--navy);
         }
 
-        .dropdown-item.danger:hover {
-            background: rgba(252, 70, 107, 0.1);
-            color: #fc466b;
+        .bm-action-item.danger:hover {
+            background: var(--danger-bg);
+            color: var(--danger);
         }
 
-    /* Empty State */
-    .empty-state {
+        .bm-action-item i {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+    .bm-action-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 4px 0;
+    }
+
+    /* Mobile cards */
+    .bm-cards {
+        display: none;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .bm-card-item {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        position: relative;
+    }
+
+        .bm-card-item.is-hq {
+            border-left: 3px solid var(--danger);
+            background: rgba(192,57,43,0.02);
+        }
+
+    .bm-card-item-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 14px;
+    }
+
+    .bm-card-mgr {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 14px;
+    }
+
+    .bm-card-contacts {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .bm-card-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+    }
+
+    /* Empty state */
+    .bm-empty {
         text-align: center;
-        padding: 80px 40px;
-        color: #6c757d;
+        padding: 60px 30px;
     }
 
-    .empty-state-icon {
-        font-size: 5rem;
-        margin-bottom: 30px;
-        opacity: 0.3;
-        color: #667eea;
+    .bm-empty-icon {
+        font-size: 3.5rem;
+        color: rgba(27,40,86,0.15);
+        margin-bottom: 22px;
     }
 
-    .empty-state h3 {
-        font-size: 1.8rem;
-        color: #495057;
-        margin-bottom: 15px;
-        font-weight: 600;
+    .bm-empty h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0 0 10px;
     }
 
-    .empty-state p {
-        font-size: 1.1rem;
-        margin-bottom: 30px;
-        max-width: 400px;
-        margin-left: auto;
-        margin-right: auto;
+    .bm-empty p {
+        font-size: 14px;
+        color: var(--dark-60);
         line-height: 1.6;
+        max-width: 420px;
+        margin: 0 auto 24px;
     }
 
     /* Pagination */
-    .pagination-wrapper {
-        padding: 30px;
-        border-top: 1px solid #e9ecef;
+    .bm-pagination {
+        padding: 20px 28px;
+        border-top: 1px solid var(--border);
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 20px;
+        gap: 16px;
     }
 
-    .pagination-info {
-        color: #6c757d;
+    .bm-pg-info {
+        font-size: 13px;
+        color: var(--dark-60);
         font-weight: 500;
     }
 
-    .pagination {
+    .bm-pg-btns {
         display: flex;
-        gap: 5px;
-        margin: 0;
-        padding: 0;
-        list-style: none;
+        gap: 6px;
     }
 
-        .pagination button {
-            padding: 10px 15px;
-            border: 2px solid #e9ecef;
-            background: white;
-            color: #495057;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
+    .bm-pg-btn {
+        height: 36px;
+        min-width: 36px;
+        padding: 0 12px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        background: var(--white);
+        color: var(--dark-60);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.12s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+        .bm-pg-btn:hover:not(:disabled) {
+            border-color: var(--green);
+            color: var(--green);
         }
 
-            .pagination button:hover:not(:disabled) {
-                border-color: #667eea;
-                color: #667eea;
-            }
+        .bm-pg-btn.active {
+            background: var(--green);
+            border-color: var(--green);
+            color: #fff;
+        }
 
-            .pagination button.active {
-                background: var(--primary-gradient);
-                color: white;
-                border-color: transparent;
-            }
+        .bm-pg-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
-            .pagination button:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-
-    /* Animations */
-    @@keyframes fadeInUp {
-        from
-
-    {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    }
-
-    @@keyframes spin {
-        from
-
-    {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-
-    }
-
-    .spinning {
-        animation: spin 1s linear infinite;
-    }
-
-    /* Responsive Design */
+    /* Responsive */
     @@media (max-width: 1024px) {
-        .controls-grid
+        .bm-controls-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
 
-    {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-
-    .action-buttons {
-        justify-content: center;
-    }
-
+        .bm-btns {
+            justify-content: center;
+        }
     }
 
     @@media (max-width: 768px) {
-        .main-container
+        .bm-header {
+            padding: 24px 20px;
+        }
 
-    {
-        padding: 15px;
-    }
+        .bm-title {
+            font-size: 22px;
+        }
 
-    .page-header {
-        padding: 30px 20px;
-    }
+        .bm-stats {
+            grid-template-columns: 1fr;
+        }
 
-    .page-title {
-        font-size: 2rem;
-    }
+        .bm-controls {
+            padding: 18px 20px;
+        }
 
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
+        .bm-filters {
+            flex-direction: column;
+            width: 100%;
+        }
 
-    .enhanced-table {
-        display: none;
-    }
+        .bm-select {
+            width: 100%;
+        }
 
-    .branch-cards {
-        display: grid;
-        grid-template-columns: 1fr;
-    }
+        .bm-btns {
+            flex-direction: column;
+            width: 100%;
+        }
 
-    .control-panel {
-        padding: 20px;
-    }
+        .bm-btn {
+            justify-content: center;
+            width: 100%;
+        }
 
-    .filter-controls {
-        flex-direction: column;
-        width: 100%;
-    }
+        .bm-table-wrap {
+            display: none;
+        }
 
-    .filter-select {
-        width: 100%;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .btn {
-        justify-content: center;
-    }
-
-    }
-
-    @@media (max-width: 480px) {
-        .branch-cards
-
-    {
-        grid-template-columns: 1fr;
-        padding: 15px;
-    }
-
-    .branch-card {
-        padding: 20px;
-    }
-
-    .contact-details {
-        grid-template-columns: 1fr;
-    }
-
+        .bm-cards {
+            display: grid;
+        }
     }
 </style>
 
-<div class="main-container">
-    <!-- Enhanced Page Header -->
-    <div class="page-header">
-        <div class="header-content">
-            <nav class="breadcrumb-nav">
-                <a asp-area="Company" asp-controller="Dashboard" asp-action="Index">
-                    <i class="feather-home"></i> Dashboard
+<!-- Page Header -->
+<div class="bm-header">
+    <div class="bm-header-content">
+        <nav class="bm-breadcrumb">
+            <a asp-area="Company" asp-controller="Dashboard" asp-action="Index">
+                <i class="fa-solid fa-house"></i> Dashboard
+            </a>
+            <span class="bm-breadcrumb-sep">›</span>
+            <span>Branch Management</span>
+        </nav>
+        <h1 class="bm-title">
+            <i class="fa-solid fa-location-dot"></i>
+            Branch Management
+        </h1>
+        <p class="bm-subtitle">Manage and monitor all company branch locations and their managers</p>
+    </div>
+</div>
+
+<!-- Statistics -->
+@if (Model != null && Model.Any())
+{
+    <div class="bm-stats">
+        <div class="bm-stat">
+            <div class="bm-stat-top">
+                <div class="bm-stat-icon"><i class="fa-solid fa-location-dot"></i></div>
+                <div class="bm-stat-badge">Active</div>
+            </div>
+            <div class="bm-stat-num">@Model.Count</div>
+            <div class="bm-stat-label">Total Branches</div>
+        </div>
+
+        <div class="bm-stat">
+            <div class="bm-stat-top">
+                <div class="bm-stat-icon"><i class="fa-solid fa-star"></i></div>
+                <div class="bm-stat-badge">HQ</div>
+            </div>
+            <div class="bm-stat-num">@Model.Count(b => b.IsHeadOffice)</div>
+            <div class="bm-stat-label">Head Offices</div>
+        </div>
+
+        <div class="bm-stat">
+            <div class="bm-stat-top">
+                <div class="bm-stat-icon"><i class="fa-solid fa-users"></i></div>
+                <div class="bm-stat-badge">Assigned</div>
+            </div>
+            <div class="bm-stat-num">@Model.Count(b => !string.IsNullOrEmpty(b.ManagerName))</div>
+            <div class="bm-stat-label">With Managers</div>
+        </div>
+
+        <div class="bm-stat">
+            <div class="bm-stat-top">
+                <div class="bm-stat-icon"><i class="fa-solid fa-map"></i></div>
+                <div class="bm-stat-badge">Locations</div>
+            </div>
+            <div class="bm-stat-num">@Model.GroupBy(b => b.StateName).Count()</div>
+            <div class="bm-stat-label">States Covered</div>
+        </div>
+    </div>
+}
+
+<!-- Main Card -->
+<div class="bm-card">
+
+    <!-- Card Header -->
+    <div class="bm-card-header">
+        <h2 class="bm-card-title">
+            <i class="fa-solid fa-list"></i>
+            Branches Directory
+        </h2>
+        <p class="bm-card-desc">Complete overview of all branch locations with manager details</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="bm-controls">
+        <div class="bm-controls-grid">
+            <!-- Search -->
+            <div class="bm-search-wrap">
+                <input type="text" id="branchSearch" class="bm-search" placeholder="Search branches, managers, locations...">
+                <i class="fa-solid fa-magnifying-glass bm-search-icon"></i>
+            </div>
+
+            <!-- Filters -->
+            <div class="bm-filters">
+                <select id="locationFilter" class="bm-select">
+                    <option value="">All States</option>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var state in Model.Where(b => !string.IsNullOrEmpty(b.StateName))
+                        .Select(b => b.StateName)
+                        .Distinct()
+                        .OrderBy(s => s))
+                        {
+                            <option value="@state">@state</option>
+                        }
+                    }
+                </select>
+                <select id="typeFilter" class="bm-select">
+                    <option value="">All Types</option>
+                    <option value="head">Head Office</option>
+                    <option value="regular">Regular Branch</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="bm-btns">
+                <a asp-action="Create" class="bm-btn bm-btn-primary">
+                    <i class="fa-solid fa-plus"></i> Add Branch
                 </a>
-                <span class="breadcrumb-separator">›</span>
-                <span>Branch Management</span>
-            </nav>
-            <h1 class="page-title">
-                <i class="feather-map-pin"></i>
-                Branch Management
-            </h1>
-            <p class="page-subtitle">Manage and monitor all company branch locations and their managers</p>
+                <button id="refreshBtn" class="bm-btn bm-btn-secondary">
+                    <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                </button>
+                <div class="bm-export">
+                    <button class="bm-btn bm-btn-secondary" id="exportBtn">
+                        <i class="fa-solid fa-download"></i> Export
+                    </button>
+                    <div class="bm-export-dropdown" id="exportDropdown">
+                        <a href="#" class="bm-export-item">
+                            <i class="fa-solid fa-file-pdf"></i> PDF
+                        </a>
+                        <a href="#" class="bm-export-item">
+                            <i class="fa-solid fa-file-excel"></i> Excel
+                        </a>
+                        <a href="#" class="bm-export-item">
+                            <i class="fa-solid fa-file-csv"></i> CSV
+                        </a>
+                        <a href="#" class="bm-export-item">
+                            <i class="fa-solid fa-print"></i> Print
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
     @if (Model != null && Model.Any())
     {
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <i class="feather-map-pin"></i>
-                    </div>
-                    <div class="stat-change">Active</div>
-                </div>
-                <div class="stat-number">@Model.Count</div>
-                <div class="stat-label">Total Branches</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <i class="feather-star"></i>
-                    </div>
-                    <div class="stat-change">HQ</div>
-                </div>
-                <div class="stat-number">@Model.Count(b => b.IsHeadOffice)</div>
-                <div class="stat-label">Head Offices</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <i class="feather-users"></i>
-                    </div>
-                    <div class="stat-change">Assigned</div>
-                </div>
-                <div class="stat-number">@Model.Count(b => !string.IsNullOrEmpty(b.ManagerName))</div>
-                <div class="stat-label">With Managers</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <i class="feather-navigation"></i>
-                    </div>
-                    <div class="stat-change">Locations</div>
-                </div>
-                <div class="stat-number">@Model.GroupBy(b => b.StateName).Count()</div>
-                <div class="stat-label">States Covered</div>
-            </div>
-        </div>
-    }
-
-    <!-- Main Content Card -->
-    <div class="content-card">
-        <!-- Card Header -->
-        <div class="card-header">
-            <h2 class="card-title">
-                <i class="feather-list"></i>
-                Branches Directory
-            </h2>
-            <p class="card-description">Complete overview of all branch locations with manager details</p>
-        </div>
-
-        <!-- Control Panel -->
-        <div class="control-panel">
-            <div class="controls-grid">
-                <div class="search-wrapper">
-                    <input type="text" id="branchSearch" class="search-input" placeholder="Search branches, managers, locations...">
-                    <i class="feather-search search-icon"></i>
-                </div>
-
-                <div class="filter-controls">
-                    <select id="locationFilter" class="filter-select">
-                        <option value="">All States</option>
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var state in Model.Where(b => !string.IsNullOrEmpty(b.StateName)).Select(b => b.StateName).Distinct().OrderBy(s => s))
-                            {
-                                <option value="@state">@state</option>
-                            }
-                        }
-                    </select>
-                    <select id="typeFilter" class="filter-select">
-                        <option value="">All Types</option>
-                        <option value="head">Head Office</option>
-                        <option value="regular">Regular Branch</option>
-                    </select>
-                </div>
-
-                <div class="action-buttons">
-                    <a asp-action="Create" class="btn btn-primary">
-                        <i class="feather-plus"></i> Add Branch
-                    </a>
-                    <button id="refreshBtn" class="btn btn-success">
-                        <i class="feather-refresh-cw"></i> Refresh
-                    </button>
-                    <div class="export-menu">
-                        <button class="btn btn-secondary" id="exportBtn">
-                            <i class="feather-download"></i> Export
-                        </button>
-                        
-                        <div class="export-dropdown" id="exportDropdown">
-                            <a href="#" class="export-item">
-                                <i class="feather-file-text"></i> Export as PDF
-                            </a>
-                            <a href="#" class="export-item">
-                                <i class="feather-file"></i> Export as Excel
-                            </a>
-                            <a href="#" class="export-item">
-                                <i class="feather-database"></i> Export as CSV
-                            </a>
-                            <a href="#" class="export-item">
-                                <i class="feather-printer"></i> Print Report
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if (Model != null && Model.Any())
-        {
-            <!-- Desktop Table -->
-            <div class="table-wrapper">
-                <table class="enhanced-table" id="branchesTable">
-                    <thead>
-                        <tr>
-                            <th><i class="feather-tag"></i> Branch Details</th>
-                            <th><i class="feather-map-pin"></i> Location</th>
-                            <th><i class="feather-user"></i> Manager</th>
-                            <th><i class="feather-phone"></i> Contact</th>
-                            <th><i class="feather-mail"></i> Email</th>
-                            <th><i class="feather-navigation"></i> Region</th>
-                            <th class="text-center"><i class="feather-settings"></i> Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @{
-                            var sortedBranches = Model.OrderByDescending(b => b.IsHeadOffice).ThenBy(b => b.Name);
-                        }
-                        @foreach (var branch in sortedBranches)
-                        {
-                            <tr data-state="@branch.StateName" data-type="@(branch.IsHeadOffice ? "head" : "regular")">
-                                <td>
-                                    @if (branch.IsHeadOffice)
-                                    {
-                                        <div class="head-office-badge">
-                                            <i class="feather-star"></i> Head Office
-                                        </div>
-                                    }
-                                    <div class="branch-name">@branch.Name</div>
-                                </td>
-                                <td>
-                                    <div class="contact-item">
-                                        <i class="feather-map-pin contact-icon"></i>
-                                        @branch.Address
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="manager-section">
-                                        <div class="manager-avatar">
-                                            @if (!string.IsNullOrEmpty(branch.ManagerName))
-                                            {
-                                                @branch.ManagerName.Split(' ').Select(n => n.FirstOrDefault()).Take(2).Aggregate("", (acc, c) => acc + c)
-                                            }
-                                            else
-                                            {
-                                                <span>?</span>
-                                            }
-                                        </div>
-                                        <div class="manager-info">
-                                            <h4>@(!string.IsNullOrEmpty(branch.ManagerName) ? branch.ManagerName : "Not Assigned")</h4>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(branch.ManagerPhone))
-                                    {
-                                        <div class="contact-item">
-                                            <i class="feather-phone contact-icon"></i>
-                                            @branch.ManagerPhone
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(branch.ManagerEmail))
-                                    {
-                                        <div class="contact-item">
-                                            <i class="feather-mail contact-icon"></i>
-                                            @branch.ManagerEmail
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="location-badge">
-                                        @(string.IsNullOrWhiteSpace(branch.StateName) ? "Unknown" : branch.StateName)
-                                    </div>
-                                    @if (!string.IsNullOrWhiteSpace(branch.LgaName))
-                                    {
-                                        <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">@branch.LgaName</div>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-menu">
-                                        <button class="action-btn" onclick="toggleActionDropdown(this)">
-                                            <i class="feather-more-vertical"></i>
-                                        </button>
-                                        <div class="action-dropdown">
-                                            <a asp-action="Edit" asp-protect-route-id="@branch.Id" class="dropdown-item">
-                                                <i class="feather-edit"></i>Edit Branch
-                                            </a>
-                                            <button class="dropdown-item" onclick="viewBranchDetails('@branch.Id')">
-                                                <i class="feather-eye"></i>View Details
-                                            </button>
-                                            @if (!branch.IsHeadOffice)
-                                            {
-                                                <hr style="margin: 8px 0; border: none; border-top: 1px solid #e9ecef;">
-                                                <form asp-action="Delete" method="post" style="margin: 0;" onsubmit="return confirmDelete('@branch.Name')">
-                                                    <input type="hidden" name="id" value="@branch.Id" />
-                                                    <button type="submit" class="dropdown-item danger">
-                                                        <i class="feather-trash-2"></i>Delete Branch
-                                                    </button>
-                                                </form>
-                                            }
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Mobile Branch Cards -->
-            <div class="branch-cards" id="branchCards">
-                @foreach (var branch in sortedBranches)
-                {
-                    <div class="branch-card @(branch.IsHeadOffice ? "head-office" : "")" data-state="@branch.StateName" data-type="@(branch.IsHeadOffice ? "head" : "regular")">
-                        @if (branch.IsHeadOffice)
-                        {
-                            <div class="head-office-badge">
-                                <i class="feather-star"></i> Head Office
-                            </div>
-                        }
-
-                        <h3 class="branch-name">@branch.Name</h3>
-
-                        <div class="manager-section">
-                            <div class="manager-avatar">
-                                @if (!string.IsNullOrEmpty(branch.ManagerName))
+        <!-- Desktop Table -->
+        <div class="bm-table-wrap">
+            <table class="bm-table" id="branchesTable">
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-tag"></i> Branch</th>
+                        <th><i class="fa-solid fa-location-dot"></i> Location</th>
+                        <th><i class="fa-solid fa-user"></i> Manager</th>
+                        <th><i class="fa-solid fa-phone"></i> Contact</th>
+                        <th><i class="fa-solid fa-envelope"></i> Email</th>
+                        <th><i class="fa-solid fa-map"></i> Region</th>
+                        <th style="text-align:center;"><i class="fa-solid fa-ellipsis-vertical"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var sorted = Model.OrderByDescending(b => b.IsHeadOffice).ThenBy(b => b.Name);
+                    }
+                    @foreach (var b in sorted)
+                    {
+                        <tr data-state="@b.StateName" data-type="@(b.IsHeadOffice ? "head" : "regular")">
+                            <td>
+                                @if (b.IsHeadOffice)
                                 {
-                                    @branch.ManagerName.Split(' ').Select(n => n.FirstOrDefault()).Take(2).Aggregate("", (acc, c) => acc + c)
+                                    <div class="bm-hq-badge">
+                                        <i class="fa-solid fa-star"></i> Head Office
+                                    </div>
+                                }
+                                <div class="bm-branch-name">@b.Name</div>
+                            </td>
+                            <td>
+                                <div class="bm-contact">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    @b.Address
+                                </div>
+                            </td>
+                            <td>
+                                <div class="bm-mgr">
+                                    <div class="bm-mgr-av">
+                                        @if (!string.IsNullOrEmpty(b.ManagerName))
+                                        {
+                                            @string.Concat(b.ManagerName.Split(' ').Select(n => n.FirstOrDefault()).Take(2))
+                                        }
+                                        else
+                                        {
+                                            <span>?</span>
+                                        }
+                                    </div>
+                                    <div class="bm-mgr-name">
+                                        @(string.IsNullOrEmpty(b.ManagerName) ? "Not Assigned" : b.ManagerName)
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(b.ManagerPhone))
+                                {
+                                    <div class="bm-contact">
+                                        <i class="fa-solid fa-phone"></i>
+                                        @b.ManagerPhone
+                                    </div>
                                 }
                                 else
                                 {
-                                    <span>?</span>
+                                    <span style="color:var(--dark-35);">—</span>
                                 }
-                            </div>
-                            <div class="manager-info">
-                                <h4>@(!string.IsNullOrEmpty(branch.ManagerName) ? branch.ManagerName : "No Manager Assigned")</h4>
-                            </div>
-                        </div>
-
-                        <div class="contact-details">
-                            <div class="contact-item">
-                                <i class="feather-map-pin contact-icon"></i>
-                                <span>@branch.Address</span>
-                            </div>
-                            @if (!string.IsNullOrEmpty(branch.ManagerPhone))
-                            {
-                                <div class="contact-item">
-                                    <i class="feather-phone contact-icon"></i>
-                                    <span>@branch.ManagerPhone</span>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(b.ManagerEmail))
+                                {
+                                    <div class="bm-contact">
+                                        <i class="fa-solid fa-envelope"></i>
+                                        @b.ManagerEmail
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--dark-35);">—</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="bm-loc-badge">
+                                    @(string.IsNullOrWhiteSpace(b.StateName) ? "Unknown" : b.StateName)
                                 </div>
-                            }
-                            @if (!string.IsNullOrEmpty(branch.ManagerEmail))
-                            {
-                                <div class="contact-item">
-                                    <i class="feather-mail contact-icon"></i>
-                                    <span>@branch.ManagerEmail</span>
-                                </div>
-                            }
-                            <div class="contact-item">
-                                <i class="feather-navigation contact-icon"></i>
-                                <span>@(string.IsNullOrWhiteSpace(branch.StateName) ? "Unknown State" : branch.StateName)@(!string.IsNullOrWhiteSpace(branch.LgaName) ? $", {branch.LgaName}" : "")</span>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="location-badge">
-                                @(string.IsNullOrWhiteSpace(branch.StateName) ? "Unknown" : branch.StateName)
-                            </div>
-                            <div class="action-menu">
-                                <button class="action-btn" onclick="toggleActionDropdown(this)">
-                                    <i class="feather-more-vertical"></i>
-                                </button>
-                                <div class="action-dropdown">
-                                    <a asp-action="Edit" asp-protect-route-id="@branch.Id" class="dropdown-item">
-                                        <i class="feather-edit"></i>Edit Branch
-                                    </a>
-                                    <button class="dropdown-item" onclick="viewBranchDetails('@branch.Id')">
-                                        <i class="feather-eye"></i>View Details
+                                @if (!string.IsNullOrWhiteSpace(b.LgaName))
+                                {
+                                    <div class="bm-loc-sub">@b.LgaName</div>
+                                }
+                            </td>
+                            <td style="text-align:center;">
+                                <div class="bm-action">
+                                    <button class="bm-action-btn" onclick="toggleDrop(this)">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
                                     </button>
-                                    @if (!branch.IsHeadOffice)
-                                    {
-                                        <hr style="margin: 8px 0; border: none; border-top: 1px solid #e9ecef;">
-                                        <form asp-action="Delete" method="post" style="margin: 0;" onsubmit="return confirmDelete('@branch.Name')">
-                                            <input type="hidden" name="id" value="@branch.Id" />
-                                            <button type="submit" class="dropdown-item danger">
-                                                <i class="feather-trash-2"></i>Delete Branch
-                                            </button>
-                                        </form>
-                                    }
+                                    <div class="bm-action-dropdown">
+                                        <a asp-action="Edit" asp-protect-route-id="@b.Id" class="bm-action-item">
+                                            <i class="fa-solid fa-pen"></i> Edit
+                                        </a>
+                                        <button class="bm-action-item" onclick="viewDetails('@b.Id')">
+                                            <i class="fa-solid fa-eye"></i> View Details
+                                        </button>
+                                        @if (!b.IsHeadOffice)
+                                        {
+                                            <div class="bm-action-divider"></div>
+                                            <form asp-action="Delete" method="post" style="margin:0;" onsubmit="return confirmDel('@b.Name')">
+                                                <input type="hidden" name="id" value="@b.Id">
+                                                <button type="submit" class="bm-action-item danger">
+                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
                                 </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="bm-cards" id="branchCards">
+            @foreach (var b in sorted)
+            {
+                <div class="bm-card-item @(b.IsHeadOffice ? "is-hq" : "")" data-state="@b.StateName" data-type="@(b.IsHeadOffice ? "head" : "regular")">
+                    @if (b.IsHeadOffice)
+                    {
+                        <div class="bm-hq-badge">
+                            <i class="fa-solid fa-star"></i> Head Office
+                        </div>
+                    }
+                    <h3 class="bm-card-item-name">@b.Name</h3>
+                    <div class="bm-card-mgr">
+                        <div class="bm-mgr-av">
+                            @if (!string.IsNullOrEmpty(b.ManagerName))
+                            {
+                                @string.Concat(b.ManagerName.Split(' ').Select(n => n.FirstOrDefault()).Take(2))
+                            }
+                            else
+                            {
+                                <span>?</span>
+                            }
+                        </div>
+                        <div class="bm-mgr-name">
+                            @(string.IsNullOrEmpty(b.ManagerName) ? "No Manager Assigned" : b.ManagerName)
+                        </div>
+                    </div>
+                    <div class="bm-card-contacts">
+                        <div class="bm-contact">
+                            <i class="fa-solid fa-location-dot"></i>
+                            @b.Address
+                        </div>
+                        @if (!string.IsNullOrEmpty(b.ManagerPhone))
+                        {
+                            <div class="bm-contact">
+                                <i class="fa-solid fa-phone"></i>
+                                @b.ManagerPhone
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(b.ManagerEmail))
+                        {
+                            <div class="bm-contact">
+                                <i class="fa-solid fa-envelope"></i>
+                                @b.ManagerEmail
+                            </div>
+                        }
+                        <div class="bm-contact">
+                            <i class="fa-solid fa-map"></i>
+                            @(string.IsNullOrWhiteSpace(b.StateName) ? "Unknown" : b.StateName)@(!string.IsNullOrWhiteSpace(b.LgaName) ? $", {b.LgaName}" : "")
+                        </div>
+                    </div>
+                    <div class="bm-card-foot">
+                        <div class="bm-loc-badge">
+                            @(string.IsNullOrWhiteSpace(b.StateName) ? "Unknown" : b.StateName)
+                        </div>
+                        <div class="bm-action">
+                            <button class="bm-action-btn" onclick="toggleDrop(this)">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <div class="bm-action-dropdown">
+                                <a asp-action="Edit" asp-protect-route-id="@b.Id" class="bm-action-item">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <button class="bm-action-item" onclick="viewDetails('@b.Id')">
+                                    <i class="fa-solid fa-eye"></i> View Details
+                                </button>
+                                @if (!b.IsHeadOffice)
+                                {
+                                    <div class="bm-action-divider"></div>
+                                    <form asp-action="Delete" method="post" style="margin:0;" onsubmit="return confirmDel('@b.Name')">
+                                        <input type="hidden" name="id" value="@b.Id">
+                                        <button type="submit" class="bm-action-item danger">
+                                            <i class="fa-solid fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                }
                             </div>
                         </div>
                     </div>
-                }
-            </div>
+                </div>
+            }
+        </div>
 
-            <!-- Pagination -->
-            <div class="pagination-wrapper">
-                <div class="pagination-info" id="paginationInfo">
-                    Showing 1-10 of @Model.Count branches
-                </div>
-                <div class="pagination" id="pagination">
-                    <button onclick="changePage(-1)" id="prevBtn">
-                        <i class="feather-chevron-left"></i> Previous
-                    </button>
-                    <button onclick="changePage(1)" class="active">1</button>
-                    <button onclick="changePage(1)" id="nextBtn">
-                        Next <i class="feather-chevron-right"></i>
-                    </button>
-                </div>
+        <!-- Pagination -->
+        <div class="bm-pagination">
+            <div class="bm-pg-info" id="pgInfo">
+                Showing 1-@Math.Min(10, Model.Count) of @Model.Count branches
             </div>
-        }
-        else
-        {
-            <!-- Empty State -->
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="feather-map-pin"></i>
-                </div>
-                <h3>No Branches Found</h3>
-                <p>You haven't created any branches yet. Start by adding your first branch location to begin managing your company's presence across different regions.</p>
-                <a asp-action="Create" class="btn btn-primary">
-                    <i class="feather-plus"></i> Create Your First Branch
-                </a>
+            <div class="bm-pg-btns">
+                <button class="bm-pg-btn" disabled>
+                    <i class="fa-solid fa-chevron-left"></i> Prev
+                </button>
+                <button class="bm-pg-btn active">1</button>
+                <button class="bm-pg-btn">
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="bm-empty">
+            <div class="bm-empty-icon">
+                <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <h3>No Branches Found</h3>
+            <p>You haven't created any branches yet. Start by adding your first branch location to begin managing your company's presence across different regions.</p>
+            <a asp-action="Create" class="bm-btn bm-btn-primary">
+                <i class="fa-solid fa-plus"></i> Create Your First Branch
+            </a>
+        </div>
+    }
+
 </div>
 
-<!-- Loading Overlay -->
-@* <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.9); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-    <div style="text-align: center;">
-        <i class="feather-loader spinning" style="font-size: 2rem; color: #667eea; margin-bottom: 10px;"></i>
-        <p style="color: #6c757d; font-weight: 500;">Loading...</p>
-    </div>
-</div>
- *@
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize the page
-        initializePage();
-
-        // Search functionality
-        const searchInput = document.getElementById('branchSearch');
-        const locationFilter = document.getElementById('locationFilter');
+    document.addEventListener('DOMContentLoaded', function () {
+        const search = document.getElementById('branchSearch');
+        const locFilter = document.getElementById('locationFilter');
         const typeFilter = document.getElementById('typeFilter');
+        const exportBtn = document.getElementById('exportBtn');
+        const exportDropdown = document.getElementById('exportDropdown');
+        const refreshBtn = document.getElementById('refreshBtn');
 
         let searchTimeout;
 
-        // Real-time search
-        searchInput.addEventListener('input', function() {
+        // Search
+        search.addEventListener('input', function () {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                performSearch();
-            }, 300);
+            searchTimeout = setTimeout(doFilter, 300);
         });
 
-        // Filter functionality
-        locationFilter.addEventListener('change', performSearch);
-        typeFilter.addEventListener('change', performSearch);
+        // Filters
+        locFilter.addEventListener('change', doFilter);
+        typeFilter.addEventListener('change', doFilter);
 
-        // Refresh button
-        document.getElementById('refreshBtn').addEventListener('click', function() {
-            showLoading();
-
-            // Reset all filters
-            searchInput.value = '';
-            locationFilter.value = '';
+        // Refresh
+        refreshBtn.addEventListener('click', function () {
+            search.value = '';
+            locFilter.value = '';
             typeFilter.value = '';
+            doFilter();
 
-            // Reset search
-            performSearch();
-
-            // Visual feedback
-            const btn = this;
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="feather-loader spinning"></i> Refreshing...';
-
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                hideLoading();
-            }, 1000);
+            const ico = this.querySelector('i');
+            ico.classList.add('fa-spin');
+            setTimeout(() => ico.classList.remove('fa-spin'), 800);
         });
 
-        // Export functionality
-        const exportBtn = document.getElementById('exportBtn');
-        const exportDropdown = document.getElementById('exportDropdown');
-
-        exportBtn.addEventListener('click', function(e) {
+        // Export dropdown
+        exportBtn.addEventListener('click', function (e) {
             e.stopPropagation();
             exportDropdown.classList.toggle('show');
         });
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (!exportBtn.contains(e.target)) {
                 exportDropdown.classList.remove('show');
             }
 
             // Close all action dropdowns
-            document.querySelectorAll('.action-dropdown.show').forEach(dropdown => {
-                if (!dropdown.parentElement.contains(e.target)) {
-                    dropdown.classList.remove('show');
+            document.querySelectorAll('.bm-action-dropdown.show').forEach(d => {
+                if (!d.parentElement.contains(e.target)) {
+                    d.classList.remove('show');
                 }
             });
         });
 
-        // Handle responsive table/cards view
-        handleResponsiveView();
-        window.addEventListener('resize', handleResponsiveView);
+        // Responsive
+        handleResponsive();
+        window.addEventListener('resize', handleResponsive);
     });
 
-    function initializePage() {
-        // Add any initialization logic here
-        console.log('Branch Management page initialized');
-    }
-
-    function performSearch() {
+    function doFilter() {
         const searchTerm = document.getElementById('branchSearch').value.toLowerCase();
-        const locationFilter = document.getElementById('locationFilter').value;
-        const typeFilter = document.getElementById('typeFilter').value;
+        const locVal = document.getElementById('locationFilter').value;
+        const typeVal = document.getElementById('typeFilter').value;
 
-        const tableRows = document.querySelectorAll('#branchesTable tbody tr');
-        const branchCards = document.querySelectorAll('.branch-card');
+        const rows = document.querySelectorAll('#branchesTable tbody tr');
+        const cards = document.querySelectorAll('.bm-card-item');
 
-        let visibleCount = 0;
+        let visible = 0;
 
-        // Filter table rows
-        tableRows.forEach(row => {
-            const branchName = row.cells[0].textContent.toLowerCase();
-            const location = row.cells[1].textContent.toLowerCase();
-            const manager = row.cells[2].textContent.toLowerCase();
-            const contact = row.cells[3].textContent.toLowerCase();
-            const email = row.cells[4].textContent.toLowerCase();
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
             const state = row.dataset.state || '';
             const type = row.dataset.type || '';
 
-            const matchesSearch = !searchTerm ||
-                branchName.includes(searchTerm) ||
-                location.includes(searchTerm) ||
-                manager.includes(searchTerm) ||
-                contact.includes(searchTerm) ||
-                email.includes(searchTerm);
+            const match = (!searchTerm || text.includes(searchTerm)) &&
+                          (!locVal || state === locVal) &&
+                          (!typeVal || type === typeVal);
 
-            const matchesLocation = !locationFilter || state === locationFilter;
-            const matchesType = !typeFilter || type === typeFilter;
-
-            if (matchesSearch && matchesLocation && matchesType) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
         });
 
-        // Filter branch cards (mobile view)
-        branchCards.forEach(card => {
-            const cardText = card.textContent.toLowerCase();
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
             const state = card.dataset.state || '';
             const type = card.dataset.type || '';
 
-            const matchesSearch = !searchTerm || cardText.includes(searchTerm);
-            const matchesLocation = !locationFilter || state === locationFilter;
-            const matchesType = !typeFilter || type === typeFilter;
+            const match = (!searchTerm || text.includes(searchTerm)) &&
+                          (!locVal || state === locVal) &&
+                          (!typeVal || type === typeVal);
 
-            if (matchesSearch && matchesLocation && matchesType) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
-            }
+            card.style.display = match ? '' : 'none';
         });
 
-        // Update pagination info
-        updatePaginationInfo(visibleCount);
+        updatePgInfo(visible);
     }
 
-    function handleResponsiveView() {
+    function handleResponsive() {
         const isMobile = window.innerWidth <= 768;
-        const table = document.querySelector('.table-wrapper');
-        const cards = document.getElementById('branchCards');
+        const tableWrap = document.querySelector('.bm-table-wrap');
+        const cardsWrap = document.getElementById('branchCards');
 
-        if (isMobile) {
-            table.style.display = 'none';
-            cards.style.display = 'grid';
-        } else {
-            table.style.display = 'block';
-            cards.style.display = 'none';
+        if (tableWrap && cardsWrap) {
+            tableWrap.style.display = isMobile ? 'none' : 'block';
+            cardsWrap.style.display = isMobile ? 'grid' : 'none';
         }
     }
 
-    function toggleActionDropdown(button) {
-        const dropdown = button.nextElementSibling;
-        const isCurrentlyOpen = dropdown.classList.contains('show');
+    function toggleDrop(btn) {
+        const dropdown = btn.nextElementSibling;
+        const isOpen = dropdown.classList.contains('show');
 
-        // Close all dropdowns first
-        document.querySelectorAll('.action-dropdown.show').forEach(d => {
+        document.querySelectorAll('.bm-action-dropdown.show').forEach(d => {
             d.classList.remove('show');
         });
 
-        // Toggle current dropdown
-        if (!isCurrentlyOpen) {
-            dropdown.classList.add('show');
+        if (!isOpen) dropdown.classList.add('show');
+    }
+
+    function viewDetails(id) {
+        console.log('View details for branch:', id);
+        alert(`View details for branch ${id} would open here.`);
+    }
+
+    function confirmDel(name) {
+        return confirm(`Are you sure you want to delete the branch "${name}"?\n\nThis action cannot be undone.`);
+    }
+
+    function updatePgInfo(visible) {
+        const el = document.getElementById('pgInfo');
+        const total = @(Model?.Count ?? 0);
+        if (el && visible !== total) {
+            el.textContent = `Showing ${Math.min(visible, 10)} of ${visible} branches (filtered from ${total} total)`;
         }
     }
-
-    function viewBranchDetails(branchId) {
-        // Implement view details functionality
-        console.log('Viewing details for branch:', branchId);
-
-        // Example: You could open a modal or redirect to details page
-        // window.location.href = `/Branch/Details/${branchId}`;
-
-        // For now, show an alert
-        alert(`View details functionality for branch ${branchId} would be implemented here.`);
-    }
-
-    function confirmDelete(branchName) {
-        return confirm(`Are you sure you want to delete the branch "${branchName}"?\n\nThis action cannot be undone and will permanently remove all branch data.`);
-    }
-
-    function changePage(direction) {
-        // Implement pagination functionality
-        console.log('Change page:', direction);
-
-        // This would typically involve AJAX calls to load different pages
-        // For now, just show feedback
-        showLoading();
-        setTimeout(hideLoading, 500);
-    }
-
-    function updatePaginationInfo(visibleCount) {
-        const paginationInfo = document.getElementById('paginationInfo');
-        if (paginationInfo) {
-            const totalCount = @(Model?.Count ?? 0);
-            paginationInfo.textContent = `Showing ${Math.min(visibleCount, 10)} of ${visibleCount} branches${visibleCount !== totalCount ? ` (filtered from ${totalCount} total)` : ''}`;
-        }
-    }
-
-    function showLoading() {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) {
-            overlay.style.display = 'flex';
-        }
-    }
-
-    function hideLoading() {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) {
-            overlay.style.display = 'none';
-        }
-    }
-
-    // Add smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Ctrl/Cmd + F to focus search
-        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-            e.preventDefault();
-            document.getElementById('branchSearch').focus();
-        }
-
-        // Escape to close dropdowns
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.action-dropdown.show, .export-dropdown.show').forEach(dropdown => {
-                dropdown.classList.remove('show');
-            });
-        }
-    });
-
-    // Add visual feedback for form submissions
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function() {
-            showLoading();
-        });
-    });
 </script>
-
-@section Scripts {
-    <!-- Include Feather Icons -->
-    <script src="https://unpkg.com/feather-icons@4.28.0/dist/feather.min.js"></script>
-    <script>
-        // Initialize Feather icons
-        feather.replace();
-
-        // Reinitialize icons after dynamic content changes
-        const observer = new MutationObserver(function() {
-            feather.replace();
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    </script>
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@* @using FleetManager.Business.DataObjects
-@model List<CompanyBranchDto>
-<style>
-    .dropdown-menu {
-        border-radius: 8px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-</style>
-
-<div class="content">
-
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="row">
-            <div class="col-sm-12">
-                <ul class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-area="Company" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
-                    <li class="breadcrumb-item active">Company’s Branches</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <!-- /Page Header -->
-
-    <div class="row">
-        <div class="col-sm-12">
-
-            <div class="card card-table show-entire">
-                <div class="card-body">
-
-                    <!-- Table Header -->
-                    <div class="page-table-header mb-2">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <div class="doctor-table-blk">
-                                    <h3>Branches List</h3>
-                                    <div class="doctor-search-blk">
-                                        <div class="top-nav-search table-search-blk">
-                                            <input type="text" id="branchSearch" class="form-control" placeholder="Search here">
-                                            <button id="searchBtn" class="btn"><img src="~/assets/img/icons/search-normal.svg" alt="Search"></button>
-                                        </div>
-                                        <div class="add-group">
-                                            <a asp-action="Create" class="btn btn-primary add-pluss ms-2"><img src="~/assets/img/icons/plus.svg" alt="Add Branch"></a>
-                                            <button id="refreshBtn" class="btn btn-primary doctor-refresh ms-2"><img src="~/assets/img/icons/re-fresh.svg" alt="Refresh"></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-auto text-end float-end ms-auto download-grp">
-                                <a href="#"><img src="~/assets/img/icons/pdf-icon-01.svg" alt="PDF"></a>
-                                <a href="#"><img src="~/assets/img/icons/pdf-icon-02.svg" alt="Excel"></a>
-                                <a href="#"><img src="~/assets/img/icons/pdf-icon-03.svg" alt="CSV"></a>
-                                <a href="#"><img src="~/assets/img/icons/pdf-icon-04.svg" alt="Print"></a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /Table Header -->
-
-                    <div class="table-responsive">
-                        <table id="branchesTable" class="table border-0 custom-table comman-table mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Address</th>
-                                    <th>Manager</th>
-                                    <th>Phone</th>
-                                    <th>Email</th>
-                                    <th>State</th>
-                                    <th>LGA</th>
-                                    <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var branch in Model)
-                                {
-                                    <tr>
-                                        <td>
-                                            @if (branch.IsHeadOffice)
-                                            {
-                                                <div><span class="badge badge-success">Head Office</span></div>
-                                            }
-                                            <div>@branch.Name</div>
-                                        </td>
-
-                                        <td>@branch.Address</td>
-                                        <td>@branch.ManagerName</td>
-                                        <td>@branch.ManagerPhone</td>
-                                        <td>@branch.ManagerEmail</td>
-                                        <td>@(string.IsNullOrWhiteSpace(branch.StateName) ? "—" : branch.StateName)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(branch.LgaName) ? "—" : branch.LgaName)</td>
-                                        <td class="text-end">
-                                            <div class="dropdown dropdown-action">
-                                                <a href="#" class="action-icon dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-v"></i></a>
-                                                <div class="dropdown-menu dropdown-menu-end shadow border-0">
-                                                    <a asp-action="Edit" asp-route-id="@branch.Id" class="dropdown-item"><i class="fa-solid fa-pen-to-square m-r-5"></i> Edit</a>
-                                                    <form asp-action="Delete" method="post" class="d-inline">
-                                                        <input type="hidden" name="id" value="@branch.Id" />
-                                                        <button type="submit" class="dropdown-item"><i class="fa fa-trash-alt m-r-5"></i> Delete</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-    <!-- Bootstrap 5 JavaScript Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            // Initialize only if not already
-            if (!$.fn.dataTable.isDataTable('#branchesTable')) {
-        var table = $('#branchesTable').DataTable({
-            paging: true,
-            pageLength: 10,
-            lengthChange: true,
-            searching: false, // Disable built-in search bar
-            ordering: true,
-            info: true,
-            autoWidth: false,
-            dom: 'lrtip' // <-- 'l' = length, 'r' = processing, 't' = table, 'i' = info, 'p' = pagination, omit 'f' (search bar)
-        });
-
-                // Custom search input
-                $('#searchBtn').click(function() {
-                    table.search($('#branchSearch').val()).draw();
-                });
-
-                // Refresh button
-                $('#refreshBtn').click(function() {
-                    table.search('').order([]).page.len(10).draw();
-                });
-            }
-        });
-    </script>
-}
- *@

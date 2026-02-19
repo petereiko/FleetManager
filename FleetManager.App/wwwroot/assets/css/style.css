@@ -1,8 +1,4 @@
-/*
-Author       : Dreamguys
-Template Name: PreClinic - Medical and Hospital Admin Template
-Version      : 1.0
-*/
+
 
 /*============================
  [Table of CSS]
@@ -12536,3 +12532,287 @@ button.swal2-cancel {
 		min-width: auto;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*<style >
+.notification-badge {
+	position: absolute;
+	top: 10px;
+	right: -5px;
+	background: #ff4757;
+	color: white;
+	border-radius: 50%;
+	width: 18px;
+	height: 18px;
+	font-size: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+	animation: pulse 2s infinite;
+}
+
+.notification-badge.hidden {
+	display: none;
+}
+
+@@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+
+	50% {
+		transform: scale(1.1);
+	}
+
+	100% {
+		transform: scale(1);
+	}
+}
+
+.notification-item {
+	padding: 12px 15px;
+	border-bottom: 1px solid #f0f0f0;
+	transition: background-color 0.3s;
+}
+
+	.notification-item:hover {
+		background-color: #f8f9fa;
+	}
+
+	.notification-item.unread {
+		background-color: #e3f2fd;
+		border-left: 3px solid #2196f3;
+	}
+
+.notification-time {
+	font-size: 11px;
+	color: #999;
+}
+
+.notification-title {
+	font-weight: 600;
+	color: #333;
+}
+
+.notification-message {
+	font-size: 13px;
+	color: #666;
+	margin-top: 3px;
+}
+
+.mark-all-read {
+	background: #007bff;
+	color: white;
+	border: none;
+	padding: 1.5px 10px;
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+	.mark-all-read:hover {
+		background: #0056b3;
+	}
+
+.notification-loading {
+	text-align: center;
+	padding: 20px;
+	color: #999;
+}
+
+
+<!-- Export functions -->
+.export-controls {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-radius: 12px;
+	padding: 20px;
+	margin-bottom: 20px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn {
+	border: none;
+	color: white;
+	padding: 12px 24px;
+	border-radius: 10px;
+	margin: 8px;
+	transition: all 0.3s ease;
+	font-weight: 600;
+	font-size: 14px;
+	min-width: 140px;
+	position: relative;
+	overflow: hidden;
+}
+
+	.export-btn::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+		transition: left 0.5s;
+	}
+
+	.export-btn:hover::before {
+		left: 100%;
+	}
+
+	.export-btn:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+	}*/
+
+/* Excel Button - Microsoft Green */
+/*.export-btn-excel {
+	background: linear-gradient(135deg, #217346, #2d8f56);
+	box-shadow: 0 4px 15px rgba(33, 115, 70, 0.4);
+}
+
+	.export-btn-excel:hover {
+		background: linear-gradient(135deg, #1e5a37, #248043);
+		color: white;
+		box-shadow: 0 8px 25px rgba(33, 115, 70, 0.6);
+	}*/
+
+/* PDF Button - Adobe Red */
+/*.export-btn-pdf {
+	background: linear-gradient(135deg, #dc3545, #e74c3c);
+	box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+}
+
+	.export-btn-pdf:hover {
+		background: linear-gradient(135deg, #c82333, #d32f2f);
+		color: white;
+		box-shadow: 0 8px 25px rgba(220, 53, 69, 0.6);
+	}*/
+
+/* CSV Button - Data Blue */
+/*.export-btn-csv {
+	background: linear-gradient(135deg, #0d6efd, #0056b3);
+	box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+}
+
+	.export-btn-csv:hover {
+		background: linear-gradient(135deg, #0b5ed7, #004085);
+		color: white;
+		box-shadow: 0 8px 25px rgba(13, 110, 253, 0.6);
+	}
+
+.export-title {
+	color: rebeccapurple;
+	font-weight: 600;
+	margin-bottom: 15px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.demo-table {
+	background: white;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+	.demo-table th {
+		background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+		font-weight: 600;
+		color: #495057;
+		border: none;
+		padding: 15px;
+	}
+
+	.demo-table td {
+		padding: 12px 15px;
+		border: none;
+		border-top: 1px solid #f1f3f4;
+	}
+
+.export-loading {
+	display: none;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: rgba(0, 0, 0, 0.8);
+	color: white;
+	padding: 20px 30px;
+	border-radius: 10px;
+	z-index: 9999;
+}
+
+.export-success {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	background: #28a745;
+	color: white;
+	padding: 15px 20px;
+	border-radius: 8px;
+	display: none;
+	z-index: 9999;
+	animation: slideIn 1s ease;
+}
+
+@@keyframes slideIn {
+	from {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+
+
+</style >*/
