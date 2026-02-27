@@ -75,7 +75,10 @@ namespace FleetManager.Business.Implementations.DriverDashboardModule
                 dashboard.AssignedVehicle = new AssignedVehicleDto
                 {
                     VehicleId = v.Id,
-                    MakeModel = $"{v.VehicleMake?.Name ?? string.Empty} {v.VehicleModel?.Name ?? string.Empty}".Trim(),
+                    //MakeModel = $"{v.VehicleMake?.Name ?? string.Empty} {v.VehicleModel?.Name ?? string.Empty}".Trim(),
+                    MakeModel = v.CustomMakeName != null ? (v.CustomMakeName + " " + v.CustomModelName).Trim() 
+                    : (v.VehicleMake != null ? v.VehicleMake.Name : "Unknown") + " " + (v.VehicleModel != null ? v.VehicleModel.Name : ""),
+
                     FleetId = d.LicenseNumber,
                     PlateNo = v.PlateNo,
                     Mileage = v.Mileage,

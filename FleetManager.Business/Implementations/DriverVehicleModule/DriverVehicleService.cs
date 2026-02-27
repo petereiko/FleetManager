@@ -49,6 +49,13 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
             }
         }
 
+        private static string ResolveVehicleDisplayName(Vehicle v)
+        {
+            var make = !string.IsNullOrWhiteSpace(v.CustomMakeName) ? v.CustomMakeName : (v.VehicleMake?.Name ?? "Unknown");
+            var model = !string.IsNullOrWhiteSpace(v.CustomModelName) ? v.CustomModelName : (v.VehicleModel?.Name ?? "");
+            return $"{make} {model}".Trim();
+        }
+
         public async Task<MessageResponse<DriverVehicleDto>> AssignVehicleAsync(DriverVehicleDto dto, string createdBy)
         {
             EnsureAdminOrOwner();
@@ -91,7 +98,8 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                 if (!string.IsNullOrEmpty(driver.UserId))
                 {
                     var title = "Vehicle Assigned Update";
-                    var message = $"You have been assigned vehicle {vehicle.VehicleMake.Name} {vehicle.VehicleModel.Name} with license plate: {vehicle.PlateNo}. Await further Instructions";
+                    var vehicleDisplay = ResolveVehicleDisplayName(vehicle);
+                    var message = $"You have been assigned vehicle {vehicleDisplay} with license plate: {vehicle.PlateNo}. Await further Instructions";
                     await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
                     {
                         assignmentId = dto.Id,
@@ -148,7 +156,8 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                 if (!string.IsNullOrEmpty(driver.UserId))
                 {
                     var title = "Vehicle ssignment Update";
-                    var message = $"Your vehicle assignment has been updated to {vehicle.VehicleMake.Name} {vehicle.VehicleModel.Name} " +
+                    var vehicleDisplay = ResolveVehicleDisplayName(vehicle);
+                    var message = $"Your vehicle assignment has been updated to {vehicleDisplay} " +
                                   $"(start {dto.StartDate:dd MMM yy}" +
                                   (dto.EndDate.HasValue ? $", end {dto.EndDate:dd MMM yy})." : ").");
                     await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
@@ -190,7 +199,8 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
                 if (driver != null && vehicle != null && !string.IsNullOrEmpty(driver.UserId))
                 {
                     var title = "Vehicle Unassigned";
-                    var message = $"You've been unassigned from operating vehicle: {vehicle.VehicleMake.Name } {vehicle.VehicleModel.Name} {vehicle.PlateNo}.";
+                    var vehicleDisplay = ResolveVehicleDisplayName(vehicle);
+                    var message = $"You've been unassigned from operating vehicle: {vehicleDisplay} {vehicle.PlateNo}.";
                     await _notification.CreateAsync(driver.UserId, title, message, NotificationType.Vehicle, new
                     {
                         vehicleId = entity.VehicleId
@@ -207,46 +217,89 @@ namespace FleetManager.Business.Implementations.DriverVehicleModule
 
         public IQueryable<DriverVehicleListItemDto> QueryAssignmentsByDriver(long driverId)
         {
-            //EnsureAdminOrOwner();
-            return from dv in _context.Set<DriverVehicle>().AsNoTracking()
-                   join d in _context.Drivers.AsNoTracking() on dv.DriverId equals d.Id
-                   join u in _context.Users.AsNoTracking() on d.UserId equals u.Id
-                   join v in _context.Vehicles.AsNoTracking() on dv.VehicleId equals v.Id
-                   where dv.DriverId == driverId
-                   select new DriverVehicleListItemDto
-                   {
-                       Id = dv.Id,
-                       DriverId = dv.DriverId!.Value,
-                       DriverName = $"{u.FirstName} {u.LastName}",
-                       VehicleId = dv.VehicleId!.Value,
-                       VehicleMakeModel =  $"{v.VehicleMake.Name} {v.VehicleModel.Name }" ,
-                       PlateNo = v.PlateNo,
-                       StartDate = dv.StartDate ?? DateTime.MinValue,
-                       EndDate = dv.EndDate
-                   };
+            return _context.Set<DriverVehicle>()
+                .AsNoTracking()
+                .Where(dv => dv.DriverId == driverId)
+                .Join(_context.Drivers.AsNoTracking(),
+                      dv => dv.DriverId, d => d.Id, (dv, d) => new { dv, d })
+                .Join(_context.Users.AsNoTracking(),
+                      x => x.d.UserId, u => u.Id, (x, u) => new { x.dv, x.d, u })
+                .Join(_context.Vehicles
+                          .AsNoTracking()
+                          .Include(v => v.VehicleMake)
+                          .Include(v => v.VehicleModel),
+                      x => x.dv.VehicleId, v => v.Id, (x, v) => new { x.dv, x.u, v })
+                .Select(x => new DriverVehicleListItemDto
+                {
+                    Id = x.dv.Id,
+                    DriverId = x.dv.DriverId!.Value,
+                    DriverName = $"{x.u.FirstName} {x.u.LastName}",
+                    VehicleId = x.dv.VehicleId!.Value,
+                    // Custom name takes priority over catalogue name
+                    VehicleMakeModel = x.v.CustomMakeName != null
+                        ? (x.v.CustomMakeName + " " + x.v.CustomModelName).Trim()
+                        : ((x.v.VehicleMake != null ? x.v.VehicleMake.Name : "") + " " +
+                           (x.v.VehicleModel != null ? x.v.VehicleModel.Name : "")).Trim(),
+                    PlateNo = x.v.PlateNo,
+                    StartDate = x.dv.StartDate ?? DateTime.MinValue,
+                    EndDate = x.dv.EndDate
+                });
         }
 
         public IQueryable<DriverVehicleListItemDto> QueryAssignmentsByVehicle(long vehicleId)
         {
             EnsureAdminOrOwner();
-            return from dv in _context.Set<DriverVehicle>().AsNoTracking()
-                   join d in _context.Drivers.AsNoTracking() on dv.DriverId equals d.Id
-                   join u in _context.Users.AsNoTracking() on d.UserId equals u.Id
-                   join v in _context.Vehicles.AsNoTracking() on dv.VehicleId equals v.Id
-                   where dv.VehicleId == vehicleId
-                   select new DriverVehicleListItemDto
-                   {
-                       Id = dv.Id,
-                       DriverId = dv.DriverId!.Value,
-                       DriverName = $"{u.FirstName} {u.LastName}",
-                       VehicleId = dv.VehicleId!.Value,
-                       VehicleMakeModel = $"{v.VehicleMake.Name} {v.VehicleModel.Name}",
-                       PlateNo = v.PlateNo,
-                       StartDate = dv.StartDate ?? DateTime.MinValue,
-                       EndDate = dv.EndDate
-                   };
+            return _context.Set<DriverVehicle>()
+                .AsNoTracking()
+                .Where(dv => dv.VehicleId == vehicleId)
+                .Join(_context.Drivers.AsNoTracking(),
+                      dv => dv.DriverId, d => d.Id, (dv, d) => new { dv, d })
+                .Join(_context.Users.AsNoTracking(),
+                      x => x.d.UserId, u => u.Id, (x, u) => new { x.dv, x.d, u })
+                .Join(_context.Vehicles
+                          .AsNoTracking()
+                          .Include(v => v.VehicleMake)
+                          .Include(v => v.VehicleModel),
+                      x => x.dv.VehicleId, v => v.Id, (x, v) => new { x.dv, x.u, v })
+                .Select(x => new DriverVehicleListItemDto
+                {
+                    Id = x.dv.Id,
+                    DriverId = x.dv.DriverId!.Value,
+                    DriverName = $"{x.u.FirstName} {x.u.LastName}",
+                    VehicleId = x.dv.VehicleId!.Value,
+                    VehicleMakeModel = x.v.CustomMakeName != null
+                        ? (x.v.CustomMakeName + " " + x.v.CustomModelName).Trim()
+                        : ((x.v.VehicleMake != null ? x.v.VehicleMake.Name : "") + " " +
+                           (x.v.VehicleModel != null ? x.v.VehicleModel.Name : "")).Trim(),
+                    PlateNo = x.v.PlateNo,
+                    StartDate = x.dv.StartDate ?? DateTime.MinValue,
+                    EndDate = x.dv.EndDate
+                });
         }
 
+
+        public async Task<HashSet<long>> GetCurrentlyAssignedVehicleIdsAsync(long? excludeAssignmentId = null)
+        {
+            var today = DateTime.UtcNow.Date;
+
+            var query = _context.Set<DriverVehicle>()
+                .AsNoTracking()
+                .Where(dv =>
+                    dv.StartDate.HasValue &&
+                    dv.StartDate.Value.Date <= today &&
+                    (dv.EndDate == null || dv.EndDate.Value.Date >= today));
+
+            if (excludeAssignmentId.HasValue)
+                query = query.Where(dv => dv.Id != excludeAssignmentId.Value);
+
+            var ids = await query
+                .Where(dv => dv.VehicleId.HasValue)
+                .Select(dv => dv.VehicleId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            return new HashSet<long>(ids);
+        }
 
         public async Task<long> GetDriverIdByUserAsync(string userId)
         {

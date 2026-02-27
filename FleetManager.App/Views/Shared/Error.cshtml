@@ -1,21 +1,23 @@
 ﻿@model ErrorViewModel
 
 @{
-    int statusCode;
-    if (!int.TryParse(Model.RequestId, out statusCode))
+    int statusCode = 500;
+
+    if (Model != null && !string.IsNullOrWhiteSpace(Model.RequestId))
     {
-        statusCode = 500;
+        int.TryParse(Model.RequestId, out statusCode);
     }
+
     ViewData["Title"] = $"Error {statusCode}";
-    Layout = null; // Remove this line if you want a standalone error page
-    
+    Layout = null;
+
     // Define status code specific messages
     string title, message, icon, actionText = "Go Home", actionUrl = "/";
     bool showRetry = false, showLogin = false, showBack = true;
     string bgGradient = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
     string iconGradient = "linear-gradient(135deg, #667eea, #764ba2)";
     string cardBg = "rgba(255, 255, 255, 0.95)";
-    
+
     switch (statusCode)
     {
         case 400:

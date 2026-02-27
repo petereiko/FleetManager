@@ -60,6 +60,7 @@ namespace FleetManager.Business.Implementations.TripModule
             }
         }
 
+
         #region CRUD Operations
 
         public async Task<MessageResponse<TripDto>> CreateTripAsync(CreateTripDto dto)
@@ -413,7 +414,12 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
+                        //VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.CustomMakeName != null
+                        ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                        : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.PlateNo.ToUpper() : "Unknown")
+                          + " "
+                          + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo.ToUpper() : ""),
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1514,7 +1520,12 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.CustomMakeName != null
+                        ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                        : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.PlateNo.ToUpper() : "Unknown")
+                          + " "
+                          + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo.ToUpper() : ""),
+                        //VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1542,7 +1553,12 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.CustomMakeName != null
+                        ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                        : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.PlateNo.ToUpper() : "Unknown")
+                          + " "
+                          + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo.ToUpper() : ""),
+                        //VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1570,7 +1586,11 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.CustomMakeName != null
+                        ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                        : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.PlateNo.ToUpper() : "Unknown")
+                          + " "
+                          + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo.ToUpper() : ""),
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1640,7 +1660,11 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.CustomMakeName != null
+                        ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                        : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.PlateNo.ToUpper() : "Unknown")
+                          + " "
+                          + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo.ToUpper() : ""),
                         DriverName = t.Driver.User.FirstName + " " + t.Driver.User.LastName,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1678,6 +1702,9 @@ namespace FleetManager.Business.Implementations.TripModule
                 var trips = await _context.Trips
                     .AsNoTracking()
                     .Include(t => t.Vehicle)
+                    .ThenInclude(v => v.VehicleMake)
+                    .Include(t => t.Vehicle)
+                    .ThenInclude(v => v.VehicleModel)
                     .Include(t => t.Driver).ThenInclude(d => d.User)
                     .Where(t => t.VehicleId == vehicleId && t.IsActive)
                     .OrderByDescending(t => t.ScheduledStartDate)
@@ -1687,7 +1714,11 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = t.Id,
                         TripNumber = t.TripNumber,
-                        VehiclePlateNo = t.Vehicle.PlateNo,
+                        VehiclePlateNo = t.Vehicle.CustomMakeName != null
+                        ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                        : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.PlateNo.ToUpper() : "Unknown")
+                          + " "
+                          + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo.ToUpper() : ""),
                         DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                         Origin = t.Origin,
                         Destination = t.Destination,
@@ -1904,8 +1935,12 @@ namespace FleetManager.Business.Implementations.TripModule
                     {
                         Id = v.Id,
                         PlateNo = v.PlateNo,
-                        Make = v.VehicleMake != null ? v.VehicleMake.Name : null,
-                        Model = v.VehicleModel != null ? v.VehicleModel.Name : null
+                        Make = !string.IsNullOrWhiteSpace(v.CustomMakeName)
+                    ? v.CustomMakeName
+                    : v.VehicleMake?.Name,
+                        Model = !string.IsNullOrWhiteSpace(v.CustomModelName)
+                    ? v.CustomModelName
+                    : v.VehicleModel?.Name
                     })
                     .OrderBy(v => v.PlateNo)
                     .ToList();
@@ -1952,14 +1987,22 @@ namespace FleetManager.Business.Implementations.TripModule
         {
             var tripDto = new TripDto
             {
+
                 Id = trip.Id,
                 TripNumber = trip.TripNumber,
                 CompanyBranchId = trip.CompanyBranchId,
                 CompanyId = trip.CompanyId,
                 VehicleId = trip.VehicleId,
                 VehiclePlateNo = trip.Vehicle?.PlateNo,
-                VehicleMake = trip.Vehicle?.VehicleMake?.Name,
-                VehicleModel = trip.Vehicle?.VehicleModel?.Name,
+                VehicleMake = trip.Vehicle == null ? null
+               : !string.IsNullOrWhiteSpace(trip.Vehicle.CustomMakeName)
+                   ? trip.Vehicle.CustomMakeName
+                   : trip.Vehicle.VehicleMake?.Name,
+
+                VehicleModel = trip.Vehicle == null ? null
+               : !string.IsNullOrWhiteSpace(trip.Vehicle.CustomModelName)
+                   ? trip.Vehicle.CustomModelName
+                   : trip.Vehicle.VehicleModel?.Name,
                 VehicleMileage = trip.Vehicle?.Mileage,
                 DriverId = trip.DriverId,
                 DriverName = trip.Driver != null ? $"{trip.Driver.User.FirstName} {trip.Driver.User.LastName}" : null,

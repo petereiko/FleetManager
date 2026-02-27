@@ -89,7 +89,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
             }
         }
 
-        // ─── GET: Show form to assign a vehicle ─────────────────────────────────
+        // ─── GET: Show form to assign a vehicle 
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -97,9 +97,8 @@ namespace FleetManager.App.Areas.Admin.Controllers
             {
                 var vm = new AssignmentCreateViewModel();
 
-                
                 var drivers = await _driverService.GetDriversForBranchAsync();
-                var vehicles = await GetVehiclesForCurrentBranchAsync();
+                var vehicles = await GetAvailableVehiclesAsync(); // ← only available vehicles
 
                 vm.Drivers = drivers
                     .Select(d => new SelectListItem(d.FullName, d.Id.ToString()))
@@ -113,24 +112,17 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
                 return View(vm);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
         }
 
-        // ─── POST: Create new assignment ─────────────────────────────────────────
+        // ─── POST: Create new assignment 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AssignmentCreateViewModel vm)
         {
             try
             {
-                // repopulate selects
-
-                
                 var drivers = await _driverService.GetDriversForBranchAsync();
-                var vehicles = await GetVehiclesForCurrentBranchAsync();
-
+                var vehicles = await GetAvailableVehiclesAsync();
 
                 vm.Drivers = drivers
                     .Select(d => new SelectListItem(d.FullName, d.Id.ToString(), d.Id == vm.Input.DriverId))
@@ -143,6 +135,15 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 if (!ModelState.IsValid)
                     return View(vm);
 
+                // Guard: re-check the selected vehicle is still available at submit time
+                // (another admin could have assigned it between page load and submit)
+                var assignedIds = await _assignmentService.GetCurrentlyAssignedVehicleIdsAsync();
+                if (assignedIds.Contains(vm.Input.VehicleId))
+                {
+                    ModelState.AddModelError("", "This vehicle has just been assigned to another driver. Please select a different vehicle.");
+                    return View(vm);
+                }
+
                 var dto = new DriverVehicleDto
                 {
                     DriverId = vm.Input.DriverId,
@@ -151,8 +152,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     EndDate = vm.Input.EndDate
                 };
 
-                var result = await _assignmentService
-                    .AssignVehicleAsync(dto, _authUser.UserId);
+                var result = await _assignmentService.AssignVehicleAsync(dto, _authUser.UserId);
 
                 if (!result.Success)
                 {
@@ -163,10 +163,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 TempData["Success"] = "Vehicle assigned successfully.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error assigning vehicle");
@@ -175,7 +172,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
             }
         }
 
-        // ─── GET: Edit an assignment ─────────────────────────────────────────────
+        // ─── GET: Edit an assignment 
         [HttpGet]
         public async Task<IActionResult> Edit(long id)
         {
@@ -199,11 +196,9 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     }
                 };
 
-                // load drivers & vehicles
-
-                
                 var drivers = await _driverService.GetDriversForBranchAsync();
-                var vehicles = await GetVehiclesForCurrentBranchAsync();
+                // Exclude this assignment's vehicle from "assigned" list so it stays selectable
+                var vehicles = await GetAvailableVehiclesAsync(excludeAssignmentId: id);
 
                 vm.Drivers = drivers
                     .Select(d => new SelectListItem(d.FullName, d.Id.ToString(), d.Id == vm.Input.DriverId))
@@ -215,10 +210,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
 
                 return View(vm);
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading assignment Id {AssignmentId}", id);
@@ -226,16 +218,14 @@ namespace FleetManager.App.Areas.Admin.Controllers
             }
         }
 
-        // ─── POST: Update assignment ─────────────────────────────────────────────
+        // ─── POST: Update assignment 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AssignmentEditViewModel vm)
         {
             try
             {
-                // load drivers & vehicles
-
                 var drivers = await _driverService.GetDriversForBranchAsync();
-                var vehicles = await GetVehiclesForCurrentBranchAsync();
+                var vehicles = await GetAvailableVehiclesAsync(excludeAssignmentId: vm.Id);
 
                 vm.Drivers = drivers
                     .Select(d => new SelectListItem(d.FullName, d.Id.ToString(), d.Id == vm.Input.DriverId))
@@ -257,8 +247,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                     EndDate = vm.Input.EndDate
                 };
 
-                var result = await _assignmentService
-                    .UpdateAssignmentAsync(dto, _authUser.UserId);
+                var result = await _assignmentService.UpdateAssignmentAsync(dto, _authUser.UserId);
 
                 if (!result.Success)
                 {
@@ -269,10 +258,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
                 TempData["Success"] = "Assignment updated successfully.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating assignment Id {AssignmentId}", vm.Id);
@@ -281,7 +267,7 @@ namespace FleetManager.App.Areas.Admin.Controllers
             }
         }
 
-        // ─── POST: Unassign (delete) ────────────────────────────────────────────
+        // ─── POST: Unassign (delete) 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(long id)
         {
@@ -307,13 +293,19 @@ namespace FleetManager.App.Areas.Admin.Controllers
             }
         }
 
-
-        private async Task<List<VehicleListItemDto>> GetVehiclesForCurrentBranchAsync()
+        private async Task<List<VehicleListItemDto>> GetAvailableVehiclesAsync(long? excludeAssignmentId = null)
         {
-            return await _vehicleService.GetVehiclesAsync(new VehicleFilterDto
+            var allVehicles = await _vehicleService.GetVehiclesAsync(new VehicleFilterDto
             {
                 BranchId = _authUser.CompanyBranchId
             });
+
+            var assignedIds = await _assignmentService.GetCurrentlyAssignedVehicleIdsAsync(excludeAssignmentId);
+
+            return allVehicles
+                .Where(v => !assignedIds.Contains(v.Id))
+                .ToList();
         }
+
     }
 }

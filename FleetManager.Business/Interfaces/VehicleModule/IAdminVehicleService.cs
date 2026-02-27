@@ -37,7 +37,7 @@ namespace FleetManager.Business.Interfaces.VehicleModule
         Task<List<SelectListItem>> GetBranchOptionsAsync(long companyId);
 
         List<SelectListItem> GetVehicleMakes();
-        Task<List<SelectListItem>> GetVehicleModelsByMakeId(int makeId);
+        Task<List<SelectListItem>> GetVehicleModelsByMakeId(int? makeId);
 
         Task<string?> GetVehicleMainImageUrlAsync(long vehicleId);
         Task<List<VehiclePhotoDto>> GetVehiclePhotosAsync(long vehicleId);

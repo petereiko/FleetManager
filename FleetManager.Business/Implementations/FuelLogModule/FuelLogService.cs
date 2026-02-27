@@ -52,60 +52,83 @@ namespace FleetManager.Business.Implementations.FuelLogModule
             }
         }
 
+        private static string ResolveVehicleDescription(Vehicle v)
+        {
+            var make = !string.IsNullOrWhiteSpace(v.CustomMakeName) ? v.CustomMakeName : (v.VehicleMake?.Name ?? "Unknown");
+            var model = !string.IsNullOrWhiteSpace(v.CustomModelName) ? v.CustomModelName : (v.VehicleModel?.Name ?? "");
+            return $"{make} {model}".Trim();
+        }
+
         public IQueryable<FuelLogDto> QueryByBranch(long? branchId = null)
         {
             EnsureAdminOrOwner();
 
-            var q = from fl in _context.FuelLogs.AsNoTracking()
-                    join d in _context.Drivers.AsNoTracking() on fl.DriverId equals d.Id
-                    join u in _context.Users.AsNoTracking() on d.UserId equals u.Id
-                    join v in _context.Vehicles.AsNoTracking() on fl.VehicleId equals v.Id
-                    where !branchId.HasValue || d.CompanyBranchId == branchId.Value
-                    select new FuelLogDto
-                    {
-                        Id = fl.Id,
-                        DriverId = d.Id,
-                        DriverName = (u.FirstName! + " " + u.LastName!).Trim(),
-                        VehicleId = v.Id,
-                        VehicleDescription = v.VehicleMake.Name + " " + v.VehicleModel.Name,
-                        LicenseNo = v.PlateNo,
-                        Date = fl.Date,
-                        Odometer = fl.Odometer,
-                        Volume = fl.Volume,
-                        Cost = fl.Cost,
-                        FuelType = fl.FuelType,
-                        ReceiptPath = fl.ReceiptPath,
-                        Notes = fl.Notes
-                    };
+            // Build the base query — include VehicleMake/VehicleModel so nav props are populated
+            var q = _context.FuelLogs
+                .AsNoTracking()
+                .Include(fl => fl.Driver)
+                    .ThenInclude(d => d.User)
+                .Include(fl => fl.Vehicle)
+                    .ThenInclude(v => v.VehicleMake)
+                .Include(fl => fl.Vehicle)
+                    .ThenInclude(v => v.VehicleModel)
+                .Where(fl => !branchId.HasValue || fl.Driver.CompanyBranchId == branchId.Value);
 
-            return q;
+            // Project to DTO — the conditional name resolution works because nav props are loaded
+            return q.Select(fl => new FuelLogDto
+            {
+                Id = fl.Id,
+                DriverId = fl.Driver.Id,
+                DriverName = (fl.Driver.User.FirstName + " " + fl.Driver.User.LastName).Trim(),
+                VehicleId = fl.Vehicle.Id,
+                // Custom name takes priority for all vehicle types
+                VehicleDescription = fl.Vehicle.CustomMakeName != null
+                    ? (fl.Vehicle.CustomMakeName + " " + fl.Vehicle.CustomModelName).Trim()
+                    : (fl.Vehicle.VehicleMake != null ? fl.Vehicle.VehicleMake.Name : "")
+                      + " "
+                      + (fl.Vehicle.VehicleModel != null ? fl.Vehicle.VehicleModel.Name : ""),
+                LicenseNo = fl.Vehicle.PlateNo,
+                Date = fl.Date,
+                Odometer = fl.Odometer,
+                Volume = fl.Volume,
+                Cost = fl.Cost,
+                FuelType = fl.FuelType,
+                ReceiptPath = fl.ReceiptPath,
+                Notes = fl.Notes
+            });
         }
         public IQueryable<FuelLogDto> QueryByDriver(long driverId)
         {
-            // no EnsureAdminOrOwner: drivers allowed
-            return from fl in _context.FuelLogs.AsNoTracking()
-                   join d in _context.Drivers.AsNoTracking() on fl.DriverId equals d.Id
-                   join u in _context.Users.AsNoTracking() on d.UserId equals u.Id
-                   join v in _context.Vehicles.AsNoTracking() on fl.VehicleId equals v.Id
-                   where d.Id == driverId
-                   select new FuelLogDto
-                   {
-                       Id = fl.Id,
-                       DriverId = d.Id,
-                       DriverName = (u.FirstName! + " " + u.LastName!).Trim(),
-                       VehicleId = v.Id,
-                       VehicleDescription = v.VehicleMake.Name + " " + v.VehicleModel.Name,
-                       LicenseNo = v.PlateNo,
-                       Date = fl.Date,
-                       Odometer = fl.Odometer,
-                       Volume = fl.Volume,
-                       Cost = fl.Cost,
-                       FuelType = fl.FuelType,
-                       ReceiptPath = fl.ReceiptPath,
-                       Notes = fl.Notes
-                   };
+            return _context.FuelLogs
+                .AsNoTracking()
+                .Include(fl => fl.Driver)
+                    .ThenInclude(d => d.User)
+                .Include(fl => fl.Vehicle)
+                    .ThenInclude(v => v.VehicleMake)
+                .Include(fl => fl.Vehicle)
+                    .ThenInclude(v => v.VehicleModel)
+                .Where(fl => fl.Driver.Id == driverId)
+                .Select(fl => new FuelLogDto
+                {
+                    Id = fl.Id,
+                    DriverId = fl.Driver.Id,
+                    DriverName = (fl.Driver.User.FirstName + " " + fl.Driver.User.LastName).Trim(),
+                    VehicleId = fl.Vehicle.Id,
+                    VehicleDescription = fl.Vehicle.CustomMakeName != null
+                        ? (fl.Vehicle.CustomMakeName + " " + fl.Vehicle.CustomModelName).Trim()
+                        : (fl.Vehicle.VehicleMake != null ? fl.Vehicle.VehicleMake.Name : "")
+                          + " "
+                          + (fl.Vehicle.VehicleModel != null ? fl.Vehicle.VehicleModel.Name : ""),
+                    LicenseNo = fl.Vehicle.PlateNo,
+                    Date = fl.Date,
+                    Odometer = fl.Odometer,
+                    Volume = fl.Volume,
+                    Cost = fl.Cost,
+                    FuelType = fl.FuelType,
+                    ReceiptPath = fl.ReceiptPath,
+                    Notes = fl.Notes
+                });
         }
-
         public async Task<FuelLogDto?> GetByIdAsync(long id)
         {
             return await QueryByBranch(_auth.CompanyBranchId)

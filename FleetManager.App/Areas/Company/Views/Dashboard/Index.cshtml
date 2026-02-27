@@ -7,6 +7,2304 @@
 @inject IAuthUser _authUser;
 @model CompanyOwnerDashboardDto
 @{
+    ViewData["Title"] = "Fleetalia Manager - Company Owner Dashboard";
+    // Currency formatting helper
+    Func<decimal, string> ngn = (amt) => string.Format(new System.Globalization.CultureInfo("en-NG"), "₦{0:N0}", amt);
+    // Percentage calculation helper
+    Func<int, int, double> percent = (value, total) => total > 0 ? Math.Round((double)value / total * 100, 1) : 0;
+    // Safe null check for model properties
+    var branches = Model?.Branches ?? new List<BranchSummaryDto>();
+    var totals = Model?.Totals ?? new TotalsDto();
+    var allBranches = Model?.AllBranches ?? new List<BranchListItemDto>();
+}
+
+<style>
+    /* ══════════════════════════════════════════════════════
+           OWNER DASHBOARD — Fleetalia v4 Theme
+           Clean navy+green, professional, minimal gradients
+        ══════════════════════════════════════════════════════ */
+
+    :root {
+        --navy: #1B2856;
+        --navy-mid: #223068;
+        --green: #00664c;
+        --green-light: #00875f;
+        --green-pale: #6ee7b7;
+        --white: #ffffff;
+        --surface: #f7f8fa;
+        --border: #e2e4e8;
+        --border-mid: #d0d4dc;
+        --dark: #1a1c20;
+        --dark-60: rgba(26,28,32,0.60);
+        --dark-35: rgba(26,28,32,0.35);
+        --danger: #c0392b;
+        --danger-bg: #fdf2f2;
+        --warn: #c07800;
+        --warn-bg: #fff9ee;
+        --success: #00664c;
+        --info: #1B2856;
+    }
+
+    /* Page header */
+    .dashboard-header {
+        background: var(--navy);
+        border-radius: 1px;
+        padding: 24px 28px;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(27,40,86,0.12);
+    }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(0,102,76,0.08);
+            pointer-events: none;
+        }
+
+    .dashboard-header-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .dh-left h1 {
+        font-size: 22px;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+    }
+
+    .dh-left p {
+        font-size: 13px;
+        color: rgba(255,255,255,0.65);
+        margin: 0;
+    }
+
+    .dh-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .dh-btn {
+        height: 40px;
+        padding: 0 16px;
+        border: none;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.12s;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        text-decoration: none;
+    }
+
+    .dh-btn-primary {
+        background: var(--green);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(0,102,76,0.2);
+    }
+
+        .dh-btn-primary:hover {
+            background: var(--green-light);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0,102,76,0.28);
+            color: #fff;
+        }
+
+    .dh-btn-secondary {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+        .dh-btn-secondary:hover {
+            background: rgba(255,255,255,0.25);
+            color: #fff;
+        }
+
+    .dh-select {
+        height: 40px;
+        padding: 0 12px;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 500;
+        min-width: 160px;
+        cursor: pointer;
+        outline: none;
+    }
+
+        .dh-select option {
+            background: var(--navy);
+            color: #fff;
+        }
+
+    /* Stats cards */
+    .dash-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    .dash-stat {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        transition: box-shadow 0.15s, transform 0.15s;
+    }
+
+        .dash-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--green);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .dash-stat:hover {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+    .dash-stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background: rgba(27,40,86,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
+    }
+
+        .dash-stat-icon img {
+            width: 24px;
+            height: 24px;
+        }
+
+    .dash-stat h6 {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--dark-60);
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .dash-stat-num {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--dark);
+        line-height: 1;
+        margin-bottom: 6px;
+        font-family: 'DM Mono', monospace;
+    }
+
+    .dash-stat-sub {
+        font-size: 12px;
+        color: var(--dark-60);
+    }
+
+    .dash-stat-manage {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--green);
+        text-decoration: none;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: rgba(0,102,76,0.08);
+        transition: all 0.12s;
+    }
+
+        .dash-stat-manage:hover {
+            background: rgba(0,102,76,0.15);
+            color: var(--green-light);
+        }
+
+    /* Financial cards */
+    .fin-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    .fin-card {
+        background: var(--navy);
+        color: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(27,40,86,0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .fin-card.fuel {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+        }
+
+        .fin-card.maint {
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+        }
+
+        .fin-card.total {
+            background: linear-gradient(135deg, #1B2856 0%, #00664c 100%);
+        }
+
+        .fin-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            pointer-events: none;
+        }
+
+    .fin-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        opacity: 0.85;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .fin-value {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'DM Mono', monospace;
+        margin-bottom: 8px;
+        line-height: 1;
+    }
+
+    .fin-sub {
+        font-size: 12px;
+        opacity: 0.75;
+    }
+
+    /* Dashboard cards */
+    .dash-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .dash-card-header {
+        background: var(--navy);
+        padding: 16px 22px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .dash-card-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+    }
+
+    .dash-card-body {
+        padding: 22px;
+    }
+
+    /* Branch performance list */
+    .branch-perf-item {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+    }
+
+        .branch-perf-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+    .bp-top {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .bp-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .bp-perc {
+        font-size: 13px;
+        color: var(--dark-60);
+    }
+
+    .bp-bar {
+        height: 8px;
+        background: var(--surface);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .bp-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--green), var(--green-light));
+        border-radius: 99px;
+        transition: width 0.3s ease;
+    }
+
+    .bp-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--dark-60);
+    }
+
+    .bp-meta-item {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .bp-btn {
+        margin-top: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--green);
+        background: rgba(0,102,76,0.08);
+        border: none;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.12s;
+    }
+
+        .bp-btn:hover {
+            background: rgba(0,102,76,0.15);
+            color: var(--green-light);
+        }
+
+    /* Tables */
+    .dash-table-wrap {
+        overflow-x: auto;
+    }
+
+    .dash-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+        .dash-table thead th {
+            background: var(--surface);
+            padding: 12px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--dark-60);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .dash-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+        }
+
+            .dash-table tbody tr:hover {
+                background: rgba(27,40,86,0.02);
+            }
+
+        .dash-table tbody td {
+            padding: 14px;
+            color: var(--dark);
+            vertical-align: middle;
+        }
+
+        .dash-table .progress-mini {
+            width: 60px;
+            height: 6px;
+            background: var(--surface);
+            border-radius: 99px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .dash-table .progress-mini-fill {
+            height: 100%;
+            background: var(--green);
+            border-radius: 99px;
+        }
+
+    /* Notifications */
+    .notif-indicator {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .notif-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .notif-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: rgba(27,40,86,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--navy);
+        font-size: 16px;
+    }
+
+    .notif-text {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .notif-btn {
+        height: 36px;
+        padding: 0 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--white);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--navy);
+        cursor: pointer;
+        transition: all 0.12s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .notif-btn:hover {
+            background: var(--surface);
+            border-color: var(--border-mid);
+        }
+
+    .notif-badge {
+        background: var(--danger);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 99px;
+        margin-left: 4px;
+    }
+
+    /* Chart containers */
+    .chart-wrap {
+        position: relative;
+        height: 320px;
+    }
+
+    .chart-loading, .chart-error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--dark-60);
+    }
+
+        .chart-loading i, .chart-error i {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+
+    .chart-error {
+        color: var(--danger);
+    }
+
+        .chart-error button {
+            margin-top: 12px;
+            padding: 8px 16px;
+            border: 1px solid var(--danger);
+            border-radius: 6px;
+            background: var(--danger-bg);
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+    /* Badges */
+    .badge-sm {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 99px;
+    }
+
+    .badge.bg-danger {
+        background: var(--danger) !important;
+    }
+
+    .badge.bg-primary {
+        background: var(--navy) !important;
+    }
+
+    .badge.bg-warning {
+        background: var(--warn) !important;
+    }
+
+    /* Loading spinner */
+    .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-top-color: var(--green);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .dashboard-header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .dh-right {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .dh-btn, .dh-select {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .dash-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .fin-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="dashboard-header">
+    <div class="dashboard-header-content">
+        <div class="dh-left">
+            <h1>Company Owner Dashboard</h1>
+            <p>
+                Company ID: @Model.CompanyId |
+                Generated: @Model.GeneratedAt.ToString("MMM dd, yyyy HH:mm") |
+                Showing: <span id="viewingScope">@(Model.IsFiltered == true ? "Single Branch" : "All Branches")</span>
+            </p>
+        </div>
+        <div class="dh-right">
+            <button id="refreshDashboardBtn" class="dh-btn dh-btn-secondary">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span class="refresh-text">Refresh</span>
+                <span class="loading-spinner d-none"></span>
+            </button>
+            <select id="branchSelect" class="dh-select">
+                <option value="">All branches</option>
+                @foreach (var branch in allBranches)
+                {
+                    <option value="@branch.BranchId">@branch.BranchName</option>
+                }
+            </select>
+            <a asp-action="Index" asp-controller="Branch" class="dh-btn dh-btn-primary">
+                <i class="fa-solid fa-building"></i>
+                Manage Branches
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Indicator -->
+<div class="notif-indicator">
+    <div class="notif-left">
+        <div class="notif-icon">
+            <i class="fa-solid fa-bell"></i>
+        </div>
+        <span class="notif-text" id="notificationSummary">All systems operational</span>
+    </div>
+    <button id="viewNotificationsBtn" class="notif-btn" data-bs-toggle="modal" data-bs-target="#notificationsModal">
+        View Details
+        <span id="notificationBadge" class="notif-badge d-none">0</span>
+    </button>
+</div>
+
+<!-- Stats Grid -->
+<div class="dash-stats">
+    <div class="dash-stat">
+        <a asp-action="Index" asp-controller="Branch" class="dash-stat-manage">Manage</a>
+        <div class="dash-stat-icon">
+            <img src="~/assets/img/icons/profile-add.svg" alt="">
+        </div>
+        <h6>Branches</h6>
+        <div class="dash-stat-num" id="branchCount">@(Model?.BranchCount ?? 0)</div>
+        <div class="dash-stat-sub"><span id="visibleBranches">@(branches.Count())</span> visible</div>
+    </div>
+
+    <div class="dash-stat">
+        <a asp-action="Index" asp-controller="OnboardAdmin" class="dash-stat-manage">Manage</a>
+        <div class="dash-stat-icon">
+            <img src="~/assets/img/icons/profile-add.svg" alt="">
+        </div>
+        <h6>Company Admins</h6>
+        <div class="dash-stat-num" id="adminCount">@(Model?.AdminCount ?? 0)</div>
+        <div class="dash-stat-sub">Active administrators</div>
+    </div>
+
+    <div class="dash-stat">
+        <div class="dash-stat-icon">
+            <img src="~/assets/img/icons/scissor.svg" alt="">
+        </div>
+        <h6>Vehicles</h6>
+        <div class="dash-stat-num" id="vehicleCount">@(Model?.VehicleCount ?? 0)</div>
+        <div class="dash-stat-sub"><span id="assignedVehiclesCount">@totals.AssignedVehicles</span> assigned</div>
+    </div>
+
+    <div class="dash-stat">
+        <div class="dash-stat-icon">
+            <img src="~/assets/img/icons/empty-wallet.svg" alt="">
+        </div>
+        <h6>Drivers</h6>
+        <div class="dash-stat-num" id="driverCount">@(Model?.DriverCount ?? 0)</div>
+        <div class="dash-stat-sub">Total drivers</div>
+    </div>
+</div>
+
+<!-- Financial Cards -->
+<div class="fin-cards">
+    <div class="fin-card total">
+        <div class="fin-label">Total Spend</div>
+        <div class="fin-value" id="monthlyExpenditure">@ngn(totals.TotalSpend)</div>
+        <div class="fin-sub" id="monthlyExpenditureDelta">
+            Fuel: <span id="fuelSpendBreakdown">@ngn(totals.FuelSpend)</span> |
+            Maint: <span id="maintenanceSpendBreakdown">@ngn(totals.MaintenanceSpend)</span> |
+            Fines: <span id="finesSpendBreakdown">@ngn(totals.FinesSpend)</span>
+        </div>
+    </div>
+
+    <div class="fin-card fuel">
+        <div class="fin-label">Fuel Expenses</div>
+        <div class="fin-value" id="monthlyExpenses">@ngn(totals.FuelSpend)</div>
+        <div class="fin-sub" id="monthlyExpensesDelta">
+            <span id="fuelPercentage">
+                @{
+                    var fuelPercent = totals.TotalSpend > 0 ? Math.Round((totals.FuelSpend / totals.TotalSpend) * 100, 1) : 0;
+                }
+                @fuelPercent%
+            </span> of total spend
+        </div>
+    </div>
+
+    <div class="fin-card maint">
+        <div class="fin-label">Maintenance Expenses</div>
+        <div class="fin-value" id="monthlyRecurrent">@ngn(totals.MaintenanceSpend)</div>
+        <div class="fin-sub" id="monthlyRecurrentDelta">
+            <span id="maintenancePercentage">
+                @{
+                    var maintPercent = totals.TotalSpend > 0 ? Math.Round((totals.MaintenanceSpend / totals.TotalSpend) * 100, 1) : 0;
+                }
+                @maintPercent%
+            </span> of total spend
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h5 class="dash-card-title">Monthly Expenses Trend</h5>
+            </div>
+            <div class="dash-card-body">
+                <div class="chart-wrap" id="performanceChartContainer">
+                    <div class="chart-loading" id="performanceLoading">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading expense data...</p>
+                    </div>
+                    <div class="chart-error d-none" id="performanceError">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>Failed to load expense data</p>
+                        <button onclick="retryChart('performance')">Retry</button>
+                    </div>
+                    <canvas id="performanceChart" class="d-none"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h5 class="dash-card-title">Vehicle Status Distribution</h5>
+            </div>
+            <div class="dash-card-body">
+                <div class="chart-wrap" id="statusChartContainer">
+                    <div class="chart-loading" id="statusLoading">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading status data...</p>
+                    </div>
+                    <div class="chart-error d-none" id="statusError">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>Failed to load status data</p>
+                        <button onclick="retryChart('status')">Retry</button>
+                    </div>
+                    <canvas id="statusChart" class="d-none"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Branch Performance & Revenue -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h5 class="dash-card-title">Branch Performance Metrics</h5>
+            </div>
+            <div class="dash-card-body" id="branchPerformanceList">
+                @if (branches.Any())
+                {
+                    @foreach (var branch in branches.Take(6))
+                    {
+                        var perfPercent = (int)Math.Round(branch.PerformancePercentage);
+                        var utilizationRate = branch.TotalVehicles > 0 ? Math.Round(((double)branch.AssignedVehicleCount / branch.TotalVehicles) * 100, 1) : 0;
+                        <div class="branch-perf-item">
+                            <div class="bp-top">
+                                <span class="bp-name">@branch.BranchName</span>
+                                <span class="bp-perc">@perfPercent% performance</span>
+                            </div>
+                            <div class="bp-bar">
+                                <div class="bp-bar-fill" style="width: @perfPercent%"></div>
+                            </div>
+                            <div class="bp-meta">
+                                <div class="bp-meta-item">
+                                    <strong>Utilization:</strong>
+                                    <span>@branch.AssignedVehicleCount/@branch.TotalVehicles (@utilizationRate%)</span>
+                                </div>
+                                <div class="bp-meta-item">
+                                    <strong>Total Spend:</strong>
+                                    <span>@ngn(branch.TotalSpend)</span>
+                                </div>
+                                <div class="bp-meta-item">
+                                    <strong>Manager:</strong>
+                                    <span>@(branch.ManagerName ?? "Not assigned")</span>
+                                </div>
+                                <div class="bp-meta-item">
+                                    <strong>Open Tickets:</strong>
+                                    <span>
+                                        @branch.OpenMaintenanceTickets
+                                        @if (branch.OverdueMaintenanceTickets > 0)
+                                        {
+                                            <span style="color:var(--danger);">(@branch.OverdueMaintenanceTickets overdue)</span>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            <button class="bp-btn view-branch" data-branch="@branch.BranchId">View Details</button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div style="color:var(--dark-60);text-align:center;padding:40px 20px;">No branches to display.</div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h5 class="dash-card-title">Expenses by Branch</h5>
+            </div>
+            <div class="dash-card-body">
+                <div class="chart-wrap" id="branchRevenueContainer">
+                    <div class="chart-loading" id="branchRevenueLoading">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading branch data...</p>
+                    </div>
+                    <div class="chart-error d-none" id="branchRevenueError">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>Failed to load branch data</p>
+                        <button onclick="retryChart('branchRevenue')">Retry</button>
+                    </div>
+                    <canvas id="branchRevenueChart" class="d-none"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Branch Summary Table -->
+@if (branches.Any())
+{
+    <div class="dash-card">
+        <div class="dash-card-header">
+            <h5 class="dash-card-title">Branch Summary Table</h5>
+        </div>
+        <div class="dash-card-body">
+            <div class="dash-table-wrap">
+                <table class="dash-table" id="branchSummaryTable">
+                    <thead>
+                        <tr>
+                            <th>Branch</th>
+                            <th>Manager</th>
+                            <th>Admin</th>
+                            <th>Drivers</th>
+                            <th>Vehicles</th>
+                            <th>Utilization</th>
+                            <th>Open Tickets</th>
+                            <th>Total Spend</th>
+                            <th>Performance</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var branch in branches)
+                        {
+                            var utilizationRate = branch.TotalVehicles > 0 ? Math.Round(((double)branch.AssignedVehicleCount / branch.TotalVehicles) * 100, 1) : 0;
+                            var perfPercent = (int)Math.Round(branch.PerformancePercentage);
+                            <tr>
+                                <td><strong>@branch.BranchName</strong></td>
+                                <td>@(branch.ManagerName ?? "—")</td>
+                                <td>@(branch.CompanyAdminName ?? "—")</td>
+                                <td>@branch.ActiveDrivers/@branch.TotalDrivers</td>
+                                <td>@branch.AssignedVehicleCount/@branch.TotalVehicles</td>
+                                <td>
+                                    <div class="progress-mini">
+                                        <div class="progress-mini-fill" style="width: @utilizationRate%"></div>
+                                    </div>
+                                    <small>@utilizationRate%</small>
+                                </td>
+                                <td>
+                                    @branch.OpenMaintenanceTickets
+                                    @if (branch.OverdueMaintenanceTickets > 0)
+                                    {
+                                        <span class="badge bg-danger badge-sm">@branch.OverdueMaintenanceTickets overdue</span>
+                                    }
+                                </td>
+                                <td>@ngn(branch.TotalSpend)</td>
+                                <td>
+                                    <div class="progress-mini">
+                                        <div class="progress-mini-fill" style="width: @perfPercent%"></div>
+                                    </div>
+                                    <small>@perfPercent%</small>
+                                </td>
+                                <td>
+                                    <button class="bp-btn view-branch" data-branch="@branch.BranchId">Details</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Notifications Modal -->
+<div class="modal fade" id="notificationsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-bell me-2"></i>
+                    System Notifications & Alerts
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="notificationsModalBody" style="max-height: 500px; overflow-y: auto;">
+                <div class="text-center text-muted">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-2">Loading notifications...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="refreshNotificationsBtn">
+                    <i class="fa-solid fa-arrows-rotate me-1"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Branch Detail Modal -->
+<div class="modal fade" id="branchDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="branchDetailTitle">Branch Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="branchDetailBody">
+                <div class="text-center">
+                    <div class="loading-spinner me-2"></div>
+                    Loading branch details...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<script>
+    (function () {
+      // Server-provided initial dashboard DTO
+      const initialDashboard = @Html.Raw(JsonSerializer.Serialize(Model ?? new CompanyOwnerDashboardDto()));
+      const currentUserFirstName = '@(_authUser?.FirstName ?? "")';
+
+      // Global state
+      let charts = {
+        performance: null,
+        branchRevenue: null,
+        status: null,
+        utilization: null
+      };
+
+      let currentBranchId = null;
+      let isRefreshing = false;
+      let currentDashboardData = initialDashboard;
+
+      // Helpers
+      function formatCurrency(v) {
+        try {
+          return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(v || 0);
+        } catch (e) {
+          return '₦' + (v || 0).toLocaleString();
+        }
+      }
+
+      function get(obj, key) {
+        if (!obj) return undefined;
+        if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
+        const camel = key.charAt(0).toLowerCase() + key.slice(1);
+        if (Object.prototype.hasOwnProperty.call(obj, camel)) return obj[camel];
+        const pascal = key.charAt(0).toUpperCase() + key.slice(1);
+        if (Object.prototype.hasOwnProperty.call(obj, pascal)) return obj[pascal];
+        return undefined;
+      }
+
+      // Loading UI helpers
+      function showLoading(name) {
+        document.getElementById(`${name}Loading`)?.classList.remove('d-none');
+        document.getElementById(`${name}Chart`)?.classList.add('d-none');
+        document.getElementById(`${name}Error`)?.classList.add('d-none');
+      }
+      function hideLoading(name) {
+        document.getElementById(`${name}Loading`)?.classList.add('d-none');
+        document.getElementById(`${name}Chart`)?.classList.remove('d-none');
+      }
+      function showError(name) {
+        document.getElementById(`${name}Loading`)?.classList.add('d-none');
+        document.getElementById(`${name}Chart`)?.classList.add('d-none');
+        document.getElementById(`${name}Error`)?.classList.remove('d-none');
+      }
+      function setRefreshLoading(loading) {
+        const btn = document.getElementById('refreshDashboardBtn');
+        if (!btn) return;
+        const text = btn.querySelector('.refresh-text');
+        const spinner = btn.querySelector('.loading-spinner');
+        if (loading) {
+          text.classList.add('d-none');
+          spinner.classList.remove('d-none');
+          btn.disabled = true;
+          isRefreshing = true;
+        } else {
+          text.classList.remove('d-none');
+          spinner.classList.add('d-none');
+          btn.disabled = false;
+          isRefreshing = false;
+        }
+      }
+
+      // Greeting
+      function setGreeting() {
+        const name = currentUserFirstName || '';
+        const hour = new Date().getHours();
+        let greeting, subMessage;
+
+        if (hour < 12) {
+          greeting = "Good Morning";
+          subMessage = "Ready to lead your fleet to new heights today?";
+        } else if (hour < 17) {
+          greeting = "Good Afternoon";
+          subMessage = "Hope your strategic vision is coming together smoothly!";
+        } else {
+          greeting = "Good Evening";
+          subMessage = "Take a moment to review today's fleet achievements.";
+        }
+
+        const container = document.querySelector('.morning-user');
+        if (container) {
+          container.innerHTML = `
+            <h2>${greeting}${name ? ', ' + name : ''}</h2>
+            <p>${subMessage}</p>
+          `;
+        }
+      }
+
+      // Enhanced Alerts Generation
+      function generateAlerts(dashboardData) {
+        const alerts = [];
+        const branches = dashboardData?.branches || [];
+        const totals = dashboardData?.totals || {};
+
+        // Critical Alerts (High Priority)
+        branches.forEach(branch => {
+          if (get(branch, 'overdueMaintenanceTickets') > 0) {
+            alerts.push({
+              type: 'high',
+              priority: 'critical',
+              icon: 'fas fa-exclamation-circle',
+              title: 'Critical Maintenance Overdue',
+              message: `${get(branch, 'branchName')} has ${get(branch, 'overdueMaintenanceTickets')} overdue maintenance ticket(s)`,
+              subtext: 'Immediate attention required - Safety risk',
+              branchId: get(branch, 'branchId'),
+              action: 'View Branch'
+            });
+          }
+
+          // Vehicles with no assigned drivers
+          const unassignedVehicles = (get(branch, 'totalVehicles') || 0) - (get(branch, 'assignedVehicleCount') || 0);
+          if (unassignedVehicles > 0) {
+            alerts.push({
+              type: 'medium',
+              priority: 'warning',
+              icon: 'fas fa-car',
+              title: 'Unassigned Vehicles',
+              message: `${get(branch, 'branchName')} has ${unassignedVehicles} unassigned vehicle(s)`,
+              subtext: 'Revenue opportunity being missed',
+              branchId: get(branch, 'branchId'),
+              action: 'Assign Drivers'
+            });
+          }
+
+          // Driver shortage
+          const driverShortage = (get(branch, 'totalVehicles') || 0) - (get(branch, 'totalDrivers') || 0);
+          if (driverShortage > 0) {
+            alerts.push({
+              type: 'medium',
+              priority: 'warning',
+              icon: 'fas fa-user-tie',
+              title: 'Driver Shortage',
+              message: `${get(branch, 'branchName')} needs ${driverShortage} more driver(s)`,
+              subtext: 'Consider recruitment or transfers',
+              branchId: get(branch, 'branchId'),
+              action: 'Recruit Drivers'
+            });
+          }
+
+          // Low utilization
+          const totalVehicles = get(branch, 'totalVehicles') || 0;
+          const assignedVehicles = get(branch, 'assignedVehicleCount') || 0;
+          const utilization = totalVehicles > 0 ? (assignedVehicles / totalVehicles) : 0;
+          if (totalVehicles > 0 && utilization < 0.6) {
+            alerts.push({
+              type: 'medium',
+              priority: 'warning',
+              icon: 'fas fa-chart-line',
+              title: 'Low Vehicle Utilization',
+              message: `${get(branch, 'branchName')} utilization: ${Math.round(utilization * 100)}%`,
+              subtext: 'Review vehicle assignments and driver allocation',
+              branchId: get(branch, 'branchId'),
+              action: 'Optimize'
+            });
+          }
+
+          // High maintenance frequency
+          const openTickets = get(branch, 'openMaintenanceTickets') || 0;
+          if (openTickets > 5) {
+            alerts.push({
+              type: 'medium',
+              priority: 'warning',
+              icon: 'fas fa-wrench',
+              title: 'High Maintenance Activity',
+              message: `${get(branch, 'branchName')} has ${openTickets} open maintenance tickets`,
+              subtext: 'Monitor for recurring issues or aging fleet',
+              branchId: get(branch, 'branchId'),
+              action: 'Review Maintenance'
+            });
+          }
+
+          // Missing manager or admin
+          if (!get(branch, 'managerName')) {
+            alerts.push({
+              type: 'medium',
+              priority: 'warning',
+              icon: 'fas fa-user-crown',
+              title: 'Manager Not Assigned',
+              message: `${get(branch, 'branchName')} has no assigned manager`,
+              subtext: 'Branch operations may be affected',
+              branchId: get(branch, 'branchId'),
+              action: 'Assign Manager'
+            });
+          }
+
+          if (!get(branch, 'companyAdminName')) {
+            alerts.push({
+              type: 'medium',
+              priority: 'warning',
+              icon: 'fas fa-user-shield',
+              title: 'Admin Not Assigned',
+              message: `${get(branch, 'branchName')} has no company admin`,
+              subtext: 'Administrative oversight needed',
+              branchId: get(branch, 'branchId'),
+              action: 'Assign Admin'
+            });
+          }
+        });
+
+        // Financial Alerts
+        const totalSpend = get(totals, 'totalSpend') || 0;
+        const fuelSpend = get(totals, 'fuelSpend') || 0;
+        const maintenanceSpend = get(totals, 'maintenanceSpend') || 0;
+        const finesSpend = get(totals, 'finesSpend') || 0;
+
+        if (totalSpend > 0) {
+          const fuelPercent = (fuelSpend / totalSpend) * 100;
+          const maintenancePercent = (maintenanceSpend / totalSpend) * 100;
+
+          if (fuelPercent > 70) {
+            alerts.push({
+              type: 'medium',
+              priority: 'financial',
+              icon: 'fas fa-gas-pump',
+              title: 'High Fuel Costs',
+              message: `Fuel expenses account for ${Math.round(fuelPercent)}% of total spend`,
+              subtext: 'Consider fuel efficiency programs or route optimization',
+              action: 'Analyze Fuel Usage'
+            });
+          }
+
+          if (maintenancePercent > 25) {
+            alerts.push({
+              type: 'medium',
+              priority: 'financial',
+              icon: 'fas fa-tools',
+              title: 'High Maintenance Costs',
+              message: `Maintenance costs are ${Math.round(maintenancePercent)}% of total spend`,
+              subtext: 'Review maintenance practices and vendor contracts',
+              action: 'Review Maintenance'
+            });
+          }
+
+          if (finesSpend > (totalSpend * 0.1)) {
+            alerts.push({
+              type: 'high',
+              priority: 'critical',
+              icon: 'fas fa-exclamation-triangle',
+              title: 'High Fine Costs',
+              message: `Fines account for ${Math.round((finesSpend / totalSpend) * 100)}% of total spend`,
+              subtext: 'Driver training or policy enforcement needed',
+              action: 'Review Violations'
+            });
+          }
+        }
+
+        // Fleet Utilization Alerts
+        const totalVehicles = dashboardData?.vehicleCount || 0;
+        const assignedVehicles = get(totals, 'assignedVehicles') || 0;
+        if (totalVehicles > 0) {
+          const overallUtilization = (assignedVehicles / totalVehicles) * 100;
+          if (overallUtilization < 60) {
+            alerts.push({
+              type: 'medium',
+              priority: 'warning',
+              icon: 'fas fa-car-side',
+              title: 'Low Fleet Utilization',
+              message: `Only ${Math.round(overallUtilization)}% of vehicles are assigned`,
+              subtext: `${totalVehicles - assignedVehicles} vehicles are idle`,
+              action: 'Optimize Fleet'
+            });
+          }
+        }
+
+        // Positive Alerts
+        const highPerformingBranches = branches.filter(b => (get(b, 'performancePercentage') || 0) > 85);
+        if (highPerformingBranches.length > 0) {
+          alerts.push({
+            type: 'low',
+            priority: 'success',
+            icon: 'fas fa-trophy',
+            title: 'High Performance Branches',
+            message: `${highPerformingBranches.length} branch(es) performing above 85%`,
+            subtext: `Top performer: ${get(highPerformingBranches[0], 'branchName')} (${Math.round(get(highPerformingBranches[0], 'performancePercentage') || 0)}%)`,
+            action: 'View Details'
+          });
+        }
+
+        // Default message if no alerts
+        if (alerts.length === 0) {
+          alerts.push({
+            type: 'low',
+            priority: 'info',
+            icon: 'fas fa-check-circle',
+            title: 'All Systems Operational',
+            message: 'No critical issues detected across your fleet operations',
+            subtext: 'Continue monitoring for optimal performance',
+            action: null
+          });
+        }
+
+        return alerts.sort((a, b) => {
+          const priorityOrder = { critical: 0, warning: 1, financial: 2, success: 3, info: 4 };
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+      }
+
+
+          function updateNotificationIndicator(alerts) {
+        const summary = document.getElementById('notificationSummary');
+        const badge = document.getElementById('notificationBadge');
+        const indicator = document.querySelector('.notification-indicator .alert');
+
+        const criticalAlerts = alerts.filter(a => a.priority === 'critical');
+        const warningAlerts = alerts.filter(a => a.priority === 'warning');
+        const totalActionable = criticalAlerts.length + warningAlerts.length;
+
+        // Reset classes
+        indicator.classList.remove('notification-pulse', 'notification-critical', 'notification-warning');
+
+        if (criticalAlerts.length > 0) {
+            summary.textContent = `${criticalAlerts.length} critical issue${criticalAlerts.length > 1 ? 's' : ''} require attention`;
+            indicator.classList.add('notification-critical');
+            badge.textContent = criticalAlerts.length;
+            badge.classList.remove('d-none');
+            badge.className = badge.className.replace(/bg-\w+/, 'bg-danger');
+        } else if (warningAlerts.length > 0) {
+            summary.textContent = `${warningAlerts.length} item${warningAlerts.length > 1 ? 's' : ''} need attention`;
+            indicator.classList.add('notification-warning');
+            badge.textContent = warningAlerts.length;
+            badge.classList.remove('d-none');
+            badge.className = badge.className.replace(/bg-\w+/, 'bg-warning');
+        } else if (totalActionable > 0) {
+            summary.textContent = `You may have some actions to attend to`;
+            indicator.classList.add('notification-pulse');
+            badge.textContent = totalActionable;
+            badge.classList.remove('d-none');
+            badge.className = badge.className.replace(/bg-\w+/, 'bg-info');
+        } else {
+            summary.textContent = 'All systems operational';
+            badge.classList.add('d-none');
+        }
+
+        // Store alerts for modal display
+        window.currentAlerts = alerts;
+    }
+
+    function populateNotificationsModal(alerts) {
+        const modalBody = document.getElementById('notificationsModalBody');
+
+        if (!alerts || alerts.length === 0) {
+            modalBody.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                    <h5>All Clear!</h5>
+                    <p>No notifications or alerts at this time. Your fleet operations are running smoothly.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Group alerts by priority
+        const criticalAlerts = alerts.filter(a => a.priority === 'critical');
+        const warningAlerts = alerts.filter(a => a.priority === 'warning');
+        const infoAlerts = alerts.filter(a => ['success', 'info', 'financial'].includes(a.priority));
+
+        let html = '';
+
+        // Critical Alerts Section
+        if (criticalAlerts.length > 0) {
+            html += `
+                <div class="mb-4">
+                    <h6 class="text-danger mb-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Critical Issues (${criticalAlerts.length})
+                    </h6>
+                    ${criticalAlerts.map(alert => createModalAlertHtml(alert, 'high')).join('')}
+                </div>
+            `;
+        }
+
+        // Warning Alerts Section
+        if (warningAlerts.length > 0) {
+            html += `
+                <div class="mb-4">
+                    <h6 class="text-warning mb-3">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Attention Required (${warningAlerts.length})
+                    </h6>
+                    ${warningAlerts.map(alert => createModalAlertHtml(alert, 'medium')).join('')}
+                </div>
+            `;
+        }
+
+        // Info Alerts Section
+        if (infoAlerts.length > 0) {
+            html += `
+                <div class="mb-4">
+                    <h6 class="text-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Information & Updates (${infoAlerts.length})
+                    </h6>
+                    ${infoAlerts.map(alert => createModalAlertHtml(alert, 'low')).join('')}
+                </div>
+            `;
+        }
+
+        modalBody.innerHTML = html;
+    }
+
+    function createModalAlertHtml(alert, type) {
+        const iconMap = {
+            'critical': 'fas fa-exclamation-circle priority-critical',
+            'warning': 'fas fa-exclamation-triangle priority-warning',
+            'financial': 'fas fa-chart-line priority-warning',
+            'success': 'fas fa-check-circle priority-success',
+            'info': 'fas fa-info-circle priority-info'
+        };
+
+        const iconClass = iconMap[alert.priority] || 'fas fa-info-circle priority-info';
+
+        return `
+            <div class="modal-alert-item modal-alert-${type}">
+                <div class="d-flex align-items-start">
+                    <i class="${iconClass} priority-icon"></i>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${alert.title}</h6>
+                        <p class="mb-2">${alert.message}</p>
+                        <small class="text-muted">${alert.subtext}</small>
+                    </div>
+                    <div class="ms-3">
+                        ${alert.action ? `
+                            <button class="btn btn-sm btn-outline-primary ${alert.branchId ? 'view-branch' : ''}"
+                                    ${alert.branchId ? `data-branch="${alert.branchId}"` : ''}>
+                                ${alert.action}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+      // Chart initialization functions with proper data handling
+      function initBranchRevenueChart(branches) {
+        showLoading('branchRevenue');
+
+        try {
+          if (!branches || branches.length === 0) {
+            showError('branchRevenue');
+            return;
+          }
+
+          const branchLabels = branches.map(b => get(b, 'branchName') || 'Branch');
+          const branchExpenses = branches.map(b => get(b, 'totalSpend') || 0);
+
+          const ctx = document.getElementById('branchRevenueChart')?.getContext('2d');
+          if (!ctx) { showError('branchRevenue'); return; }
+
+          if (charts.branchRevenue) charts.branchRevenue.destroy();
+
+          charts.branchRevenue = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: branchLabels,
+              datasets: [{
+                label: 'Total Expenses (₦)',
+                data: branchExpenses,
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                borderRadius: 5,
+                borderSkipped: false
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) { return `Expenses: ${formatCurrency(context.parsed.y)}`; }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: { callback: function(value) { return formatCurrency(value); } }
+                },
+                x: {
+                  ticks: {
+                    maxRotation: 45,
+                    minRotation: 0
+                  }
+                }
+              }
+            }
+          });
+
+          hideLoading('branchRevenue');
+        } catch (err) {
+          console.error('Branch revenue chart error:', err);
+          showError('branchRevenue');
+        }
+      }
+
+      function initStatusChart(dashboardData) {
+        showLoading('status');
+
+        try {
+          // Create meaningful vehicle status distribution
+          const branches = dashboardData?.branches || [];
+          const totals = dashboardData?.totals || {};
+
+          let assigned = get(totals, 'assignedVehicles') || 0;
+          let totalVehicles = dashboardData?.vehicleCount || 0;
+          let unassigned = Math.max(0, totalVehicles - assigned);
+
+          // Calculate active vs inactive drivers for comparison
+          let totalDrivers = dashboardData?.driverCount || 0;
+          let activeDrivers = branches.reduce((sum, b) => sum + (get(b, 'activeDrivers') || 0), 0);
+          let inactiveDrivers = Math.max(0, totalDrivers - activeDrivers);
+
+          // Calculate maintenance vehicles
+          let maintenanceVehicles = branches.reduce((sum, b) => sum + (get(b, 'openMaintenanceTickets') || 0), 0);
+
+          const labels = [];
+          const data = [];
+          const colors = [];
+
+          if (assigned > 0) {
+            labels.push(`Assigned Vehicles`);
+            data.push(assigned);
+            colors.push('#28a745');
+          }
+
+          if (unassigned > 0) {
+            labels.push(`Unassigned Vehicles`);
+            data.push(unassigned);
+            colors.push('#6c757d');
+          }
+
+          if (maintenanceVehicles > 0) {
+            labels.push(`Under Maintenance`);
+            data.push(maintenanceVehicles);
+            colors.push('#ffc107');
+          }
+
+          if (activeDrivers > 0) {
+            labels.push(`Active Drivers`);
+            data.push(activeDrivers);
+            colors.push('#17a2b8');
+          }
+
+          if (inactiveDrivers > 0) {
+            labels.push(`Inactive Drivers`);
+            data.push(inactiveDrivers);
+            colors.push('#dc3545');
+          }
+
+          if (data.length === 0) {
+            labels.push('No Data Available');
+            data.push(1);
+            colors.push('#e9ecef');
+          }
+
+          const ctx = document.getElementById('statusChart')?.getContext('2d');
+          if (!ctx) { showError('status'); return; }
+
+          if (charts.status) charts.status.destroy();
+
+          charts.status = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels,
+              datasets: [{
+                data,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    padding: 10,
+                    usePointStyle: true,
+                    generateLabels: function(chart) {
+                      const data = chart.data;
+                      if (data.labels.length && data.datasets.length) {
+                        return data.labels.map((label, i) => {
+                          const dataset = data.datasets[0];
+                          const value = dataset.data[i];
+                          return {
+                            text: `${label}: ${value}`,
+                            fillStyle: dataset.backgroundColor[i],
+                            strokeStyle: dataset.backgroundColor[i],
+                            lineWidth: 0,
+                            pointStyle: 'circle',
+                            hidden: false,
+                            index: i
+                          };
+                        });
+                      }
+                      return [];
+                    }
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      const label = context.label || '';
+                      const value = context.parsed;
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const percentage = ((value / total) * 100).toFixed(1);
+                      return `${label}: ${value} (${percentage}%)`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+
+          hideLoading('status');
+        } catch (err) {
+          console.error('Status chart error:', err);
+          showError('status');
+        }
+      }
+
+      // Performance Chart with proper data handling
+      async function loadPerformanceChart(branchId) {
+        showLoading('performance');
+        try {
+          const url = `/Company/Dashboard/ExpensesByMonth?branchId=${encodeURIComponent(branchId || '')}`;
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+          const result = await response.json();
+          if (!result.success) throw new Error(result.error || 'Failed to load data');
+
+          const expenses = result.data || [];
+          const labels = expenses.map(m => {
+            const year = get(m, 'year') || get(m, 'Year') || new Date().getFullYear();
+            const month = get(m, 'month') || get(m, 'Month') || 1;
+            const monthNames = ['', 'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return `${monthNames[month]} ${year}`;
+          });
+          const values = expenses.map(m => get(m, 'value') || get(m, 'Value') || 0);
+          const secondaryValues = expenses.map(m => get(m, 'secondaryValue') || get(m, 'SecondaryValue') || 0);
+
+          const ctx = document.getElementById('performanceChart')?.getContext('2d');
+          if (!ctx) throw new Error('Chart canvas not found');
+
+          if (charts.performance) charts.performance.destroy();
+
+          charts.performance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels.length ? labels : ['No Data'],
+              datasets: [{
+                label: 'Total Expenses (₦)',
+                data: values.length ? values : [0],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.3
+              }, {
+                label: 'Fuel Expenses (₦)',
+                data: secondaryValues.length ? secondaryValues : [0],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: false,
+                tension: 0.3
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: { callback: (v) => formatCurrency(v) }
+                }
+              },
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: (context) => `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`
+                  }
+                }
+              }
+            }
+          });
+
+          hideLoading('performance');
+        } catch (err) {
+          console.error('Error loading performance chart:', err);
+          showError('performance');
+        }
+      }
+
+      // Enhanced Apply DTO to UI with proper financial calculations
+      function applyDtoToUi(dto) {
+        if (!dto) return;
+
+        currentDashboardData = dto;
+        const totals = dto.totals || {};
+        const branches = dto.branches || [];
+
+        // Update counters
+        document.getElementById('branchCount').textContent = dto.branchCount ?? 0;
+        document.getElementById('adminCount').textContent = dto.adminCount ?? 0;
+        document.getElementById('vehicleCount').textContent = dto.vehicleCount ?? 0;
+        document.getElementById('driverCount').textContent = dto.driverCount ?? 0;
+
+        // Update header counters
+        document.getElementById('headerBranchCount').textContent = dto.branchCount ?? 0;
+        document.getElementById('headerVehicleCount').textContent = dto.vehicleCount ?? 0;
+        document.getElementById('headerAssignedVehicles').textContent = totals.assignedVehicles ?? 0;
+
+        // Update visible branches count
+        document.getElementById('visibleBranches').textContent = branches.length;
+        document.getElementById('assignedVehiclesCount').textContent = totals.assignedVehicles ?? 0;
+
+        // Update viewing scope
+        const viewingScope = document.getElementById('viewingScope');
+        const performanceViewIndicator = document.getElementById('performanceViewIndicator');
+        if (dto.isFiltered) {
+          viewingScope.textContent = "Single Branch View";
+          performanceViewIndicator.innerHTML = '<span>(Filtered View)</span>';
+        } else {
+          viewingScope.textContent = "All Branches";
+          performanceViewIndicator.innerHTML = '';
+        }
+
+        // Calculate and update financial metrics with proper percentages
+        const totalSpend = totals.totalSpend || 0;
+        const fuelSpend = totals.fuelSpend || 0;
+        const maintenanceSpend = totals.maintenanceSpend || 0;
+        const finesSpend = totals.finesSpend || 0;
+
+        document.getElementById('monthlyExpenditure').textContent = formatCurrency(totalSpend);
+        document.getElementById('monthlyExpenses').textContent = formatCurrency(fuelSpend);
+        document.getElementById('monthlyRecurrent').textContent = formatCurrency(maintenanceSpend);
+
+        // Update breakdown in total spend card
+        document.getElementById('fuelSpendBreakdown').textContent = formatCurrency(fuelSpend);
+        document.getElementById('maintenanceSpendBreakdown').textContent = formatCurrency(maintenanceSpend);
+        document.getElementById('finesSpendBreakdown').textContent = formatCurrency(finesSpend);
+
+        // Calculate and update percentages
+        const fuelPercent = totalSpend > 0 ? Math.round((fuelSpend / totalSpend) * 100 * 10) / 10 : 0;
+        const maintenancePercent = totalSpend > 0 ? Math.round((maintenanceSpend / totalSpend) * 100 * 10) / 10 : 0;
+
+        document.getElementById('fuelPercentage').textContent = fuelPercent + '%';
+        document.getElementById('maintenancePercentage').textContent = maintenancePercent + '%';
+
+        // Update branch performance list
+        updateBranchPerformanceList(branches);
+
+        // Update branch summary table
+        updateBranchSummaryTable(branches);
+
+        // Update alerts
+        const alerts = generateAlerts(dto);
+    updateNotificationIndicator(alerts);
+      }
+
+      function updateBranchPerformanceList(branches) {
+        const list = document.getElementById('branchPerformanceList');
+        if (!list) return;
+
+        if (branches.length === 0) {
+          list.innerHTML = '<div class="text-muted">No branches to display.</div>';
+          return;
+        }
+
+        list.innerHTML = branches.slice(0, 6).map(b => {
+          const perf = Math.round(get(b, 'performancePercentage') || 0);
+          const assigned = get(b, 'assignedVehicleCount') || 0;
+          const totalVeh = get(b, 'totalVehicles') || 0;
+          const spend = get(b, 'totalSpend') || 0;
+          const utilizationRate = totalVeh > 0 ? Math.round((assigned / totalVeh) * 100 * 10) / 10 : 0;
+          const managerName = get(b, 'managerName') || 'Not assigned';
+          const activeDrivers = get(b, 'activeDrivers') || 0;
+          const totalDrivers = get(b, 'totalDrivers') || 0;
+          const openTickets = get(b, 'openMaintenanceTickets') || 0;
+          const overdueTickets = get(b, 'overdueMaintenanceTickets') || 0;
+
+          return `
+            <div class="mb-3">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="fw-bold">${get(b, 'branchName')}</span>
+                <span class="text-muted">${perf}% performance</span>
+              </div>
+              <div class="progress-bar-custom">
+                <div class="progress-fill" style="width: ${perf}%"></div>
+              </div>
+              <div class="mt-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted">
+                    <strong>Utilization:</strong> ${assigned}/${totalVeh} vehicles (${utilizationRate}%)
+                  </small>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted">
+                    <strong>Total Spend:</strong> ${formatCurrency(spend)}
+                  </small>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted">
+                    <strong>Manager:</strong> ${managerName}
+                  </small>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">
+                    <strong>Active Drivers:</strong> ${activeDrivers}/${totalDrivers} |
+                    <strong>Open Tickets:</strong> ${openTickets}
+                    ${overdueTickets > 0 ? `<span class="text-danger">(${overdueTickets} overdue)</span>` : ''}
+                  </small>
+                  <button class="btn btn-sm btn-outline-secondary view-branch" data-branch="${get(b, 'branchId')}">Details</button>
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      function updateBranchSummaryTable(branches) {
+        const tableContainer = document.getElementById('branchSummaryTableContainer');
+        if (!tableContainer) return;
+
+        if (branches.length === 0) {
+          tableContainer.innerHTML = '<div class="text-muted text-center">No branches to display in table.</div>';
+          return;
+        }
+
+        const tableHtml = `
+          <div class="row my-3">
+            <div class="col-md-12">
+              <div class="dashboard-card">
+                <h5 class="mb-3">Branch Summary Table</h5>
+                <div class="table-responsive">
+                  <table class="table table-custom" id="branchSummaryTable">
+                    <thead>
+                      <tr>
+                        <th>Branch</th>
+                        <th>Manager</th>
+                        <th>Admin</th>
+                        <th>Drivers</th>
+                        <th>Vehicles</th>
+                        <th>Utilization</th>
+                        <th>Open Tickets</th>
+                        <th>Vendors</th>
+                        <th>Total Spend</th>
+                        <th>Performance</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${branches.map(b => {
+                        const utilizationRate = (get(b, 'totalVehicles') || 0) > 0 ?
+                          Math.round(((get(b, 'assignedVehicleCount') || 0) / (get(b, 'totalVehicles') || 0)) * 100 * 10) / 10 : 0;
+                        const perfPercent = Math.round(get(b, 'performancePercentage') || 0);
+                        return `
+                          <tr>
+                            <td><strong>${get(b, 'branchName')}</strong></td>
+                            <td>${get(b, 'managerName') || '—'}</td>
+                            <td>${get(b, 'companyAdminName') || '—'}</td>
+                            <td>${get(b, 'activeDrivers') || 0}/${get(b, 'totalDrivers') || 0}</td>
+                            <td>${get(b, 'assignedVehicleCount') || 0}/${get(b, 'totalVehicles') || 0}</td>
+                            <td>
+                              <div class="progress-bar-custom" style="width: 60px; height: 6px;">
+                                <div class="progress-fill" style="width: ${utilizationRate}%"></div>
+                              </div>
+                              <small>${utilizationRate}%</small>
+                            </td>
+                            <td>
+                              ${get(b, 'openMaintenanceTickets') || 0}
+                              ${(get(b, 'overdueMaintenanceTickets') || 0) > 0 ?
+                                `<span class="badge bg-danger badge-sm">${get(b, 'overdueMaintenanceTickets')} overdue</span>` : ''}
+                            </td>
+                            <td>${get(b, 'vendorsCount') || 0}</td>
+                            <td>${formatCurrency(get(b, 'totalSpend') || 0)}</td>
+                            <td>
+                              <div class="progress-bar-custom" style="width: 60px; height: 6px;">
+                                <div class="progress-fill" style="width: ${perfPercent}%"></div>
+                              </div>
+                              <small>${perfPercent}%</small>
+                            </td>
+                            <td>
+                              <button class="btn btn-sm btn-outline-primary view-branch" data-branch="${get(b, 'branchId')}">Details</button>
+                            </td>
+                          </tr>`;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        tableContainer.innerHTML = tableHtml;
+      }
+
+      // Load Recent Activities
+      async function loadRecentActivitiesForBranch(branchId) {
+        const tbody = document.querySelector('#recentActivitiesTable tbody');
+        const errorDiv = document.getElementById('activitiesError');
+
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted"><div class="loading-spinner me-2"></div>Loading recent activities...</td></tr>`;
+        errorDiv.classList.add('d-none');
+
+        try {
+          const url = `/Company/Dashboard/RecentActivities?branchId=${encodeURIComponent(branchId || '')}&size=10`;
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+          const result = await response.json();
+          if (!result.success) throw new Error(result.error || 'Failed to load activities');
+
+          const data = result.data;
+          const activities = [];
+
+          // Combine fuel logs and maintenance tickets
+          if (data.recentFuel && Array.isArray(data.recentFuel)) {
+            data.recentFuel.forEach(f => {
+              activities.push({
+                ...f,
+                activityType: 'Fuel',
+                amount: get(f, 'cost') || 0,
+                volume: get(f, 'volume') || 0
+              });
+            });
+          }
+
+          if (data.recentTickets && Array.isArray(data.recentTickets)) {
+            data.recentTickets.forEach(t => {
+              activities.push({
+                ...t,
+                activityType: 'Maintenance',
+                amount: get(t, 'estimatedCost') || get(t, 'invoiceAmount') || 0,
+                volume: null
+              });
+            });
+          }
+
+          // Sort by date (most recent first)
+          activities.sort((a, b) => {
+            const dateA = new Date(get(a, 'date') || get(a, 'createdDate') || 0);
+            const dateB = new Date(get(b, 'date') || get(b, 'createdDate') || 0);
+            return dateB - dateA;
+          });
+
+          populateRecentActivities(activities);
+        } catch (err) {
+          console.error('Error loading recent activities:', err);
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No recent activities available</td></tr>';
+          errorDiv.classList.remove('d-none');
+        }
+      }
+
+      function populateRecentActivities(rows) {
+        const tbody = document.querySelector('#recentActivitiesTable tbody');
+        if (!rows || rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No recent activities available</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        for (const r of rows.slice(0, 15)) {
+          const vehicleId = get(r, 'vehiclePlateNo') || `#${get(r, 'vehicleId') || ''}`;
+          const driver = get(r, 'driverName') || (get(r, 'driverId') ? ('Driver ' + get(r, 'driverId')) : '—');
+          const activityType = get(r, 'activityType') || 'Activity';
+          const amount = get(r, 'amount') || 0;
+          const volume = get(r, 'volume');
+          const date = new Date(get(r, 'date') || get(r, 'createdDate') || Date.now()).toLocaleDateString();
+          const branch = get(r, 'branchName') || '—';
+
+          let amountDisplay = '';
+          if (activityType === 'Fuel') {
+            amountDisplay = volume ? `${volume}L / ${formatCurrency(amount)}` : formatCurrency(amount);
+          } else {
+            amountDisplay = formatCurrency(amount);
+          }
+
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${vehicleId}</strong></td>
+              <td>${driver}</td>
+              <td><span class="badge bg-${activityType === 'Fuel' ? 'primary' : 'warning'}">${activityType}</span></td>
+              <td>${amountDisplay}</td>
+              <td>${date}</td>
+              <td>${branch}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary view-branch" data-branch="${get(r, 'branchId') || get(r, 'companyBranchId') || ''}">View Branch</button>
+              </td>
+            </tr>`;
+        }
+      }
+
+      // Load scoped dashboard
+      async function loadScopedDashboard(branchId) {
+        if (isRefreshing) return;
+        setRefreshLoading(true);
+        currentBranchId = branchId || null;
+
+        try {
+          const url = `/Company/Dashboard/Scoped?branchId=${encodeURIComponent(branchId || '')}&recentSize=10`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Failed to load scoped dashboard');
+
+          const result = await res.json();
+          if (!result.success) throw new Error(result.error || 'Failed to load dashboard data');
+
+          const dto = result.data;
+          applyDtoToUi(dto);
+
+          // Update charts with new data
+          await loadPerformanceChart(currentBranchId);
+          initBranchRevenueChart(dto.branches || []);
+          initStatusChart(dto);
+
+          // Load recent activities
+          await loadRecentActivitiesForBranch(currentBranchId);
+        } catch (err) {
+          console.error('Error loading scoped dashboard:', err);
+        } finally {
+          setRefreshLoading(false);
+        }
+      }
+
+      // Branch detail modal handler
+      document.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('.view-branch');
+        if (!btn) return;
+
+        const branchId = btn.getAttribute('data-branch');
+        if (!branchId) return;
+
+        try {
+          const modalEl = document.getElementById('branchDetailModal');
+          const modal = new bootstrap.Modal(modalEl);
+          modal.show();
+
+          document.getElementById('branchDetailTitle').textContent = 'Loading Branch Details...';
+          document.getElementById('branchDetailBody').innerHTML = `
+            <div class="text-center">
+              <div class="loading-spinner me-2"></div>
+              Loading branch details...
+            </div>`;
+
+          const response = await fetch(`/Company/Dashboard/BranchDetails?branchId=${encodeURIComponent(branchId)}`);
+          if (!response.ok) throw new Error('Failed to load branch details');
+
+          const result = await response.json();
+          if (!result.success) throw new Error(result.error || 'Failed to load branch details');
+
+          showBranchModal(result.data);
+        } catch (err) {
+          console.error('Error fetching branch details:', err);
+          document.getElementById('branchDetailBody').innerHTML = `
+            <div class="alert alert-danger">
+              Failed to load branch details. Please try again.
+              <button class="btn btn-sm btn-outline-danger ms-2" onclick="this.closest('.modal').querySelector('.btn-close').click()">Close</button>
+            </div>`;
+        }
+      });
+
+      function showBranchModal(data) {
+        const title = document.getElementById('branchDetailTitle');
+        const body = document.getElementById('branchDetailBody');
+
+        title.textContent = `${get(data, 'branchName') || 'Branch'} — Detailed View`;
+
+        const summary = get(data, 'summary') || {};
+        const recentTickets = get(data, 'recentMaintenanceTickets') || [];
+        const recentFuel = get(data, 'recentFuelLogs') || [];
+        const topVehicles = get(data, 'topVehiclesByFuel') || [];
+
+        body.innerHTML = `
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Branch Summary</h6>
+                  <p><strong>Manager:</strong> ${get(data, 'managerName') || '—'}</p>
+                  <p><strong>Company Admin:</strong> ${get(summary, 'companyAdminName') || '—'}</p>
+                  <p><strong>Drivers:</strong> ${get(summary, 'activeDrivers') || 0}/${get(summary, 'totalDrivers') || 0} active</p>
+                  <p><strong>Vehicles:</strong> ${get(summary, 'activeVehicles') || 0}/${get(summary, 'totalVehicles') || 0} active</p>
+                  <p><strong>Assigned Vehicles:</strong> ${get(summary, 'assignedVehicleCount') || 0}</p>
+                  <p><strong>Open Tickets:</strong> ${get(summary, 'openMaintenanceTickets') || 0}
+                    ${get(summary, 'overdueMaintenanceTickets') > 0 ? `<span class="text-danger">(${get(summary, 'overdueMaintenanceTickets')} overdue)</span>` : ''}
+                  </p>
+                  <p><strong>Total Spend:</strong> ${formatCurrency(get(summary, 'totalSpend') || 0)}</p>
+                  <p><strong>Performance:</strong> ${Math.round(get(summary, 'performancePercentage') || 0)}%</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Top Fuel Consuming Vehicles</h6>
+                  ${topVehicles.length
+                    ? `<ul class="list-unstyled">
+                        ${topVehicles.slice(0, 5).map(v =>
+                          `<li class="mb-2">
+                            <div class="d-flex justify-content-between">
+                              <span><strong>${get(v, 'plateNo') || get(v, 'PlateNo') || 'N/A'}</strong></span>
+                              <span class="badge bg-primary">${get(v, 'totalVolume') || 0}L</span>
+                            </div>
+                            <small class="text-muted">Cost: ${formatCurrency(get(v, 'totalCost') || 0)}</small>
+                          </li>`
+                        ).join('')}
+                       </ul>`
+                    : '<p class="text-muted">No fuel data available</p>'
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Recent Maintenance Tickets</h6>
+                  <div class="list-group list-group-flush">
+                    ${recentTickets.length
+                      ? recentTickets.slice(0, 5).map(t =>
+                          `<div class="list-group-item px-0">
+                             <div class="d-flex justify-content-between align-items-start">
+                               <div>
+                                 <strong>${get(t, 'subject') || get(t, 'Subject') || '—'}</strong>
+                                 <small class="d-block text-muted">Vehicle: ${get(t, 'vehiclePlateNo') || '—'}</small>
+                                 <small class="d-block text-muted">${new Date(get(t, 'createdDate') || get(t, 'CreatedDate')).toLocaleDateString()}</small>
+                               </div>
+                               <span class="badge bg-${get(t, 'status') === 'Completed' || get(t, 'status') === 'Resolved' ? 'success' : get(t, 'status') === 'Pending' ? 'warning' : 'secondary'}">${get(t, 'status') || get(t, 'Status')}</span>
+                             </div>
+                           </div>`
+                        ).join('')
+                      : '<div class="text-muted">No recent tickets</div>'
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">Recent Fuel Logs</h6>
+                  <div class="list-group list-group-flush">
+                    ${recentFuel.length
+                      ? recentFuel.slice(0, 5).map(f =>
+                          `<div class="list-group-item px-0">
+                             <div class="d-flex justify-content-between align-items-start">
+                               <div>
+                                 <strong>${get(f, 'vehiclePlateNo') || '—'}</strong>
+                                 <small class="d-block text-muted">Driver: ${get(f, 'driverName') || '—'}</small>
+                                 <small class="d-block text-muted">${new Date(get(f, 'date') || get(f, 'Date')).toLocaleDateString()}</small>
+                               </div>
+                               <div class="text-end">
+                                 <div><strong>${formatCurrency(get(f, 'cost') || 0)}</strong></div>
+                                 <small class="text-muted">${get(f, 'volume') || 0}L</small>
+                               </div>
+                             </div>
+                           </div>`
+                        ).join('')
+                      : '<div class="text-muted">No recent fuel logs</div>'
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Retry functions
+      window.retryChart = function(chartType) {
+        switch(chartType) {
+          case 'performance':
+            loadPerformanceChart(currentBranchId);
+            break;
+          case 'branchRevenue':
+            initBranchRevenueChart(currentDashboardData?.branches || []);
+            break;
+          case 'status':
+            initStatusChart(currentDashboardData || {});
+            break;
+        }
+      };
+
+      // Refresh all data
+      async function refreshAllData() {
+        if (isRefreshing) return;
+        await loadScopedDashboard(currentBranchId);
+      }
+
+      // Event handlers
+      document.getElementById('branchSelect')?.addEventListener('change', function() {
+        const val = this.value;
+        loadScopedDashboard(val || null);
+      });
+
+      document.getElementById('refreshDashboardBtn')?.addEventListener('click', refreshAllData);
+
+      // Global function for retry
+      window.loadRecentActivities = function() { loadRecentActivitiesForBranch(currentBranchId); };
+
+      // Alerts collapse functionality
+      document.getElementById('alertsContainer')?.addEventListener('hidden.bs.collapse', function() {
+        document.getElementById('alertsToggleIcon').className = 'fas fa-plus';
+      });
+
+      document.getElementById('alertsContainer')?.addEventListener('shown.bs.collapse', function() {
+        document.getElementById('alertsToggleIcon').className = 'fas fa-minus';
+      });
+
+      // Initialize
+      setGreeting();
+
+      // Seed charts with initial data
+      if (initialDashboard) {
+        applyDtoToUi(initialDashboard);
+        initBranchRevenueChart(initialDashboard.branches || []);
+        initStatusChart(initialDashboard);
+      }
+
+      // Load performance chart and recent activities
+      loadPerformanceChart(currentBranchId);
+      loadRecentActivitiesForBranch(currentBranchId);
+
+      // Initialize branch select value
+      const branchSelect = document.getElementById('branchSelect');
+      if (branchSelect && initialDashboard?.isFiltered && initialDashboard.branchId) {
+        branchSelect.value = initialDashboard.branchId;
+        currentBranchId = initialDashboard.branchId;
+      }
+
+
+
+
+          // Event Listeners for notifications
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show notifications in modal when opened
+        const notificationsModal = document.getElementById('notificationsModal');
+        notificationsModal?.addEventListener('show.bs.modal', function() {
+            populateNotificationsModal(window.currentAlerts || []);
+        });
+
+        // Refresh notifications
+        document.getElementById('refreshNotificationsBtn')?.addEventListener('click', function() {
+            const alerts = generateAlerts(currentDashboardData);
+            updateNotificationIndicator(alerts);
+            populateNotificationsModal(alerts);
+        });
+
+        // Optional: Click indicator to open modal
+        document.querySelector('.notification-indicator .alert')?.addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
+            modal.show();
+        });
+    });
+
+    })();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.CompanyOwnerDashboardDto
+@using FleetManager.Business.Database.IdentityModels
+@using FleetManager.Business.Interfaces.UserModule
+@using FleetManager.Business.ViewModels
+@using Microsoft.AspNetCore.Identity
+@using System.Text.Json
+@inject IAuthUser _authUser;
+@model CompanyOwnerDashboardDto
+@{
     ViewData["Title"] = "Fleet Manager - Company Owner Dashboard";
     // Currency formatting helper
     Func<decimal, string> ngn = (amt) => string.Format(new System.Globalization.CultureInfo("en-NG"), "₦{0:N0}", amt);
@@ -2143,3 +4441,4 @@
 
     })();
 </script>
+ *@

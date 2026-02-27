@@ -13,6 +13,7 @@ namespace FleetManager.App.CustomTagHelper
     /// sets asp-route-id to the protected value, then removes the asp-encoded-id attribute.
     /// </summary>
     [HtmlTargetElement("a", Attributes = "asp-protect-route-id")]
+    [HtmlTargetElement("form", Attributes = "asp-protect-route-id")]
     public class ProtectRouteIdTagHelper : AnchorTagHelper
     {
         private readonly IIdProtector _idProtector;

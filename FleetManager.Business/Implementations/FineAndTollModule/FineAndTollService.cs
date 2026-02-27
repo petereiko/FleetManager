@@ -65,7 +65,9 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     DriverId = e.DriverId,
                     DriverName = e.Driver.FirstName + " " + e.Driver.LastName,
                     VehicleId = e.VehicleId,
-                    VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
+                    //VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
+                    VehicleDescription = e.Vehicle.CustomMakeName != null ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
+                    : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown") + " " + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "") + " " + e.Vehicle.PlateNo.ToUpper(),
                     Type = e.Type,
                     Title = e.Title,
                     Amount = e.Amount,
@@ -97,7 +99,9 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     DriverId = e.DriverId,
                     DriverName = e.Driver.FirstName + " " + e.Driver.LastName,
                     VehicleId = e.VehicleId,
-                    VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
+                    //VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
+                    VehicleDescription = e.Vehicle.CustomMakeName != null ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
+                    : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown") + " " + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "") + " " + e.Vehicle.PlateNo.ToUpper(),
                     Type = e.Type,
                     Title = e.Title,
                     Amount = e.Amount,
@@ -135,13 +139,13 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                 throw new UnauthorizedAccessException();
             }
 
-            string make = e.Vehicle?.VehicleMake?.Name ?? string.Empty;
-            string model = e.Vehicle?.VehicleModel?.Name ?? string.Empty;
-            string plate = e.Vehicle?.PlateNo?.ToUpper() ?? string.Empty;
+            //string make = e.Vehicle?.VehicleMake?.Name ?? string.Empty;
+            //string model = e.Vehicle?.VehicleModel?.Name ?? string.Empty;
+            //string plate = e.Vehicle?.PlateNo?.ToUpper() ?? string.Empty;
 
-            string vehicleDesc = string.IsNullOrWhiteSpace(make + model + plate)
-                ? string.Empty
-                : $"{make} {model} ({plate})".Trim();
+            //string vehicleDesc = string.IsNullOrWhiteSpace(make + model + plate)
+            //    ? string.Empty
+            //    : $"{make} {model} ({plate})".Trim();
 
             return new FineAndTollDto
             {
@@ -149,8 +153,10 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                 DriverId = e.DriverId,
                 DriverName = e.Driver.FirstName + " " + e.Driver.LastName,
                 VehicleId = e.VehicleId,
-                //VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
-                VehicleDescription = vehicleDesc,
+                //VehicleDescription = vehicleDesc,
+                VehicleDescription = e.Vehicle.CustomMakeName != null ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
+                    : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown") + " " + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "") + " " + e.Vehicle.PlateNo.ToUpper(),
+
                 Type = e.Type,
                 Title = e.Title,
                 Amount = e.Amount,

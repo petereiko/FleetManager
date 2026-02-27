@@ -600,6 +600,14 @@
                 <div class="card-header">
                     <h3><i class="fas fa-car"></i> Select Vehicle</h3>
                     <p>Choose the vehicle to be assigned to the selected driver</p>
+                    <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.15);
+                                border:1px solid rgba(255,255,255,0.3);border-radius:6px;
+                                padding:0.4rem 0.85rem;margin-top:0.75rem;font-size:0.85rem;">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#4ade80;
+                                     box-shadow:0 0 6px #4ade80;flex-shrink:0;"></span>
+                        Only vehicles that are <strong>&nbsp;not currently assigned&nbsp;</strong> are shown below.
+                        Vehicles with an active assignment are automatically hidden.
+                    </div>
                 </div>
                 <div class="card-body">
                     @if (Model.Vehicles != null && Model.Vehicles.Any())
@@ -616,7 +624,10 @@
                                         </div>
                                         <div class="option-text">
                                             <div class="option-title">@vehicle.Text</div>
-                                            <div class="option-subtitle">Available Vehicle</div>
+                                            <div class="option-subtitle" style="display:flex;align-items:center;gap:0.4rem;margin-top:0.25rem;">
+                                                <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span>
+                                                <span style="color:#16a34a;font-weight:600;font-size:0.8rem;">Available</span>
+                                            </div>
                                         </div>
                                         <div class="option-check">
                                             <i class="fas fa-check"></i>
@@ -631,7 +642,12 @@
                         <div class="empty-state">
                             <i class="fas fa-car-crash"></i>
                             <h4>No Vehicles Available</h4>
-                            <p>There are currently no vehicles available for assignment.</p>
+                            <p>
+                                All vehicles in this branch are currently assigned to active assignments.<br />
+                                <span style="font-size:0.875rem;color:#6c757d;">
+                                    A vehicle becomes available again when its assignment expires or is removed.
+                                </span>
+                            </p>
                         </div>
                     }
                     <span asp-validation-for="Input.VehicleId" class="validation-message"></span>

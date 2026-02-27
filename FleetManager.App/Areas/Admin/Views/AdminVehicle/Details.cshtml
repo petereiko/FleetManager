@@ -852,5 +852,117 @@ document.getElementById('vehicleStatusSelect').addEventListener('change', functi
         toastEl.querySelector('.toast-body').innerText = 'Network error. Please try again.';
         new bootstrap.Toast(toastEl).show();
       });
-    });</script>
+    });
+    
+        
+        //Color Code Name Display
+document.addEventListener('DOMContentLoaded', function () {
+        var swatch = document.querySelector('.color-swatch');
+        if (!swatch) return;
+
+        // Browser may give us rgb(...) or #hex — handle both
+        var raw = (swatch.style.background || '').trim();
+        if (!raw) return;
+
+        var rgb = parseToRgb(raw);
+        if (!rgb) return;
+
+        var name = getNearestColorName(rgb.r, rgb.g, rgb.b);
+        var hex  = toHex(rgb.r, rgb.g, rgb.b);
+
+        var detailValue = swatch.closest('.detail-value');
+        if (detailValue) {
+            // Rebuild: [swatch] Name (hex)
+            while (detailValue.childNodes.length > 1)
+                detailValue.removeChild(detailValue.lastChild);
+            detailValue.insertAdjacentHTML('beforeend',
+                '&nbsp;<strong>' + name + '</strong>&nbsp;<span class="text-muted small">(' + hex + ')</span>');
+        }
+    });
+
+    // ── Parses "rgb(r,g,b)", "rgba(r,g,b,a)", "#rrggbb", "#rgb" → {r,g,b}
+    function parseToRgb(str) {
+        str = str.trim();
+
+        // rgb(...) or rgba(...)
+        var rgbMatch = str.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+        if (rgbMatch) {
+            return { r: parseInt(rgbMatch[1]), g: parseInt(rgbMatch[2]), b: parseInt(rgbMatch[3]) };
+        }
+
+        // #rrggbb
+        var hex6 = str.match(/^#?([0-9a-f]{6})$/i);
+        if (hex6) {
+            var h = hex6[1];
+            return { r: parseInt(h.substring(0,2),16), g: parseInt(h.substring(2,4),16), b: parseInt(h.substring(4,6),16) };
+        }
+
+        // #rgb
+        var hex3 = str.match(/^#?([0-9a-f]{3})$/i);
+        if (hex3) {
+            var h = hex3[1];
+            return { r: parseInt(h[0]+h[0],16), g: parseInt(h[1]+h[1],16), b: parseInt(h[2]+h[2],16) };
+        }
+
+        return null;
+    }
+
+    function toHex(r, g, b) {
+        return '#' + [r,g,b].map(function(v){
+            return v.toString(16).padStart(2,'0').toUpperCase();
+        }).join('');
+    }
+
+    function getNearestColorName(r, g, b) {
+        var colors = [
+            [0,0,0,'Black'],[255,255,255,'White'],[255,0,0,'Red'],
+            [220,20,60,'Crimson'],[139,0,0,'Dark Red'],[255,69,0,'Red Orange'],
+            [255,165,0,'Orange'],[255,215,0,'Gold'],[255,255,0,'Yellow'],
+            [173,255,47,'Green Yellow'],[0,255,0,'Lime Green'],[0,128,0,'Green'],
+            [0,100,0,'Dark Green'],[34,139,34,'Forest Green'],[0,255,127,'Spring Green'],
+            [0,250,154,'Medium Spring Green'],[32,178,170,'Light Sea Green'],
+            [0,206,209,'Dark Turquoise'],[0,255,255,'Cyan'],[0,139,139,'Dark Cyan'],
+            [0,0,255,'Blue'],[0,0,128,'Navy Blue'],[30,144,255,'Dodger Blue'],
+            [135,206,235,'Sky Blue'],[173,216,230,'Light Blue'],[176,196,222,'Steel Blue'],
+            [70,130,180,'Steel Blue 2'],[100,149,237,'Cornflower Blue'],
+            [65,105,225,'Royal Blue'],[106,90,205,'Slate Blue'],
+            [75,0,130,'Indigo'],[128,0,128,'Purple'],[148,0,211,'Dark Violet'],
+            [255,0,255,'Magenta'],[255,192,203,'Pink'],[255,105,180,'Hot Pink'],
+            [255,20,147,'Deep Pink'],[238,130,238,'Violet'],[221,160,221,'Plum'],
+            [230,230,250,'Lavender'],[165,42,42,'Brown'],[139,69,19,'Saddle Brown'],
+            [160,82,45,'Sienna'],[210,105,30,'Chocolate'],[205,133,63,'Peru'],
+            [188,143,143,'Rosy Brown'],[128,128,0,'Olive'],[85,107,47,'Olive Green'],
+            [128,128,128,'Gray'],[169,169,169,'Dark Gray'],[192,192,192,'Silver'],
+            [211,211,211,'Light Gray'],[245,245,245,'White Smoke'],
+            [245,245,220,'Beige'],[255,228,196,'Bisque'],[255,235,205,'Blanched Almond'],
+            [250,235,215,'Antique White'],[255,248,220,'Cornsilk'],
+            [253,245,230,'Old Lace'],[240,230,140,'Khaki'],[189,183,107,'Dark Khaki'],
+            [244,164,96,'Sandy Brown'],[210,180,140,'Tan'],[245,222,179,'Wheat'],
+            [255,222,173,'Navajo White'],[28,28,28,'Matte Black'],
+            [25,25,112,'Midnight Blue'],[47,79,79,'Dark Slate Gray'],
+            [112,128,144,'Slate Gray'],[119,136,153,'Light Slate Gray'],
+            [176,224,230,'Powder Blue'],[175,238,238,'Pale Turquoise'],
+            [144,238,144,'Light Green'],[152,251,152,'Pale Green'],
+            [240,255,240,'Honeydew'],[245,255,250,'Mint Cream'],
+            [224,255,255,'Light Cyan'],[240,248,255,'Alice Blue'],
+            [248,248,255,'Ghost White'],[255,250,250,'Snow'],
+            [232,232,232,'Pearl White'],[218,165,32,'Goldenrod'],
+            [184,134,11,'Dark Goldenrod'],[154,205,50,'Yellow Green'],
+            [124,252,0,'Lawn Green'],[127,255,0,'Chartreuse'],
+        ];
+
+        var minDist = Infinity, closest = 'Custom Color';
+        colors.forEach(function(c) {
+            // Weighted Euclidean — human vision weights (green > red > blue)
+            var dist = Math.sqrt(
+                2*(r-c[0])*(r-c[0]) +
+                4*(g-c[1])*(g-c[1]) +
+                3*(b-c[2])*(b-c[2])
+            );
+            if (dist < minDist) { minDist = dist; closest = c[3]; }
+        });
+        return closest;
+    }
+          
+ </script>
 

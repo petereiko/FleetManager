@@ -67,7 +67,9 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         DriverId = t.DriverId,
                         DriverName = t.Driver.User.FirstName + " " + t.Driver.User.LastName,
                         VehicleId = t.VehicleId,
-                        VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
+                        //VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
+                        VehicleDescription = t.Vehicle.CustomMakeName != null ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                        : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name : "Unknown") + " " + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name : "") + " " + t.Vehicle.PlateNo.ToUpper(),
                         Subject = t.Subject,
                         Notes = t.Notes,
                         Status = t.Status,
@@ -145,7 +147,10 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         DriverId = t.DriverId,
                         DriverName = t.Driver.User.FirstName + " " + t.Driver.User.LastName,
                         VehicleId = t.VehicleId,
-                        VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
+                        //VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
+                        VehicleDescription = t.Vehicle.CustomMakeName != null ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                    : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name : "Unknown") + " " + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name : "") + " " + t.Vehicle.PlateNo.ToUpper(),
+
                         Subject = t.Subject,
                         Notes = t.Notes,
                         Status = t.Status,
@@ -219,7 +224,9 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                         DriverId = t.DriverId,
                         DriverName = t.Driver.User.FirstName + " " + t.Driver.User.LastName,
                         VehicleId = t.VehicleId,
-                        VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
+                        VehicleDescription = t.Vehicle.CustomMakeName != null ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                    : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name : "Unknown") + " " + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name : "") + " " + t.Vehicle.PlateNo.ToUpper(),
+                        //VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
                         Subject = t.Subject,
                         Notes = t.Notes,
                         Status = t.Status,
@@ -340,7 +347,9 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
                 DriverId = t.DriverId,
                 DriverName = t.Driver?.User == null ? "" : $"{t.Driver.User.FirstName} {t.Driver.User.LastName}",
                 VehicleId = t.VehicleId,
-                VehicleDescription = t.Vehicle == null ? "" : $"{t.Vehicle.VehicleMake?.Name} {t.Vehicle.VehicleModel?.Name} ({t.Vehicle.PlateNo})",
+                VehicleDescription = t.Vehicle.CustomMakeName != null ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo.ToUpper()
+                    : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name : "Unknown") + " " + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name : "") + " " + t.Vehicle.PlateNo.ToUpper(),
+                //VehicleDescription = t.Vehicle == null ? "" : $"{t.Vehicle.VehicleMake?.Name} {t.Vehicle.VehicleModel?.Name} ({t.Vehicle.PlateNo})",
                 Subject = t.Subject,
                 Notes = t.Notes,
                 Status = t.Status,
@@ -846,93 +855,3 @@ namespace FleetManager.Business.Implementations.MaintenanceModule
         #endregion
     }
 }
-
-
-//public async Task<MaintenanceTicketDto?> GetTicketByIdAsync(long ticketId)
-//{
-//    var t = await _context.MaintenanceTickets
-//        .AsNoTracking()
-//        .Include(t => t.Driver)
-//            .ThenInclude(d => d.User)
-//        .Include(t => t.Vehicle)
-//            .ThenInclude(v => v.VehicleMake)
-//        .Include(t => t.Vehicle)
-//            .ThenInclude(v => v.VehicleModel)
-//        // load both nav‐props off of Items:
-//        .Include(t => t.Items)
-//            .ThenInclude(i => i.VehiclePartCategory)
-//        .Include(t => t.Items)
-//            .ThenInclude(i => i.VehiclePart)
-//        // load invoice + its items too
-//        .Include(t => t.Invoice)
-//            .ThenInclude(inv => inv.Items)
-//                .ThenInclude(ii => ii.VehiclePartCategory)
-//        .Include(t => t.Invoice)
-//            .ThenInclude(inv => inv.Items)
-//                .ThenInclude(ii => ii.VehiclePart)
-//        .FirstOrDefaultAsync(t => t.Id == ticketId);
-
-//    if (t == null) return null;
-
-//    // find reviewer admin name if present
-//    string? reviewerName = null;
-//    if (t.ModifiedBy != null)
-//    {
-//        var admin = await _context.CompanyAdmins
-//            .AsNoTracking()
-//            .Where(ca => ca.UserId == t.ModifiedBy)
-//            .Select(ca => ca.User)
-//            .FirstOrDefaultAsync();
-
-//        if (admin != null)
-//            reviewerName = $"{admin.FirstName} {admin.LastName}";
-//    }
-
-
-//    return new MaintenanceTicketDto
-//    {
-//        Id = t.Id,
-//        DriverId = t.DriverId,
-//        DriverName = $"{t.Driver.User.FirstName} {t.Driver.User.LastName}",
-//        VehicleId = t.VehicleId,
-//        VehicleDescription = $"{t.Vehicle.VehicleMake.Name} {t.Vehicle.VehicleModel.Name} ({t.Vehicle.PlateNo})",
-//        Subject = t.Subject,
-//        Notes = t.Notes,
-//        Status = t.Status,
-//        Priority = t.Priority,
-//        AdminNotes = t.AdminNotes,
-//        CreatedAt = t.CreatedDate,
-//        ResolvedAt = t.ResolvedAt,
-//        ResolvedBy = reviewerName,
-//        Items = t.Items.Select(i => new MaintenanceTicketItemDto
-//        {
-//            Id = i.Id,
-//            PartId = i.VehiclePartId,
-//            PartName = i.VehiclePart.Name,
-//            PartCategoryName = i.VehiclePartCategory.Name ?? "",
-//            CustomDescription = i.CustomPartDescription ?? "",
-//            Quantity = i.Quantity,
-//            UnitPrice = i.UnitPrice,
-//            LineTotal = i.Quantity * i.UnitPrice
-//        }).ToList(),
-//        Invoice = t.Invoice == null ? null : new InvoiceDto
-//        {
-//            Id = t.Invoice.Id,
-//            TicketId = t.Invoice.MaintenanceTicketId,
-//            InvoiceDate = t.Invoice.InvoiceDate,
-//            Status = t.Invoice.Status,
-//            TotalAmount = t.Invoice.TotalAmount,
-//            Items = t.Invoice.Items.Select(ii => new InvoiceItemDto
-//            {
-//                Id = ii.Id,
-//                PartId = ii.VehiclePartId,
-//                PartName = ii.VehiclePart.Name ?? "",
-//                PartCategory = ii.VehiclePartCategory.Name ?? "",
-//                CustomPartDescription = ii.Description,
-//                Quantity = ii.Quantity,
-//                UnitPrice = ii.UnitPrice,
-//                LineTotal = ii.Quantity * ii.UnitPrice
-//            }).ToList()
-//        }
-//    };
-//}

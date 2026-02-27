@@ -1,15 +1,25 @@
 ﻿@using FleetManager.Business.DataObjects.VehicleDto
+@using FleetManager.Business.Enums
 @model VehicleEditViewModel
 
 @{
     ViewData["Title"] = "Edit Vehicle";
+    int motorcycleValue = (int)VehicleType.Motorcycle;
+    bool isMotorcycle = Model.VehicleType == VehicleType.Motorcycle;
+
+    // Determine which mode was used when this vehicle was saved
+    bool wasManualMode = !isMotorcycle
+                       && !string.IsNullOrWhiteSpace(Model.CustomMakeName);
+    // 'dropdown' mode = VehicleMakeId set, 'manual' mode = CustomMakeName set
+    string initialMode = isMotorcycle ? "motorcycle"
+                        : wasManualMode ? "manual"
+                        : "dropdown";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@simonwep/pickr/dist/themes/classic.min.css" />
 
 <div class="content">
-    <!-- Page Header -->
     <div class="page-header">
         <div class="row align-items-center">
             <div class="col-sm-6">
@@ -17,19 +27,15 @@
                 <ul class="breadcrumb">
                     <li class="breadcrumb-item"><a asp-action="Index">Vehicles</a></li>
                     <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
-                    <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">Vehicle Details</a></li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Details" asp-protect-route-id="@Model.Id">Vehicle Details</a>
+                    </li>
                     <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
                     <li class="breadcrumb-item active">Edit Vehicle</li>
                 </ul>
             </div>
-            <div class="col-sm-6 text-end">
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
-                    <i class="feather-eye me-1"></i> View Details
-                </a>
-            </div>
         </div>
     </div>
-    <!-- /Page Header -->
 
     <div class="row">
         <div class="col-sm-12">
@@ -37,327 +43,403 @@
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="card-title">@Model.Make @Model.Model (@Model.Year)</h5>
-                        <span class="badge @(Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Active ? "bg-success" : Model.VehicleStatus == FleetManager.Business.Enums.VehicleStatus.Inactive ? "bg-danger" : "bg-warning")">
+                        <span class="badge @(Model.VehicleStatus == VehicleStatus.Active
+                                                                            ? "bg-success"
+                                                                            : Model.VehicleStatus == VehicleStatus.Inactive
+                                                                                ? "bg-danger" : "bg-warning")">
                             @Model.VehicleStatus
                         </span>
                     </div>
                 </div>
+
                 <div class="card-body">
-                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
-                        <input type="hidden" asp-for="Id" />
+                    <form asp-action="Edit" asp-route-vehicleId="@ViewBag.EncryptedId"
+                          method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
 
                         <div class="row">
                             <div class="col-12">
-                                <div class="form-heading">
-                                    <h4>Vehicle Details</h4>
-                                </div>
+                                <div class="form-heading"><h4>Vehicle Details</h4></div>
                             </div>
 
-                            <!-- Make -->
+                            <partial name="_ValidationSummary" />
+
+                            <!-- Vehicle Type -->
                             <div class="col-md-4">
                                 <div class="input-block local-forms">
-                                  <label asp-for="VehicleMakeId">Make <span class="login-danger">*</span></label>
-                                  <select asp-for="VehicleMakeId"
-                                          asp-items="Model.Makes"
-                                          class="form-control select2"
-                                          id="vehicleMake">
-                                    <option value="">Select Make</option>
-                                  </select>
-                                  <span asp-validation-for="VehicleMakeId" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- Model -->
-                            <div class="col-md-4">
-                               <div class="input-block local-forms">
-                                  <label asp-for="VehicleModelId">Model <span class="login-danger">*</span></label>
-                                  <select asp-for="VehicleModelId"
-                                          asp-items="Model.Models"
-                                          class="form-control select2"
-                                          id="vehicleModel">
-                                    <option value="">Select Model</option>
-                                  </select>
-                                  <span asp-validation-for="VehicleModelId" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- Year -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="Year">Year <span class="login-danger">*</span></label>
-                                    <input asp-for="Year" type="number" class="form-control" placeholder="e.g. 2022" />
-                                    <span asp-validation-for="Year" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- VIN -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="VIN">VIN <span class="login-danger">*</span></label>
-                                    <input asp-for="VIN" class="form-control" placeholder="Vehicle Identification Number" />
-                                    <span asp-validation-for="VIN" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- PlateNo -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="PlateNo">Plate No <span class="login-danger">*</span></label>
-                                    <input asp-for="PlateNo" class="form-control" placeholder="e.g. ABC-1234" />
-                                    <span asp-validation-for="PlateNo" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- Color -->
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="Color">Color <span class="login-danger">*</span></label>
-                                    <!-- Visible color‐picker container -->
-                                    <div id="colorPickerContainer" style="width:36px; height:36px; border:1px solid #ccc; cursor:pointer;"></div>
-                                    <!-- Hidden real form field -->
-                                    <input asp-for="Color" type="hidden" id="colorInput" />
-                                    <span asp-validation-for="Color" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- EngineNumber -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="EngineNumber">Engine Number</label>
-                                    <input asp-for="EngineNumber" class="form-control" placeholder="Engine number" />
-                                    <span asp-validation-for="EngineNumber" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- ChassisNumber -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="ChassisNumber">Chassis Number</label>
-                                    <input asp-for="ChassisNumber" class="form-control" placeholder="Chassis number" />
-                                    <span asp-validation-for="ChassisNumber" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- RegistrationDate -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms cal-icon">
-                                    <label asp-for="RegistrationDate">Registration Date</label>
-                                    <input asp-for="RegistrationDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
-                                    <span asp-validation-for="RegistrationDate" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- LastServiceDate -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms cal-icon">
-                                    <label asp-for="LastServiceDate">Last Service Date</label>
-                                    <input asp-for="LastServiceDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
-                                    <span asp-validation-for="LastServiceDate" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- Mileage -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="Mileage">Mileage</label>
-                                    <input asp-for="Mileage" type="number" class="form-control" placeholder="e.g. 35000" />
-                                    <span asp-validation-for="Mileage" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- FuelType -->
-                            <div class="col-md-3">
-                                <div class="input-block local-forms">
-                                    <label asp-for="FuelType">Fuel Type</label>
-                                    <select asp-for="FuelType" class="form-control" asp-items="Model.FuelTypes">
-                                        <option value="">Select Fuel</option>
+                                    <label asp-for="VehicleType">
+                                        Vehicle Type <span class="login-danger">*</span>
+                                        <small class="text-muted ms-1">(changing this resets make/model)</small>
+                                    </label>
+                                    <select asp-for="VehicleType" class="form-control"
+                                            asp-items="Model.VehicleTypes" id="vehicleTypeSelect">
+                                        <option value="">— Select Type —</option>
                                     </select>
-                                    <span asp-validation-for="FuelType" class="text-danger"></span>
+                                    <span asp-validation-for="VehicleType" class="text-danger small"></span>
                                 </div>
                             </div>
 
-                            <!-- TransmissionType -->
-                            <div class="col-md-3">
-                                <div class="input-block local-forms">
-                                    <label asp-for="TransmissionType">Transmission</label>
-                                    <select asp-for="TransmissionType" class="form-control" asp-items="Model.TransmissionTypes">
-                                        <option value="">Select Transmission</option>
-                                    </select>
-                                    <span asp-validation-for="TransmissionType" class="text-danger"></span>
-                                </div>
-                            </div>
+                            <!-- ── Make/Model section ── -->
+                            <div id="makeModelSection" class="col-12">
 
-                            <!-- VehicleStatus -->
-                            <div class="col-md-3">
-                                <div class="input-block local-forms">
-                                    <label asp-for="VehicleStatus">Status</label>
-                                    <select asp-for="VehicleStatus" class="form-control" asp-items="Model.Statuses">
-                                        <option value="">Select Status</option>
-                                    </select>
-                                    <span asp-validation-for="VehicleStatus" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- VehicleType -->
-                            <div class="col-md-3">
-                                <div class="input-block local-forms">
-                                    <label asp-for="VehicleType">Type</label>
-                                    <select asp-for="VehicleType" class="form-control" asp-items="Model.VehicleTypes">
-                                        <option value="">Select Type</option>
-                                    </select>
-                                    <span asp-validation-for="VehicleType" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- Branch -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="CompanyBranchId">Branch <span class="login-danger">*</span></label>
-                                    <select asp-for="CompanyBranchId" class="form-control" asp-items="Model.Branches">
-                                        <option value="">Select Branch</option>
-                                    </select>
-                                    <span asp-validation-for="CompanyBranchId" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- InsuranceCompany -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms">
-                                    <label asp-for="InsuranceCompany">Insurance Company</label>
-                                    <input asp-for="InsuranceCompany" class="form-control" placeholder="Insurance company" />
-                                    <span asp-validation-for="InsuranceCompany" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- InsuranceExpiryDate -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms cal-icon">
-                                    <label asp-for="InsuranceExpiryDate">Insurance Expiry</label>
-                                    <input asp-for="InsuranceExpiryDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
-                                    <span asp-validation-for="InsuranceExpiryDate" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- RoadWorthyExpiryDate -->
-                            <div class="col-md-4">
-                                <div class="input-block local-forms cal-icon">
-                                    <label asp-for="RoadWorthyExpiryDate">Road-Worthy Expiry</label>
-                                    <input asp-for="RoadWorthyExpiryDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
-                                    <span asp-validation-for="RoadWorthyExpiryDate" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <!-- Current Photos Display Section -->
-                            @if (Model.Photos?.Any() == true)
-                            {
-                                <div class="col-12">
-                                    <div class="form-heading mt-3">
-                                        <h4>Current Photos</h4>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="current-photos">
-                                        <div class="d-flex flex-wrap gap-3 mb-3">
-                                            @foreach (var photo in Model.Photos)
-                                            {
-                                                <div class="photo-thumbnail-container">
-                                                    <div class="photo-thumbnail" style="background-image: url('@photo.FilePath');"></div>
-                                                    <div class="photo-thumbnail-controls">
-                                                        <button type="button" class="btn btn-sm btn-light" onclick="window.open('@photo.FilePath', '_blank')">
-                                                            <i class="feather-eye"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-danger remove-photo" data-photo-id="@photo.Id">
-                                                            <i class="feather-trash-2"></i>
-                                                        </button>
-                                                        <input type="hidden" name="PhotosToRemove" class="photo-remove-input" data-photo-id="@photo.Id" disabled />
-                                                    </div>
-                                                </div>
-                                            }
+                                <!-- Mode toggle — hidden for motorcycle -->
+                                <div id="makeModelToggle" class="col-12 mb-2"
+                                     style="@(isMotorcycle ? "display:none;" : "")">
+                                    <div class="d-flex align-items-center gap-3 ps-3">
+                                        <span class="text-muted small fw-semibold">Make &amp; Model:</span>
+                                        <div class="form-check form-check-inline mb-0">
+                                            <input class="form-check-input" type="radio" name="makeModelMode"
+                                                   id="modeDropdown" value="dropdown"
+                                                   @(initialMode == "dropdown" ? "checked" : "") />
+                                            <label class="form-check-label" for="modeDropdown">
+                                                Select from list
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline mb-0">
+                                            <input class="form-check-input" type="radio" name="makeModelMode"
+                                                   id="modeManual" value="manual"
+                                                   @(initialMode == "manual" ? "checked" : "") />
+                                            <label class="form-check-label" for="modeManual">
+                                                Enter manually
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
-                            }
 
-                            <!-- Current Documents Display Section -->
-                            @if (Model.Documents?.Any() == true)
-                            {
-                                <div class="col-12">
-                                    <div class="form-heading mt-3">
-                                        <h4>Current Documents</h4>
+                                <!-- Dropdown panel -->
+                                <div id="standardMakeModelPanel" class="col-12 row g-0 pe-0"
+                                     style="@(initialMode == "dropdown" ? "" : "display:none;")">
+                                    <div class="col-md-4 ps-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="VehicleMakeId">Make <span class="login-danger">*</span></label>
+                                            <select asp-for="VehicleMakeId" asp-items="Model.Makes"
+                                                    class="form-control select2" id="vehicleMake">
+                                                <option value="">Select Make</option>
+                                            </select>
+                                            <span asp-validation-for="VehicleMakeId" class="text-danger small"></span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="current-documents mb-4">
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Document Name</th>
-                                                        <th style="width: 150px">Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach (var doc in Model.Documents)
-                                                    {
-                                                        <tr>
-                                                            <td>@doc.FileName</td>
-                                                            <td>
-                                                                <div class="d-flex gap-2">
-                                                                    <a href="@doc.FilePath" target="_blank" class="btn btn-sm btn-info">
-                                                                        <i class="feather-download"></i>
-                                                                    </a>
-                                                                    <button type="button" class="btn btn-sm btn-danger remove-document" data-doc-id="@doc.Id">
-                                                                        <i class="feather-trash-2"></i>
-                                                                    </button>
-                                                                    <input type="hidden" name="DocumentsToRemove" class="doc-remove-input" data-doc-id="@doc.Id" disabled />
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
+                                    <div class="col-md-4 ps-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="VehicleModelId">Model <span class="login-danger">*</span></label>
+                                            <select asp-for="VehicleModelId" asp-items="Model.Models"
+                                                    class="form-control select2" id="vehicleModel">
+                                                <option value="">Select Model</option>
+                                            </select>
+                                            <span asp-validation-for="VehicleModelId" class="text-danger small"></span>
                                         </div>
                                     </div>
                                 </div>
-                            }
 
+                                <!-- Manual panel -->
+                                <div id="manualMakeModelPanel" class="col-12 row g-0 pe-0"
+                                     style="@(initialMode == "dropdown" ? "display:none;" : "")">
+                                    <div class="col-md-4 ps-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="CustomMakeName">
+                                                Make <span class="login-danger">*</span>
+                                                <small class="text-muted" id="customMakeHint">
+                                                    @(isMotorcycle ? "(e.g. Yamaha, Honda)" : "(e.g. Toyota, Ford)")
+                                                </small>
+                                            </label>
+                                            <input asp-for="CustomMakeName" class="form-control"
+                                                   placeholder="@(isMotorcycle ? "e.g. Yamaha" : "Enter make name")"
+                                                   id="customMakeInput" />
+                                            <span asp-validation-for="CustomMakeName" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 ps-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="CustomModelName">
+                                                Model <span class="login-danger">*</span>
+                                            </label>
+                                            <input asp-for="CustomModelName" class="form-control"
+                                                   placeholder="@(isMotorcycle ? "e.g. MT-07, CB500" : "Enter model name")"
+                                                   id="customModelInput" />
+                                            <span asp-validation-for="CustomModelName" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 ps-3 d-flex align-items-center">
+                                        <div class="alert alert-info py-2 px-3 mb-0 w-100" role="alert" style="font-size:.85rem;">
+                                            <i class="feather-info me-1"></i>
+                                            <span id="manualInfoText">
+                                                @(isMotorcycle
+                                                                                                ? "Motorcycle make & model are entered manually — bike catalogues are not in the vehicle database."
+                                                                                                : "Enter the make and model name exactly as you know them — use this when your vehicle is not in our list.")
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div><!-- /makeModelSection -->
+                            <!-- Rest of form -->
                             <div class="col-12">
-                                <div class="form-heading mt-3">
-                                    <h4>Upload New Files</h4>
-                                </div>
-                            </div>
+                                <div class="row">
 
-                            <!-- Photos -->
-                            <div class="col-md-6">
-                                <div class="input-block local-forms">
-                                    <label asp-for="PhotoFiles">Upload New Photos</label>
-                                    <input asp-for="PhotoFiles" type="file" multiple class="form-control" />
-                                    <small class="form-text text-muted">Upload new photos to add to the existing collection.</small>
-                                    <span asp-validation-for="PhotoFiles" class="text-danger"></span>
-                                </div>
-                            </div>
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="Year">Year <span class="login-danger">*</span></label>
+                                            <input asp-for="Year" type="number" class="form-control" placeholder="e.g. 2022" />
+                                            <span asp-validation-for="Year" class="text-danger small"></span>
+                                        </div>
+                                    </div>
 
-                            <!-- Documents -->
-                            <div class="col-md-6">
-                                <div class="input-block local-forms">
-                                    <label asp-for="DocumentFiles">Upload New Documents</label>
-                                    <input asp-for="DocumentFiles" type="file" multiple class="form-control" />
-                                    <small class="form-text text-muted">Upload new documents to add to the existing collection.</small>
-                                    <span asp-validation-for="DocumentFiles" class="text-danger"></span>
-                                </div>
-                            </div>
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="VIN">VIN <span class="login-danger">*</span></label>
+                                            <input asp-for="VIN" class="form-control" placeholder="Vehicle Identification Number" />
+                                            <span asp-validation-for="VIN" class="text-danger small"></span>
+                                        </div>
+                                    </div>
 
-                            <!-- Submit -->
-                            <div class="col-12 text-end mt-4">
-                                <button type="submit" class="btn btn-primary submit-form me-2">
-                                    <i class="feather-save me-1"></i> Save Changes
-                                </button>
-                                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary cancel-form">
-                                    <i class="feather-x me-1"></i> Cancel
-                                </a>
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="PlateNo">Plate No <span class="login-danger">*</span></label>
+                                            <input asp-for="PlateNo" class="form-control" placeholder="e.g. ABC-1234" />
+                                            <span asp-validation-for="PlateNo" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xl-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="Color">Color <span class="login-danger">*</span></label>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div id="colorPickerContainer"
+                                                     style="width:36px;height:36px;border:1px solid #ccc;cursor:pointer;border-radius:4px;"></div>
+                                                <span id="colorHexLabel" class="text-muted small">@(Model.Color ?? "#000000")</span>
+                                            </div>
+                                            <input asp-for="Color" type="hidden" id="colorInput" />
+                                            <span asp-validation-for="Color" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="EngineNumber">Engine Number</label>
+                                            <input asp-for="EngineNumber" class="form-control" placeholder="Engine number" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="ChassisNumber">Chassis Number</label>
+                                            <input asp-for="ChassisNumber" class="form-control" placeholder="Chassis number" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms cal-icon">
+                                            <label asp-for="RegistrationDate">Registration Date</label>
+                                            <input asp-for="RegistrationDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms cal-icon">
+                                            <label asp-for="LastServiceDate">Last Service Date</label>
+                                            <input asp-for="LastServiceDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="Mileage">Mileage</label>
+                                            <input asp-for="Mileage" type="number" class="form-control" placeholder="e.g. 35000" />
+                                            <span asp-validation-for="Mileage" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="FuelType">Fuel Type</label>
+                                            <select asp-for="FuelType" class="form-control" asp-items="Model.FuelTypes">
+                                                <option value="">Select Fuel</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="TransmissionType">Transmission</label>
+                                            <select asp-for="TransmissionType" class="form-control" asp-items="Model.TransmissionTypes">
+                                                <option value="">Select Transmission</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="VehicleStatus">Status</label>
+                                            <select asp-for="VehicleStatus" class="form-control" asp-items="Model.Statuses">
+                                                <option value="">Select Status</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="CompanyBranchId">Branch <span class="login-danger">*</span></label>
+                                            <select asp-for="CompanyBranchId" class="form-control" asp-items="Model.Branches">
+                                                <option value="">Select Branch</option>
+                                            </select>
+                                            <span asp-validation-for="CompanyBranchId" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="InsuranceCompany">Insurance Company</label>
+                                            <input asp-for="InsuranceCompany" class="form-control" placeholder="Insurance company" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms cal-icon">
+                                            <label asp-for="InsuranceExpiryDate">Insurance Expiry</label>
+                                            <input asp-for="InsuranceExpiryDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms cal-icon">
+                                            <label asp-for="RoadWorthyExpiryDate">Road-Worthy Expiry</label>
+                                            <input asp-for="RoadWorthyExpiryDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Current Photos -->
+                                    @if (Model.Photos?.Any() == true)
+                                    {
+                                        <div class="col-12">
+                                            <div class="form-heading mt-3"><h4>Current Photos</h4></div>
+                                        </div>
+                                        <div class="col-12" id="photosContainer">
+                                            <div class="d-flex flex-wrap gap-3 mb-3" id="photoGrid">
+                                                @foreach (var photo in Model.Photos)
+                                                {
+                                                    <div class="photo-thumbnail-container" id="photo-@photo.Id">
+                                                        <div class="photo-thumbnail"
+                                                             style="background-image:url('@photo.FilePath');"></div>
+                                                        <div class="photo-thumbnail-controls">
+                                                            <button type="button" class="btn btn-sm btn-light"
+                                                                    onclick="window.open('@photo.FilePath','_blank')">
+                                                                <i class="feather-eye"></i>
+                                                            </button>
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-danger delete-file-btn"
+                                                                    data-file-id="@photo.Id"
+                                                                    data-file-name="Photo"
+                                                                    data-file-type="photo">
+                                                                <i class="feather-trash-2"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Current Documents -->
+                                    @if (Model.Documents?.Any() == true)
+                                    {
+                                        <div class="col-12 current-documents-section">
+                                            <div class="form-heading mt-3"><h4>Current Documents</h4></div>
+                                        </div>
+                                        <div class="col-12 current-documents-section">
+                                            <div class="table-responsive mb-4">
+                                                <table class="table table-bordered" id="documentsTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Document Name</th>
+                                                            <th style="width:120px">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var doc in Model.Documents)
+                                                        {
+                                                            <tr id="doc-row-@doc.Id">
+                                                                <td>@doc.FileName</td>
+                                                                <td>
+                                                                    <div class="d-flex gap-2">
+                                                                        <a href="@doc.FilePath" target="_blank"
+                                                                           class="btn btn-sm btn-info">
+                                                                            <i class="feather-download"></i>
+                                                                        </a>
+                                                                        <button type="button"
+                                                                                class="btn btn-sm btn-danger delete-file-btn"
+                                                                                data-file-id="@doc.Id"
+                                                                                data-file-name="@doc.FileName"
+                                                                                data-file-type="document">
+                                                                            <i class="feather-trash-2"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Upload New Files -->
+                                    <div class="col-12">
+                                        <div class="form-heading mt-3"><h4>Upload New Files</h4></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="PhotoFiles">Upload New Photos</label>
+                                            <input asp-for="PhotoFiles" type="file" multiple class="form-control" />
+                                            <small class="form-text text-muted">New photos are added alongside existing ones.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="DocumentFiles">Upload New Documents</label>
+                                            <input asp-for="DocumentFiles" type="file" multiple class="form-control" />
+                                            <small class="form-text text-muted">New documents are added alongside existing ones.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 text-end mt-4">
+                                        <button type="submit" class="btn btn-primary submit-form me-2">
+                                            <i class="feather-save me-1"></i> Save Changes
+                                        </button>
+                                        <a asp-action="Details" asp-protect-route-id="@Model.Id"
+                                           class="btn btn-secondary cancel-form">
+                                            <i class="feather-x me-1"></i> Cancel
+                                        </a>
+                                    </div>
+
+                                </div>
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3"><span style="font-size:2.5rem; line-height:1;">🗑️</span></div>
+                    <h5 class="fw-semibold mb-1">Delete this file?</h5>
+                    <p id="deleteConfirmMessage" class="text-muted mb-3" style="font-size:.9rem;"></p>
+                    <div class="form-check d-flex justify-content-center align-items-center gap-2 mb-3">
+                        <input class="form-check-input mt-0" type="checkbox" id="dontAskAgain" />
+                        <label class="form-check-label text-muted" style="font-size:.85rem;" for="dontAskAgain">
+                            Don't ask again this session
+                        </label>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger px-4" id="deleteConfirmBtn">
+                            <i class="feather-trash-2 me-1"></i> Delete
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -369,185 +451,222 @@
     <script src="https://cdn.jsdelivr.net/npm/@@simonwep/pickr"></script>
 
     <script>
+        var MOTORCYCLE_VALUE = '@motorcycleValue';
+        var INITIAL_MAKE_ID  = '@Model.VehicleMakeId';
+        var INITIAL_MODEL_ID = '@Model.VehicleModelId';
+        var INITIAL_MODE     = '@initialMode'; // 'dropdown' | 'manual' | 'motorcycle'
 
-        $(document).ready(function () {
-      const $make  = $('#vehicleMake');
-      const $model = $('#vehicleModel');
-
-      // initialize both selects as Select2
-      $make.add($model).select2({
-        width: '100%',
-        placeholder: 'Search…',
-        allowClear: true
-      });
-
-      // function to load models and (optionally) set selected
-      function loadModels(selectedModelId) {
-        const makeId = $make.val();
-        $model
-          .empty()
-          .append('<option value=\"\">Loading models…</option>')
-          .trigger('change');
-
-        if (!makeId) {
-          $model
-            .empty()
-            .append('<option value=\"\">Select Model</option>')
-            .trigger('change');
-          return;
+        function getMode() {
+            var val = $('#vehicleTypeSelect').val();
+            if (!val) return 'none';
+            if (val === MOTORCYCLE_VALUE) return 'motorcycle';
+            return $('input[name="makeModelMode"]:checked').val() || 'dropdown';
         }
 
-        $.ajax({
-          url: '@Url.Action("GetVehicleModels","AdminVehicle")',
-          data: { makeId: makeId },
-          success: function (data) {
-            $model
-              .empty()
-              .append('<option value=\"\">Select Model</option>');
-            $.each(data, function (i, item) {
-              const $opt = $('<option>', {
-                value: item.value,
-                text:  item.text
-              });
-              if (item.value == selectedModelId) {
-                $opt.prop('selected', true);
-              }
-              $model.append($opt);
+        function applyLayout(isPageLoad) {
+            var mode = getMode();
+
+            if (mode === 'none') return;
+
+            if (mode === 'motorcycle') {
+                $('#makeModelToggle').hide();
+                $('#standardMakeModelPanel').hide();
+                $('#manualMakeModelPanel').show();
+                $('#vehicleMake, #vehicleModel').prop('disabled', true);
+                $('#customMakeInput, #customModelInput').prop('disabled', false);
+
+            } else if (mode === 'dropdown') {
+                $('#makeModelToggle').show();
+                $('#manualMakeModelPanel').hide();
+                $('#standardMakeModelPanel').show();
+                $('#vehicleMake, #vehicleModel').prop('disabled', false);
+                $('#customMakeInput, #customModelInput').prop('disabled', true);
+                if (!isPageLoad) {
+                    // User switched to dropdown — clear manual
+                    $('#customMakeInput, #customModelInput').val('');
+                } else if (INITIAL_MAKE_ID) {
+                    // Page load dropdown mode — pre-load models
+                    loadModels(INITIAL_MODEL_ID);
+                }
+
+            } else { // manual
+                $('#makeModelToggle').show();
+                $('#standardMakeModelPanel').hide();
+                $('#manualMakeModelPanel').show();
+                $('#vehicleMake, #vehicleModel').prop('disabled', true);
+                $('#customMakeInput, #customModelInput').prop('disabled', false);
+                if (!isPageLoad) {
+                    // User switched to manual — clear dropdown
+                    $('#vehicleMake').val(null).trigger('change');
+                    $('#vehicleModel').empty().append('<option value="">Select Model</option>').trigger('change');
+                }
+            }
+        }
+
+        function loadModels(selectedModelId) {
+            var makeId = $('#vehicleMake').val();
+            var $model = $('#vehicleModel');
+            if (!makeId) {
+                $model.empty().append('<option value="">Select Model</option>').trigger('change');
+                return;
+            }
+            $model.empty().append('<option value="">Loading…</option>').trigger('change');
+            $.ajax({
+                url: '@Url.Action("GetVehicleModels", "AdminVehicle")',
+                data: { makeId: makeId },
+                success: function (data) {
+                    $model.empty().append('<option value="">Select Model</option>');
+                    $.each(data, function (i, item) {
+                        var $opt = $('<option>', { value: item.value, text: item.text });
+                        if (String(item.value) === String(selectedModelId)) $opt.prop('selected', true);
+                        $model.append($opt);
+                    });
+                },
+                error: function () { console.error('Could not load vehicle models.'); },
+                complete: function () { $model.trigger('change'); }
             });
-          },
-          error: function () {
-            console.error('Could not load vehicle models.');
-          },
-          complete: function () {
-            $model.trigger('change');
-          }
-        });
-      }
+        }
 
-      // on change of Make, reload models
-      $make.on('change', function () {
-        loadModels();
-      });
+        $(document).ready(function () {
+            $('#vehicleMake, #vehicleModel').select2({ width: '100%', placeholder: 'Search…', allowClear: true });
 
-      // on page load (Edit), if a make/model is already set, populate the models and set the existing model
-      const initialMake  = '@Model.VehicleMakeId';
-      const initialModel = '@Model.VehicleModelId';
-      if (initialMake) {
-        // ensure the make select2 shows correct value
-        $make.val(initialMake).trigger('change');
+            // Page load — apply layout without clearing any pre-filled values
+            applyLayout(true);
 
-        // then load models and select the existing one
-        loadModels(initialModel);
-      }
-    });
+            // Vehicle type change
+            $('#vehicleTypeSelect').on('change', function () {
+                var val = $(this).val();
+                if (val !== MOTORCYCLE_VALUE) {
+                    $('#modeDropdown').prop('checked', true);
+                }
+                // Clear all on type switch
+                $('#vehicleMake').val(null).trigger('change');
+                $('#vehicleModel').empty().append('<option value="">Select Model</option>').trigger('change');
+                $('#customMakeInput, #customModelInput').val('');
+                applyLayout(false);
+            });
 
+            // Mode radio change
+            $('input[name="makeModelMode"]').on('change', function () {
+                applyLayout(false);
+            });
 
-        // Date picker initialization
-        flatpickr(".datetimepicker", { dateFormat: "Y-m-d" });
+            $('#vehicleMake').on('change', function () { loadModels(); });
 
-        // Color picker initialization
-        const colorInput = document.getElementById('colorInput');
-        const pickr = Pickr.create({
-          el: '#colorPickerContainer',
-          theme: 'classic',
-          default: colorInput.value || '#000000',
-          components: {
-            preview: true, opacity: true, hue: true,
-            interaction: { hex: true, rgba: true, input: true, save: true }
-          }
-        });
+            flatpickr('.datetimepicker', { dateFormat: 'Y-m-d' });
 
-        // When they hit "Save" in the picker
-        pickr.on('save', (color, instance) => {
-          const hex = color.toHEXA().toString();
-          colorInput.value = hex;
-          instance.hide();
-          document.getElementById('colorPickerContainer').style.background = hex;
-        });
-
-        // Keep it live on change
-        pickr.on('change', (color) => {
-          const hex = color.toHEXA().toString();
-          colorInput.value = hex;
-          document.getElementById('colorPickerContainer').style.background = hex;
-        });
-
-        // Form submit handler
-        document.querySelector('form').addEventListener('submit', function() {
-          const c = pickr.getColor();
-          if (c) {
-            const hex = c.toHEXA().toString();
-            colorInput.value = hex;
-          }
-        });
-
-        // Initialize the swatch color on page-load
-        document.getElementById('colorPickerContainer').style.background = colorInput.value || '#000000';
-
-        // Handle photo removal
-        document.querySelectorAll('.remove-photo').forEach(button => {
-            button.addEventListener('click', function() {
-                const photoId = this.getAttribute('data-photo-id');
-                const input = document.querySelector(`.photo-remove-input[data-photo-id="${photoId}"]`);
-
-                // Toggle the container styling to show it's marked for removal
-                const container = this.closest('.photo-thumbnail-container');
-                container.classList.toggle('marked-for-removal');
-
-                // Toggle the input's disabled state and set its value when enabled
-                if (input.disabled) {
-                    input.disabled = false;
-                    input.value = photoId;
-                    this.classList.remove('btn-danger');
-                    this.classList.add('btn-warning');
-                    this.innerHTML = '<i class="feather-rotate-ccw"></i>';
-                } else {
-                    input.disabled = true;
-                    input.value = '';
-                    this.classList.remove('btn-warning');
-                    this.classList.add('btn-danger');
-                    this.innerHTML = '<i class="feather-trash-2"></i>';
+            var colorInput = document.getElementById('colorInput');
+            var pickr = Pickr.create({
+                el: '#colorPickerContainer',
+                theme: 'classic',
+                default: colorInput.value || '#000000',
+                components: {
+                    preview: true, opacity: true, hue: true,
+                    interaction: { hex: true, rgba: true, input: true, save: true }
                 }
             });
-        });
-
-        // Handle document removal (similar approach)
-        document.querySelectorAll('.remove-document').forEach(button => {
-            button.addEventListener('click', function() {
-                const docId = this.getAttribute('data-doc-id');
-                const input = document.querySelector(`.doc-remove-input[data-doc-id="${docId}"]`);
-
-                // Toggle the row styling
-                const row = this.closest('tr');
-                row.classList.toggle('table-danger');
-
-                // Toggle the input's disabled state
-                if (input.disabled) {
-                    input.disabled = false;
-                    input.value = docId;
-                    this.classList.remove('btn-danger');
-                    this.classList.add('btn-warning');
-                    this.innerHTML = '<i class="feather-rotate-ccw"></i>';
-                } else {
-                    input.disabled = true;
-                    input.value = '';
-                    this.classList.remove('btn-warning');
-                    this.classList.add('btn-danger');
-                    this.innerHTML = '<i class="feather-trash-2"></i>';
-                }
+            function syncColor(color) {
+                var hex = color.toHEXA().toString();
+                colorInput.value = hex;
+                document.getElementById('colorPickerContainer').style.background = hex;
+                document.getElementById('colorHexLabel').textContent = hex;
+            }
+            pickr.on('save',   (c, inst) => { syncColor(c); inst.hide(); });
+            pickr.on('change', (c)        => syncColor(c));
+            document.querySelector('form').addEventListener('submit', function () {
+                var c = pickr.getColor();
+                if (c) colorInput.value = c.toHEXA().toString();
             });
+            var cpContainer = document.getElementById('colorPickerContainer');
+            if (cpContainer) cpContainer.style.background = colorInput.value || '#000000';
+
+            // ── File deletion ─────────────────────────────────────────────────
+            var SKIP_CONFIRM_KEY = 'vehicleEdit_skipDeleteConfirm';
+            var pendingId = null, pendingType = null, pendingBtn = null;
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            var deleteUrl   = '@Url.Action("DeleteDocumentAjax", "AdminVehicle")';
+            var token       = $('input[name="__RequestVerificationToken"]').val();
+
+            $(document).on('click', '.delete-file-btn', function () {
+                pendingId   = this.getAttribute('data-file-id');
+                pendingType = this.getAttribute('data-file-type');
+                pendingBtn  = this;
+                if (sessionStorage.getItem(SKIP_CONFIRM_KEY) === '1') {
+                    executeDelete(pendingId, pendingType, pendingBtn);
+                    return;
+                }
+                var msg = pendingType === 'photo'
+                    ? 'This photo will be permanently deleted and cannot be recovered.'
+                    : '"' + this.getAttribute('data-file-name') + '" will be permanently deleted and cannot be recovered.';
+                document.getElementById('deleteConfirmMessage').textContent = msg;
+                document.getElementById('dontAskAgain').checked = false;
+                deleteModal.show();
+            });
+
+            document.getElementById('deleteConfirmBtn').addEventListener('click', function () {
+                if (document.getElementById('dontAskAgain').checked)
+                    sessionStorage.setItem(SKIP_CONFIRM_KEY, '1');
+                deleteModal.hide();
+                if (!pendingId) return;
+                executeDelete(pendingId, pendingType, pendingBtn);
+            });
+
+            function executeDelete(fileId, fileType, btn) {
+                var $btn = $(btn);
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'POST',
+                    data: { documentId: fileId, __RequestVerificationToken: token },
+                    success: function (res) {
+                        if (res.success) {
+                            if (fileType === 'photo') {
+                                $('#photo-' + fileId).fadeOut(300, function () { $(this).remove(); });
+                                showToast('success', 'Photo deleted successfully.');
+                            } else {
+                                $('#doc-row-' + fileId).fadeOut(300, function () { $(this).remove(); });
+                                showToast('success', 'Document deleted successfully.');
+                            }
+                        } else {
+                            $btn.prop('disabled', false).html('<i class="feather-trash-2"></i>');
+                            showToast('error', res.message || 'Failed to delete file.');
+                        }
+                    },
+                    error: function () {
+                        $btn.prop('disabled', false).html('<i class="feather-trash-2"></i>');
+                        showToast('error', 'An unexpected error occurred.');
+                    },
+                    complete: function () { pendingId = null; pendingType = null; pendingBtn = null; }
+                });
+            }
+
+            function showToast(type, message) {
+                var bg   = type === 'error' ? 'bg-danger' : 'bg-success';
+                var icon = type === 'error' ? 'feather-x-circle' : 'feather-check-circle';
+                var toast = $(
+                    '<div class="toast align-items-center text-white ' + bg + ' border-0 position-fixed bottom-0 end-0 m-3"' +
+                    ' role="alert" style="z-index:9999; min-width:260px;">' +
+                    '<div class="d-flex align-items-center p-3 gap-2">' +
+                    '<i class="' + icon + ' fs-5"></i>' +
+                    '<div class="toast-body p-0">' + message + '</div>' +
+                    '<button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="toast"></button>' +
+                    '</div></div>'
+                );
+                $('body').append(toast);
+                new bootstrap.Toast(toast[0], { delay: 3500 }).show();
+                toast[0].addEventListener('hidden.bs.toast', function () { toast.remove(); });
+            }
         });
     </script>
 
     <style>
-        /* Styles for the photo management */
         .photo-thumbnail-container {
             position: relative;
             width: 150px;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,.1);
+            transition: all .3s ease;
         }
 
         .photo-thumbnail {
@@ -561,16 +680,686 @@
             display: flex;
             justify-content: space-between;
             padding: 5px;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,.9);
         }
 
-        .marked-for-removal {
-            opacity: 0.6;
-            box-shadow: 0 0 0 2px #dc3545;
+        .photo-thumbnail-container.deleting {
+            opacity: .4;
+            pointer-events: none;
         }
-
-            .marked-for-removal .photo-thumbnail {
-                filter: grayscale(1);
-            }
     </style>
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@* @using FleetManager.Business.DataObjects.VehicleDto
+@using FleetManager.Business.Enums
+@model VehicleEditViewModel
+
+@{
+    ViewData["Title"] = "Edit Vehicle";
+    int motorcycleValue = (int)VehicleType.Motorcycle;
+    bool isMotorcycle = Model.VehicleType == VehicleType.Motorcycle;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@simonwep/pickr/dist/themes/classic.min.css" />
+
+<div class="content">
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-sm-6">
+                <h3 class="page-title">Edit Vehicle</h3>
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Vehicles</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Details" asp-protect-route-id="@Model.Id">Vehicle Details</a>
+                    </li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">Edit Vehicle</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title">@Model.Make @Model.Model (@Model.Year)</h5>
+                        <span class="badge @(Model.VehicleStatus == VehicleStatus.Active
+                                                                            ? "bg-success"
+                                                                            : Model.VehicleStatus == VehicleStatus.Inactive
+                                                                                ? "bg-danger"
+                                                                                : "bg-warning")">
+                            @Model.VehicleStatus
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <form asp-action="Edit" asp-route-vehicleId="@ViewBag.EncryptedId"
+                          method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-heading">
+                                    <h4>Vehicle Details</h4>
+                                </div>
+                            </div>
+
+                            <partial name="_ValidationSummary" />
+
+                            <!-- Vehicle Type -->
+                            <div class="col-md-4">
+                                <div class="input-block local-forms">
+                                    <label asp-for="VehicleType">
+                                        Vehicle Type <span class="login-danger">*</span>
+                                        <small class="text-muted ms-1">(changing this switches make/model mode)</small>
+                                    </label>
+                                    <select asp-for="VehicleType" class="form-control"
+                                            asp-items="Model.VehicleTypes" id="vehicleTypeSelect">
+                                        <option value="">— Select Type —</option>
+                                    </select>
+                                    <span asp-validation-for="VehicleType" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Standard Make / Model -->
+                            <div id="standardMakeModelPanel" class="col-12 row g-0 pe-0"
+                                 style="@(isMotorcycle ? "display:none;" : "")">
+                                <div class="col-md-4 ps-3">
+                                    <div class="input-block local-forms">
+                                        <label asp-for="VehicleMakeId">Make <span class="login-danger">*</span></label>
+                                        <select asp-for="VehicleMakeId" asp-items="Model.Makes"
+                                                class="form-control select2" id="vehicleMake">
+                                            <option value="">Select Make</option>
+                                        </select>
+                                        <span asp-validation-for="VehicleMakeId" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 ps-3">
+                                    <div class="input-block local-forms">
+                                        <label asp-for="VehicleModelId">Model <span class="login-danger">*</span></label>
+                                        <select asp-for="VehicleModelId" asp-items="Model.Models"
+                                                class="form-control select2" id="vehicleModel">
+                                            <option value="">Select Model</option>
+                                        </select>
+                                        <span asp-validation-for="VehicleModelId" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Motorcycle Make / Model -->
+                            <div id="motorcycleMakeModelPanel" class="col-12 row g-0 pe-0"
+                                 style="@(isMotorcycle ? "" : "display:none;")">
+                                <div class="col-md-4 ps-3">
+                                    <div class="input-block local-forms">
+                                        <label asp-for="CustomMakeName">
+                                            Brand / Make <span class="login-danger">*</span>
+                                            <small class="text-muted">(e.g. Yamaha, Honda)</small>
+                                        </label>
+                                        <input asp-for="CustomMakeName" class="form-control"
+                                               placeholder="e.g. Yamaha" id="customMakeInput" />
+                                        <span asp-validation-for="CustomMakeName" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 ps-3">
+                                    <div class="input-block local-forms">
+                                        <label asp-for="CustomModelName">
+                                            Model <span class="login-danger">*</span>
+                                            <small class="text-muted">(e.g. MT-07, CB500)</small>
+                                        </label>
+                                        <input asp-for="CustomModelName" class="form-control"
+                                               placeholder="e.g. MT-07" id="customModelInput" />
+                                        <span asp-validation-for="CustomModelName" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 ps-3 d-flex align-items-center">
+                                    <div class="alert alert-info py-2 px-3 mb-0 w-100" role="alert" style="font-size:.85rem;">
+                                        <i class="feather-info me-1"></i>
+                                        Motorcycle make &amp; model are entered manually — bike catalogues are not in the vehicle database.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rest of form -->
+                            <div class="col-12">
+                                <div class="row">
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="Year">Year <span class="login-danger">*</span></label>
+                                            <input asp-for="Year" type="number" class="form-control" placeholder="e.g. 2022" />
+                                            <span asp-validation-for="Year" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="VIN">VIN <span class="login-danger">*</span></label>
+                                            <input asp-for="VIN" class="form-control" placeholder="Vehicle Identification Number" />
+                                            <span asp-validation-for="VIN" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="PlateNo">Plate No <span class="login-danger">*</span></label>
+                                            <input asp-for="PlateNo" class="form-control" placeholder="e.g. ABC-1234" />
+                                            <span asp-validation-for="PlateNo" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xl-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="Color">Color <span class="login-danger">*</span></label>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div id="colorPickerContainer"
+                                                     style="width:36px;height:36px;border:1px solid #ccc;cursor:pointer;border-radius:4px;"></div>
+                                                <span id="colorHexLabel" class="text-muted small">@(Model.Color ?? "#000000")</span>
+                                            </div>
+                                            <input asp-for="Color" type="hidden" id="colorInput" />
+                                            <span asp-validation-for="Color" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="EngineNumber">Engine Number</label>
+                                            <input asp-for="EngineNumber" class="form-control" placeholder="Engine number" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="ChassisNumber">Chassis Number</label>
+                                            <input asp-for="ChassisNumber" class="form-control" placeholder="Chassis number" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms cal-icon">
+                                            <label asp-for="RegistrationDate">Registration Date</label>
+                                            <input asp-for="RegistrationDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms cal-icon">
+                                            <label asp-for="LastServiceDate">Last Service Date</label>
+                                            <input asp-for="LastServiceDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="Mileage">Mileage</label>
+                                            <input asp-for="Mileage" type="number" class="form-control" placeholder="e.g. 35000" />
+                                            <span asp-validation-for="Mileage" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="FuelType">Fuel Type</label>
+                                            <select asp-for="FuelType" class="form-control" asp-items="Model.FuelTypes">
+                                                <option value="">Select Fuel</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="TransmissionType">Transmission</label>
+                                            <select asp-for="TransmissionType" class="form-control" asp-items="Model.TransmissionTypes">
+                                                <option value="">Select Transmission</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="VehicleStatus">Status</label>
+                                            <select asp-for="VehicleStatus" class="form-control" asp-items="Model.Statuses">
+                                                <option value="">Select Status</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="CompanyBranchId">Branch <span class="login-danger">*</span></label>
+                                            <select asp-for="CompanyBranchId" class="form-control" asp-items="Model.Branches">
+                                                <option value="">Select Branch</option>
+                                            </select>
+                                            <span asp-validation-for="CompanyBranchId" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="InsuranceCompany">Insurance Company</label>
+                                            <input asp-for="InsuranceCompany" class="form-control" placeholder="Insurance company" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms cal-icon">
+                                            <label asp-for="InsuranceExpiryDate">Insurance Expiry</label>
+                                            <input asp-for="InsuranceExpiryDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="input-block local-forms cal-icon">
+                                            <label asp-for="RoadWorthyExpiryDate">Road-Worthy Expiry</label>
+                                            <input asp-for="RoadWorthyExpiryDate" class="form-control datetimepicker" placeholder="YYYY-MM-DD" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Current Photos — AJAX delete, no form submission needed -->
+                                    @if (Model.Photos?.Any() == true)
+                                    {
+                                        <div class="col-12">
+                                            <div class="form-heading mt-3"><h4>Current Photos</h4></div>
+                                        </div>
+                                        <div class="col-12" id="photosContainer">
+                                            <div class="d-flex flex-wrap gap-3 mb-3" id="photoGrid">
+                                                @foreach (var photo in Model.Photos)
+                                                {
+                                                    <div class="photo-thumbnail-container" id="photo-@photo.Id">
+                                                        <div class="photo-thumbnail"
+                                                             style="background-image:url('@photo.FilePath');"></div>
+                                                        <div class="photo-thumbnail-controls">
+                                                            <button type="button" class="btn btn-sm btn-light"
+                                                                    onclick="window.open('@photo.FilePath','_blank')">
+                                                                <i class="feather-eye"></i>
+                                                            </button>
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-danger delete-file-btn"
+                                                                    data-file-id="@photo.Id"
+                                                                    data-file-name="Photo"
+                                                                    data-file-type="photo">
+                                                                <i class="feather-trash-2"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Current Documents — AJAX delete -->
+                                    @if (Model.Documents?.Any() == true)
+                                    {
+                                        <div class="col-12 current-documents-section">
+                                            <div class="form-heading mt-3"><h4>Current Documents</h4></div>
+                                        </div>
+                                        <div class="col-12 current-documents-section">
+                                            <div class="table-responsive mb-4">
+                                                <table class="table table-bordered" id="documentsTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Document Name</th>
+                                                            <th style="width:120px">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var doc in Model.Documents)
+                                                        {
+                                                            <tr id="doc-row-@doc.Id">
+                                                                <td>@doc.FileName</td>
+                                                                <td>
+                                                                    <div class="d-flex gap-2">
+                                                                        <a href="@doc.FilePath" target="_blank"
+                                                                           class="btn btn-sm btn-info">
+                                                                            <i class="feather-download"></i>
+                                                                        </a>
+                                                                        <button type="button"
+                                                                                class="btn btn-sm btn-danger delete-file-btn"
+                                                                                data-file-id="@doc.Id"
+                                                                                data-file-name="@doc.FileName"
+                                                                                data-file-type="document">
+                                                                            <i class="feather-trash-2"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Upload New Files -->
+                                    <div class="col-12">
+                                        <div class="form-heading mt-3"><h4>Upload New Files</h4></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="PhotoFiles">Upload New Photos</label>
+                                            <input asp-for="PhotoFiles" type="file" multiple class="form-control" />
+                                            <small class="form-text text-muted">New photos are added alongside existing ones.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="input-block local-forms">
+                                            <label asp-for="DocumentFiles">Upload New Documents</label>
+                                            <input asp-for="DocumentFiles" type="file" multiple class="form-control" />
+                                            <small class="form-text text-muted">New documents are added alongside existing ones.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 text-end mt-4">
+                                        <button type="submit" class="btn btn-primary submit-form me-2">
+                                            <i class="feather-save me-1"></i> Save Changes
+                                        </button>
+                                        <a asp-action="Details" asp-protect-route-id="@Model.Id"
+                                           class="btn btn-secondary cancel-form">
+                                            <i class="feather-x me-1"></i> Cancel
+                                        </a>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Unified Delete Confirm Modal ── -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <span style="font-size:2.5rem; line-height:1;">🗑️</span>
+                    </div>
+                    <h5 class="fw-semibold mb-1">Delete this file?</h5>
+                    <p id="deleteConfirmMessage" class="text-muted mb-3" style="font-size:.9rem;"></p>
+                    <div class="form-check d-flex justify-content-center align-items-center gap-2 mb-3">
+                        <input class="form-check-input mt-0" type="checkbox" id="dontAskAgain" />
+                        <label class="form-check-label text-muted" style="font-size:.85rem;" for="dontAskAgain">
+                            Don't ask again this session
+                        </label>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger px-4" id="deleteConfirmBtn">
+                            <i class="feather-trash-2 me-1"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@simonwep/pickr"></script>
+
+    <script>
+        var MOTORCYCLE_VALUE = '@motorcycleValue';
+        var INITIAL_MAKE_ID  = '@Model.VehicleMakeId';
+        var INITIAL_MODEL_ID = '@Model.VehicleModelId';
+        var IS_MOTORCYCLE    = @(isMotorcycle ? "true" : "false");
+
+        // ── Vehicle type layout ───────────────────────────────────────────────
+        function applyVehicleTypeLayout() {
+            var val    = $('#vehicleTypeSelect').val();
+            var isMoto = (val === MOTORCYCLE_VALUE);
+            if (!val) {
+                $('#standardMakeModelPanel, #motorcycleMakeModelPanel').hide();
+                return;
+            }
+            if (isMoto) {
+                $('#standardMakeModelPanel').hide();
+                $('#motorcycleMakeModelPanel').show();
+                $('#vehicleMake, #vehicleModel').prop('disabled', true);
+                $('#customMakeInput, #customModelInput').prop('disabled', false).val('');
+            } else {
+                $('#motorcycleMakeModelPanel').hide();
+                $('#standardMakeModelPanel').show();
+                $('#customMakeInput, #customModelInput').prop('disabled', true).val('');
+                $('#vehicleMake, #vehicleModel').prop('disabled', false);
+            }
+        }
+
+        // ── Load models via AJAX ──────────────────────────────────────────────
+        function loadModels(selectedModelId) {
+            var makeId = $('#vehicleMake').val();
+            var $model = $('#vehicleModel');
+            if (!makeId) {
+                $model.empty().append('<option value="">Select Model</option>').trigger('change');
+                return;
+            }
+            $model.empty().append('<option value="">Loading…</option>').trigger('change');
+            $.ajax({
+                url: '@Url.Action("GetVehicleModels", "AdminVehicle")',
+                data: { makeId: makeId },
+                success: function (data) {
+                    $model.empty().append('<option value="">Select Model</option>');
+                    $.each(data, function (i, item) {
+                        var $opt = $('<option>', { value: item.value, text: item.text });
+                        if (String(item.value) === String(selectedModelId)) $opt.prop('selected', true);
+                        $model.append($opt);
+                    });
+                },
+                error: function () { console.error('Could not load vehicle models.'); },
+                complete: function () { $model.trigger('change'); }
+            });
+        }
+
+        $(document).ready(function () {
+
+            // ── Select2 ───────────────────────────────────────────────────────
+            $('#vehicleMake, #vehicleModel').select2({ width: '100%', placeholder: 'Search…', allowClear: true });
+
+            // ── Initial disabled states ───────────────────────────────────────
+            if (IS_MOTORCYCLE) {
+                $('#vehicleMake, #vehicleModel').prop('disabled', true);
+                $('#customMakeInput, #customModelInput').prop('disabled', false);
+            } else {
+                $('#customMakeInput, #customModelInput').prop('disabled', true);
+                $('#vehicleMake, #vehicleModel').prop('disabled', false);
+                if (INITIAL_MAKE_ID) loadModels(INITIAL_MODEL_ID);
+            }
+
+            $('#vehicleTypeSelect').on('change', applyVehicleTypeLayout);
+            $('#vehicleMake').on('change', function () { loadModels(); });
+
+            // ── Flatpickr ─────────────────────────────────────────────────────
+            flatpickr('.datetimepicker', { dateFormat: 'Y-m-d' });
+
+            // ── Colour picker ─────────────────────────────────────────────────
+            var colorInput = document.getElementById('colorInput');
+            var pickr = Pickr.create({
+                el: '#colorPickerContainer',
+                theme: 'classic',
+                default: colorInput.value || '#000000',
+                components: {
+                    preview: true, opacity: true, hue: true,
+                    interaction: { hex: true, rgba: true, input: true, save: true }
+                }
+            });
+            function syncColor(color) {
+                var hex = color.toHEXA().toString();
+                colorInput.value = hex;
+                document.getElementById('colorPickerContainer').style.background = hex;
+                document.getElementById('colorHexLabel').textContent = hex;
+            }
+            pickr.on('save',   (c, inst) => { syncColor(c); inst.hide(); });
+            pickr.on('change', (c)        => syncColor(c));
+            document.querySelector('form').addEventListener('submit', function () {
+                var c = pickr.getColor();
+                if (c) colorInput.value = c.toHEXA().toString();
+            });
+            var cpContainer = document.getElementById('colorPickerContainer');
+            if (cpContainer) cpContainer.style.background = colorInput.value || '#000000';
+
+            // ════════════════════════════════════════════════════════════════
+            // UNIFIED FILE DELETION — photos and documents both use AJAX
+            // "Don't ask again" is stored in sessionStorage (clears when tab closes)
+            // ════════════════════════════════════════════════════════════════
+            var SKIP_CONFIRM_KEY = 'vehicleEdit_skipDeleteConfirm';
+
+            var pendingId   = null;
+            var pendingType = null; // 'photo' | 'document'
+            var pendingBtn  = null;
+
+            var deleteModalEl = document.getElementById('deleteConfirmModal');
+            var deleteModal   = new bootstrap.Modal(deleteModalEl);
+            var deleteUrl     = '@Url.Action("DeleteDocumentAjax", "AdminVehicle")';
+            var token         = $('input[name="__RequestVerificationToken"]').val();
+
+            // When modal hides, uncheck "Don't ask again" so it's fresh next open
+            // (unless they actually checked it — that's already saved to sessionStorage)
+            deleteModalEl.addEventListener('hidden.bs.modal', function () {
+                // leave checkbox state as-is so user can see their choice if they reopen
+            });
+
+            // ── Handle any delete button click ────────────────────────────────
+            $(document).on('click', '.delete-file-btn', function () {
+                pendingId   = this.getAttribute('data-file-id');
+                pendingType = this.getAttribute('data-file-type');
+                pendingBtn  = this;
+                var fileName = this.getAttribute('data-file-name');
+
+                // If user previously chose "Don't ask again" this session, skip modal
+                if (sessionStorage.getItem(SKIP_CONFIRM_KEY) === '1') {
+                    executeDelete(pendingId, pendingType, pendingBtn);
+                    return;
+                }
+
+                // Set modal message based on type
+                var msg = pendingType === 'photo'
+                    ? 'This photo will be permanently deleted and cannot be recovered.'
+                    : '"' + fileName + '" will be permanently deleted and cannot be recovered.';
+                document.getElementById('deleteConfirmMessage').textContent = msg;
+                document.getElementById('dontAskAgain').checked = false;
+
+                deleteModal.show();
+            });
+
+            // ── Confirm button ────────────────────────────────────────────────
+            document.getElementById('deleteConfirmBtn').addEventListener('click', function () {
+                // Save "don't ask again" preference for this browser session
+                if (document.getElementById('dontAskAgain').checked) {
+                    sessionStorage.setItem(SKIP_CONFIRM_KEY, '1');
+                }
+                deleteModal.hide();
+                if (!pendingId) return;
+                executeDelete(pendingId, pendingType, pendingBtn);
+            });
+
+            // ── Core delete function ──────────────────────────────────────────
+            function executeDelete(fileId, fileType, btn) {
+                var $btn = $(btn);
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'POST',
+                    data: { documentId: fileId, __RequestVerificationToken: token },
+                    success: function (res) {
+                        if (res.success) {
+                            if (fileType === 'photo') {
+                                // Remove the photo card
+                                $('#photo-' + fileId).fadeOut(300, function () { $(this).remove(); });
+                                showToast('success', 'Photo deleted successfully.');
+                            } else {
+                                // Remove the document row
+                                $('#doc-row-' + fileId).fadeOut(300, function () { $(this).remove(); });
+                                showToast('success', 'Document deleted successfully.');
+                            }
+                        } else {
+                            $btn.prop('disabled', false).html('<i class="feather-trash-2"></i>');
+                            showToast('error', res.message || 'Failed to delete file.');
+                        }
+                    },
+                    error: function () {
+                        $btn.prop('disabled', false).html('<i class="feather-trash-2"></i>');
+                        showToast('error', 'An unexpected error occurred.');
+                    },
+                    complete: function () {
+                        pendingId   = null;
+                        pendingType = null;
+                        pendingBtn  = null;
+                    }
+                });
+            }
+
+            // ── Toast notification ────────────────────────────────────────────
+            function showToast(type, message) {
+                var bg = type === 'error' ? 'bg-danger' : 'bg-success';
+                var icon = type === 'error' ? 'feather-x-circle' : 'feather-check-circle';
+                var toast = $(
+                    '<div class="toast align-items-center text-white ' + bg + ' border-0 position-fixed bottom-0 end-0 m-3"' +
+                    ' role="alert" style="z-index:9999; min-width:260px;">' +
+                    '<div class="d-flex align-items-center p-3 gap-2">' +
+                    '<i class="' + icon + ' fs-5"></i>' +
+                    '<div class="toast-body p-0">' + message + '</div>' +
+                    '<button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="toast"></button>' +
+                    '</div></div>'
+                );
+                $('body').append(toast);
+                new bootstrap.Toast(toast[0], { delay: 3500 }).show();
+                toast[0].addEventListener('hidden.bs.toast', function () { toast.remove(); });
+            }
+        });
+    </script>
+
+    <style>
+        .photo-thumbnail-container {
+            position: relative;
+            width: 150px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,.1);
+            transition: all .3s ease;
+        }
+
+        .photo-thumbnail {
+            width: 150px;
+            height: 100px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .photo-thumbnail-controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            background: rgba(255,255,255,.9);
+        }
+        /* Fade out deleting photo */
+        .photo-thumbnail-container.deleting {
+            opacity: .4;
+            pointer-events: none;
+        }
+    </style>
+}
+ *@
+

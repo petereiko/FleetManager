@@ -296,9 +296,13 @@ namespace FleetManager.Business.Implementations.DutyOfCareModule
 
                     VehicleDescription = _context.Vehicles
                                     .Where(v => v.Id == d.VehicleId)
-                                    .Select(v => v.VehicleMake.Name + " " + v.VehicleModel.Name)
-                                    .FirstOrDefault()
-                });
+                                    .Select(v => v.CustomMakeName != null
+                                    ? (v.CustomMakeName + " " + v.CustomModelName).Trim()
+                                    : (v.VehicleMake != null ? v.VehicleMake.Name : "Unknown")
+                                      + " "
+                                      + (v.VehicleModel != null ? v.VehicleModel.Name : ""))
+                                                                .FirstOrDefault()
+                                      });
         }
 
         /// <summary>
@@ -311,9 +315,14 @@ namespace FleetManager.Business.Implementations.DutyOfCareModule
                 Id = d.Id,
                 DriverId = d.DriverId!.Value,
                 VehicleId = d.VehicleId!.Value,
-                //DriverName = d.Driver.User.FirstName + " " + d.Driver.User.LastName,
-                //LicensePlate = d.Vehicle.PlateNo ?? string.Empty,
-                //VehicleDescription = d.Vehicle.Make + " " + d.Vehicle.Model,
+                DriverName = d.Driver.User.FirstName + " " + d.Driver.User.LastName,
+                LicensePlate = d.Vehicle.PlateNo ?? string.Empty,
+                //VehicleDescription = d.Vehicle.VehicleMake + " " + d.Vehicle.VehicleModel,
+                VehicleDescription = d.Vehicle.CustomMakeName != null
+                ? (d.Vehicle.CustomMakeName + " " + d.Vehicle.CustomModelName).Trim()
+                : (d.Vehicle.VehicleMake != null ? d.Vehicle.VehicleMake.Name : "Unknown")
+                  + " "
+                  + (d.Vehicle.VehicleModel != null ? d.Vehicle.VehicleModel.Name : ""),
                 Date = d.Date,
 
                 VehiclePreCheckCompleted = d.VehiclePreCheckCompleted,

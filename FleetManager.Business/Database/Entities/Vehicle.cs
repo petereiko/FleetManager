@@ -16,8 +16,9 @@ namespace FleetManager.Business.Database.Entities
         public int? VehicleModelId { get; set; }
         public virtual VehicleModel VehicleModel { get; set; }
 
-        //public string Make { get; set; }
-        //public string Model { get; set; }
+        public string? CustomMakeName { get; set; }
+        public string? CustomModelName { get; set; }
+
         public int Year { get; set; }
         public string VIN { get; set; } // Vehicle Identification Number
         public string PlateNo { get; set; }

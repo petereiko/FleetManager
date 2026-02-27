@@ -61,8 +61,10 @@ namespace FleetManager.Business.Implementations.VehicleModule
             {
                 var entity = new Vehicle
                 {
-                    VehicleMakeId = dto.VehicleMakeId,
-                    VehicleModelId = dto.VehicleModelId,
+                    VehicleMakeId = dto.VehicleMakeId,    // null when manual mode was used
+                    VehicleModelId = dto.VehicleModelId,   // null when manual mode was used
+                    CustomMakeName = dto.CustomMakeName,   // null when dropdown mode was used
+                    CustomModelName = dto.CustomModelName,  // null when dropdown mode was used
                     Year = dto.Year,
                     VIN = dto.VIN,
                     PlateNo = dto.PlateNo,
@@ -85,7 +87,7 @@ namespace FleetManager.Business.Implementations.VehicleModule
                     CreatedBy = createdByUserId,
                     IsActive = true
                 };
-               
+
                 _context.Vehicles.Add(entity);
                 await _context.SaveChangesAsync();
 
@@ -130,9 +132,12 @@ namespace FleetManager.Business.Implementations.VehicleModule
                     return resp;
                 }
 
-                // map changes
+                
                 vehicle.VehicleMakeId = dto.VehicleMakeId;
                 vehicle.VehicleModelId = dto.VehicleModelId;
+                vehicle.CustomMakeName = dto.CustomMakeName;
+                vehicle.CustomModelName = dto.CustomModelName;
+
                 vehicle.Year = dto.Year;
                 vehicle.VIN = dto.VIN;
                 vehicle.PlateNo = dto.PlateNo;
@@ -232,7 +237,7 @@ namespace FleetManager.Business.Implementations.VehicleModule
         public async Task<VehicleDto> GetVehicleByIdAsync(long id)
         {
             //EnsureAdminOrOwner();
-            var v = await _context.Vehicles.AsNoTracking().Include(x=>x.VehicleMake).Include(x=>x.VehicleModel).FirstOrDefaultAsync(x => x.Id == id);
+            var v = await _context.Vehicles.AsNoTracking().Include(x => x.VehicleMake).Include(x => x.VehicleModel).FirstOrDefaultAsync(x => x.Id == id);
             if (v == null) return null;
 
             var docs = await _context.VehicleDocuments
@@ -243,8 +248,14 @@ namespace FleetManager.Business.Implementations.VehicleModule
             return new VehicleDto
             {
                 Id = v.Id,
-                Make = v.VehicleMake.Name,
-                Model = v.VehicleModel.Name,
+                //Make = v.VehicleMake.Name,
+                //Model = v.VehicleModel.Name,
+                Make = ResolveMakeName(v),
+                Model = ResolveModelName(v),
+                CustomMakeName = v.CustomMakeName,
+                CustomModelName = v.CustomModelName,
+                VehicleMakeId = v.VehicleMakeId, 
+                VehicleModelId = v.VehicleModelId, 
                 Year = v.Year,
                 VIN = v.VIN,
                 PlateNo = v.PlateNo,
@@ -308,8 +319,10 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 .Select(v => new VehicleListItemDto
                 {
                     Id = v.Id,
-                    Make = v.VehicleMake.Name,
-                    Model = v.VehicleModel.Name,
+                    //Make = v.VehicleMake.Name,
+                    //Model = v.VehicleModel.Name,
+                    Make = v.CustomMakeName != null ? v.CustomMakeName : (v.VehicleMake != null ? v.VehicleMake.Name : "N/A"),
+                    Model = v.CustomModelName != null ? v.CustomModelName : (v.VehicleModel != null ? v.VehicleModel.Name : "N/A"),
                     Year = v.Year,
                     PlateNo = v.PlateNo,
                     Status = v.VehicleStatus.ToString(),
@@ -346,11 +359,14 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 .Select(v => new VehicleListItemDto
                 {
                     Id = v.Id,
-                    Make = v.VehicleMake.Name,
+                    //Make = v.VehicleMake.Name,
+                    Make = v.CustomMakeName != null ? v.CustomMakeName : (v.VehicleMake != null ? v.VehicleMake.Name : "N/A"),
+                    Model = v.CustomModelName != null ? v.CustomModelName : (v.VehicleModel != null ? v.VehicleModel.Name : "N/A"),
+
                     Color = v.Color,
                     TransmissionType = v.TransmissionType,
                     LastServiceDate = v.LastServiceDate,
-                    Model = v.VehicleModel.Name,
+                    //Model = v.VehicleModel.Name,
                     Year = v.Year,
                     PlateNo = v.PlateNo,
                     Status = v.VehicleStatus.ToString(),
@@ -488,9 +504,10 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 .ToList();
         }
 
-        public async Task<List<SelectListItem>> GetVehicleModelsByMakeId(int makeId)
+        public async Task<List<SelectListItem>> GetVehicleModelsByMakeId(int? makeId)
         {
             return await _context.VehicleModels
+                .AsNoTracking()
                 .Where(m => m.VehicleMakeId == makeId)
                 .OrderBy(m => m.Name)
                 .Select(m => new SelectListItem
@@ -547,6 +564,29 @@ namespace FleetManager.Business.Implementations.VehicleModule
                 return new List<VehiclePhotoDto>();
             }
         }
+
+        #region VehicleResolvedNameHelpers
+
+        private static string ResolveMakeName(Vehicle v)
+        {
+            // If a custom name was entered (manual mode), use it regardless of vehicle type
+            if (!string.IsNullOrWhiteSpace(v.CustomMakeName))
+                return v.CustomMakeName;
+
+            // Otherwise fall back to the linked make from the dropdown
+            return v.VehicleMake?.Name ?? "N/A";
+        }
+
+        private static string ResolveModelName(Vehicle v)
+        {
+            if (!string.IsNullOrWhiteSpace(v.CustomModelName))
+                return v.CustomModelName;
+
+            return v.VehicleModel?.Name ?? "N/A";
+        }
+
+
+        #endregion
 
         #region Load Vehicles Helper
 

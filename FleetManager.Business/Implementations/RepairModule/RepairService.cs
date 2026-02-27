@@ -64,7 +64,8 @@ namespace FleetManager.Business.Implementations.RepairModule
                     {
                         Id = r.Id,
                         VehicleId = r.VehicleId,
-                        VehicleDescription = $"{r.Vehicle.VehicleMake.Name} {r.Vehicle.VehicleModel.Name} ({r.Vehicle.PlateNo})",
+                        VehicleDescription = r.Vehicle.CustomMakeName != null ? (r.Vehicle.CustomMakeName + " " + r.Vehicle.CustomModelName).Trim() + " " + r.Vehicle.PlateNo.ToUpper()
+                        : (r.Vehicle.VehicleMake != null ? r.Vehicle.VehicleMake.Name : "Unknown") + " " + (r.Vehicle.VehicleModel != null ? r.Vehicle.VehicleModel.Name : "") + " " + r.Vehicle.PlateNo.ToUpper(),
                         DriverId = r.DriverId,
                         DriverName = r.Driver != null ? r.Driver.User.FirstName + " " + r.Driver.User.LastName : null,
                         Subject = r.Subject,
@@ -141,7 +142,8 @@ namespace FleetManager.Business.Implementations.RepairModule
                    {
                        Id = r.Id,
                        VehicleId = r.VehicleId,
-                       VehicleDescription = $"{r.Vehicle.VehicleMake.Name} {r.Vehicle.VehicleModel.Name} ({r.Vehicle.PlateNo})",
+                       VehicleDescription = r.Vehicle.CustomMakeName != null ? (r.Vehicle.CustomMakeName + " " + r.Vehicle.CustomModelName).Trim() + " " + r.Vehicle.PlateNo.ToUpper()
+                        : (r.Vehicle.VehicleMake != null ? r.Vehicle.VehicleMake.Name : "Unknown") + " " + (r.Vehicle.VehicleModel != null ? r.Vehicle.VehicleModel.Name : "") + " " + r.Vehicle.PlateNo.ToUpper(),
                        DriverId = r.DriverId,
                        DriverName = r.Driver != null ? r.Driver.User.FirstName + " " + r.Driver.User.LastName : null,
                        Subject = r.Subject,
@@ -229,7 +231,8 @@ namespace FleetManager.Business.Implementations.RepairModule
             {
                 Id = r.Id,
                 VehicleId = r.VehicleId,
-                VehicleDescription = $"{r.Vehicle.VehicleMake.Name} {r.Vehicle.VehicleModel.Name} ({r.Vehicle.PlateNo})",
+                VehicleDescription = r.Vehicle.CustomMakeName != null ? (r.Vehicle.CustomMakeName + " " + r.Vehicle.CustomModelName).Trim() + " " + r.Vehicle.PlateNo.ToUpper()
+                        : (r.Vehicle.VehicleMake != null ? r.Vehicle.VehicleMake.Name : "Unknown") + " " + (r.Vehicle.VehicleModel != null ? r.Vehicle.VehicleModel.Name : "") + " " + r.Vehicle.PlateNo.ToUpper(),
                 DriverId = r.DriverId,
                 DriverName = r.Driver != null ? $"{r.Driver.User.FirstName} {r.Driver.User.LastName}" : null,
                 Subject = r.Subject,
@@ -365,7 +368,7 @@ namespace FleetManager.Business.Implementations.RepairModule
                     await _notification.CreateAsync(
                         adminId,
                         "New Repair Request Logged",
-                        $"New repair #{repair.Id} created for vehicle {repair.Driver.User.FirstName}.",
+                        $"New repair #{repair.Id} created for vehicle operated by {repair.Driver.User.FirstName}.",
                         NotificationType.Info,
                         new { repairId = repair.Id });
                 }

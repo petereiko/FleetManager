@@ -231,7 +231,9 @@ namespace FleetManager.Business.Implementations.TripReportModule
                             && t.CreatedDate >= startUtc && t.CreatedDate <= endUtc);
 
             var result = await q
-                .GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? (t.Vehicle.VehicleMake.Name + " " +t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo) : "" })
+                //.GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? (t.Vehicle.VehicleMake.Name + " " +t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo) : "" })
+                .GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? (t.Vehicle.CustomMakeName != null ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo
+                    : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name : "Unknown") + " " + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name : "") + " " + t.Vehicle.PlateNo)  : "" })
                 .Select(g => new DistanceByEntityDto
                 {
                     EntityId = g.Key.VehicleId,
@@ -295,7 +297,9 @@ namespace FleetManager.Business.Implementations.TripReportModule
                 DriverId = t.DriverId,
                 DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                 VehicleId = t.VehicleId,
-                VehiclePlateNo = t.Vehicle != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo : null,
+                //VehiclePlateNo = t.Vehicle != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo : null,
+                VehiclePlateNo = t.Vehicle != null ? t.Vehicle.CustomMakeName != null ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo
+                : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name : "Unknown") + " " + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name : "") + " " + t.Vehicle.PlateNo  : null,
                 ActualDistance = t.ActualDistance,
                 ActualFuelCost = t.ActualFuelCost,
                 CreatedDate = t.CreatedDate
@@ -340,7 +344,12 @@ namespace FleetManager.Business.Implementations.TripReportModule
                             && t.ActualStartDate >= startUtc && t.ActualEndDate <= endUtc);
 
             var list = await q
-                .GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? (t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo) : "" })
+                //.GroupBy(t => new { t.VehicleId, Plate = t.Vehicle != null ? (t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo) : "" })
+                .GroupBy(t => new {
+                    t.VehicleId,
+                    Plate = t.Vehicle != null ? (t.Vehicle.CustomMakeName != null ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo
+                    : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name : "Unknown") + " " + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name : "") + " " + t.Vehicle.PlateNo) : ""
+                })
                 .Select(g => new VehicleUtilizationDto
                 {
                     VehicleId = g.Key.VehicleId,
@@ -406,7 +415,9 @@ namespace FleetManager.Business.Implementations.TripReportModule
             {
                 Id = t.Id,
                 TripNumber = t.TripNumber,
-                VehiclePlateNo = t.Vehicle != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo : "",
+                VehiclePlateNo = t.Vehicle != null ? t.Vehicle.CustomMakeName != null ? (t.Vehicle.CustomMakeName + " " + t.Vehicle.CustomModelName).Trim() + " " + t.Vehicle.PlateNo
+                : (t.Vehicle.VehicleMake != null ? t.Vehicle.VehicleMake.Name : "Unknown") + " " + (t.Vehicle.VehicleModel != null ? t.Vehicle.VehicleModel.Name : "") + " " + t.Vehicle.PlateNo : "",
+                //VehiclePlateNo = t.Vehicle != null ? t.Vehicle.VehicleMake.Name + " " + t.Vehicle.VehicleModel.Name + " " + t.Vehicle.PlateNo : "",
                 DriverName = t.Driver != null ? t.Driver.User.FirstName + " " + t.Driver.User.LastName : null,
                 Origin = t.Origin,
                 Destination = t.Destination,
