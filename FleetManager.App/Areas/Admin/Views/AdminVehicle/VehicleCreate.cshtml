@@ -1,0 +1,805 @@
+@model FleetManager.Business.ViewModels.VehicleCreateViewModel
+@{
+    ViewData["Title"] = "Add New Vehicle";
+}
+
+<style>
+	/* ══════════════════════════════════════════════════════
+	   CREATE VEHICLE FORM — Fleetalia v4 Premium Theme
+	   Professional, structured, enterprise-grade
+	══════════════════════════════════════════════════════ */
+
+	.vehicle-form-wrapper {
+		max-width: 1100px;
+		margin: 0 auto;
+	}
+
+	/* Page Header */
+	.form-page-header {
+		background: #1B2856;
+		border-radius: 14px;
+		padding: 32px;
+		margin-bottom: 24px;
+		box-shadow: 0 4px 16px rgba(27,40,86,0.15);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.form-page-header::before {
+		content: '';
+		position: absolute;
+		top: -70px;
+		right: -70px;
+		width: 220px;
+		height: 220px;
+		border-radius: 50%;
+		background: rgba(0,102,76,0.06);
+	}
+
+	.form-header-content {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 16px;
+	}
+
+	.form-title-section h1 {
+		font-size: 28px;
+		font-weight: 800;
+		color: #fff;
+		margin: 0 0 6px 0;
+		letter-spacing: -0.5px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.form-title-section h1 i {
+		color: #6ee7b7;
+	}
+
+	.form-subtitle {
+		font-size: 14px;
+		color: rgba(255,255,255,0.7);
+		margin: 0;
+	}
+
+	.btn-back-header {
+		background: rgba(255,255,255,0.12);
+		border: 1.5px solid rgba(255,255,255,0.2);
+		color: #fff;
+		padding: 10px 20px;
+		border-radius: 10px;
+		font-size: 14px;
+		font-weight: 600;
+		transition: all 0.2s;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		text-decoration: none;
+	}
+
+	.btn-back-header:hover {
+		background: rgba(255,255,255,0.18);
+		color: #fff;
+	}
+
+	/* Form Sections */
+	.form-section {
+		background: #fff;
+		border: 1px solid #e2e4e8;
+		border-radius: 14px;
+		margin-bottom: 20px;
+		overflow: hidden;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	}
+
+	.section-header {
+		background: #f7f8fa;
+		border-bottom: 1px solid #e2e4e8;
+		padding: 18px 24px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.section-icon {
+		width: 44px;
+		height: 44px;
+		background: #00664c;
+		border-radius: 11px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #fff;
+		font-size: 18px;
+	}
+
+	.section-title {
+		font-size: 16px;
+		font-weight: 700;
+		color: #1a1c20;
+		margin: 0;
+	}
+
+	.section-body {
+		padding: 28px 24px;
+	}
+
+	/* Form Grid */
+	.form-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 20px;
+	}
+
+	.form-grid-single {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 20px;
+	}
+
+	.form-grid-triple {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 20px;
+	}
+
+	/* Form Groups */
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.form-group.full-width {
+		grid-column: 1 / -1;
+	}
+
+	.form-label {
+		font-size: 13px;
+		font-weight: 600;
+		color: #1a1c20;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.form-label .required {
+		color: #c0392b;
+		font-size: 16px;
+	}
+
+	.form-label i {
+		color: #00664c;
+		font-size: 14px;
+	}
+
+	.form-control,
+	.form-select,
+	.form-control-file {
+		height: 46px;
+		border: 1.5px solid #e2e4e8;
+		border-radius: 10px;
+		padding: 0 16px;
+		font-size: 14px;
+		font-weight: 500;
+		color: #1a1c20;
+		transition: all 0.2s;
+		background: #fff;
+	}
+
+	.form-control:focus,
+	.form-select:focus {
+		outline: none;
+		border-color: #00664c;
+		box-shadow: 0 0 0 4px rgba(0,102,76,0.08);
+	}
+
+	.form-control::placeholder {
+		color: rgba(26,28,32,0.35);
+	}
+
+	.form-control-file {
+		padding: 11px 16px;
+		cursor: pointer;
+	}
+
+	textarea.form-control {
+		height: auto;
+		min-height: 100px;
+		padding: 12px 16px;
+		resize: vertical;
+	}
+
+	/* Validation */
+	.text-danger {
+		color: #c0392b;
+		font-size: 12px;
+		font-weight: 600;
+		margin-top: 4px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.text-danger i {
+		font-size: 12px;
+	}
+
+	.input-validation-error {
+		border-color: #c0392b !important;
+		background: rgba(192,57,43,0.02);
+	}
+
+	.input-validation-error:focus {
+		box-shadow: 0 0 0 4px rgba(192,57,43,0.08) !important;
+	}
+
+	/* Helper Text */
+	.form-text {
+		font-size: 12px;
+		color: rgba(26,28,32,0.6);
+		margin-top: 4px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.form-text i {
+		font-size: 12px;
+		color: #00664c;
+	}
+
+	/* Action Buttons */
+	.form-actions {
+		background: #f7f8fa;
+		border-top: 1px solid #e2e4e8;
+		padding: 24px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 12px;
+		flex-wrap: wrap;
+		border-radius: 0 0 14px 14px;
+		margin-top: -1px;
+	}
+
+	.btn-submit {
+		background: linear-gradient(135deg, #00664c 0%, #00875f 100%);
+		color: #fff;
+		border: none;
+		padding: 12px 32px;
+		border-radius: 10px;
+		font-size: 15px;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		transition: all 0.2s;
+		box-shadow: 0 4px 12px rgba(0,102,76,0.25);
+		cursor: pointer;
+	}
+
+	.btn-submit:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 16px rgba(0,102,76,0.35);
+	}
+
+	.btn-cancel {
+		background: #fff;
+		color: #1a1c20;
+		border: 1.5px solid #e2e4e8;
+		padding: 12px 24px;
+		border-radius: 10px;
+		font-size: 14px;
+		font-weight: 600;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		transition: all 0.2s;
+	}
+
+	.btn-cancel:hover {
+		background: #f7f8fa;
+		color: #1a1c20;
+		border-color: #d0d4dc;
+	}
+
+	/* Photo Upload Preview */
+	.photo-upload-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.photo-preview {
+		width: 100%;
+		max-width: 300px;
+		height: 200px;
+		border: 2px dashed #e2e4e8;
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #f7f8fa;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.photo-preview img {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: cover;
+	}
+
+	.photo-placeholder {
+		text-align: center;
+		color: rgba(26,28,32,0.35);
+	}
+
+	.photo-placeholder i {
+		font-size: 3rem;
+		margin-bottom: 8px;
+		display: block;
+	}
+
+	.photo-placeholder p {
+		font-size: 13px;
+		margin: 0;
+	}
+
+	/* Alert Messages */
+	.alert {
+		border-radius: 12px;
+		padding: 16px 20px;
+		margin-bottom: 20px;
+		border: none;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.alert i {
+		font-size: 20px;
+	}
+
+	.alert-danger {
+		background: rgba(192,57,43,0.1);
+		color: #c0392b;
+		border: 1px solid rgba(192,57,43,0.2);
+	}
+
+	/* Responsive */
+	@media (max-width: 992px) {
+		.form-grid,
+		.form-grid-triple {
+			grid-template-columns: 1fr;
+		}
+
+		.form-header-content {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+
+	@media (max-width: 576px) {
+		.form-actions {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.btn-submit,
+		.btn-cancel {
+			width: 100%;
+			justify-content: center;
+		}
+	}
+</style>
+
+<div class="content">
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="row">
+			<div class="col-sm-12">
+				<ul class="breadcrumb">
+					<li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+					<li class="breadcrumb-item"><a asp-action="Index">Vehicles</a></li>
+					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+					<li class="breadcrumb-item active">Add New Vehicle</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="vehicle-form-wrapper">
+		<!-- Hero Header -->
+		<div class="form-page-header">
+			<div class="form-header-content">
+				<div class="form-title-section">
+					<h1>
+						<i class="fe fe-plus-circle"></i>
+						Add New Vehicle
+					</h1>
+					<p class="form-subtitle">Fill in the details below to register a new vehicle in your fleet</p>
+				</div>
+				<a asp-action="Index" class="btn-back-header">
+					<i class="fe fe-arrow-left"></i>
+					Back to Vehicles
+				</a>
+			</div>
+		</div>
+
+		<!-- Validation Summary -->
+		<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert" style="display: none;">
+			<i class="fe fe-alert-circle"></i>
+			<div>
+				<strong>Please correct the following errors:</strong>
+				<ul class="mb-0 mt-2"></ul>
+			</div>
+		</div>
+
+		<form asp-action="Create" method="post" enctype="multipart/form-data">
+			<!-- Basic Information Section -->
+			<div class="form-section">
+				<div class="section-header">
+					<div class="section-icon">
+						<i class="fe fe-info"></i>
+					</div>
+					<h2 class="section-title">Basic Information</h2>
+				</div>
+				<div class="section-body">
+					<div class="form-grid">
+						<div class="form-group">
+							<label asp-for="Make" class="form-label">
+								<i class="fe fe-tag"></i>
+								Make
+								<span class="required">*</span>
+							</label>
+							<input asp-for="Make" class="form-control" placeholder="e.g., Toyota, Honda, Ford" />
+							<span asp-validation-for="Make" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="Model" class="form-label">
+								<i class="fe fe-truck"></i>
+								Model
+								<span class="required">*</span>
+							</label>
+							<input asp-for="Model" class="form-control" placeholder="e.g., Camry, Accord, F-150" />
+							<span asp-validation-for="Model" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="Year" class="form-label">
+								<i class="fe fe-calendar"></i>
+								Year
+								<span class="required">*</span>
+							</label>
+							<input asp-for="Year" type="number" class="form-control" placeholder="e.g., 2024" min="1900" max="2100" />
+							<span asp-validation-for="Year" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="Color" class="form-label">
+								<i class="fe fe-droplet"></i>
+								Color
+							</label>
+							<input asp-for="Color" class="form-control" placeholder="e.g., White, Black, Silver" />
+							<span asp-validation-for="Color" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Identification Section -->
+			<div class="form-section">
+				<div class="section-header">
+					<div class="section-icon">
+						<i class="fe fe-hash"></i>
+					</div>
+					<h2 class="section-title">Identification Numbers</h2>
+				</div>
+				<div class="section-body">
+					<div class="form-grid">
+						<div class="form-group">
+							<label asp-for="PlateNo" class="form-label">
+								<i class="fe fe-credit-card"></i>
+								Plate Number
+								<span class="required">*</span>
+							</label>
+							<input asp-for="PlateNo" class="form-control" placeholder="e.g., ABC-123-XY" style="text-transform: uppercase;" />
+							<span asp-validation-for="PlateNo" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="VIN" class="form-label">
+								<i class="fe fe-key"></i>
+								VIN (Vehicle Identification Number)
+								<span class="required">*</span>
+							</label>
+							<input asp-for="VIN" class="form-control" placeholder="17-character VIN" maxlength="17" style="text-transform: uppercase;" />
+							<span asp-validation-for="VIN" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+							<small class="form-text">
+								<i class="fe fe-info"></i>
+								17 characters - found on vehicle registration
+							</small>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="EngineNumber" class="form-label">
+								<i class="fe fe-cpu"></i>
+								Engine Number
+							</label>
+							<input asp-for="EngineNumber" class="form-control" placeholder="Engine serial number" />
+							<span asp-validation-for="EngineNumber" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="ChassisNumber" class="form-label">
+								<i class="fe fe-grid"></i>
+								Chassis Number
+							</label>
+							<input asp-for="ChassisNumber" class="form-control" placeholder="Chassis serial number" />
+							<span asp-validation-for="ChassisNumber" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Technical Specifications Section -->
+			<div class="form-section">
+				<div class="section-header">
+					<div class="section-icon">
+						<i class="fe fe-settings"></i>
+					</div>
+					<h2 class="section-title">Technical Specifications</h2>
+				</div>
+				<div class="section-body">
+					<div class="form-grid-triple">
+						<div class="form-group">
+							<label asp-for="VehicleType" class="form-label">
+								<i class="fe fe-truck"></i>
+								Vehicle Type
+								<span class="required">*</span>
+							</label>
+							<select asp-for="VehicleType" class="form-select" asp-items="Html.GetEnumSelectList<FleetManager.Business.Enums.VehicleType>()">
+								<option value="">Select Type</option>
+							</select>
+							<span asp-validation-for="VehicleType" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="FuelType" class="form-label">
+								<i class="fe fe-zap"></i>
+								Fuel Type
+								<span class="required">*</span>
+							</label>
+							<select asp-for="FuelType" class="form-select" asp-items="Html.GetEnumSelectList<FleetManager.Business.Enums.FuelType>()">
+								<option value="">Select Fuel Type</option>
+							</select>
+							<span asp-validation-for="FuelType" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="TransmissionType" class="form-label">
+								<i class="fe fe-settings"></i>
+								Transmission
+								<span class="required">*</span>
+							</label>
+							<select asp-for="TransmissionType" class="form-select" asp-items="Html.GetEnumSelectList<FleetManager.Business.Enums.TransmissionType>()">
+								<option value="">Select Transmission</option>
+							</select>
+							<span asp-validation-for="TransmissionType" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="Mileage" class="form-label">
+								<i class="fe fe-activity"></i>
+								Current Mileage (km)
+							</label>
+							<input asp-for="Mileage" type="number" class="form-control" placeholder="e.g., 50000" min="0" />
+							<span asp-validation-for="Mileage" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="SeatingCapacity" class="form-label">
+								<i class="fe fe-users"></i>
+								Seating Capacity
+							</label>
+							<input asp-for="SeatingCapacity" type="number" class="form-control" placeholder="Number of seats" min="1" max="100" />
+							<span asp-validation-for="SeatingCapacity" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="VehicleStatus" class="form-label">
+								<i class="fe fe-check-circle"></i>
+								Status
+								<span class="required">*</span>
+							</label>
+							<select asp-for="VehicleStatus" class="form-select" asp-items="Html.GetEnumSelectList<FleetManager.Business.Enums.VehicleStatus>()">
+								<option value="">Select Status</option>
+							</select>
+							<span asp-validation-for="VehicleStatus" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Registration & Insurance Section -->
+			<div class="form-section">
+				<div class="section-header">
+					<div class="section-icon">
+						<i class="fe fe-file-text"></i>
+					</div>
+					<h2 class="section-title">Registration & Insurance</h2>
+				</div>
+				<div class="section-body">
+					<div class="form-grid">
+						<div class="form-group">
+							<label asp-for="RegistrationDate" class="form-label">
+								<i class="fe fe-calendar"></i>
+								Registration Date
+							</label>
+							<input asp-for="RegistrationDate" type="date" class="form-control" />
+							<span asp-validation-for="RegistrationDate" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="InsuranceCompany" class="form-label">
+								<i class="fe fe-shield"></i>
+								Insurance Company
+							</label>
+							<input asp-for="InsuranceCompany" class="form-control" placeholder="Insurance provider name" />
+							<span asp-validation-for="InsuranceCompany" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="InsuranceExpiryDate" class="form-label">
+								<i class="fe fe-calendar"></i>
+								Insurance Expiry Date
+							</label>
+							<input asp-for="InsuranceExpiryDate" type="date" class="form-control" />
+							<span asp-validation-for="InsuranceExpiryDate" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="RoadWorthyExpiryDate" class="form-label">
+								<i class="fe fe-award"></i>
+								Road Worthy Expiry Date
+							</label>
+							<input asp-for="RoadWorthyExpiryDate" type="date" class="form-control" />
+							<span asp-validation-for="RoadWorthyExpiryDate" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="LastServiceDate" class="form-label">
+								<i class="fe fe-tool"></i>
+								Last Service Date
+							</label>
+							<input asp-for="LastServiceDate" type="date" class="form-control" />
+							<span asp-validation-for="LastServiceDate" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+
+						<div class="form-group">
+							<label asp-for="CompanyBranchId" class="form-label">
+								<i class="fe fe-home"></i>
+								Branch
+								<span class="required">*</span>
+							</label>
+							<select asp-for="CompanyBranchId" class="form-select" asp-items="Model.Branches">
+								<option value="">Select Branch</option>
+							</select>
+							<span asp-validation-for="CompanyBranchId" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Photos Section -->
+			<div class="form-section">
+				<div class="section-header">
+					<div class="section-icon">
+						<i class="fe fe-camera"></i>
+					</div>
+					<h2 class="section-title">Vehicle Photos</h2>
+				</div>
+				<div class="section-body">
+					<div class="form-grid-single">
+						<div class="form-group">
+							<label asp-for="Photos" class="form-label">
+								<i class="fe fe-image"></i>
+								Upload Photos
+							</label>
+							<input asp-for="Photos" type="file" class="form-control-file" multiple accept="image/*" />
+							<span asp-validation-for="Photos" class="text-danger">
+								<i class="fe fe-alert-circle"></i>
+							</span>
+							<small class="form-text">
+								<i class="fe fe-info"></i>
+								You can select multiple images (JPG, PNG, GIF)
+							</small>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Form Actions -->
+			<div class="form-section" style="margin-bottom: 0;">
+				<div class="form-actions">
+					<a asp-action="Index" class="btn-cancel">
+						<i class="fe fe-x"></i>
+						Cancel
+					</a>
+					<button type="submit" class="btn-submit">
+						<i class="fe fe-check"></i>
+						Add Vehicle
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+	
+	<script>
+		// Show validation summary if there are errors
+		$(document).ready(function() {
+			if ($('.text-danger:visible').length > 0) {
+				$('.alert-danger').show();
+			}
+			
+			// Auto-uppercase certain fields
+			$('#PlateNo, #VIN').on('input', function() {
+				this.value = this.value.toUpperCase();
+			});
+		});
+	</script>
+}

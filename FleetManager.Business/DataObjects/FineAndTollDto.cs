@@ -28,6 +28,8 @@ namespace FleetManager.Business.DataObjects
         public string? ModifiedBy { get; set; }
         public long? CompanyBranchId { get; set; }
         public bool IsMinimal { get; set; } = false;
+
+        public List<string> AttachmentPaths { get; set; } = new();
     }
 
 }

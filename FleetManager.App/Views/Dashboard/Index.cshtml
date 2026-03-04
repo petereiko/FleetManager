@@ -9,6 +9,1054 @@
 }
 
 <style>
+
+
+	:root {
+		--navy: #1B2856;
+		--navy-mid: #223068;
+		--green: #00664c;
+		--green-light: #00875f;
+		--green-pale: #6ee7b7;
+		--white: #ffffff;
+		--surface: #f7f8fa;
+		--border: #e2e4e8;
+		--border-mid: #d0d4dc;
+		--dark: #1a1c20;
+		--dark-60: rgba(26,28,32,0.60);
+		--dark-35: rgba(26,28,32,0.35);
+		--danger: #c0392b;
+		--warn: #c07800;
+		--success: #00664c;
+	}
+
+	/* Page header */
+	.dd-header {
+		background: var(--navy);
+		border-radius: 12px;
+		padding: 28px 32px;
+		margin-bottom: 24px;
+		position: relative;
+		overflow: hidden;
+		box-shadow: 0 2px 10px rgba(27,40,86,0.12);
+	}
+
+		.dd-header::before {
+			content: '';
+			position: absolute;
+			top: -60px;
+			right: -60px;
+			width: 180px;
+			height: 180px;
+			border-radius: 50%;
+			background: rgba(0,102,76,0.08);
+			pointer-events: none;
+		}
+
+	.dd-header-content {
+		position: relative;
+		z-index: 2;
+	}
+
+	.dd-greeting {
+		font-size: 26px;
+		font-weight: 800;
+		color: #fff;
+		margin-bottom: 6px;
+		letter-spacing: -0.5px;
+	}
+
+	.dd-greeting-name {
+		color: var(--green-pale);
+	}
+
+	.dd-subtext {
+		font-size: 14px;
+		color: rgba(255,255,255,0.65);
+		line-height: 1.5;
+		margin-bottom: 4px;
+	}
+
+	.dd-glance {
+		font-size: 13px;
+		color: rgba(255,255,255,0.5);
+		font-weight: 500;
+	}
+
+	/* Stats cards */
+	.dd-stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 18px;
+		margin-bottom: 24px;
+	}
+
+	.dd-stat {
+		background: var(--white);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 20px;
+		position: relative;
+		overflow: hidden;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+		transition: box-shadow 0.15s, transform 0.15s;
+	}
+
+		.dd-stat::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 3px;
+			background: var(--green);
+		}
+
+		.dd-stat:hover {
+			box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+			transform: translateY(-2px);
+		}
+
+	.dd-stat-icon {
+		width: 52px;
+		height: 52px;
+		border-radius: 12px;
+		background: rgba(27,40,86,0.06);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--navy);
+		font-size: 24px;
+		margin-bottom: 16px;
+	}
+
+	.dd-stat-value {
+		font-size: 2rem;
+		font-weight: 800;
+		color: var(--dark);
+		line-height: 1;
+		margin-bottom: 6px;
+		font-family: 'DM Mono', monospace;
+	}
+
+	.dd-stat-label {
+		font-size: 13px;
+		color: var(--dark-60);
+		font-weight: 600;
+		margin-bottom: 12px;
+	}
+
+	.dd-progress {
+		height: 6px;
+		background: var(--surface);
+		border-radius: 99px;
+		overflow: hidden;
+	}
+
+	.dd-progress-bar {
+		height: 100%;
+		background: linear-gradient(90deg, var(--green), var(--green-light));
+		border-radius: 99px;
+		transition: width 1s ease;
+	}
+
+	/* Cards */
+	.dd-card {
+		background: var(--white);
+		border: 1px solid var(--border);
+		border-radius: 14px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+		margin-bottom: 20px;
+		overflow: hidden;
+	}
+
+	.dd-card-header {
+		background: var(--navy);
+		padding: 16px 22px;
+		border-bottom: 1px solid rgba(255,255,255,0.08);
+	}
+
+	.dd-card-title {
+		font-size: 15px;
+		font-weight: 700;
+		color: #fff;
+		margin: 0;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+		.dd-card-title i {
+			font-size: 16px;
+			color: var(--green-pale);
+		}
+
+	.dd-card-body {
+		padding: 22px;
+	}
+
+	/* Vehicle showcase */
+	.vehicle-model {
+		font-size: 18px;
+		font-weight: 700;
+		color: var(--dark);
+		margin-bottom: 16px;
+		text-align: center;
+	}
+
+	.vehicle-details {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		justify-content: center;
+		margin-bottom: 24px;
+	}
+
+	.vehicle-badge {
+		display: inline-block;
+		padding: 7px 14px;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		font-size: 12px;
+		color: var(--dark-60);
+		font-weight: 500;
+	}
+
+		.vehicle-badge strong {
+			color: var(--dark);
+			font-weight: 600;
+		}
+
+	.status-metric {
+		margin-bottom: 20px;
+	}
+
+		.status-metric:last-child {
+			margin-bottom: 0;
+		}
+
+	.status-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 8px;
+	}
+
+	.status-label {
+		font-size: 13px;
+		color: var(--dark-60);
+		font-weight: 600;
+	}
+
+	.status-value {
+		font-size: 14px;
+		font-weight: 700;
+	}
+
+	.status-bar {
+		height: 8px;
+		background: var(--surface);
+		border-radius: 99px;
+		overflow: hidden;
+	}
+
+	.status-bar-fill {
+		height: 100%;
+		background: linear-gradient(90deg, var(--green), var(--green-light));
+		border-radius: 99px;
+		transition: width 1s ease;
+	}
+
+	/* Schedule list */
+	.schedule-list {
+		max-height: 420px;
+		overflow-y: auto;
+	}
+
+	.schedule-item {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding: 16px;
+		background: var(--surface);
+		border-radius: 12px;
+		margin-bottom: 12px;
+		border-left: 3px solid var(--green);
+		transition: all 0.15s;
+	}
+
+		.schedule-item:hover {
+			background: #e9ecef;
+			transform: translateX(3px);
+		}
+
+	.schedule-time {
+		padding: 8px 14px;
+		border-radius: 8px;
+		font-weight: 600;
+		font-size: 12px;
+		white-space: nowrap;
+		color: #fff;
+	}
+
+	.time-completed {
+		background: var(--green);
+	}
+
+	.time-progress {
+		background: var(--warn);
+	}
+
+	.time-pending {
+		background: var(--navy);
+	}
+
+	.schedule-info {
+		flex: 1;
+	}
+
+	.schedule-title {
+		font-weight: 600;
+		color: var(--dark);
+		margin-bottom: 4px;
+		font-size: 14px;
+	}
+
+	.schedule-desc {
+		color: var(--dark-60);
+		font-size: 13px;
+		margin-bottom: 3px;
+	}
+
+	.schedule-loc {
+		color: var(--dark-35);
+		font-size: 12px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	/* Activity list */
+	.activity-list {
+		max-height: 420px;
+		overflow-y: auto;
+	}
+
+	.activity-item {
+		display: flex;
+		align-items: flex-start;
+		gap: 14px;
+		padding: 16px;
+		background: var(--surface);
+		border-radius: 12px;
+		margin-bottom: 12px;
+		transition: all 0.15s;
+	}
+
+		.activity-item:hover {
+			background: #e9ecef;
+		}
+
+	.activity-icon {
+		width: 46px;
+		height: 46px;
+		border-radius: 11px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		font-size: 20px;
+		color: #fff;
+	}
+
+	.icon-fuel {
+		background: var(--warn);
+	}
+
+	.icon-trip {
+		background: var(--navy);
+	}
+
+	.icon-violation {
+		background: var(--danger);
+	}
+
+	.icon-message {
+		background: #4facfe;
+	}
+
+	.icon-success {
+		background: var(--green);
+	}
+
+	.activity-info {
+		flex: 1;
+	}
+
+	.activity-title {
+		font-weight: 600;
+		color: var(--dark);
+		margin-bottom: 4px;
+		font-size: 14px;
+	}
+
+	.activity-msg {
+		color: var(--dark-60);
+		font-size: 13px;
+		margin-bottom: 4px;
+	}
+
+	.activity-time {
+		color: var(--dark-35);
+		font-size: 12px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	/* Metric items */
+	.metric-item {
+		margin-bottom: 20px;
+	}
+
+		.metric-item:last-child {
+			margin-bottom: 0;
+		}
+
+	.metric-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 8px;
+	}
+
+	.metric-label {
+		font-size: 13px;
+		color: var(--dark-60);
+		font-weight: 600;
+	}
+
+	.metric-value {
+		font-size: 15px;
+		font-weight: 700;
+	}
+
+	.safety-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 14px;
+		margin-top: 24px;
+		padding-top: 24px;
+		border-top: 1px solid var(--border);
+	}
+
+	.stat-box {
+		text-align: center;
+		padding: 18px;
+		background: var(--surface);
+		border-radius: 12px;
+		border: 1px solid var(--border);
+	}
+
+	.stat-box-value {
+		font-size: 2rem;
+		font-weight: 800;
+		margin-bottom: 6px;
+		font-family: 'DM Mono', monospace;
+	}
+
+	.stat-box-label {
+		color: var(--dark-60);
+		font-size: 12px;
+		font-weight: 600;
+	}
+
+	/* Achievements */
+	.achievement-item {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 14px;
+		background: var(--surface);
+		border-radius: 11px;
+		margin-bottom: 10px;
+		transition: all 0.15s;
+		border-left: 3px solid var(--green);
+	}
+
+		.achievement-item:hover {
+			background: #e9ecef;
+			transform: scale(1.01);
+		}
+
+	.achievement-icon {
+		width: 44px;
+		height: 44px;
+		border-radius: 10px;
+		background: var(--green);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 0;
+		flex-shrink: 0;
+	}
+
+		.achievement-icon i {
+			font-size: 20px;
+			color: #fff;
+		}
+
+	.achievement-title {
+		font-weight: 600;
+		color: var(--dark);
+		margin-bottom: 2px;
+		font-size: 13.5px;
+	}
+
+	.achievement-sub {
+		color: var(--dark-60);
+		font-size: 12px;
+	}
+
+	/* Empty states */
+	.empty-state {
+		text-align: center;
+		padding: 50px 20px;
+		color: var(--dark-35);
+	}
+
+		.empty-state i {
+			font-size: 3rem;
+			margin-bottom: 16px;
+			opacity: 0.2;
+		}
+
+		.empty-state p {
+			margin: 0;
+			font-size: 14px;
+		}
+
+	/* Chart containers */
+	.chart-wrap {
+		position: relative;
+		height: 250px;
+	}
+
+	.chart-wrap-tall {
+		position: relative;
+		height: 200px;
+	}
+
+	/* Scrollbars */
+	.schedule-list::-webkit-scrollbar,
+	.activity-list::-webkit-scrollbar {
+		width: 5px;
+	}
+
+	.schedule-list::-webkit-scrollbar-track,
+	.activity-list::-webkit-scrollbar-track {
+		background: var(--surface);
+		border-radius: 99px;
+	}
+
+	.schedule-list::-webkit-scrollbar-thumb,
+	.activity-list::-webkit-scrollbar-thumb {
+		background: var(--border-mid);
+		border-radius: 99px;
+	}
+
+	/* Responsive */
+	@@media (max-width: 768px) {
+		.dd-header {
+			padding: 22px 20px;
+		}
+
+		.dd-greeting {
+			font-size: 22px;
+		}
+
+		.dd-stats {
+			grid-template-columns: 1fr;
+		}
+
+		.safety-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
+
+<div class="content">
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="row">
+			<div class="col-sm-12">
+				<ul class="breadcrumb">
+					<li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+					<li class="breadcrumb-item active">Driver Dashboard</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<!-- Hero Greeting -->
+	<div class="dd-header">
+		<div class="dd-header-content" id="greeting-container"></div>
+	</div>
+
+	<!-- Stats Grid -->
+	<div class="dd-stats">
+		<div class="dd-stat">
+			<div class="dd-stat-icon">
+				<i class="fe fe-truck"></i>
+			</div>
+			<div class="dd-stat-value">@FmtNumber(Model?.Stats?.TotalMilesDriven ?? 0, "N0")</div>
+			<div class="dd-stat-label">Total Miles Driven</div>
+			<div class="dd-progress">
+				<div class="dd-progress-bar" style="width:@((Model?.Stats?.TotalMilesDriven ?? 0) > 10000 ? 100 : Math.Min(100, (Model?.Stats?.TotalMilesDriven ?? 0) / 100))%"></div>
+			</div>
+		</div>
+
+		<div class="dd-stat">
+			<div class="dd-stat-icon">
+				<i class="fe fe-clock"></i>
+			</div>
+			<div class="dd-stat-value">@(Model?.Stats?.HoursThisMonth ?? 0)</div>
+			<div class="dd-stat-label">Hours This Month</div>
+			<div class="dd-progress">
+				<div class="dd-progress-bar" style="width:@(Math.Min(100, (Model?.Stats?.HoursThisMonth ?? 0) / 200.0 * 100))%"></div>
+			</div>
+		</div>
+
+		<div class="dd-stat">
+			<div class="dd-stat-icon">
+				<i class="fe fe-target"></i>
+			</div>
+			<div class="dd-stat-value">@FmtPercent(Model?.Stats?.SafetyScorePercent)</div>
+			<div class="dd-stat-label">Safety Score</div>
+			<div class="dd-progress">
+				<div class="dd-progress-bar" style="width:@(Math.Min(100, Model?.Stats?.SafetyScorePercent ?? 0))%"></div>
+			</div>
+		</div>
+
+		<div class="dd-stat">
+			<div class="dd-stat-icon">
+				<i class="fe fe-check-circle"></i>
+			</div>
+			<div class="dd-stat-value">@(Model?.Stats?.DeliveriesCompleted ?? 0)</div>
+			<div class="dd-stat-label">Deliveries Completed</div>
+			<div class="dd-progress">
+				<div class="dd-progress-bar" style="width:@(Math.Min(100, (Model?.Stats?.DeliveriesCompleted ?? 0) / 50.0 * 100))%"></div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Vehicle & Performance -->
+	<div class="row">
+		<div class="col-md-6 col-lg-4">
+			<div class="dd-card">
+				<div class="dd-card-header">
+					<h5 class="dd-card-title">
+						<i class="fe fe-truck"></i>
+						Assigned Vehicle
+					</h5>
+				</div>
+				<div class="dd-card-body">
+					<h4 class="vehicle-model">@(Model?.AssignedVehicle?.MakeModel ?? "No vehicle assigned")</h4>
+
+					<div class="vehicle-details">
+						<span class="vehicle-badge"><strong>Plate:</strong> @(Model?.AssignedVehicle?.PlateNo ?? "—")</span>
+						<span class="vehicle-badge"><strong>License:</strong> @(Model?.AssignedVehicle?.FleetId ?? "—")</span>
+						<span class="vehicle-badge"><strong>Mileage:</strong> @(Model?.AssignedVehicle?.Mileage?.ToString("N0") ?? "—")</span>
+					</div>
+
+					<div class="status-metric">
+						<div class="status-top">
+							<span class="status-label">Fuel Level</span>
+							<span class="status-value" style="color:var(--green);">@((Model?.AssignedVehicle?.FuelLevelPercent ?? 0))%</span>
+						</div>
+						<div class="status-bar">
+							<div class="status-bar-fill" style="width:@(Model?.AssignedVehicle?.FuelLevelPercent ?? 0)%"></div>
+						</div>
+					</div>
+
+					<div class="status-metric">
+						<div class="status-top">
+							<span class="status-label">Engine Health</span>
+							<span class="status-value" style="color:var(--warn);">@(!string.IsNullOrWhiteSpace(Model?.AssignedVehicle?.EngineHealth) ? Model.AssignedVehicle.EngineHealth : "Unknown")</span>
+						</div>
+						<div class="status-bar">
+							<div class="status-bar-fill" style="width:@(Model?.AssignedVehicle != null ? 85 : 10)%"></div>
+						</div>
+					</div>
+
+					<div class="status-metric">
+						<div class="status-top">
+							<span class="status-label">Tire Condition</span>
+							<span class="status-value" style="color:var(--green);">@(!string.IsNullOrWhiteSpace(Model?.AssignedVehicle?.TireCondition) ? Model.AssignedVehicle.TireCondition : "Unknown")</span>
+						</div>
+						<div class="status-bar">
+							<div class="status-bar-fill" style="width:@(Model?.AssignedVehicle != null ? 95 : 10)%"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-6 col-lg-8">
+			<div class="dd-card">
+				<div class="dd-card-header">
+					<h5 class="dd-card-title">
+						<i class="fe fe-trending-up"></i>
+						Weekly Performance
+					</h5>
+				</div>
+				<div class="dd-card-body">
+					<div class="chart-wrap">
+						<canvas id="weeklyChart"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Schedule & Activities -->
+	<div class="row">
+		<div class="col-md-6">
+			<div class="dd-card">
+				<div class="dd-card-header">
+					<h5 class="dd-card-title">
+						<i class="fe fe-calendar"></i>
+						Today's Schedule
+					</h5>
+				</div>
+				<div class="dd-card-body">
+					<div class="schedule-list">
+						@if (Model?.TodaysSchedule != null && Model.TodaysSchedule.Any())
+						{
+							foreach (var item in Model.TodaysSchedule)
+							{
+								var timeClass = item.Status != null && item.Status.Contains("Completed") ? "time-completed" :
+								item.Status != null && item.Status.Contains("InProgress") ? "time-progress" : "time-pending";
+								<div class="schedule-item">
+									<span class="schedule-time @timeClass">@item.TimeDisplay</span>
+									<div class="schedule-info">
+										<div class="schedule-title">@item.Title</div>
+										<div class="schedule-desc">@item.ShortDescription</div>
+										<div class="schedule-loc">
+											<i class="fe fe-map-pin"></i>
+											@item.Location
+										</div>
+									</div>
+								</div>
+							}
+						}
+						else
+						{
+							<div class="empty-state">
+								<i class="fe fe-calendar"></i>
+								<p>No scheduled jobs for today.</p>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-6">
+			<div class="dd-card">
+				<div class="dd-card-header">
+					<h5 class="dd-card-title">
+						<i class="fe fe-activity"></i>
+						Recent Activities
+					</h5>
+				</div>
+				<div class="dd-card-body">
+					<div class="activity-list">
+						@if (Model?.RecentActivities != null && Model.RecentActivities.Any())
+						{
+							foreach (var act in Model.RecentActivities)
+							{
+								var iconClass = act.Category switch
+								{
+									"Fuel" => "icon-fuel",
+									"Trip" => "icon-trip",
+									"Violation" => "icon-violation",
+									"Message" => "icon-message",
+									_ => "icon-success"
+								};
+								var featherIcon = act.Category switch
+								{
+									"Fuel" => "fe-droplet",
+									"Trip" => "fe-truck",
+									"Violation" => "fe-alert-triangle",
+									"Message" => "fe-message-square",
+									_ => "fe-check-circle"
+								};
+								<div class="activity-item">
+									<div class="activity-icon @iconClass">
+										<i class="fe @featherIcon"></i>
+									</div>
+									<div class="activity-info">
+										<div class="activity-title">@act.Title</div>
+										<div class="activity-msg">@act.Message</div>
+										<div class="activity-time">
+											<i class="fe fe-clock"></i>
+											@act.OccurredAt.ToLocalTime().ToString("g")
+										</div>
+									</div>
+								</div>
+							}
+						}
+						else
+						{
+							<div class="empty-state">
+								<i class="fe fe-activity"></i>
+								<p>No recent activity.</p>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Safety & Monthly Performance -->
+	<div class="row">
+		<div class="col-md-4">
+			<div class="dd-card">
+				<div class="dd-card-header">
+					<h5 class="dd-card-title">
+						<i class="fe fe-shield"></i>
+						Safety Metrics
+					</h5>
+				</div>
+				<div class="dd-card-body">
+					<div class="metric-item">
+						<div class="metric-top">
+							<span class="metric-label">Safe Driving Score</span>
+							<span class="metric-value" style="color:var(--green);">@FmtPercent(Model?.SafetyMetrics?.SafeDrivingScore)</span>
+						</div>
+						<div class="dd-progress">
+							<div class="dd-progress-bar" style="width:@(Math.Min(100, Model?.SafetyMetrics?.SafeDrivingScore ?? 0))%"></div>
+						</div>
+					</div>
+
+					<div class="metric-item">
+						<div class="metric-top">
+							<span class="metric-label">Speed Compliance</span>
+							<span class="metric-value" style="color:var(--navy);">@FmtPercent(Model?.SafetyMetrics?.SpeedCompliancePercent)</span>
+						</div>
+						<div class="dd-progress">
+							<div class="dd-progress-bar" style="width:@(Math.Min(100, Model?.SafetyMetrics?.SpeedCompliancePercent ?? 0))%"></div>
+						</div>
+					</div>
+
+					<div class="metric-item">
+						<div class="metric-top">
+							<span class="metric-label">On-Time Delivery</span>
+							<span class="metric-value" style="color:var(--warn);">@FmtPercent(Model?.SafetyMetrics?.OnTimeDeliveryPercent)</span>
+						</div>
+						<div class="dd-progress">
+							<div class="dd-progress-bar" style="width:@(Math.Min(100, Model?.SafetyMetrics?.OnTimeDeliveryPercent ?? 0))%"></div>
+						</div>
+					</div>
+
+					<div class="safety-grid">
+						<div class="stat-box">
+							<div class="stat-box-value" style="color:var(--green);">@((Model?.SafetyMetrics?.DaysAccidentFree ?? 0))</div>
+							<div class="stat-box-label">Days Accident Free</div>
+						</div>
+						<div class="stat-box">
+							<div class="stat-box-value" style="color:var(--danger);">@((Model?.SafetyMetrics?.ViolationsCount ?? 0))</div>
+							<div class="stat-box-label">Violations</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-8">
+			<div class="dd-card">
+				<div class="dd-card-header">
+					<h5 class="dd-card-title">
+						<i class="fe fe-bar-chart-2"></i>
+						Monthly Performance Summary
+					</h5>
+				</div>
+				<div class="dd-card-body">
+					<div class="row">
+						<div class="col-lg-8">
+							<div class="chart-wrap-tall">
+								<canvas id="monthlyChart"></canvas>
+							</div>
+						</div>
+						<div class="col-lg-4">
+							<h6 style="font-weight:600;color:var(--dark);margin-bottom:18px;font-size:14px;">
+								<i class="fe fe-award" style="margin-right:6px;color:var(--green);"></i>
+								Key Achievements
+							</h6>
+							@if (Model?.MonthlyPerformance?.Achievements != null && Model.MonthlyPerformance.Achievements.Any())
+							{
+								foreach (var a in Model.MonthlyPerformance.Achievements)
+								{
+									<div class="achievement-item">
+										<div class="achievement-icon">
+											<i class="fe fe-award"></i>
+										</div>
+										<div>
+											<div class="achievement-title">@a.Title</div>
+											<div class="achievement-sub">@a.SubText</div>
+										</div>
+									</div>
+								}
+							}
+							else
+							{
+								<div class="empty-state">
+									<i class="fe fe-award"></i>
+									<p>No achievements yet.<br />Keep driving!</p>
+								</div>
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>
+		(function() {
+			// Dynamic Greeting
+			const name = "@userName";
+			const hour = new Date().getHours();
+			let greeting, subMessage;
+
+			if (hour < 12) {
+				greeting = "Good Morning";
+				subMessage = "Ready for another safe day on the road. Drive smart, deliver excellence!";
+			} else if (hour < 17) {
+				greeting = "Good Afternoon";
+				subMessage = "Keeping the wheels turning! Stay focused and safe out there.";
+			} else {
+				greeting = "Good Evening";
+				subMessage = "Another productive day completed. Rest well for tomorrow's journey.";
+			}
+
+			const container = document.getElementById('greeting-container');
+			container.innerHTML = `
+				<h1 class="dd-greeting">${greeting}, <span class="dd-greeting-name">${name}</span></h1>
+				<p class="dd-subtext">${subMessage}</p>
+				<p class="dd-glance">Here's your day at a glance</p>
+			`;
+
+			// Weekly Performance Chart
+			const weeklyLabels = @Html.Raw(JsonSerializer.Serialize(Model?.WeeklyPerformance?.Labels ?? new List<string>()));
+			const weeklyData = @Html.Raw(JsonSerializer.Serialize(Model?.WeeklyPerformance?.Distances ?? new List<double>()));
+
+			const ctx1 = document.getElementById('weeklyChart')?.getContext('2d');
+			if (ctx1) {
+				new Chart(ctx1, {
+					type: 'line',
+					data: {
+						labels: weeklyLabels,
+						datasets: [{
+							label: 'Miles Driven',
+							data: weeklyData,
+							borderColor: '#00664c',
+							backgroundColor: 'rgba(0,102,76,0.08)',
+							fill: true,
+							tension: 0.4,
+							borderWidth: 3,
+							pointRadius: 5,
+							pointBackgroundColor: '#00664c',
+							pointBorderColor: '#fff',
+							pointBorderWidth: 2,
+							pointHoverRadius: 7
+						}]
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: {
+							legend: { display: true, position: 'top' },
+							tooltip: { backgroundColor: 'rgba(27,40,86,0.9)' }
+						},
+						scales: {
+							y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+							x: { grid: { display: false } }
+						}
+					}
+				});
+			}
+
+			// Monthly Performance Chart
+			const monthlyLabels = @Html.Raw(JsonSerializer.Serialize(Model?.MonthlyPerformance?.Labels ?? new List<string>()));
+			const monthlyData = @Html.Raw(JsonSerializer.Serialize(Model?.MonthlyPerformance?.Distances ?? new List<double>()));
+
+			const ctx2 = document.getElementById('monthlyChart')?.getContext('2d');
+			if (ctx2) {
+				new Chart(ctx2, {
+					type: 'bar',
+					data: {
+						labels: monthlyLabels,
+						datasets: [{
+							label: 'Miles Driven',
+							data: monthlyData,
+							backgroundColor: 'rgba(0,102,76,0.85)',
+							borderColor: '#00664c',
+							borderWidth: 2,
+							borderRadius: 8,
+							borderSkipped: false
+						}]
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: {
+							legend: { display: true, position: 'top' },
+							tooltip: { backgroundColor: 'rgba(27,40,86,0.9)' }
+						},
+						scales: {
+							y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+							x: { grid: { display: false } }
+						}
+					}
+				});
+			}
+
+			// Animate progress bars
+			setTimeout(() => {
+				document.querySelectorAll('.dd-progress-bar, .status-bar-fill').forEach(bar => {
+					const width = bar.style.width;
+					bar.style.width = '0%';
+					setTimeout(() => { bar.style.width = width; }, 100);
+				});
+			}, 500);
+		})();
+	</script>
+}
+
+
+
+
+
+
+@* @using System.Text.Json
+@using FleetManager.Business.DataObjects.DashboardDriverDto
+@model DriverDashboardDto
+@{
+	ViewData["Title"] = "Driver Dashboard";
+	var userName = string.IsNullOrWhiteSpace(Model?.DriverName) ? "Driver" : Model.DriverName;
+	string FmtNumber(object? v, string format = "N0") => v == null ? "—" : string.Format("{0:" + format + "}", v);
+	string FmtPercent(double? d) => d == null ? "0%" : $"{Math.Round(d.Value, 1)}%";
+}
+ 
+
+<style>
 	:root {
 		--primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		--success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
@@ -1204,675 +2252,4 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@* @using System.Text.Json
-@using FleetManager.Business.DataObjects.DashboardDriverDto
-@model DriverDashboardDto
-@{
-	ViewData["Title"] = "Driver Dashboard";
-	var userName = string.IsNullOrWhiteSpace(Model?.DriverName) ? "Driver" : Model.DriverName;
-	// safe local helpers
-	string FmtNumber(object? v, string format = "N0") => v == null ? "—" : string.Format("{0:" + format + "}", v);
-	string FmtPercent(double? d) => d == null ? "0%" : $"{Math.Round(d.Value, 1)}%";
-}
-
-<style>
-	.border-left-success {
-		border-left: 4px solid #28a745 !important;
-	}
-
-	.border-left-primary {
-		border-left: 4px solid #007bff !important;
-	}
-
-	.border-left-warning {
-		border-left: 4px solid #ffc107 !important;
-	}
-
-	.border-left-info {
-		border-left: 4px solid #17a2b8 !important;
-	}
-
-	.activity-icon {
-		width: 40px;
-		height: 40px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.achievement-icon {
-		width: 35px;
-		height: 35px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.progress-xs {
-		height: 3px;
-	}
-
-	.vehicle-info {
-		text-align: center;
-	}
-
-	.schedule-time {
-		flex-shrink: 0;
-	}
-
-	.card {
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-		border: none;
-		border-radius: 8px;
-	}
-
-	.dash-widget-icon {
-		width: 60px;
-		height: 60px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 24px;
-	}
-
-	.dash-widget-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-</style>
-
-
-
-<div class="content">
-	<!-- Page Header -->
-	<div class="page-header">
-		<div class="row">
-			<div class="col-sm-12">
-				<ul class="breadcrumb">
-					<li class="breadcrumb-item"><a href="index.html">Dashboard </a></li>
-					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
-					<li class="breadcrumb-item active">Driver Dashboard</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-	<!-- /Page Header -->
-
-	<div class="good-morning-blk">
-		<div class="row">
-			<div class="col-md-6">
-				<div class="morning-user">
-					
-				</div>
-			</div>
-			<div class="col-md-6 position-blk">
-				<div class="morning-img">
-					<img src="~/assets/img/morning-img-03.png" alt="">
-				</div>
-			</div>
-		</div>
-	</div>
-
-
-	<!-- Driver Statistics Cards -->
-	<div class="row">
-		<div class="col-xl-3 col-sm-6 col-12">
-			<div class="card">
-				<div class="card-body">
-					<div class="dash-widget-header">
-						<span class="dash-widget-icon text-primary border-primary">
-							<i class="fe fe-truck"></i>
-						</span>
-						<div class="dash-count">
-							<h3>@FmtNumber(Model?.Stats?.TotalMilesDriven ?? 0, "N0")</h3>
-						</div>
-					</div>
-					<div class="dash-widget-info">
-						<h6 class="text-muted">Total Miles Driven</h6>
-						<div class="progress progress-sm">
-							<div class="progress-bar bg-primary" style="width:@((Model?.Stats?.TotalMilesDriven ?? 0) > 10000 ? 100 : Math.Min(100, (Model?.Stats?.TotalMilesDriven ?? 0) / 1000))%"></div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-xl-3 col-sm-6 col-12">
-			<div class="card">
-				<div class="card-body">
-					<div class="dash-widget-header">
-						<span class="dash-widget-icon text-success">
-							<i class="fe fe-clock"></i>
-						</span>
-						<div class="dash-count">
-							<h3>@(Model?.Stats?.HoursThisMonth ?? 0)</h3>
-						</div>
-					</div>
-					<div class="dash-widget-info">
-						<h6 class="text-muted">Hours This Month</h6>
-						<div class="progress progress-sm">
-							<div class="progress-bar bg-success" style="width:@(Math.Min(100, (Model?.Stats?.HoursThisMonth ?? 0) / 200.0 * 100))%"></div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-xl-3 col-sm-6 col-12">
-			<div class="card">
-				<div class="card-body">
-					<div class="dash-widget-header">
-						<span class="dash-widget-icon text-danger border-danger">
-							<i class="fe fe-target"></i>
-						</span>
-						<div class="dash-count">
-							<h3>@FmtPercent(Model?.Stats?.SafetyScorePercent)</h3>
-						</div>
-					</div>
-					<div class="dash-widget-info">
-						<h6 class="text-muted">Safety Score</h6>
-						<div class="progress progress-sm">
-							<div class="progress-bar bg-danger" style="width:@(Math.Min(100, Model?.Stats?.SafetyScorePercent ?? 0))%"></div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-xl-3 col-sm-6 col-12">
-			<div class="card">
-				<div class="card-body">
-					<div class="dash-widget-header">
-						<span class="dash-widget-icon text-warning border-warning">
-							<i class="fe fe-check-circle"></i>
-						</span>
-						<div class="dash-count">
-							<h3>@(Model?.Stats?.DeliveriesCompleted ?? 0)</h3>
-						</div>
-					</div>
-					<div class="dash-widget-info">
-						<h6 class="text-muted">Deliveries Completed</h6>
-						<div class="progress progress-sm">
-							<div class="progress-bar bg-warning" style="width:@(Math.Min(100, (Model?.Stats?.DeliveriesCompleted ?? 0) / 50.0 * 100))%"></div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Vehicle Status & Performance Charts -->
-	<div class="row">
-		<!-- Vehicle Information -->
-		<div class="col-md-6 col-lg-4">
-			<div class="card">
-				<div class="card-header">
-					<h5 class="card-title">Assigned Vehicle</h5>
-				</div>
-				<div class="card-body">
-					<div class="vehicle-info">
-						<div class="vehicle-details">
-							<h6>@(Model?.AssignedVehicle?.MakeModel ?? "No vehicle assigned")</h6>
-							<p class="text-muted mb-1">Vehicle Plate No: @(Model?.AssignedVehicle?.PlateNo ?? "—")</p>
-							<p class="text-muted mb-1">License: @(Model?.AssignedVehicle?.FleetId ?? "—")</p>
-							<p class="text-muted mb-3">Mileage: @(Model?.AssignedVehicle?.Mileage?.ToString("N0") ?? "—")</p>
-						</div>
-						<div class="vehicle-status">
-							<div class="status-item d-flex justify-content-between">
-								<span>Fuel Level</span>
-								<span class="text-success">@((Model?.AssignedVehicle?.FuelLevelPercent ?? 0))%</span>
-							</div>
-							<div class="progress progress-xs mb-3">
-								<div class="progress-bar bg-success" style="width:@(Model?.AssignedVehicle?.FuelLevelPercent ?? 0)%"></div>
-							</div>
-
-							<div class="status-item d-flex justify-content-between">
-								<span>Engine Health</span>
-								<span class="text-warning">@(!string.IsNullOrWhiteSpace(Model?.AssignedVehicle?.EngineHealth) ? Model.AssignedVehicle.EngineHealth : "Unknown")</span>
-							</div>
-							<div class="progress progress-xs mb-3">
-								<div class="progress-bar bg-warning" style="width:@(Model?.AssignedVehicle != null ? 85 : 10)%"></div>
-							</div>
-
-							<div class="status-item d-flex justify-content-between">
-								<span>Tire Condition</span>
-								<span class="text-success">@(!string.IsNullOrWhiteSpace(Model?.AssignedVehicle?.TireCondition) ? Model.AssignedVehicle.TireCondition : "Unknown")</span>
-							</div>
-							<div class="progress progress-xs">
-								<div class="progress-bar bg-success" style="width:@(Model?.AssignedVehicle != null ? 95 : 10)%"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Weekly Performance Chart -->
-		<div class="col-md-6 col-lg-8">
-			<div class="card">
-				<div class="card-header">
-					<h5 class="card-title">Weekly Performance</h5>
-				</div>
-				<div class="card-body">
-					<canvas id="weeklyChart" height="250"></canvas>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Today's Schedule & Recent Activities -->
-	<div class="row">
-		<div class="col-md-6">
-			<div class="card">
-				<div class="card-header">
-					<h5 class="card-title">Today's Schedule</h5>
-				</div>
-				<div class="card-body">
-					<div class="schedule-list">
-						@if (Model?.TodaysSchedule != null && Model.TodaysSchedule.Any())
-						{
-							foreach (var item in Model.TodaysSchedule)
-							{
-								// choose badge color by status (simple mapping)
-								var badgeClass = item.Status != null && item.Status.Contains("Completed") ? "badge-success" :
-								item.Status != null && item.Status.Contains("InProgress") ? "badge-warning" :
-								"badge-primary";
-								<text>
-									<div class="schedule-item d-flex align-items-center mb-3 p-3 border-left-success">
-										<div class="schedule-time">
-											<span class="badge @badgeClass">@item.TimeDisplay</span>
-										</div>
-										<div class="schedule-content ml-3">
-											<h6 class="mb-1">@item.Title</h6>
-											<p class="text-muted mb-0">@item.ShortDescription</p>
-											<small class="text-muted">@item.Location</small>
-										</div>
-									</div>
-								</text>
-							}
-						}
-						else
-						{
-							<text>
-								<div class="p-3 text-center text-muted">No scheduled jobs for today.</div>
-							</text>
-						}
-					</div>
-				</div>
-			</div>
-		</div>
-
-
-		<div class="col-md-6">
-			<div class="card">
-				<div class="card-header">
-					<h5 class="card-title">Recent Activities</h5>
-				</div>
-				<div class="card-body">
-					<div class="activity-list">
-						@if (Model?.RecentActivities != null && Model.RecentActivities.Any())
-						{
-							foreach (var act in Model.RecentActivities)
-							{
-								var iconClass = act.Category switch
-								{
-									"Fuel" => "fe fe-droplet bg-warning",
-									"Trip" => "fe fe-truck bg-primary",
-									"Violation" => "fe fe-alert-triangle bg-danger",
-									"Message" => "fe fe-message-square bg-info",
-									_ => "fe fe-check-circle bg-success"
-								};
-								<text>
-									<div class="activity-item d-flex align-items-start mb-3">
-										<div class="activity-icon @iconClass">
-											<i class="@iconClass"></i>
-										</div>
-										<div class="activity-content ml-3">
-											<h6 class="mb-1">@act.Title</h6>
-											<p class="text-muted mb-0">@act.Message</p>
-											<small class="text-muted">@act.OccurredAt.ToLocalTime().ToString("g")</small>
-										</div>
-									</div>
-								</text>
-							}
-						}
-						else
-						{
-							<text>
-								<div class="p-3 text-center text-muted">No recent activity.</div>
-							</text>
-						}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Recent Activities & Safety Metrics (retained structure) -->
-	<div class="row">
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-header">
-					<h5 class="card-title">Safety Metrics</h5>
-				</div>
-				<div class="card-body">
-					<div class="safety-metrics">
-						<div class="metric-item mb-4">
-							<div class="d-flex justify-content-between mb-2">
-								<span>Safe Driving Score</span>
-								<span class="text-success font-weight-bold">@FmtPercent(Model?.SafetyMetrics?.SafeDrivingScore)</span>
-							</div>
-							<div class="progress progress-sm">
-								<div class="progress-bar bg-success" style="width:@(Math.Min(100, Model?.SafetyMetrics?.SafeDrivingScore ?? 0))%"></div>
-							</div>
-						</div>
-
-						<div class="metric-item mb-4">
-							<div class="d-flex justify-content-between mb-2">
-								<span>Speed Compliance</span>
-								<span class="text-primary font-weight-bold">@FmtPercent(Model?.SafetyMetrics?.SpeedCompliancePercent)</span>
-							</div>
-							<div class="progress progress-sm">
-								<div class="progress-bar bg-primary" style="width:@(Math.Min(100, Model?.SafetyMetrics?.SpeedCompliancePercent ?? 0))%"></div>
-							</div>
-						</div>
-
-						<div class="metric-item mb-4">
-							<div class="d-flex justify-content-between mb-2">
-								<span>On-Time Delivery</span>
-								<span class="text-warning font-weight-bold">@FmtPercent(Model?.SafetyMetrics?.OnTimeDeliveryPercent)</span>
-							</div>
-							<div class="progress progress-sm">
-								<div class="progress-bar bg-warning" style="width:@(Math.Min(100, Model?.SafetyMetrics?.OnTimeDeliveryPercent ?? 0))%"></div>
-							</div>
-						</div>
-
-						<div class="safety-stats mt-4">
-							<div class="row text-center">
-								<div class="col-6 border-right">
-									<h4 class="text-success">@((Model?.SafetyMetrics?.DaysAccidentFree ?? 0))</h4>
-									<p class="text-muted mb-0">Days Accident Free</p>
-								</div>
-								<div class="col-6">
-									<h4 class="text-primary">@((Model?.SafetyMetrics?.ViolationsCount ?? 0))</h4>
-									<p class="text-muted mb-0">Violations</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Monthly Performance Summary -->
-	<div class="row">
-		<div class="col-12">
-			<div class="card">
-				<div class="card-header">
-					<h5 class="card-title">Monthly Performance Summary</h5>
-				</div>
-				<div class="card-body">
-					<div class="row">
-						<div class="col-lg-8">
-							<canvas id="monthlyChart" height="200"></canvas>
-						</div>
-						<div class="col-lg-4">
-							<div class="performance-summary">
-								<h6 class="mb-3">Key Achievements This Month</h6>
-
-								@if (Model?.MonthlyPerformance?.Achievements != null && Model.MonthlyPerformance.Achievements.Any())
-								{
-									foreach (var a in Model.MonthlyPerformance.Achievements)
-									{
-										<text>
-											<div class="achievement-item d-flex align-items-center mb-3">
-												<div class="achievement-icon bg-success mr-3">
-													<i class="fe fe-award text-white"></i>
-												</div>
-												<div>
-													<h6 class="mb-0">@a.Title</h6>
-													<small class="text-muted">@a.SubText</small>
-												</div>
-											</div>
-										</text>
-									}
-								}
-								else
-								{
-									<text>
-										<div class="p-3 text-center text-muted">No achievements yet.</div>
-									</text>
-								}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-
-@section Scripts {
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-	<script>
-			(function(){
-		  const name = "@userName";          // injected by Razor
-		  const hour = new Date().getHours();
-		  let greeting, subMessage;
-		  if (hour < 12) {
-			greeting   = "Good Morning";
-			subMessage = "Ready for another safe day on the road. Drive smart, deliver excellence!";
-		  } else if (hour < 17) {
-			greeting   = "Good Afternoon";
-			subMessage = "Keeping the wheels turning! Stay focused and safe out there.";
-		  } else {
-			greeting   = "Good Evening";
-			subMessage = "Another productive day completed. Rest well for tomorrow's journey.";
-		  }
-		  const container = document.querySelector('.morning-user');
-		  container.innerHTML = `
-			<h2>${greeting}, <span>${name}</span></h2>
-			<p>${subMessage}</p>
-			<p>Here's your day at a glance</p>
-		  `;
-		})();
-		(function () {
-			// Safe JSON serialization - if model null, pass empty arrays
-			var weeklyLabels = @Html.Raw(JsonSerializer.Serialize(Model?.WeeklyPerformance?.Labels ?? new List<string>()));
-			var weeklyData = @Html.Raw(JsonSerializer.Serialize(Model?.WeeklyPerformance?.Distances ?? new List<double>()));
-
-			var ctx = document.getElementById('weeklyChart')?.getContext('2d');
-			if (ctx) {
-				new Chart(ctx, {
-					type: 'line',
-					data: {
-						labels: weeklyLabels,
-						datasets: [{
-							label: 'Miles',
-							data: weeklyData,
-							fill: true,
-							tension: 0.3,
-							borderWidth: 2,
-							pointRadius: 3
-						}]
-					},
-					options: {
-						responsive: true,
-						maintainAspectRatio: false,
-						scales: {
-							y: { beginAtZero: true }
-						}
-					}
-				});
-			}
-
-			var monthlyLabels = @Html.Raw(JsonSerializer.Serialize(Model?.MonthlyPerformance?.Labels ?? new List<string>()));
-			var monthlyData = @Html.Raw(JsonSerializer.Serialize(Model?.MonthlyPerformance?.Distances ?? new List<double>()));
-
-			var ctx2 = document.getElementById('monthlyChart')?.getContext('2d');
-			if (ctx2) {
-				new Chart(ctx2, {
-					type: 'bar',
-					data: {
-						labels: monthlyLabels,
-						datasets: [{
-							label: 'Miles',
-							data: monthlyData,
-							borderWidth: 1
-						}]
-					},
-					options: {
-						responsive: true,
-						maintainAspectRatio: false,
-						scales: {
-							y: { beginAtZero: true }
-						}
-					}
-				});
-			}
-		})();
-	</script>
-}
- *@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@* @using FleetManager.Business.Database.IdentityModels
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
-
-@{
-	var user = await UserManager.GetUserAsync(User);
-	var userName = $"{user.FirstName}";
-}
-
-
-
-
-
-
-
-<div class="content">
-
-	<!-- Page Header -->
-	<div class="page-header">
-		<div class="row">
-			<div class="col-sm-12">
-				<ul class="breadcrumb">
-					<li class="breadcrumb-item"><a href="index.html">Dashboard </a></li>
-					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
-					<li class="breadcrumb-item active">Patient Dashboard</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-	<!-- /Page Header -->
-
-	<div class="good-morning-blk">
-		<div class="row">
-			<div class="col-md-6">
-				<div class="morning-user">
-					<!-- Dynamic message to usernName shows here -->
-				</div>
-			</div>
-			<div class="col-md-6 position-blk">
-				<div class="morning-img">
-					<img src="~/assets/img/morning-img-03.png" alt="">
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Page data and user contents -->
-
-									
-	
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<script>
-	(function(){
-	  const name = "@userName";          // injected by Razor
-	  const hour = new Date().getHours();
-	  let greeting, subMessage;
-
-	  if (hour < 12) {
-		greeting   = "Good Morning";
-		subMessage = "Have a productive start and let’s make today count!";
-	  } else if (hour < 17) {
-		greeting   = "Good Afternoon";
-		subMessage = "Keep up the great work this afternoon!";
-	  } else {
-		greeting   = "Good Evening";
-		subMessage = "Time to relax, tomorrow’s challenges await.";
-	  }
-
-	  const container = document.querySelector('.morning-user');
-	  container.innerHTML = `
-		<h2>${greeting}, <span>${name}</span></h2>
-		<p>${subMessage}</p>
-	  `;
-	})();
-</script>
  *@

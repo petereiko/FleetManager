@@ -76,6 +76,7 @@ namespace FleetManager.Business
 
 
         public DbSet<EmailLog> EmailLogs { get; set; }
+        public DbSet<FineAndTollAttachment> FineAndTollAttachments { get; set; }
         public DbSet<FineAndToll> FineAndTolls { get; set; }
         public DbSet<FuelLog> FuelLogs { get; set; }
 

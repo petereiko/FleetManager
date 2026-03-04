@@ -1,4 +1,5 @@
 ﻿using FleetManager.Business.Enums;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -34,7 +35,6 @@ namespace FleetManager.Business.ViewModels
 
         [Display(Name = "Driver Covered Fee?")]
         public bool IsMinimal { get; set; }
-
-        
+        public List<IFormFile> ProofFiles { get; set; }
     }
 }

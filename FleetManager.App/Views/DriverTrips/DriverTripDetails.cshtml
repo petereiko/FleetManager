@@ -1,0 +1,797 @@
+@using FleetManager.Business.DataObjects.TripsDto
+@using FleetManager.Business.Enums
+@model TripDto
+
+@{
+    ViewData["Title"] = "Trip Details";
+
+    var statusClass = "";
+    var statusIcon = "";
+
+    if (Model.StatusDisplay?.ToLower().Contains("assigned") == true)
+    {
+        statusClass = "assigned";
+        statusIcon = "calendar";
+    }
+    else if (Model.StatusDisplay?.ToLower().Contains("progress") == true)
+    {
+        statusClass = "inprogress";
+        statusIcon = "truck";
+    }
+    else if (Model.StatusDisplay?.ToLower().Contains("completed") == true)
+    {
+        statusClass = "completed";
+        statusIcon = "check-circle";
+    }
+}
+
+<style>
+	/* ══════════════════════════════════════════════════════
+	   TRIP DETAILS — Fleetalia v4 Theme
+	   Professional navy+green, clean design
+	══════════════════════════════════════════════════════ */
+
+	.trip-details-wrapper {
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	/* Hero Header */
+	.trip-details-header {
+		background: #1B2856;
+		border-radius: 14px;
+		padding: 32px;
+		margin-bottom: 24px;
+		box-shadow: 0 4px 16px rgba(27,40,86,0.15);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.trip-details-header::before {
+		content: '';
+		position: absolute;
+		top: -80px;
+		right: -80px;
+		width: 250px;
+		height: 250px;
+		border-radius: 50%;
+		background: rgba(0,102,76,0.06);
+	}
+
+	.trip-title-section {
+		position: relative;
+		z-index: 2;
+	}
+
+	.trip-title-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 16px;
+		margin-bottom: 20px;
+	}
+
+	.trip-number-large {
+		font-size: 32px;
+		font-weight: 800;
+		color: #fff;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		letter-spacing: -0.5px;
+	}
+
+	.trip-number-large i {
+		color: #6ee7b7;
+		font-size: 28px;
+	}
+
+	.status-badge-large {
+		padding: 10px 20px;
+		border-radius: 99px;
+		font-size: 14px;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		background: #fff;
+	}
+
+	.status-badge-large.assigned {
+		color: #00664c;
+	}
+
+	.status-badge-large.inprogress {
+		color: #c07800;
+	}
+
+	.status-badge-large.completed {
+		color: #10b981;
+	}
+
+	.status-badge-large i {
+		font-size: 16px;
+	}
+
+	.route-display-large {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		font-size: 20px;
+		color: #fff;
+		font-weight: 600;
+		flex-wrap: wrap;
+	}
+
+	.route-display-large i {
+		color: #6ee7b7;
+	}
+
+	.route-arrow-large {
+		color: rgba(255,255,255,0.5);
+		font-size: 18px;
+	}
+
+	/* Action Buttons */
+	.action-buttons {
+		display: flex;
+		gap: 12px;
+		margin-bottom: 24px;
+		flex-wrap: wrap;
+	}
+
+	.btn-back {
+		background: #fff;
+		color: #1B2856;
+		border: 1.5px solid #1B2856;
+		padding: 10px 20px;
+		border-radius: 10px;
+		font-weight: 600;
+		font-size: 14px;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		transition: all 0.2s;
+	}
+
+	.btn-back:hover {
+		background: #1B2856;
+		color: #fff;
+	}
+
+	.btn-refresh {
+		background: #f7f8fa;
+		color: #1a1c20;
+		border: 1.5px solid #e2e4e8;
+		padding: 10px 20px;
+		border-radius: 10px;
+		font-weight: 600;
+		font-size: 14px;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		transition: all 0.2s;
+	}
+
+	.btn-refresh:hover {
+		background: #e9ecef;
+		color: #1a1c20;
+	}
+
+	/* Info Grid */
+	.info-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+		gap: 20px;
+		margin-bottom: 24px;
+	}
+
+	.info-card {
+		background: #fff;
+		border: 1px solid #e2e4e8;
+		border-radius: 14px;
+		overflow: hidden;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+		transition: all 0.2s;
+	}
+
+	.info-card:hover {
+		box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+		transform: translateY(-2px);
+	}
+
+	.info-card-header {
+		background: #f7f8fa;
+		border-bottom: 1px solid #e2e4e8;
+		padding: 18px 22px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.info-icon {
+		width: 44px;
+		height: 44px;
+		background: #00664c;
+		border-radius: 11px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #fff;
+		font-size: 18px;
+	}
+
+	.info-card-title {
+		font-size: 16px;
+		font-weight: 700;
+		color: #1a1c20;
+		margin: 0;
+	}
+
+	.info-card-body {
+		padding: 22px;
+	}
+
+	.info-item {
+		margin-bottom: 18px;
+	}
+
+	.info-item:last-child {
+		margin-bottom: 0;
+	}
+
+	.info-label {
+		font-size: 11px;
+		color: rgba(26,28,32,0.6);
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		margin-bottom: 6px;
+		font-weight: 600;
+	}
+
+	.info-value {
+		color: #1a1c20;
+		font-size: 15px;
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.info-value-large {
+		font-size: 17px;
+		font-weight: 700;
+	}
+
+	.info-value i {
+		color: #00664c;
+		font-size: 14px;
+	}
+
+	.info-value br {
+		margin-bottom: 6px;
+	}
+
+	/* Trip Actions Card */
+	.trip-actions-card {
+		background: #fff;
+		border: 1px solid #e2e4e8;
+		border-radius: 14px;
+		padding: 32px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+		text-align: center;
+	}
+
+	.trip-actions-card h3 {
+		margin-bottom: 24px;
+		color: #1a1c20;
+		font-size: 20px;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+	}
+
+	.btn-start-trip {
+		background: linear-gradient(135deg, #00664c 0%, #00875f 100%);
+		color: #fff;
+		border: none;
+		padding: 14px 32px;
+		border-radius: 12px;
+		font-size: 16px;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		transition: all 0.2s;
+		box-shadow: 0 4px 12px rgba(0,102,76,0.3);
+		cursor: pointer;
+	}
+
+	.btn-start-trip:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(0,102,76,0.4);
+	}
+
+	.btn-complete-trip {
+		background: linear-gradient(135deg, #c07800 0%, #d97706 100%);
+		color: #fff;
+		border: none;
+		padding: 14px 32px;
+		border-radius: 12px;
+		font-size: 16px;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		transition: all 0.2s;
+		box-shadow: 0 4px 12px rgba(192,120,0,0.3);
+		cursor: pointer;
+	}
+
+	.btn-complete-trip:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(192,120,0,0.4);
+	}
+
+	/* Alerts */
+	.alert {
+		border-radius: 12px;
+		padding: 16px 20px;
+		margin-bottom: 20px;
+		border: none;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.alert i {
+		font-size: 20px;
+	}
+
+	.alert-success {
+		background: rgba(0,102,76,0.1);
+		color: #00664c;
+		border: 1px solid rgba(0,102,76,0.2);
+	}
+
+	.alert-danger {
+		background: rgba(192,57,43,0.1);
+		color: #c0392b;
+		border: 1px solid rgba(192,57,43,0.2);
+	}
+
+	/* Responsive */
+	@@media (max-width: 768px) {
+		.trip-title-row {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.trip-number-large {
+			font-size: 24px;
+		}
+
+		.route-display-large {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 8px;
+			font-size: 16px;
+		}
+
+		.info-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
+
+<div class="content">
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="row">
+			<div class="col-sm-12">
+				<ul class="breadcrumb">
+					<li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+					<li class="breadcrumb-item"><a asp-action="Index">My Trips</a></li>
+					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+					<li class="breadcrumb-item active">@Model.TripNumber</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="trip-details-wrapper">
+		<div class="trip-details-header">
+			<div class="trip-title-section">
+				<div class="trip-title-row">
+					<div class="trip-number-large">
+						<i class="fe fe-navigation"></i>
+						Trip @Model.TripNumber
+					</div>
+					<span class="status-badge-large @statusClass">
+						<i class="fe fe-@statusIcon"></i>
+						@Model.StatusDisplay
+					</span>
+				</div>
+				<div class="route-display-large">
+					<span>
+						<i class="fe fe-map-pin"></i> @Model.Origin
+					</span>
+					<i class="fe fe-arrow-right route-arrow-large"></i>
+					<span>
+						<i class="fe fe-flag"></i> @Model.Destination
+					</span>
+				</div>
+			</div>
+		</div>
+
+		@if (TempData["Success"] != null)
+		{
+			<div class="alert alert-success alert-dismissible fade show" role="alert">
+				<i class="fe fe-check-circle"></i>
+				<span>@TempData["Success"]</span>
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			</div>
+		}
+
+		@if (TempData["Error"] != null)
+		{
+			<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				<i class="fe fe-alert-circle"></i>
+				<span>@TempData["Error"]</span>
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			</div>
+		}
+
+		<div class="action-buttons">
+			<a class="btn-back" asp-action="Index">
+				<i class="fe fe-arrow-left"></i>
+				Back to Trips
+			</a>
+			<a class="btn-refresh" asp-action="Details" asp-protect-route-id="@Model.Id">
+				<i class="fe fe-refresh-cw"></i>
+				Refresh
+			</a>
+		</div>
+
+		<div class="info-grid">
+			<div class="info-card">
+				<div class="info-card-header">
+					<div class="info-icon">
+						<i class="fe fe-truck"></i>
+					</div>
+					<h3 class="info-card-title">Vehicle & Driver</h3>
+				</div>
+				<div class="info-card-body">
+					<div class="info-item">
+						<div class="info-label">Vehicle</div>
+						<div class="info-value info-value-large">
+							<i class="fe fe-credit-card"></i>
+							@(Model.VehiclePlateNo ?? "Not assigned")
+						</div>
+					</div>
+					<div class="info-item">
+						<div class="info-label">Driver</div>
+						<div class="info-value">
+							<i class="fe fe-user"></i>
+							@(Model.DriverName ?? "Not assigned")
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="info-card">
+				<div class="info-card-header">
+					<div class="info-icon">
+						<i class="fe fe-clock"></i>
+					</div>
+					<h3 class="info-card-title">Schedule</h3>
+				</div>
+				<div class="info-card-body">
+					<div class="info-item">
+						<div class="info-label">Start Time</div>
+						<div class="info-value">
+							<i class="fe fe-calendar"></i>
+							@Model.ScheduledStartDate.ToLocalTime().ToString("MMM dd, yyyy")
+							<br />
+							<i class="fe fe-clock"></i>
+							@Model.ScheduledStartDate.ToLocalTime().ToString("h:mm tt")
+						</div>
+					</div>
+					<div class="info-item">
+						<div class="info-label">End Time</div>
+						<div class="info-value">
+							<i class="fe fe-calendar"></i>
+							@Model.ScheduledEndDate.ToLocalTime().ToString("MMM dd, yyyy")
+							<br />
+							<i class="fe fe-clock"></i>
+							@Model.ScheduledEndDate.ToLocalTime().ToString("h:mm tt")
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="info-card">
+				<div class="info-card-header">
+					<div class="info-icon">
+						<i class="fe fe-info"></i>
+					</div>
+					<h3 class="info-card-title">Trip Information</h3>
+				</div>
+				<div class="info-card-body">
+					<div class="info-item">
+						<div class="info-label">Purpose</div>
+						<div class="info-value">@Model.Purpose</div>
+					</div>
+					@if (!string.IsNullOrWhiteSpace(Model.Notes))
+					{
+						<div class="info-item">
+							<div class="info-label">Notes</div>
+							<div class="info-value">@Model.Notes</div>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+
+		@if (Model.Status == TripStatus.Assigned || Model.Status == TripStatus.InProgress)
+		{
+			<div class="trip-actions-card">
+				@if (Model.Status == TripStatus.Assigned)
+				{
+					<h3>
+						<i class="fe fe-play-circle"></i>
+						Ready to Start Your Trip?
+					</h3>
+					<button class="btn-start-trip openStartModal" data-tripid="@Model.Id">
+						<i class="fe fe-play"></i>
+						Start Trip
+					</button>
+				}
+				else if (Model.Status == TripStatus.InProgress)
+				{
+					<h3>
+						<i class="fe fe-flag"></i>
+						Ready to Complete Your Trip?
+					</h3>
+					<button class="btn-complete-trip openCompleteModal" data-tripid="@Model.Id">
+						<i class="fe fe-check-circle"></i>
+						Complete Trip
+					</button>
+				}
+			</div>
+		}
+	</div>
+</div>
+
+<!-- Start Modal -->
+<div class="modal fade" id="startModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content" style="border-radius: 14px; border: none;">
+			<div class="modal-header" style="background: #00664c; color: white; border-radius: 14px 14px 0 0; padding: 20px 24px;">
+				<h5 class="modal-title" style="font-weight: 700; display: flex; align-items: center; gap: 10px; margin: 0;">
+					<i class="fe fe-play-circle"></i>
+					Start Trip
+				</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body" id="startModalBody" style="padding: 24px;">
+				<div class="text-center py-4"><div class="spinner-border" style="color: #00664c;" role="status"></div></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Complete Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content" style="border-radius: 14px; border: none;">
+			<div class="modal-header" style="background: #c07800; color: white; border-radius: 14px 14px 0 0; padding: 20px 24px;">
+				<h5 class="modal-title" style="font-weight: 700; display: flex; align-items: center; gap: 10px; margin: 0;">
+					<i class="fe fe-flag"></i>
+					Complete Trip
+				</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body" id="completeModalBody" style="padding: 24px;">
+				<div class="text-center py-4"><div class="spinner-border" style="color: #c07800;" role="status"></div></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+	window.startUrlTemplate = '@Url.Action("Start", "DriverTrips", new { area = "User", id = "__id__" })';
+	window.completeUrlTemplate = '@Url.Action("Complete", "DriverTrips", new { area = "User", id = "__id__" })';
+
+	function buildUrlFromTemplate(tpl, id) {
+		return tpl.replace('__id__', encodeURIComponent(id));
+	}
+
+	function loadStartModal(tripId) {
+		var url = buildUrlFromTemplate(window.startUrlTemplate, tripId);
+		$('#startModalBody').html('<div class="text-center py-4"><div class="spinner-border" style="color: #00664c;" role="status"></div></div>');
+		var modal = new bootstrap.Modal(document.getElementById('startModal'));
+		modal.show();
+
+		$.get(url, function (html) {
+			$('#startModalBody').html(html);
+			$('#startModalBody').find('input[name="TripId"]').val(tripId);
+			if (window.bindStartForm) window.bindStartForm();
+		}).fail(function (xhr) {
+			$('#startModalBody').html('<div class="p-3 text-danger"><i class="fe fe-alert-triangle"></i> Failed to load form: ' + xhr.responseText + '</div>');
+		});
+	}
+
+	function loadCompleteModal(tripId) {
+		var url = buildUrlFromTemplate(window.completeUrlTemplate, tripId);
+		$('#completeModalBody').html('<div class="text-center py-4"><div class="spinner-border" style="color: #c07800;" role="status"></div></div>');
+		var modal = new bootstrap.Modal(document.getElementById('completeModal'));
+		modal.show();
+
+		$.get(url, function (html) {
+			$('#completeModalBody').html(html);
+			$('#completeModalBody').find('input[name="TripId"]').val(tripId);
+			if (window.bindCompleteForm) window.bindCompleteForm();
+		}).fail(function (xhr) {
+			$('#completeModalBody').html('<div class="p-3 text-danger"><i class="fe fe-alert-triangle"></i> Failed to load form: ' + xhr.responseText + '</div>');
+		});
+	}
+
+	$(function () {
+		$(document).on('click', '.openStartModal', function (e) {
+			e.preventDefault();
+			var id = $(this).data('tripid');
+			loadStartModal(id);
+		});
+		$(document).on('click', '.openCompleteModal', function (e) {
+			e.preventDefault();
+			var id = $(this).data('tripid');
+			loadCompleteModal(id);
+		});
+	});
+
+	window.bindStartForm = function() {
+		console.log('global bindStartForm called');
+
+		const $container = $('#startModalBody');
+		if (!$container.length) {
+			console.warn('bindStartForm: #startModalBody not found');
+			return;
+		}
+
+		const $fillBtn = $container.find('#fillLocationBtn');
+		const $geoAccuracy = $container.find('#geoAccuracy');
+		const $geoAddress = $container.find('#geoAddress');
+		const $geoMessage = $container.find('#geoMessage');
+		const $lat = $container.find('#lat');
+		const $lon = $container.find('#lon');
+		const $latAcc = $container.find('#latAcc');
+
+		let isLocating = false;
+
+		function setGeoSpinner(on) {
+			isLocating = on;
+			$fillBtn.find('#geoBtnSpinner').toggle(on);
+			$fillBtn.find('#geoBtnIcon').toggle(!on);
+			$fillBtn.find('#geoBtnText').text(on ? 'Locating...' : 'Get My Location');
+			$fillBtn.prop('disabled', on);
+		}
+
+		function setGeoAccuracy(accuracy) {
+			$geoAccuracy.removeClass('accuracy-excellent accuracy-good accuracy-fair accuracy-poor accuracy-none');
+
+			if (accuracy === null) {
+				$geoAccuracy.addClass('accuracy-none')
+					.html('<i class="fe fe-help-circle"></i> No Location');
+			} else if (accuracy <= 10) {
+				$geoAccuracy.addClass('accuracy-excellent')
+					.html('<i class="fe fe-check-circle"></i> Excellent (±' + Math.round(accuracy) + 'm)');
+			} else if (accuracy <= 50) {
+				$geoAccuracy.addClass('accuracy-good')
+					.html('<i class="fe fe-check-circle"></i> Good (±' + Math.round(accuracy) + 'm)');
+			} else if (accuracy <= 100) {
+				$geoAccuracy.addClass('accuracy-fair')
+					.html('<i class="fe fe-alert-circle"></i> Fair (±' + Math.round(accuracy) + 'm)');
+			} else {
+				$geoAccuracy.addClass('accuracy-poor')
+					.html('<i class="fe fe-alert-triangle"></i> Poor (±' + Math.round(accuracy) + 'm)');
+			}
+		}
+
+		function setGeoAddress(address) {
+			if (address) {
+				$geoAddress.html('<i class="fe fe-map-pin"></i> <span>' + address + '</span>');
+			} else {
+				$geoAddress.html('<i class="fe fe-map-pin"></i> <span>Address unavailable</span>');
+			}
+		}
+
+		function showGeoMessage(text, type) {
+			const icons = { 'info': 'fe-info', 'error': 'fe-alert-triangle', 'success': 'fe-check-circle' };
+			$geoMessage.removeClass('info error success').addClass(type);
+			$geoMessage.find('i').removeClass().addClass('fe ' + icons[type]);
+			$geoMessage.find('span').text(text);
+			$geoMessage.show();
+		}
+
+		function hideGeoMessage() { $geoMessage.hide(); }
+
+		async function reverseGeocode(lat, lon) {
+			try {
+				const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1`;
+				const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+				if (!resp.ok) {
+					console.warn('reverseGeocode response not ok', resp.status);
+					return null;
+				}
+				const data = await resp.json();
+				console.log('Reverse geocode data:', data);
+				return data.display_name || null;
+			} catch (err) {
+				console.error('reverseGeocode failed', err);
+				return null;
+			}
+		}
+
+		async function attemptGeolocation() {
+			if (!navigator.geolocation) {
+				showGeoMessage('Geolocation is not supported by your browser', 'error');
+				return;
+			}
+
+			setGeoSpinner(true);
+			showGeoMessage('Requesting your location...', 'info');
+
+			navigator.geolocation.getCurrentPosition(
+				async function(pos) {
+					const lat = pos.coords.latitude;
+					const lon = pos.coords.longitude;
+					const acc = pos.coords.accuracy || 0;
+
+					$lat.val(lat);
+					$lon.val(lon);
+					$latAcc.val(acc);
+
+					setGeoSpinner(false);
+					setGeoAccuracy(acc);
+					showGeoMessage('Location captured successfully!', 'success');
+
+					setGeoAddress('Loading address...');
+					const address = await reverseGeocode(lat, lon);
+					setGeoAddress(address || 'Address lookup failed');
+
+					setTimeout(hideGeoMessage, 3000);
+				},
+				function(err) {
+					setGeoSpinner(false);
+					setGeoAccuracy(null);
+					let msg = 'Could not get your location';
+					if (err.code === 1) msg = 'Location permission denied. Enable location access in your browser settings.';
+					else if (err.code === 2) msg = 'Location unavailable. Make sure GPS is enabled and try again outdoors.';
+					else if (err.code === 3) msg = 'Location request timed out. Please try again.';
+					showGeoMessage(msg, 'error');
+					setGeoAddress('Click "Get My Location" to capture your current position');
+				},
+				{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+			);
+		}
+
+		// auto-run once
+		setTimeout(attemptGeolocation, 500);
+
+		// click handler
+		$fillBtn.off('click').on('click', function(e) {
+			e.preventDefault();
+			if (!isLocating) attemptGeolocation();
+		});
+	};
+</script>

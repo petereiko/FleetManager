@@ -1,4 +1,5 @@
 ﻿using FleetManager.Business.Enums;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +18,7 @@ namespace FleetManager.Business.DataObjects
         public string Reason { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
         public bool IsMinimal { get; set; } = false;
+        public List<IFormFile>? ProofFiles { get; set; }
+        public List<long>? DeletedAttachmentIds { get; set; }   // for Update
     }
 }

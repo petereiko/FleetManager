@@ -16,6 +16,7 @@ namespace FleetManager.Business.Interfaces.FineAndTollModule
         IQueryable<FineAndTollDto> QueryByBranch(long? branchId = null);
         Task<FineAndTollDto?> GetByIdAsync(long id);
         Task<MessageResponse<FineAndTollDto>> CreateAsync(FineAndTollInputDto input, string createdByUserId);
+        Task<MessageResponse<FineAndTollDto>> UpdateAsync(long id, FineAndTollInputDto input, string modifiedByUserId);
         Task<MessageResponse<FineAndTollDto>> UpdateStatusAsync(long id, FineTollStatus newStatus, string modifiedByUserId);
         //Task<MessageResponse> DeleteAsync(long id);
         Task<MessageResponse> DeleteAsync(long id, string driverUserId);

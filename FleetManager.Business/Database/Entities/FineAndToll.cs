@@ -26,5 +26,7 @@ namespace FleetManager.Business.Database.Entities
         public  long? CompanyBranchId { get; set; }
         public virtual CompanyBranch CompanyBranch { get; set; }
 
+        public virtual ICollection<FineAndTollAttachment> Attachments { get; set; } = new List<FineAndTollAttachment>();
+
     }
 }

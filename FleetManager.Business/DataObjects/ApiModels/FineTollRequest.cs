@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -35,5 +36,7 @@ namespace FleetManager.Business.DataObjects.ApiModels
 
         [Display(Name = "Driver Covered Fee?")]
         public bool IsMinimal { get; set; } = false;
+
+        public List<IFormFile>? Attachments { get; set; }
     }
 }

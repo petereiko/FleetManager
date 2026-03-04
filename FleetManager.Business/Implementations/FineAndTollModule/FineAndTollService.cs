@@ -58,6 +58,10 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
             return _context.FineAndTolls.AsNoTracking()
                 .Include(x => x.Driver)
                 .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.VehicleMake)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.VehicleModel)
+                .Include(x => x.Attachments)
                 .Where(e => e.CompanyBranchId == branch)
                 .Select(e => new FineAndTollDto
                 {
@@ -65,9 +69,14 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     DriverId = e.DriverId,
                     DriverName = e.Driver.FirstName + " " + e.Driver.LastName,
                     VehicleId = e.VehicleId,
-                    //VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
-                    VehicleDescription = e.Vehicle.CustomMakeName != null ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
-                    : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown") + " " + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "") + " " + e.Vehicle.PlateNo.ToUpper(),
+                    VehicleDescription =
+                        e.Vehicle.CustomMakeName != null
+                            ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
+                            : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown")
+                              + " "
+                              + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "")
+                              + " "
+                              + e.Vehicle.PlateNo.ToUpper(),
                     Type = e.Type,
                     Title = e.Title,
                     Amount = e.Amount,
@@ -81,17 +90,20 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     CreatedBy = e.CreatedBy,
                     ModifiedDate = e.ModifiedDate,
                     ModifiedBy = e.ModifiedBy,
-                    CompanyBranchId = e.CompanyBranchId
+                    CompanyBranchId = e.CompanyBranchId,
+                    AttachmentPaths = e.Attachments.Select(a => a.FilePath).ToList()
                 });
         }
-
         // Driver: view own fines
         public IQueryable<FineAndTollDto> QueryByDriver(string driverUserId)
         {
-            // driver sees only their own
             return _context.FineAndTolls.AsNoTracking()
                 .Include(x => x.Driver)
                 .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.VehicleMake)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(v => v.VehicleModel)
+                .Include(x => x.Attachments)
                 .Where(e => e.DriverId == driverUserId)
                 .Select(e => new FineAndTollDto
                 {
@@ -99,9 +111,14 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     DriverId = e.DriverId,
                     DriverName = e.Driver.FirstName + " " + e.Driver.LastName,
                     VehicleId = e.VehicleId,
-                    //VehicleDescription = $"{e.Vehicle.VehicleMake.Name} {e.Vehicle.VehicleModel.Name} ({e.Vehicle.PlateNo.ToUpper()})",
-                    VehicleDescription = e.Vehicle.CustomMakeName != null ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
-                    : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown") + " " + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "") + " " + e.Vehicle.PlateNo.ToUpper(),
+                    VehicleDescription =
+                        e.Vehicle.CustomMakeName != null
+                            ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
+                            : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown")
+                              + " "
+                              + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "")
+                              + " "
+                              + e.Vehicle.PlateNo.ToUpper(),
                     Type = e.Type,
                     Title = e.Title,
                     Amount = e.Amount,
@@ -115,10 +132,10 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     CreatedBy = e.CreatedBy,
                     ModifiedDate = e.ModifiedDate,
                     ModifiedBy = e.ModifiedBy,
-                    CompanyBranchId = e.CompanyBranchId
+                    CompanyBranchId = e.CompanyBranchId,
+                    AttachmentPaths = e.Attachments.Select(a => a.FilePath).ToList()
                 });
         }
-
         // Get by Id (for both)
         public async Task<FineAndTollDto?> GetByIdAsync(long id)
         {
@@ -128,24 +145,10 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     .ThenInclude(v => v.VehicleMake)
                 .Include(x => x.Vehicle)
                     .ThenInclude(v => v.VehicleModel)
+                .Include(x => x.Attachments)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (e == null) return null;
-
-            // enforce branch for admins
-            if (!_auth.Roles.Split(',').Any(r => r.Trim() is "Super Admin" or "Company Owner" or "Company Admin")
-                && e.DriverId != _auth.UserId)
-            {
-                throw new UnauthorizedAccessException();
-            }
-
-            //string make = e.Vehicle?.VehicleMake?.Name ?? string.Empty;
-            //string model = e.Vehicle?.VehicleModel?.Name ?? string.Empty;
-            //string plate = e.Vehicle?.PlateNo?.ToUpper() ?? string.Empty;
-
-            //string vehicleDesc = string.IsNullOrWhiteSpace(make + model + plate)
-            //    ? string.Empty
-            //    : $"{make} {model} ({plate})".Trim();
 
             return new FineAndTollDto
             {
@@ -153,10 +156,14 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                 DriverId = e.DriverId,
                 DriverName = e.Driver.FirstName + " " + e.Driver.LastName,
                 VehicleId = e.VehicleId,
-                //VehicleDescription = vehicleDesc,
-                VehicleDescription = e.Vehicle.CustomMakeName != null ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
-                    : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown") + " " + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "") + " " + e.Vehicle.PlateNo.ToUpper(),
-
+                VehicleDescription =
+                    e.Vehicle.CustomMakeName != null
+                        ? (e.Vehicle.CustomMakeName + " " + e.Vehicle.CustomModelName).Trim() + " " + e.Vehicle.PlateNo.ToUpper()
+                        : (e.Vehicle.VehicleMake != null ? e.Vehicle.VehicleMake.Name : "Unknown")
+                          + " "
+                          + (e.Vehicle.VehicleModel != null ? e.Vehicle.VehicleModel.Name : "")
+                          + " "
+                          + e.Vehicle.PlateNo.ToUpper(),
                 Type = e.Type,
                 Title = e.Title,
                 Amount = e.Amount,
@@ -170,29 +177,26 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                 CreatedBy = e.CreatedBy,
                 ModifiedDate = e.ModifiedDate,
                 ModifiedBy = e.ModifiedBy,
-                CompanyBranchId = e.CompanyBranchId
+                CompanyBranchId = e.CompanyBranchId,
+                AttachmentPaths = e.Attachments.Select(a => a.FilePath).ToList()
             };
         }
-
         // Driver: create fine/toll
-        public async Task<MessageResponse<FineAndTollDto>> CreateAsync(FineAndTollInputDto input, string createdByUserId)
+        public async Task<MessageResponse<FineAndTollDto>> CreateAsync(
+            FineAndTollInputDto input,
+            string createdByUserId)
         {
             var resp = new MessageResponse<FineAndTollDto>();
+            using var tx = await _context.Database.BeginTransactionAsync();
+
             try
             {
-                // only drivers
                 var roles = (_auth.Roles ?? "").Split(',').Select(r => r.Trim());
                 if (!roles.Contains("Driver"))
                     throw new UnauthorizedAccessException("Only drivers can log fines/tolls.");
 
-                // load driver entity to get their name
-                var driver = await _context.Drivers
-                                           .Include(d => d.User)
-                                           .SingleAsync(d => d.UserId == createdByUserId);
-                var driverName = $"{driver.User.FirstName} {driver.User.LastName}";
-
-
                 var branchId = _auth.CompanyBranchId;
+
                 var entity = new FineAndToll
                 {
                     DriverId = createdByUserId,
@@ -205,7 +209,7 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     Notes = input.Notes,
                     IsMinimal = input.IsMinimal,
                     Status = FineTollStatus.Unpaid,
-                    PaidDate = input.IsMinimal ? DateTime.UtcNow : (DateTime?)null,
+                    PaidDate = input.IsMinimal ? DateTime.UtcNow : null,
                     CompanyBranchId = branchId,
                     CreatedDate = DateTime.UtcNow,
                     CreatedBy = createdByUserId
@@ -214,59 +218,154 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                 _context.FineAndTolls.Add(entity);
                 await _context.SaveChangesAsync();
 
-                var dto = new FineAndTollDto
+                if (input.ProofFiles != null && input.ProofFiles.Any())
                 {
-                    Id = entity.Id,
-                    DriverId = entity.DriverId,
-                    VehicleId = entity.VehicleId,
-                    VehicleDescription = "",
-                    DriverName = driverName,
-                    Type = entity.Type,
-                    Title = entity.Title,
-                    Amount = entity.Amount,
-                    Currency = entity.Currency,
-                    Reason = entity.Reason,
-                    Notes = entity.Notes,
-                    IsMinimal = entity.IsMinimal,
-                    Status = entity.Status,
-                    PaidDate = entity.PaidDate,
-                    CreatedDate = entity.CreatedDate,
-                    CreatedBy = entity.CreatedBy,
-                    CompanyBranchId = entity.CompanyBranchId
-                };
+                    var uploadRoot = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        "FineTollProofs");
+
+                    Directory.CreateDirectory(uploadRoot);
+
+                    foreach (var file in input.ProofFiles)
+                    {
+                        if (file.Length <= 0) continue;
+
+                        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                        var fullPath = Path.Combine(uploadRoot, fileName);
+
+                        await using var fs = new FileStream(fullPath, FileMode.Create);
+                        await file.CopyToAsync(fs);
+
+                        _context.FineAndTollAttachments.Add(
+                            new FineAndTollAttachment
+                            {
+                                FineAndTollId = entity.Id,
+                                FileName = file.FileName,
+                                FilePath = $"/FineTollProofs/{fileName}",
+                                CreatedBy = createdByUserId,
+                                CreatedDate = DateTime.UtcNow
+                            });
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
+                await tx.CommitAsync();
 
                 resp.Success = true;
-                resp.Result = dto;
-
-                // notify branch admins
-                var branchAdmins = await _context.CompanyAdmins
-                    .Where(ca => ca.CompanyBranchId == branchId && ca.IsActive)
-                    .Select(ca => ca.UserId)
-                    .Where(id => !string.IsNullOrEmpty(id))
-                    .ToListAsync();
-
-                var notificationTitle = input.Type == FineTollType.Fine ? "New Fine Logged" : "New Toll Logged";
-                var notificationMessage = $"{driverName} logged a {input.Type} fee of {entity.Amount} on {entity.CreatedDate:dd MMM yyyy} (Unpaid).";
-
-                foreach (var adminId in branchAdmins)
-                {
-                    await _notification.CreateAsync(
-                        adminId,
-                        notificationTitle,
-                        notificationMessage,
-                        NotificationType.Info,
-                        new { fineId = dto.Id }
-                    );
-                }
+                resp.Result = await GetByIdAsync(entity.Id)!;
             }
             catch (Exception ex)
             {
+                await tx.RollbackAsync();
                 _logger.LogError(ex, "Error creating FineAndToll record");
                 resp.Message = "An unexpected error occurred while creating the record.";
             }
 
             return resp;
         }
+
+
+        public async Task<MessageResponse<FineAndTollDto>> UpdateAsync(
+    long id,
+    FineAndTollInputDto input,
+    string modifiedByUserId)
+        {
+            var resp = new MessageResponse<FineAndTollDto>();
+            using var tx = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var entity = await _context.FineAndTolls
+                    .Include(x => x.Attachments)
+                    .FirstOrDefaultAsync(x => x.Id == id);
+
+                if (entity == null)
+                {
+                    resp.Message = "Record not found.";
+                    return resp;
+                }
+
+                entity.Type = input.Type;
+                entity.Title = input.Title;
+                entity.Amount = input.Amount;
+                entity.Currency = input.Currency;
+                entity.Reason = input.Reason;
+                entity.Notes = input.Notes;
+                entity.IsMinimal = input.IsMinimal;
+                entity.ModifiedBy = modifiedByUserId;
+                entity.ModifiedDate = DateTime.UtcNow;
+
+                // REMOVE selected attachments
+                if (input.DeletedAttachmentIds != null && input.DeletedAttachmentIds.Any())
+                {
+                    var toDelete = entity.Attachments
+                        .Where(a => input.DeletedAttachmentIds.Contains(a.Id))
+                        .ToList();
+
+                    foreach (var att in toDelete)
+                    {
+                        var full = Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot",
+                            att.FilePath.TrimStart('/'));
+
+                        if (File.Exists(full))
+                            File.Delete(full);
+
+                        _context.FineAndTollAttachments.Remove(att);
+                    }
+                }
+
+                // ADD new files
+                if (input.ProofFiles != null && input.ProofFiles.Any())
+                {
+                    var uploadRoot = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        "FineTollProofs");
+
+                    Directory.CreateDirectory(uploadRoot);
+
+                    foreach (var file in input.ProofFiles)
+                    {
+                        if (file.Length <= 0) continue;
+
+                        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                        var fullPath = Path.Combine(uploadRoot, fileName);
+
+                        await using var fs = new FileStream(fullPath, FileMode.Create);
+                        await file.CopyToAsync(fs);
+
+                        _context.FineAndTollAttachments.Add(
+                            new FineAndTollAttachment
+                            {
+                                FineAndTollId = entity.Id,
+                                FileName = file.FileName,
+                                FilePath = $"/FineTollProofs/{fileName}",
+                                CreatedBy = modifiedByUserId,
+                                CreatedDate = DateTime.UtcNow
+                            });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                resp.Success = true;
+                resp.Result = await GetByIdAsync(id)!;
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "Error updating FineAndToll record {Id}", id);
+                resp.Message = "An error occurred while updating the record.";
+            }
+
+            return resp;
+        }
+
 
         // Admin: change status to Paid
         public async Task<MessageResponse<FineAndTollDto>> UpdateStatusAsync(long id, FineTollStatus newStatus, string modifiedByUserId)
@@ -321,9 +420,11 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
         public async Task<MessageResponse> DeleteAsync(long id, string driverUserId)
         {
             var resp = new MessageResponse();
+
             try
             {
                 var entity = await _context.FineAndTolls
+                    .Include(x => x.Attachments)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (entity == null)
@@ -332,41 +433,38 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                     return resp;
                 }
 
-                // ✅ Driver can only delete their own records
                 if (entity.DriverId != driverUserId)
-                {
-                    throw new UnauthorizedAccessException(
-                        "You can only delete your own fine/toll records");
-                }
+                    throw new UnauthorizedAccessException("You can only delete your own records");
 
-                // ✅ Cannot delete already paid records
                 if (entity.Status == FineTollStatus.Paid)
                 {
-                    resp.Message = "Cannot delete a paid fine/toll record";
+                    resp.Message = "Cannot delete a paid record";
                     return resp;
                 }
 
+                foreach (var att in entity.Attachments)
+                {
+                    var full = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        att.FilePath.TrimStart('/'));
+
+                    if (File.Exists(full))
+                        File.Delete(full);
+                }
+
+                _context.FineAndTollAttachments.RemoveRange(entity.Attachments);
                 _context.FineAndTolls.Remove(entity);
+
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation(
-                    "Fine/Toll record {Id} deleted by driver {DriverUserId}",
-                    id, driverUserId);
-
                 resp.Success = true;
-                resp.Message = "Fine/Toll record deleted successfully";
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning(ex,
-                    "Unauthorized delete attempt on Fine/Toll {Id} by {UserId}",
-                    id, driverUserId);
-                throw; // Re-throw so controller can return 403
+                resp.Message = "Record deleted successfully";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting Fine/Toll record {Id}", id);
-                resp.Message = "An error occurred while deleting the record";
+                _logger.LogError(ex, "Error deleting FineAndToll record {Id}", id);
+                resp.Message = "An error occurred while deleting the record.";
             }
 
             return resp;
@@ -394,4 +492,5 @@ namespace FleetManager.Business.Implementations.FineAndTollModule
                 .ToList();
         }
     }
+
 }

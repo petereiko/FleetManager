@@ -21,5 +21,6 @@ namespace FleetManager.Business.DataObjects.ApiModels
         public string Status { get; set; } = string.Empty;
         public DateTime? PaidDate { get; set; }
         public DateTime DateLogged { get; set; }
+        public List<string> AttachmentUrls { get; set; } = new();
     }
 }

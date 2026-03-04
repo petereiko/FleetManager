@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\Dashboard\DriverDashboard.cshtml\**" />
+    <Content Remove="Views\Dashboard\DriverDashboard.cshtml\**" />
+    <EmbeddedResource Remove="Views\Dashboard\DriverDashboard.cshtml\**" />
+    <None Remove="Views\Dashboard\DriverDashboard.cshtml\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Hangfire" Version="1.8.18" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.15" />

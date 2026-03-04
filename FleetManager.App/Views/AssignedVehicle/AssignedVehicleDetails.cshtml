@@ -1,0 +1,965 @@
+@using FleetManager.Business.DataObjects.VehicleDto
+@model VehicleDto
+
+<style>
+	/* ══════════════════════════════════════════════════════
+	   VEHICLE DETAILS — Fleetalia v4 Theme
+	   Clean navy+green, professional, minimal gradients
+	══════════════════════════════════════════════════════ */
+
+	:root {
+		--navy:       #1B2856;
+		--green:      #00664c;
+		--green-light:#00875f;
+		--green-pale: #6ee7b7;
+		--white:      #ffffff;
+		--surface:    #f7f8fa;
+		--border:     #e2e4e8;
+		--dark:       #1a1c20;
+		--dark-60:    rgba(26,28,32,0.60);
+		--dark-35:    rgba(26,28,32,0.35);
+		--danger:     #c0392b;
+		--warn:       #c07800;
+	}
+
+	.main-container {
+		padding-bottom: 60px;
+	}
+
+	/* Detail sections */
+	.vd-section {
+		background: var(--white);
+		border: 1px solid var(--border);
+		border-radius: 14px;
+		margin-bottom: 20px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+		overflow: hidden;
+	}
+
+	.vd-header {
+		background: var(--navy);
+		color: #fff;
+		padding: 16px 22px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.vd-header h5 {
+		margin: 0;
+		font-size: 15px;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.vd-header i {
+		color: var(--green-pale);
+		font-size: 16px;
+	}
+
+	.vd-body {
+		padding: 24px;
+	}
+
+	/* Overview header */
+	.overview-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		align-items: center;
+	}
+
+	.status-badge {
+		padding: 6px 14px;
+		border-radius: 99px;
+		font-size: 12px;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.status-badge i {
+		font-size: 8px;
+	}
+
+	.status-active {
+		background: rgba(0,102,76,0.1);
+		color: var(--green);
+		border: 1px solid rgba(0,102,76,0.2);
+	}
+
+	.status-inactive {
+		background: rgba(192,57,43,0.1);
+		color: var(--danger);
+		border: 1px solid rgba(192,57,43,0.2);
+	}
+
+	.status-maintenance {
+		background: rgba(192,120,0,0.1);
+		color: var(--warn);
+		border: 1px solid rgba(192,120,0,0.2);
+	}
+
+	.type-badge {
+		background: var(--surface);
+		color: var(--dark-60);
+		padding: 6px 14px;
+		border-radius: 99px;
+		font-size: 12px;
+		font-weight: 600;
+		border: 1px solid var(--border);
+	}
+
+	.plate-text {
+		color: var(--dark-60);
+		font-size: 13px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.overview-right {
+		text-align: right;
+		color: var(--dark-60);
+		font-size: 12px;
+	}
+
+	/* Info grid */
+	.info-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 14px;
+	}
+
+	.info-item {
+		display: flex;
+		align-items: center;
+		padding: 14px;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-left: 3px solid var(--green);
+		border-radius: 10px;
+	}
+
+	.info-icon {
+		width: 20px;
+		margin-right: 12px;
+		text-align: center;
+		color: var(--green);
+		font-size: 16px;
+	}
+
+	.info-content {
+		flex: 1;
+	}
+
+	.info-label {
+		font-weight: 600;
+		color: var(--dark-60);
+		margin-bottom: 2px;
+		font-size: 12px;
+	}
+
+	.info-value {
+		color: var(--dark);
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	/* Warning states */
+	.info-item.warning {
+		border-left-color: var(--warn);
+		background: rgba(192,120,0,0.04);
+	}
+
+	.info-item.danger {
+		border-left-color: var(--danger);
+		background: rgba(192,57,43,0.04);
+	}
+
+	.warning-text {
+		color: var(--warn);
+		font-size: 11px;
+		margin-top: 4px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.danger-text {
+		color: var(--danger);
+		font-size: 11px;
+		margin-top: 4px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	/* Timeline */
+	.timeline-item {
+		position: relative;
+		padding-left: 32px;
+		margin-bottom: 20px;
+	}
+
+	.timeline-item::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 8px;
+		width: 12px;
+		height: 12px;
+		background: var(--green);
+		border-radius: 50%;
+		border: 3px solid var(--white);
+		box-shadow: 0 0 0 2px var(--green);
+	}
+
+	.timeline-item::after {
+		content: '';
+		position: absolute;
+		left: 5px;
+		top: 24px;
+		width: 2px;
+		height: calc(100% - 4px);
+		background: var(--border);
+	}
+
+	.timeline-item:last-child::after {
+		display: none;
+	}
+
+	.timeline-title {
+		font-weight: 600;
+		color: var(--dark);
+		margin-bottom: 4px;
+		font-size: 14px;
+	}
+
+	.timeline-text {
+		color: var(--dark-60);
+		font-size: 13px;
+		margin: 0;
+	}
+
+	.timeline-badge {
+		background: var(--warn);
+		color: #fff;
+		padding: 4px 10px;
+		border-radius: 99px;
+		font-size: 11px;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		margin-top: 6px;
+	}
+
+	/* Photo gallery */
+	.photo-gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 14px;
+	}
+
+	.photo-item {
+		position: relative;
+		border-radius: 12px;
+		overflow: hidden;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		transition: all 0.2s;
+		cursor: pointer;
+		border: 1px solid var(--border);
+	}
+
+	.photo-item:hover {
+		transform: scale(1.03);
+		box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+	}
+
+	.photo-item img {
+		width: 100%;
+		height: 150px;
+		object-fit: cover;
+	}
+
+	.photo-overlay {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background: linear-gradient(transparent, rgba(27,40,86,0.85));
+		color: #fff;
+		padding: 20px 12px 12px;
+		font-size: 12px;
+	}
+
+	/* Empty state */
+	.empty-state {
+		text-align: center;
+		padding: 50px 20px;
+		color: var(--dark-35);
+	}
+
+	.empty-state i {
+		font-size: 3rem;
+		margin-bottom: 16px;
+		opacity: 0.2;
+	}
+
+	.empty-state h6 {
+		font-weight: 600;
+		color: var(--dark);
+		margin-bottom: 6px;
+	}
+
+	.empty-state p {
+		margin: 0;
+		font-size: 13px;
+	}
+
+	/* Quick actions */
+	.quick-actions {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 20px;
+		margin-bottom: 20px;
+	}
+
+	.qa-header {
+		margin-bottom: 4px;
+		font-weight: 600;
+		color: var(--dark);
+		font-size: 14px;
+	}
+
+	.qa-subtext {
+		color: var(--dark-60);
+		font-size: 12px;
+		margin-bottom: 16px;
+	}
+
+	.btn-action {
+		background: var(--green);
+		border: none;
+		color: #fff;
+		padding: 10px 20px;
+		border-radius: 10px;
+		font-size: 13px;
+		font-weight: 600;
+		transition: all 0.2s;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.btn-action:hover {
+		background: var(--green-light);
+		color: #fff;
+		transform: translateY(-1px);
+	}
+
+	/* Loading overlay */
+	.loading-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0,0,0,0.6);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1070;
+		backdrop-filter: blur(3px);
+	}
+
+	.loading-content {
+		background: var(--white);
+		padding: 32px;
+		border-radius: 14px;
+		text-align: center;
+		box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+		max-width: 300px;
+	}
+
+	.loading-spinner {
+		width: 40px;
+		height: 40px;
+		border: 4px solid var(--surface);
+		border-top: 4px solid var(--green);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		margin: 0 auto 16px;
+	}
+
+	@@keyframes spin {
+		to { transform: rotate(360deg); }
+	}
+
+	/* Alert */
+	.custom-alert {
+		position: fixed;
+		top: 20px;
+		right: 20px;
+		z-index: 1080;
+		min-width: 300px;
+		max-width: 500px;
+		background: var(--white);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+		animation: slideInRight 0.3s ease-out;
+	}
+
+	.custom-alert.hiding {
+		animation: slideOutRight 0.3s ease-in;
+	}
+
+	@@keyframes slideInRight {
+		from { transform: translateX(100%); opacity: 0; }
+		to { transform: translateX(0); opacity: 1; }
+	}
+
+	@@keyframes slideOutRight {
+		from { transform: translateX(0); opacity: 1; }
+		to { transform: translateX(100%); opacity: 0; }
+	}
+
+	.alert-success {
+		background: rgba(0,102,76,0.1);
+		border-left: 5px solid var(--green);
+	}
+
+	.alert-error {
+		background: rgba(192,57,43,0.1);
+		border-left: 5px solid var(--danger);
+	}
+
+	.alert-warning {
+		background: rgba(192,120,0,0.1);
+		border-left: 5px solid var(--warn);
+	}
+
+	/* Responsive */
+	@@media (max-width: 768px) {
+		.info-grid {
+			grid-template-columns: 1fr;
+		}
+		.overview-meta {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		.overview-right {
+			text-align: left;
+		}
+	}
+</style>
+
+<div class="container-fluid p-0 main-container">
+	<!-- Vehicle Overview Header -->
+	<div class="vd-section">
+		<div class="vd-header">
+			<h5>
+				<i class="fe fe-truck"></i>
+				@(Model?.Make ?? "Unknown Make") @(Model?.Model ?? "Unknown Model") (@(Model?.Year.ToString() ?? "N/A"))
+			</h5>
+		</div>
+		<div class="vd-body">
+			<div class="row align-items-center">
+				<div class="col-md-8">
+					<div class="overview-meta">
+						<span class="status-badge status-@((Model?.VehicleStatus.ToString() ?? "active").ToLower())">
+							<i class="fe fe-circle"></i>@(Model?.VehicleStatus.ToString() ?? "Active")
+						</span>
+						<span class="type-badge">@(Model?.VehicleType.ToString() ?? "Unknown Type")</span>
+						<span class="plate-text">
+							<i class="fe fe-hash"></i>@(Model?.PlateNo ?? "No Plate")
+						</span>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="overview-right">
+						<div><strong>VIN:</strong> @(Model?.VIN ?? "N/A")</div>
+						<div><strong>Registered:</strong> @(Model?.RegistrationDate?.ToString("dd MMM yyyy") ?? "N/A")</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<!-- Left Column -->
+		<div class="col-lg-6">
+			<!-- Basic Information -->
+			<div class="vd-section">
+				<div class="vd-header">
+					<h5><i class="fe fe-info"></i>Basic Information</h5>
+				</div>
+				<div class="vd-body">
+					<div class="info-grid">
+						<div class="info-item">
+							<i class="fe fe-briefcase info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Make</div>
+								<div class="info-value">@(Model?.Make ?? "Not Specified")</div>
+							</div>
+						</div>
+						<div class="info-item">
+							<i class="fe fe-truck info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Model</div>
+								<div class="info-value">@(Model?.Model ?? "Not Specified")</div>
+							</div>
+						</div>
+						<div class="info-item">
+							<i class="fe fe-calendar info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Year</div>
+								<div class="info-value">@(Model?.Year.ToString() ?? "Not Specified")</div>
+							</div>
+						</div>
+						<div class="info-item">
+							<i class="fe fe-droplet info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Color</div>
+								<div class="info-value">@(Model?.Color ?? "Not Specified")</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Technical Details -->
+			<div class="vd-section">
+				<div class="vd-header">
+					<h5><i class="fe fe-settings"></i>Technical Details</h5>
+				</div>
+				<div class="vd-body">
+					<div class="info-grid">
+						<div class="info-item">
+							<i class="fe fe-hash info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Engine Number</div>
+								<div class="info-value">@(Model?.EngineNumber ?? "Not Available")</div>
+							</div>
+						</div>
+						<div class="info-item">
+							<i class="fe fe-grid info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Chassis Number</div>
+								<div class="info-value">@(Model?.ChassisNumber ?? "Not Available")</div>
+							</div>
+						</div>
+						<div class="info-item @((Model?.Mileage ?? 0) > 100000 ? "warning" : "")">
+							<i class="fe fe-activity info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Mileage</div>
+								<div class="info-value">@((Model?.Mileage ?? 0).ToString("N0")) km</div>
+								@if ((Model?.Mileage ?? 0) > 100000)
+								{
+									<small class="warning-text">
+										<i class="fe fe-alert-triangle"></i>High Mileage
+									</small>
+								}
+							</div>
+						</div>
+						<div class="info-item">
+							<i class="fe fe-zap info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Fuel Type</div>
+								<div class="info-value">@(Model?.FuelType.ToString() ?? "Not Specified")</div>
+							</div>
+						</div>
+						<div class="info-item">
+							<i class="fe fe-settings info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Transmission</div>
+								<div class="info-value">@(Model?.TransmissionType.ToString() ?? "Not Specified")</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Service & Maintenance -->
+			<div class="vd-section">
+				<div class="vd-header">
+					<h5><i class="fe fe-tool"></i>Service & Maintenance</h5>
+				</div>
+				<div class="vd-body">
+					<div class="timeline-item">
+						<div class="timeline-title">Last Service</div>
+						<p class="timeline-text">
+							@if (Model?.LastServiceDate.HasValue == true)
+							{
+								@Model.LastServiceDate.Value.ToString("dd MMM yyyy")
+								<small style="color:var(--dark-35);">
+									(@((DateTime.Now - Model.LastServiceDate.Value).Days) days ago)
+								</small>
+								@if ((DateTime.Now - Model.LastServiceDate.Value).Days > 180)
+								{
+									<span class="timeline-badge">
+										<i class="fe fe-alert-triangle"></i>Service Due
+									</span>
+								}
+							}
+							else
+							{
+								<span style="color:var(--warn);">No service record</span>
+							}
+						</p>
+					</div>
+
+					@if (Model?.LastServiceDate.HasValue == true)
+					{
+						<div class="timeline-item">
+							<div class="timeline-title">Next Service Estimate</div>
+							<p class="timeline-text">
+								@Model.LastServiceDate.Value.AddMonths(6).ToString("dd MMM yyyy")
+								<small style="color:var(--dark-35);">(Estimated)</small>
+							</p>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+
+		<!-- Right Column -->
+		<div class="col-lg-6">
+			<!-- Insurance & Legal -->
+			<div class="vd-section">
+				<div class="vd-header">
+					<h5><i class="fe fe-shield"></i>Insurance & Legal</h5>
+				</div>
+				<div class="vd-body">
+					<div class="info-grid">
+						<div class="info-item">
+							<i class="fe fe-home info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Insurance Company</div>
+								<div class="info-value">@(Model?.InsuranceCompany ?? "Not Specified")</div>
+							</div>
+						</div>
+						<div class="info-item @(Model?.InsuranceExpiryDate.HasValue == true && Model.InsuranceExpiryDate.Value < DateTime.Now.AddDays(30) ? "danger" : Model?.InsuranceExpiryDate.HasValue == true && Model.InsuranceExpiryDate.Value < DateTime.Now.AddDays(90) ? "warning" : "")">
+							<i class="fe fe-calendar info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Insurance Expiry</div>
+								<div class="info-value">
+									@if (Model?.InsuranceExpiryDate.HasValue == true)
+									{
+										@Model.InsuranceExpiryDate.Value.ToString("dd MMM yyyy")
+										@if (Model.InsuranceExpiryDate.Value < DateTime.Now)
+										{
+											<small class="danger-text">
+												<i class="fe fe-x-circle"></i>Expired
+											</small>
+										}
+										else if (Model.InsuranceExpiryDate.Value < DateTime.Now.AddDays(30))
+										{
+											<small class="danger-text">
+												<i class="fe fe-alert-triangle"></i>Expires Soon
+											</small>
+										}
+										else if (Model.InsuranceExpiryDate.Value < DateTime.Now.AddDays(90))
+										{
+											<small class="warning-text">
+												<i class="fe fe-clock"></i>Expires in @((Model.InsuranceExpiryDate.Value - DateTime.Now).Days) days
+											</small>
+										}
+									}
+									else
+									{
+										<span style="color:var(--dark-35);">N/A</span>
+									}
+								</div>
+							</div>
+						</div>
+						<div class="info-item @(Model?.RoadWorthyExpiryDate.HasValue == true && Model.RoadWorthyExpiryDate.Value < DateTime.Now.AddDays(30) ? "danger" : Model?.RoadWorthyExpiryDate.HasValue == true && Model.RoadWorthyExpiryDate.Value < DateTime.Now.AddDays(90) ? "warning" : "")">
+							<i class="fe fe-map info-icon"></i>
+							<div class="info-content">
+								<div class="info-label">Road-Worthy Expiry</div>
+								<div class="info-value">
+									@if (Model?.RoadWorthyExpiryDate.HasValue == true)
+									{
+										@Model.RoadWorthyExpiryDate.Value.ToString("dd MMM yyyy")
+										@if (Model.RoadWorthyExpiryDate.Value < DateTime.Now)
+										{
+											<small class="danger-text">
+												<i class="fe fe-x-circle"></i>Expired
+											</small>
+										}
+										else if (Model.RoadWorthyExpiryDate.Value < DateTime.Now.AddDays(30))
+										{
+											<small class="danger-text">
+												<i class="fe fe-alert-triangle"></i>Expires Soon
+											</small>
+										}
+										else if (Model.RoadWorthyExpiryDate.Value < DateTime.Now.AddDays(90))
+										{
+											<small class="warning-text">
+												<i class="fe fe-clock"></i>Expires in @((Model.RoadWorthyExpiryDate.Value - DateTime.Now).Days) days
+											</small>
+										}
+									}
+									else
+									{
+										<span style="color:var(--dark-35);">N/A</span>
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Photos Section -->
+			<div class="vd-section">
+				<div class="vd-header">
+					<h5>
+						<i class="fe fe-camera"></i>
+						Vehicle Photos
+						@if (Model?.Photos != null && Model.Photos.Any())
+						{
+							<span class="badge bg-light text-dark ms-2" style="font-size:11px;">@Model.Photos.Count()</span>
+						}
+					</h5>
+				</div>
+				<div class="vd-body">
+					@if (Model?.Photos != null && Model.Photos.Any())
+					{
+						<div class="photo-gallery">
+							@foreach (var photo in Model.Photos)
+							{
+								<div class="photo-item" onclick="viewPhoto('@Url.Content(photo.FilePath)', '@(photo.FileName ?? "Vehicle Photo")')">
+									<img src="@Url.Content(photo.FilePath)" alt="@(photo.FileName ?? "Vehicle Photo")" loading="lazy" />
+									<div class="photo-overlay">
+										<div class="text-truncate">@(photo.FileName ?? "Vehicle Photo")</div>
+									</div>
+								</div>
+							}
+						</div>
+					}
+					else
+					{
+						<div class="empty-state">
+							<i class="fe fe-camera"></i>
+							<h6>No Photos Available</h6>
+							<p>No photos have been uploaded for this vehicle.</p>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Quick Actions -->
+	<div class="quick-actions">
+		<div class="row align-items-center">
+			<div class="col-md-8">
+				<h6 class="qa-header">Quick Actions</h6>
+				<p class="qa-subtext">Common actions for this vehicle</p>
+			</div>
+			<div class="col-md-4">
+				<button id="showRepairHistoryBtn" class="btn-action">
+					<i class="fe fe-message-square"></i>Make a Complaint
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+	<div class="loading-content">
+		<div class="loading-spinner"></div>
+		<h5 style="margin-bottom:8px;color:var(--dark);">Loading...</h5>
+		<p style="margin:0;color:var(--dark-60);font-size:13px;">Please wait while we fetch the repair history</p>
+	</div>
+</div>
+
+<!-- Photo Viewer Modal -->
+<div class="modal fade" id="photoViewerModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content" style="background: transparent; border: none;">
+			<div class="modal-body p-0 text-center">
+				<button type="button" class="btn-close position-absolute top-0 end-0 m-3 btn-close-white"
+						data-bs-dismiss="modal" aria-label="Close" style="z-index: 1060;"></button>
+				<img id="photoViewerImage" src="" alt="" class="img-fluid rounded" style="max-height: 80vh;" />
+				<div class="mt-3 text-white">
+					<h5 id="photoViewerTitle"></h5>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	// Alert Manager
+	class AlertManager {
+		static show(message, type = 'info', duration = 5000) {
+			const alertId = 'alert-' + Date.now();
+			const iconClass = this.getIconClass(type);
+
+			const alertHtml = `
+				<div id="${alertId}" class="custom-alert alert-${type}">
+					<div class="d-flex align-items-center p-3">
+						<div class="flex-shrink-0 me-3">
+							<i class="${iconClass}" style="font-size: 1.2rem;"></i>
+						</div>
+						<div class="flex-grow-1">
+							<div class="fw-bold mb-1">${this.getAlertTitle(type)}</div>
+							<div>${message}</div>
+						</div>
+						<button type="button" class="btn-close ms-3" onclick="AlertManager.hide('${alertId}')" aria-label="Close"></button>
+					</div>
+				</div>
+			`;
+
+			document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+			if (duration > 0) {
+				setTimeout(() => this.hide(alertId), duration);
+			}
+
+			return alertId;
+		}
+
+		static hide(alertId) {
+			const alertElement = document.getElementById(alertId);
+			if (alertElement) {
+				alertElement.classList.add('hiding');
+				setTimeout(() => {
+					if (alertElement.parentNode) {
+						alertElement.parentNode.removeChild(alertElement);
+					}
+				}, 300);
+			}
+		}
+
+		static getIconClass(type) {
+			const icons = {
+				'success': 'fe fe-check-circle',
+				'error': 'fe fe-x-circle',
+				'warning': 'fe fe-alert-triangle',
+				'info': 'fe fe-info'
+			};
+			return icons[type] || icons['info'];
+		}
+
+		static getAlertTitle(type) {
+			const titles = {
+				'success': 'Success',
+				'error': 'Error',
+				'warning': 'Warning',
+				'info': 'Information'
+			};
+			return titles[type] || titles['info'];
+		}
+	}
+
+	// Loading Manager
+	class LoadingManager {
+		static show(message = 'Loading...') {
+			const overlay = document.getElementById('loadingOverlay');
+			const content = overlay.querySelector('.loading-content p');
+			if (content) {
+				content.textContent = message;
+			}
+			overlay.style.display = 'flex';
+			document.body.style.overflow = 'hidden';
+		}
+
+		static hide() {
+			const overlay = document.getElementById('loadingOverlay');
+			overlay.style.display = 'none';
+			document.body.style.overflow = '';
+		}
+	}
+
+	// Photo viewer
+	function viewPhoto(imageSrc, title) {
+		try {
+			if (!imageSrc) {
+				AlertManager.show('Image source not found', 'error');
+				return;
+			}
+
+			const photoImage = document.getElementById('photoViewerImage');
+			const photoTitle = document.getElementById('photoViewerTitle');
+
+			if (!photoImage || !photoTitle) {
+				AlertManager.show('Photo viewer not available', 'error');
+				return;
+			}
+
+			photoImage.style.opacity = '0.5';
+			photoTitle.textContent = 'Loading...';
+
+			photoImage.onerror = function() {
+				AlertManager.show('Failed to load image', 'error');
+				photoImage.style.opacity = '1';
+				photoTitle.textContent = 'Image not available';
+			};
+
+			photoImage.onload = function() {
+				photoImage.style.opacity = '1';
+				photoTitle.textContent = title || 'Vehicle Photo';
+			};
+
+			photoImage.src = imageSrc;
+
+			const photoModal = new bootstrap.Modal(document.getElementById('photoViewerModal'));
+			photoModal.show();
+
+		} catch (err) {
+			console.error('Error viewing photo:', err);
+			AlertManager.show('Failed to open photo viewer', 'error');
+		}
+	}
+
+	// Page initialization
+	document.addEventListener('DOMContentLoaded', function() {
+		try {
+			// Initialize tooltips
+			if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+				const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+				tooltipTriggerList.map(function (tooltipTriggerEl) {
+					return new bootstrap.Tooltip(tooltipTriggerEl);
+				});
+			}
+
+			// Show welcome message
+			setTimeout(() => {
+				AlertManager.show('Vehicle details loaded successfully', 'success', 3000);
+			}, 500);
+
+			// Check for expired documents
+			const expiredElements = document.querySelectorAll('.info-item.danger');
+			if (expiredElements.length > 0) {
+				setTimeout(() => {
+					AlertManager.show('Some vehicle documents have expired. Please check the details.', 'warning', 8000);
+				}, 2000);
+			}
+
+			const expiringElements = document.querySelectorAll('.info-item.warning');
+			if (expiringElements.length > 0 && expiredElements.length === 0) {
+				setTimeout(() => {
+					AlertManager.show('Some vehicle documents are expiring soon. Please review them.', 'info', 6000);
+				}, 3000);
+			}
+
+		} catch (err) {
+			console.error('Error during page initialization:', err);
+		}
+	});
+
+	// Cleanup
+	window.addEventListener('beforeunload', function() {
+		LoadingManager.hide();
+	});
+</script>

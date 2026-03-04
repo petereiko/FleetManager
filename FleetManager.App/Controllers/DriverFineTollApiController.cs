@@ -139,6 +139,7 @@ namespace FleetManager.App.Controllers
         /// Log a new fine or toll
         /// </summary>
         [HttpPost]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ApiResponse<FineTollResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateFineToll([FromBody] FineTollRequest request)
@@ -196,7 +197,8 @@ namespace FleetManager.App.Controllers
                     Currency = request.Currency,
                     Reason = request.Reason,
                     Notes = request.Notes ?? string.Empty,
-                    IsMinimal = request.IsMinimal
+                    IsMinimal = request.IsMinimal,
+                    ProofFiles = request.Attachments
                 };
 
                 var result = await _fineService.CreateAsync(input, _authUser.UserId);
@@ -242,6 +244,84 @@ namespace FleetManager.App.Controllers
                 });
             }
         }
+
+
+
+        /// <summary>
+        /// Update fine or toll
+        /// </summary>
+        [HttpPut("{id}")]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(typeof(ApiResponse<FineTollResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateFineToll(long id, [FromForm] FineTollRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ApiResponse<FineTollResponse>
+                    {
+                        Success = false,
+                        Message = "Validation failed"
+                    });
+                }
+
+                if (!Enum.TryParse<FineTollType>(request.Type, true, out var fineTollType))
+                {
+                    return BadRequest(new ApiResponse<FineTollResponse>
+                    {
+                        Success = false,
+                        Message = $"Invalid type '{request.Type}'"
+                    });
+                }
+
+                var input = new FineAndTollInputDto
+                {
+                    
+                    VehicleId = request.VehicleId,
+                    Type = fineTollType,
+                    Title = request.Title,
+                    Amount = request.Amount,
+                    Currency = request.Currency,
+                    Reason = request.Reason,
+                    Notes = request.Notes ?? string.Empty,
+                    IsMinimal = request.IsMinimal,
+                    ProofFiles = request.Attachments
+                };
+
+                var result = await _fineService.UpdateAsync(id,input, _authUser.UserId);
+
+                if (!result.Success)
+                {
+                    return BadRequest(new ApiResponse<FineTollResponse>
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(new ApiResponse<FineTollResponse>
+                {
+                    Success = true,
+                    Message = "Record updated successfully",
+                    Data = MapToFineTollResponse(result.Result)
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating fine/toll {Id}", id);
+                return StatusCode(500, new ApiResponse<FineTollResponse>
+                {
+                    Success = false,
+                    Message = "An error occurred while updating the record"
+                });
+            }
+        }
+
 
         /// <summary>
         /// Delete an unpaid fine/toll record
@@ -371,7 +451,8 @@ namespace FleetManager.App.Controllers
                 IsMinimal = dto.IsMinimal,
                 Status = dto.Status.ToString(),
                 PaidDate = dto.PaidDate,
-                DateLogged = dto.CreatedDate
+                DateLogged = dto.CreatedDate,
+                AttachmentUrls = dto.AttachmentPaths ?? new List<string>()
             };
         }
 

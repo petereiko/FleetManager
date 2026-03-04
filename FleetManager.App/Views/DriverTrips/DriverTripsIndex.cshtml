@@ -1,0 +1,508 @@
+@using FleetManager.Business.DataObjects.TripsDto
+@model List<TripListDto>
+@{
+    ViewData["Title"] = "My Trips";
+    var sortedTrips = Model?.OrderByDescending(t => t.ScheduledStartDate).ToList();
+}
+
+<style>
+	/* ══════════════════════════════════════════════════════
+	   DRIVER TRIPS INDEX — Fleetalia v4 Theme
+	   Professional navy+green, clean design
+	══════════════════════════════════════════════════════ */
+
+	.trips-wrapper {
+		max-width: 1400px;
+		margin: 0 auto;
+	}
+
+	/* Header */
+	.trips-header {
+		background: #1B2856;
+		border-radius: 14px;
+		padding: 32px;
+		margin-bottom: 24px;
+		box-shadow: 0 4px 16px rgba(27,40,86,0.15);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.trips-header::before {
+		content: '';
+		position: absolute;
+		top: -70px;
+		right: -70px;
+		width: 220px;
+		height: 220px;
+		border-radius: 50%;
+		background: rgba(0,102,76,0.06);
+	}
+
+	.trips-header-content {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 16px;
+	}
+
+	.trips-title {
+		color: #fff;
+		font-size: 28px;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin: 0;
+		letter-spacing: -0.5px;
+	}
+
+	.trips-title i {
+		color: #6ee7b7;
+		font-size: 30px;
+	}
+
+	.btn-refresh {
+		background: rgba(255,255,255,0.12);
+		border: 1.5px solid rgba(255,255,255,0.2);
+		color: #fff;
+		padding: 10px 20px;
+		border-radius: 10px;
+		font-size: 14px;
+		font-weight: 600;
+		transition: all 0.2s;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		text-decoration: none;
+	}
+
+	.btn-refresh:hover {
+		background: rgba(255,255,255,0.18);
+		color: #fff;
+		transform: translateY(-1px);
+	}
+
+	/* Trip Cards */
+	.trip-card {
+		background: #fff;
+		border: 1px solid #e2e4e8;
+		border-radius: 14px;
+		padding: 24px;
+		margin-bottom: 16px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+		transition: all 0.2s;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.trip-card::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		width: 4px;
+		background: #e2e4e8;
+	}
+
+	.trip-card.status-assigned::before {
+		background: #00664c;
+	}
+
+	.trip-card.status-inprogress::before {
+		background: #c07800;
+	}
+
+	.trip-card.status-completed::before {
+		background: #10b981;
+	}
+
+	.trip-card:hover {
+		box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+		transform: translateY(-2px);
+	}
+
+	.trip-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20px;
+		flex-wrap: wrap;
+		gap: 12px;
+	}
+
+	.trip-number {
+		font-size: 18px;
+		font-weight: 700;
+		color: #1a1c20;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.trip-number i {
+		color: #00664c;
+		font-size: 16px;
+	}
+
+	.status-badge {
+		padding: 6px 14px;
+		border-radius: 99px;
+		font-size: 12px;
+		font-weight: 700;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		text-transform: uppercase;
+		letter-spacing: 0.3px;
+	}
+
+	.status-assigned {
+		background: rgba(0,102,76,0.1);
+		color: #00664c;
+		border: 1px solid rgba(0,102,76,0.2);
+	}
+
+	.status-inprogress {
+		background: rgba(192,120,0,0.1);
+		color: #c07800;
+		border: 1px solid rgba(192,120,0,0.2);
+	}
+
+	.status-completed {
+		background: rgba(16,185,129,0.1);
+		color: #10b981;
+		border: 1px solid rgba(16,185,129,0.2);
+	}
+
+	.status-badge i {
+		font-size: 10px;
+	}
+
+	/* Trip Details Grid */
+	.trip-details {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 16px;
+		margin-bottom: 20px;
+	}
+
+	.detail-item {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+	}
+
+	.detail-icon {
+		width: 40px;
+		height: 40px;
+		background: #f7f8fa;
+		border-radius: 10px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #00664c;
+		flex-shrink: 0;
+		font-size: 16px;
+	}
+
+	.detail-content {
+		flex: 1;
+	}
+
+	.detail-label {
+		font-size: 11px;
+		color: rgba(26,28,32,0.6);
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		margin-bottom: 4px;
+		font-weight: 600;
+	}
+
+	.detail-value {
+		color: #1a1c20;
+		font-weight: 600;
+		font-size: 14px;
+	}
+
+	.route-display {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+
+	.location {
+		font-weight: 700;
+	}
+
+	.route-arrow {
+		color: rgba(26,28,32,0.35);
+		font-size: 12px;
+	}
+
+	.date-display {
+		font-size: 14px;
+	}
+
+	.date-end {
+		font-size: 12px;
+		color: rgba(26,28,32,0.6);
+		margin-top: 4px;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	/* Trip Actions */
+	.trip-actions {
+		margin-top: 20px;
+		padding-top: 20px;
+		border-top: 1px solid #e2e4e8;
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.btn-details {
+		background: #00664c;
+		color: #fff;
+		padding: 10px 20px;
+		border-radius: 10px;
+		text-decoration: none;
+		font-weight: 600;
+		font-size: 14px;
+		transition: all 0.2s;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		border: none;
+	}
+
+	.btn-details:hover {
+		background: #00875f;
+		color: #fff;
+		transform: translateX(2px);
+	}
+
+	/* Empty State */
+	.empty-state {
+		text-align: center;
+		padding: 80px 20px;
+		background: #fff;
+		border: 1px solid #e2e4e8;
+		border-radius: 14px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	}
+
+	.empty-state i {
+		font-size: 4rem;
+		color: rgba(26,28,32,0.15);
+		margin-bottom: 20px;
+	}
+
+	.empty-state h3 {
+		color: #1a1c20;
+		font-weight: 700;
+		margin-bottom: 8px;
+		font-size: 20px;
+	}
+
+	.empty-state p {
+		color: rgba(26,28,32,0.6);
+		font-size: 14px;
+		margin: 0;
+	}
+
+	/* Alerts */
+	.alert {
+		border-radius: 12px;
+		padding: 16px 20px;
+		margin-bottom: 20px;
+		border: none;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.alert i {
+		font-size: 20px;
+	}
+
+	.alert-success {
+		background: rgba(0,102,76,0.1);
+		color: #00664c;
+		border: 1px solid rgba(0,102,76,0.2);
+	}
+
+	.alert-danger {
+		background: rgba(192,57,43,0.1);
+		color: #c0392b;
+		border: 1px solid rgba(192,57,43,0.2);
+	}
+
+	/* Responsive */
+	@@media (max-width: 768px) {
+		.trips-header-content {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.trip-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.trip-details {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
+
+<div class="content">
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="row">
+			<div class="col-sm-12">
+				<ul class="breadcrumb">
+					<li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+					<li class="breadcrumb-item active">My Trips</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="trips-wrapper">
+		<div class="trips-header">
+			<div class="trips-header-content">
+				<h1 class="trips-title">
+					<i class="fe fe-navigation"></i>
+					My Trips
+				</h1>
+				<a class="btn-refresh" asp-action="Index">
+					<i class="fe fe-refresh-cw"></i>
+					Refresh
+				</a>
+			</div>
+		</div>
+
+		@if (TempData["Error"] != null)
+		{
+			<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				<i class="fe fe-alert-circle"></i>
+				<span>@TempData["Error"]</span>
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			</div>
+		}
+
+		@if (TempData["Success"] != null)
+		{
+			<div class="alert alert-success alert-dismissible fade show" role="alert">
+				<i class="fe fe-check-circle"></i>
+				<span>@TempData["Success"]</span>
+				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			</div>
+		}
+
+		@if (sortedTrips == null || !sortedTrips.Any())
+		{
+			<div class="empty-state">
+				<i class="fe fe-clipboard"></i>
+				<h3>No Trips Assigned</h3>
+				<p>You don't have any trips assigned at the moment. Check back later!</p>
+			</div>
+		}
+		else
+		{
+			@foreach (var trip in sortedTrips)
+			{
+				var statusClass = "";
+				var statusIcon = "";
+
+				if (trip.StatusDisplay?.ToLower().Contains("assigned") == true)
+				{
+					statusClass = "assigned";
+					statusIcon = "calendar";
+				}
+				else if (trip.StatusDisplay?.ToLower().Contains("progress") == true)
+				{
+					statusClass = "inprogress";
+					statusIcon = "truck";
+				}
+				else if (trip.StatusDisplay?.ToLower().Contains("completed") == true)
+				{
+					statusClass = "completed";
+					statusIcon = "check-circle";
+				}
+
+				<div class="trip-card status-@statusClass">
+					<div class="trip-header">
+						<div class="trip-number">
+							<i class="fe fe-hash"></i>
+							@trip.TripNumber
+						</div>
+						<span class="status-badge status-@statusClass">
+							<i class="fe fe-@statusIcon"></i>
+							@trip.StatusDisplay
+						</span>
+					</div>
+
+					<div class="trip-details">
+						<div class="detail-item">
+							<div class="detail-icon">
+								<i class="fe fe-truck"></i>
+							</div>
+							<div class="detail-content">
+								<div class="detail-label">Vehicle</div>
+								<div class="detail-value">@trip.VehiclePlateNo</div>
+							</div>
+						</div>
+
+						<div class="detail-item">
+							<div class="detail-icon">
+								<i class="fe fe-map-pin"></i>
+							</div>
+							<div class="detail-content">
+								<div class="detail-label">Route</div>
+								<div class="detail-value route-display">
+									<span class="location">@trip.Origin</span>
+									<i class="fe fe-arrow-right route-arrow"></i>
+									<span class="location">@trip.Destination</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="detail-item">
+							<div class="detail-icon">
+								<i class="fe fe-clock"></i>
+							</div>
+							<div class="detail-content">
+								<div class="detail-label">Schedule</div>
+								<div class="detail-value">
+									<div class="date-display">
+										<i class="fe fe-calendar"></i>
+										@trip.ScheduledStartDate.ToLocalTime().ToString("MMM dd, yyyy h:mm tt")
+									</div>
+									<div class="date-end">
+										<i class="fe fe-flag"></i>
+										@trip.ScheduledEndDate.ToLocalTime().ToString("MMM dd, yyyy h:mm tt")
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="trip-actions">
+						<a class="btn-details" asp-action="Details" asp-protect-route-id="@trip.Id">
+							View Details
+							<i class="fe fe-arrow-right"></i>
+						</a>
+					</div>
+				</div>
+			}
+		}
+	</div>
+</div>

@@ -1,4 +1,830 @@
-﻿
+﻿@using FleetManager.Business.DataObjects
+@model DriverDto
+@{
+    ViewData["Title"] = "Driver Profile - " + Model.FullName;
+}
+
+<style>
+    /* ══════════════════════════════════════════════════════
+           DRIVER PROFILE — Fleetalia v4 Theme
+           Professional, production-ready design
+        ══════════════════════════════════════════════════════ */
+
+    :root {
+        --navy: #1B2856;
+        --navy-mid: #223068;
+        --green: #00664c;
+        --green-light: #00875f;
+        --green-pale: #6ee7b7;
+        --white: #ffffff;
+        --surface: #f7f8fa;
+        --border: #e2e4e8;
+        --dark: #1a1c20;
+        --dark-60: rgba(26,28,32,0.60);
+        --dark-35: rgba(26,28,32,0.35);
+        --danger: #c0392b;
+        --warn: #c07800;
+        --success: #00664c;
+    }
+
+    .profile-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Profile Header */
+    .profile-header {
+        background: var(--navy);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 10px rgba(27,40,86,0.12);
+        position: relative;
+    }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: rgba(0,102,76,0.06);
+        }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        padding: 40px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .avatar-wrapper {
+        flex-shrink: 0;
+    }
+
+    .avatar-container {
+        width: 140px;
+        height: 140px;
+        border-radius: 16px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.1);
+        border: 3px solid rgba(255,255,255,0.15);
+        position: relative;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 3px solid var(--navy);
+    }
+
+    .status-active {
+        background: var(--green);
+        box-shadow: 0 0 0 3px rgba(110,231,183,0.3);
+    }
+
+    .status-inactive {
+        background: var(--danger);
+        box-shadow: 0 0 0 3px rgba(192,57,43,0.3);
+    }
+
+    .header-info {
+        flex: 1;
+        color: #fff;
+    }
+
+    .driver-name {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+    }
+
+    .driver-subtitle {
+        font-size: 15px;
+        color: rgba(255,255,255,0.75);
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+
+    .header-badges {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .header-badge {
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(10px);
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255,255,255,0.15);
+    }
+
+        .header-badge i {
+            color: var(--green-pale);
+            font-size: 14px;
+        }
+
+    /* Tabs */
+    .tabs-wrapper {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 8px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .tabs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 6px;
+    }
+
+    .tab {
+        padding: 14px 20px;
+        text-align: center;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+        color: var(--dark-60);
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+        .tab i {
+            font-size: 16px;
+        }
+
+        .tab.active {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .tab:not(.active):hover {
+            background: var(--surface);
+            color: var(--dark);
+        }
+
+    .tab-content {
+        display: none;
+    }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Info Cards */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .info-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: all 0.2s;
+    }
+
+        .info-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+    .card-header {
+        background: var(--navy);
+        color: #fff;
+        padding: 16px 22px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 11px;
+        background: rgba(255,255,255,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--green-pale);
+        font-size: 20px;
+    }
+
+    .card-title {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 24px;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .field-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--dark-60);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .field-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--dark);
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--surface);
+    }
+
+    .field:last-child .field-value {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    /* Status badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid;
+    }
+
+        .status-badge i {
+            font-size: 10px;
+        }
+
+    .badge-valid {
+        background: rgba(0,102,76,0.1);
+        color: var(--green);
+        border-color: rgba(0,102,76,0.2);
+    }
+
+    .badge-warning {
+        background: rgba(192,120,0,0.1);
+        color: var(--warn);
+        border-color: rgba(192,120,0,0.2);
+    }
+
+    .badge-expired {
+        background: rgba(192,57,43,0.1);
+        color: var(--danger);
+        border-color: rgba(192,57,43,0.2);
+    }
+
+    .badge-active {
+        background: rgba(0,102,76,0.1);
+        color: var(--green);
+        border-color: rgba(0,102,76,0.2);
+    }
+
+    .badge-inactive {
+        background: rgba(192,57,43,0.1);
+        color: var(--danger);
+        border-color: rgba(192,57,43,0.2);
+    }
+
+    /* Contact actions */
+    .contact-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .action-btn {
+        height: 46px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--green);
+        color: #fff;
+    }
+
+        .btn-primary:hover {
+            background: var(--green-light);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+    .btn-secondary {
+        background: var(--surface);
+        color: var(--dark);
+        border: 1.5px solid var(--border);
+    }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+    /* Documents Gallery */
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 18px;
+    }
+
+    .document-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: all 0.2s;
+    }
+
+        .document-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+    .document-preview {
+        height: 180px;
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .document-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .document-card:hover .document-img {
+        transform: scale(1.05);
+    }
+
+    .document-placeholder {
+        color: var(--dark-35);
+        font-size: 3.5rem;
+        opacity: 0.3;
+    }
+
+    .document-info {
+        padding: 16px;
+    }
+
+    .document-name {
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 14px;
+        line-height: 1.4;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--dark-35);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.2;
+    }
+
+    .empty-state h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+        color: var(--dark-60);
+    }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+            padding: 30px 24px;
+        }
+
+        .driver-name {
+            font-size: 26px;
+        }
+
+        .header-badges {
+            justify-content: center;
+        }
+
+        .tabs {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .documents-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="content">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row">
+            <div class="col-sm-12">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item"><a href="#">Drivers</a></li>
+                    <li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+                    <li class="breadcrumb-item active">@Model.FullName</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="header-content">
+                <div class="avatar-wrapper">
+                    <div class="avatar-container">
+                        <img src="@Model.PassportFileName" alt="@Model.FullName" class="avatar-img"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgdmlld0JveD0iMCAwIDE0MCAxNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE0MCIgaGVpZ2h0PSIxNDAiIGZpbGw9IiNGN0Y4RkEiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjU4IiByPSIyMiIgZmlsbD0iI0UyRTRFOCIvPjxwYXRoIGQ9Ik03MCA4MEM0OC4zNTY5IDgwIDMxIDk3LjM1NjkgMzEgMTE5SDE0OUMxMDkgOTcuMzU2OSA5MS42NDMxIDgwIDcwIDgwWiIgZmlsbD0iI0UyRTRFOCIvPjwvc3ZnPg=='" />
+                        <div class="status-indicator @(Model.IsActive ? "status-active" : "status-inactive")"></div>
+                    </div>
+                </div>
+
+                <div class="header-info">
+                    <h1 class="driver-name">@Model.FullName</h1>
+                    <p class="driver-subtitle">@Model.EmploymentStatus • @Model.LicenseCategory License</p>
+                    <div class="header-badges">
+                        <div class="header-badge">
+                            <i class="fe fe-mail"></i>
+                            @Model.Email
+                        </div>
+                        <div class="header-badge">
+                            <i class="fe fe-phone"></i>
+                            @Model.PhoneNumber
+                        </div>
+                        <div class="header-badge">
+                            <i class="fe fe-calendar"></i>
+                            Joined @Model.CreatedDate.ToString("MMM yyyy")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-wrapper">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'personal')">
+                    <i class="fe fe-user"></i>
+                    <span>Personal Info</span>
+                </button>
+                <button class="tab" onclick="switchTab(event, 'license')">
+                    <i class="fe fe-credit-card"></i>
+                    <span>License Details</span>
+                </button>
+                <button class="tab" onclick="switchTab(event, 'employment')">
+                    <i class="fe fe-briefcase"></i>
+                    <span>Employment</span>
+                </button>
+                <button class="tab" onclick="switchTab(event, 'documents')">
+                    <i class="fe fe-folder"></i>
+                    <span>Documents (@Model.DriverDocuments.Count())</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Personal Info Tab -->
+        <div id="personal" class="tab-content active">
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fe fe-user"></i>
+                        </div>
+                        <h3 class="card-title">Basic Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="field-label">Full Name</div>
+                                <div class="field-value">@Model.FullName</div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">Date of Birth</div>
+                                <div class="field-value">@Model.DateOfBirth.ToString("MMMM dd, yyyy")</div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">Gender</div>
+                                <div class="field-value">@Model.Gender</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fe fe-map-pin"></i>
+                        </div>
+                        <h3 class="card-title">Contact Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="field-label">Email Address</div>
+                                <div class="field-value">@Model.Email</div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">Phone Number</div>
+                                <div class="field-value">@Model.PhoneNumber</div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">Address</div>
+                                <div class="field-value">@Model.Address</div>
+                            </div>
+                        </div>
+                        <div class="contact-actions">
+                            <a href="mailto:@Model.Email" class="action-btn btn-primary">
+                                <i class="fe fe-mail"></i>
+                                Send Email
+                            </a>
+                            <a href="tel:@Model.PhoneNumber" class="action-btn btn-secondary">
+                                <i class="fe fe-phone"></i>
+                                Call Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- License Details Tab -->
+        <div id="license" class="tab-content">
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fe fe-credit-card"></i>
+                        </div>
+                        <h3 class="card-title">License Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="field-label">License Number</div>
+                                <div class="field-value">@Model.LicenseNumber</div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">License Category</div>
+                                <div class="field-value">@Model.LicenseCategory</div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">Expiry Date</div>
+                                <div class="field-value">@(Model.LicenseExpiryDate?.ToString("MMMM dd, yyyy") ?? "Not specified")</div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">License Status</div>
+                                <div class="field-value">
+                                    @{
+                                        var daysUntilExpiry = Model.LicenseExpiryDate.HasValue ?
+                                        (Model.LicenseExpiryDate.Value - DateTime.Now).TotalDays : 0;
+
+                                        string statusClass = "badge-valid";
+                                        string statusText = "Valid";
+                                        string statusIcon = "fe-check-circle";
+
+                                        if (Model.LicenseExpiryDate.HasValue && daysUntilExpiry <= 0)
+                                        {
+                                            statusClass = "badge-expired";
+                                            statusText = "Expired";
+                                            statusIcon = "fe-x-circle";
+                                        }
+                                        else if (Model.LicenseExpiryDate.HasValue && daysUntilExpiry <= 30)
+                                        {
+                                            statusClass = "badge-warning";
+                                            statusText = $"Expires in {Math.Ceiling(daysUntilExpiry)} days";
+                                            statusIcon = "fe-alert-triangle";
+                                        }
+                                    }
+                                    <span class="status-badge @statusClass">
+                                        <i class="fe @statusIcon"></i>
+                                        @statusText
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employment Tab -->
+        <div id="employment" class="tab-content">
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fe fe-briefcase"></i>
+                        </div>
+                        <h3 class="card-title">Employment Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="field-label">Employment Status</div>
+                                <div class="field-value">@Model.EmploymentStatus</div>
+                            </div>
+                            
+                            <div class="field">
+                                <div class="field-label">Shift Status</div>
+                                <div class="field-value">@Model.ShiftStatus</div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">Account Status</div>
+                                <div class="field-value">
+                                    <span class="status-badge @(Model.IsActive ? "badge-active" : "badge-inactive")">
+                                        <i class="fe @(Model.IsActive ? "fe-check-circle" : "fe-x-circle")"></i>
+                                        @(Model.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="field-label">Account Created</div>
+                                <div class="field-value">@Model.CreatedDate.ToString("MMMM dd, yyyy")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents Tab -->
+        <div id="documents" class="tab-content">
+            @if (Model.DriverDocuments.Any())
+            {
+                <div class="documents-grid">
+                    @foreach (var doc in Model.DriverDocuments)
+                    {
+                        <div class="document-card">
+                            <div class="document-preview">
+                                @if (doc.FileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                                        doc.FileName.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                                        doc.FileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                                                        doc.FileName.EndsWith(".gif", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <img src="@doc.FileName" alt="@doc.FileName" class="document-img"
+                                         onerror="this.parentElement.innerHTML='<i class=\'fe fe-image document-placeholder\'></i>'" />
+                                }
+                                else if (doc.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <i class="fe fe-file-text document-placeholder"></i>
+                                }
+                                else
+                                {
+                                    <i class="fe fe-file document-placeholder"></i>
+                                }
+                            </div>
+                            <div class="document-info">
+                                <div class="document-name" title="@doc.FileName">@doc.FileName</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fe fe-folder empty-icon"></i>
+                    <h3>No Documents Available</h3>
+                    <p>No documents have been uploaded for this driver yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(event, tabName) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // Remove active class from all tabs
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Show selected tab content and mark tab as active
+        document.getElementById(tabName).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+</script>
+
+
+
+
+
+
+
+
+
+@* 
 @using FleetManager.Business.DataObjects
 @model DriverDto
 @{
@@ -869,4 +1695,4 @@
             });
         }
     });
-</script>
+</script> *@

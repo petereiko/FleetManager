@@ -1,7 +1,7 @@
 ﻿@using FleetManager.Business.ViewModels
 @model FineTollInputViewModel
 @{
-    ViewData["Title"] = "Log New Fine or Toll";
+    ViewData["Title"] = "Edit Fine or Toll";
 }
 
 
@@ -96,7 +96,7 @@
                 </a>
                 <div>
                     <h1 class="h3 mb-1">@ViewData["Title"]</h1>
-                    <p class="text-muted mb-0">Record a new fine or toll charge for tracking and management</p>
+                    <p class="text-muted mb-0">Make changes and corrections to fine or toll charges for tracking and management</p>
                 </div>
             </div>
 
@@ -145,7 +145,7 @@
     <!-- Main Form -->
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <form asp-action="Create" method="post" id="fineForm" enctype="multipart/form-data" novalidate>
+            <form asp-action="Edit" method="post" id="fineForm" enctype="multipart/form-data" novalidate>
                 @Html.AntiForgeryToken()
 
                 <!-- Validation Summary -->
@@ -215,7 +215,7 @@
                                     <span asp-validation-for="Input.Type" class="invalid-feedback"></span>
                                 </div>
                             </div>
-@*                             <div class="col-md-6">
+                            @*                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
                                     <input asp-for="Input.DateLogged" type="date" class="form-control @(ViewData.ModelState["Input.DateLogged"]?.Errors.Count > 0 ? "is-invalid" : "")"
                                            id="dateLogged" value="@DateTime.Today.ToString("yyyy-MM-dd")">
@@ -393,7 +393,7 @@
                                     <i class="fas fa-times me-2"></i>Cancel
                                 </a>
                                 <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
-                                    <i class="fas fa-save me-2"></i>Log Fine/Toll
+                                    <i class="fas fa-save me-2"></i>Update Fine/Toll
                                 </button>
                             </div>
                         </div>
@@ -405,190 +405,190 @@
 </div>
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Form elements
-            const form = document.getElementById('fineForm');
-            const vehicleSelect = document.getElementById('vehicleSelect');
-            const typeSelect = document.getElementById('typeSelect');
-            const titleInput = document.getElementById('titleInput');
-            const amountInput = document.getElementById('amountInput');
-            const dateInput = document.getElementById('dateLogged');
-            const isMinimalSwitch = document.getElementById('isMinimalSwitch');
-            const summaryCard = document.getElementById('summaryCard');
-            const submitBtn = document.getElementById('submitBtn');
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form elements
+        const form = document.getElementById('fineForm');
+        const vehicleSelect = document.getElementById('vehicleSelect');
+        const typeSelect = document.getElementById('typeSelect');
+        const titleInput = document.getElementById('titleInput');
+        const amountInput = document.getElementById('amountInput');
+        const dateInput = document.getElementById('dateLogged');
+        const isMinimalSwitch = document.getElementById('isMinimalSwitch');
+        const summaryCard = document.getElementById('summaryCard');
+        const submitBtn = document.getElementById('submitBtn');
 
-            // Summary elements
-            const summaryVehicle = document.getElementById('summaryVehicle');
-            const summaryType = document.getElementById('summaryType');
-            const summaryTitle = document.getElementById('summaryTitle');
-            const summaryAmount = document.getElementById('summaryAmount');
-            //const summaryDate = document.getElementById('summaryDate');
-            const summaryPersonal = document.getElementById('summaryPersonal');
+        // Summary elements
+        const summaryVehicle = document.getElementById('summaryVehicle');
+        const summaryType = document.getElementById('summaryType');
+        const summaryTitle = document.getElementById('summaryTitle');
+        const summaryAmount = document.getElementById('summaryAmount');
+        //const summaryDate = document.getElementById('summaryDate');
+        const summaryPersonal = document.getElementById('summaryPersonal');
 
-            // Vehicle info
-            const vehicleInfo = document.getElementById('vehicleInfo');
-            const vehicleDetails = document.getElementById('vehicleDetails');
+        // Vehicle info
+        const vehicleInfo = document.getElementById('vehicleInfo');
+        const vehicleDetails = document.getElementById('vehicleDetails');
 
-            // Real-time form validation
-            function validateForm() {
-                const isValid = form.checkValidity();
-                submitBtn.disabled = !isValid;
+        // Real-time form validation
+        function validateForm() {
+            const isValid = form.checkValidity();
+            submitBtn.disabled = !isValid;
 
-                if (isValid) {
-                    submitBtn.classList.remove('btn-outline-success');
-                    submitBtn.classList.add('btn-success');
-                } else {
-                    submitBtn.classList.remove('btn-success');
-                    submitBtn.classList.add('btn-outline-success');
-                }
-
-                return isValid;
+            if (isValid) {
+                submitBtn.classList.remove('btn-outline-success');
+                submitBtn.classList.add('btn-success');
+            } else {
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-outline-success');
             }
 
-            // Update summary preview
-            function updateSummary() {
-                const hasRequiredData = vehicleSelect.value && typeSelect.value && titleInput.value.trim();
+            return isValid;
+        }
 
-                if (hasRequiredData) {
-                    summaryCard.style.display = 'block';
+        // Update summary preview
+        function updateSummary() {
+            const hasRequiredData = vehicleSelect.value && typeSelect.value && titleInput.value.trim();
 
-                    // Update summary values
-                    summaryVehicle.textContent = vehicleSelect.options[vehicleSelect.selectedIndex]?.text || '-';
-                    summaryType.textContent = typeSelect.options[typeSelect.selectedIndex]?.text || '-';
-                    summaryTitle.textContent = titleInput.value.trim() || '-';
+            if (hasRequiredData) {
+                summaryCard.style.display = 'block';
 
-                    const amount = parseFloat(amountInput.value) || 0;
-                    summaryAmount.textContent = new Intl.NumberFormat('en-NG', {
-                        style: 'currency',
-                        currency: 'NGN'
-                    }).format(amount);
+                // Update summary values
+                summaryVehicle.textContent = vehicleSelect.options[vehicleSelect.selectedIndex]?.text || '-';
+                summaryType.textContent = typeSelect.options[typeSelect.selectedIndex]?.text || '-';
+                summaryTitle.textContent = titleInput.value.trim() || '-';
 
-                    // const date = new Date(dateInput.value);
-                    // summaryDate.textContent = date.toLocaleDateString('en-NG', {
-                    //     year: 'numeric',
-                    //     month: 'long',
-                    //     day: 'numeric'
-                    // });
+                const amount = parseFloat(amountInput.value) || 0;
+                summaryAmount.textContent = new Intl.NumberFormat('en-NG', {
+                    style: 'currency',
+                    currency: 'NGN'
+                }).format(amount);
 
-                    summaryPersonal.textContent = isMinimalSwitch.checked ? 'Yes' : 'No';
-                    summaryPersonal.className = isMinimalSwitch.checked ? 'text-success fw-bold' : 'text-muted';
-                } else {
-                    summaryCard.style.display = 'none';
+                // const date = new Date(dateInput.value);
+                // summaryDate.textContent = date.toLocaleDateString('en-NG', {
+                //     year: 'numeric',
+                //     month: 'long',
+                //     day: 'numeric'
+                // });
+
+                summaryPersonal.textContent = isMinimalSwitch.checked ? 'Yes' : 'No';
+                summaryPersonal.className = isMinimalSwitch.checked ? 'text-success fw-bold' : 'text-muted';
+            } else {
+                summaryCard.style.display = 'none';
+            }
+        }
+
+        // Auto-generate title based on type
+        function autoGenerateTitle() {
+            if (!titleInput.value.trim() && typeSelect.value) {
+                const typeText = typeSelect.options[typeSelect.selectedIndex].text;
+                const vehicleText = vehicleSelect.options[vehicleSelect.selectedIndex]?.text;
+
+                if (vehicleText && vehicleText !== '-- Select Vehicle --') {
+                    titleInput.value = `${typeText} - ${vehicleText}`;
+                    updateSummary();
                 }
             }
+        }
 
-            // Auto-generate title based on type
-            function autoGenerateTitle() {
-                if (!titleInput.value.trim() && typeSelect.value) {
-                    const typeText = typeSelect.options[typeSelect.selectedIndex].text;
-                    const vehicleText = vehicleSelect.options[vehicleSelect.selectedIndex]?.text;
-
-                    if (vehicleText && vehicleText !== '-- Select Vehicle --') {
-                        titleInput.value = `${typeText} - ${vehicleText}`;
-                        updateSummary();
-                    }
-                }
+        // Show vehicle info
+        function showVehicleInfo() {
+            if (vehicleSelect.value) {
+                const vehicleText = vehicleSelect.options[vehicleSelect.selectedIndex].text;
+                vehicleDetails.textContent = `Selected: ${vehicleText}`;
+                vehicleInfo.classList.remove('d-none');
+            } else {
+                vehicleInfo.classList.add('d-none');
             }
+        }
 
-            // Show vehicle info
-            function showVehicleInfo() {
-                if (vehicleSelect.value) {
-                    const vehicleText = vehicleSelect.options[vehicleSelect.selectedIndex].text;
-                    vehicleDetails.textContent = `Selected: ${vehicleText}`;
-                    vehicleInfo.classList.remove('d-none');
-                } else {
-                    vehicleInfo.classList.add('d-none');
-                }
+        // Format amount input
+        function formatAmount() {
+            const value = parseFloat(amountInput.value);
+            if (!isNaN(value) && value > 0) {
+                amountInput.value = value.toFixed(2);
             }
+        }
 
-            // Format amount input
-            function formatAmount() {
-                const value = parseFloat(amountInput.value);
-                if (!isNaN(value) && value > 0) {
-                    amountInput.value = value.toFixed(2);
-                }
-            }
+        // Event listeners
+        [vehicleSelect, typeSelect, titleInput, amountInput, dateInput, isMinimalSwitch].forEach(element => {
+            element.addEventListener('change', function() {
+                updateSummary();
+                validateForm();
+            });
 
-            // Event listeners
-            [vehicleSelect, typeSelect, titleInput, amountInput, dateInput, isMinimalSwitch].forEach(element => {
-                element.addEventListener('change', function() {
+            if (element.type !== 'checkbox' && element.tagName !== 'SELECT') {
+                element.addEventListener('input', function() {
                     updateSummary();
                     validateForm();
                 });
+            }
+        });
 
-                if (element.type !== 'checkbox' && element.tagName !== 'SELECT') {
-                    element.addEventListener('input', function() {
-                        updateSummary();
-                        validateForm();
-                    });
-                }
-            });
-
-            vehicleSelect.addEventListener('change', function() {
-                showVehicleInfo();
-                autoGenerateTitle();
-            });
-
-            typeSelect.addEventListener('change', autoGenerateTitle);
-            amountInput.addEventListener('blur', formatAmount);
-
-            // Form submission with loading state
-            form.addEventListener('submit', function(e) {
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
-                submitBtn.disabled = true;
-            });
-
-            // Initialize
-            validateForm();
-            updateSummary();
+        vehicleSelect.addEventListener('change', function() {
             showVehicleInfo();
+            autoGenerateTitle();
+        });
 
-            // Auto-save to localStorage (optional enhancement)
-            const formData = {};
-            function saveFormData() {
-                formData.vehicleId = vehicleSelect.value;
-                formData.type = typeSelect.value;
-                formData.title = titleInput.value;
-                formData.amount = amountInput.value;
-                formData.date = dateInput.value;
-                formData.isMinimal = isMinimalSwitch.checked;
+        typeSelect.addEventListener('change', autoGenerateTitle);
+        amountInput.addEventListener('blur', formatAmount);
 
-                // Note: Not using localStorage as per instructions, but this could be implemented
-                // if browser storage was available
+        // Form submission with loading state
+        form.addEventListener('submit', function(e) {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+            submitBtn.disabled = true;
+        });
+
+        // Initialize
+        validateForm();
+        updateSummary();
+        showVehicleInfo();
+
+        // Auto-save to localStorage (optional enhancement)
+        const formData = {};
+        function saveFormData() {
+            formData.vehicleId = vehicleSelect.value;
+            formData.type = typeSelect.value;
+            formData.title = titleInput.value;
+            formData.amount = amountInput.value;
+            formData.date = dateInput.value;
+            formData.isMinimal = isMinimalSwitch.checked;
+
+            // Note: Not using localStorage as per instructions, but this could be implemented
+            // if browser storage was available
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to submit
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                if (validateForm()) {
+                    form.submit();
+                }
             }
 
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Ctrl/Cmd + Enter to submit
-                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                    if (validateForm()) {
-                        form.submit();
-                    }
+            // Escape to cancel
+            if (e.key === 'Escape') {
+                if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+                    window.location.href = '@Url.Action("Index")';
                 }
+            }
+        });
 
-                // Escape to cancel
-                if (e.key === 'Escape') {
-                    if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-                        window.location.href = '@Url.Action("Index")';
-                    }
-                }
-            });
-
-            // Prevent accidental page leave
-            let formChanged = false;
-            [vehicleSelect, typeSelect, titleInput, amountInput, dateInput, isMinimalSwitch].forEach(element => {
-                element.addEventListener('change', function() {
-                    formChanged = true;
-                });
-            });
-
-            window.addEventListener('beforeunload', function(e) {
-                if (formChanged && !submitBtn.disabled) {
-                    e.preventDefault();
-                    e.returnValue = '';
-                }
+        // Prevent accidental page leave
+        let formChanged = false;
+        [vehicleSelect, typeSelect, titleInput, amountInput, dateInput, isMinimalSwitch].forEach(element => {
+            element.addEventListener('change', function() {
+                formChanged = true;
             });
         });
-    </script>
+
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged && !submitBtn.disabled) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    });
+</script>

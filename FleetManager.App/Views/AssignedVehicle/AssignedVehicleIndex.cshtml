@@ -1,0 +1,699 @@
+@using FleetManager.Business.ViewModels
+@model AssignmentIndexViewModel
+@{
+    ViewData["Title"] = "My Assigned Vehicles";
+}
+
+<style>
+	
+
+	:root {
+		--navy:       #1B2856;
+		--navy-mid:   #223068;
+		--green:      #00664c;
+		--green-light:#00875f;
+		--green-pale: #6ee7b7;
+		--white:      #ffffff;
+		--surface:    #f7f8fa;
+		--border:     #e2e4e8;
+		--dark:       #1a1c20;
+		--dark-60:    rgba(26,28,32,0.60);
+		--dark-35:    rgba(26,28,32,0.35);
+		--danger:     #c0392b;
+		--warn:       #c07800;
+	}
+
+	/* Page header */
+	.av-header {
+		background: var(--navy);
+		border-radius: 12px;
+		padding: 24px 28px;
+		margin-bottom: 24px;
+		position: relative;
+		overflow: hidden;
+		box-shadow: 0 2px 10px rgba(27,40,86,0.12);
+	}
+
+	.av-header::before {
+		content: '';
+		position: absolute;
+		top: -50px;
+		right: -50px;
+		width: 150px;
+		height: 150px;
+		border-radius: 50%;
+		background: rgba(0,102,76,0.08);
+	}
+
+	.av-header-content {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.av-header-left h2 {
+		font-size: 24px;
+		font-weight: 700;
+		color: #fff;
+		margin-bottom: 4px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.av-header-left h2 i {
+		color: var(--green-pale);
+	}
+
+	.av-header-left p {
+		font-size: 14px;
+		color: rgba(255,255,255,0.65);
+		margin: 0;
+	}
+
+	.btn-refresh {
+		background: rgba(255,255,255,0.12);
+		border: 1.5px solid rgba(255,255,255,0.2);
+		color: #fff;
+		padding: 10px 20px;
+		border-radius: 10px;
+		font-size: 14px;
+		font-weight: 600;
+		transition: all 0.2s;
+	}
+
+	.btn-refresh:hover {
+		background: rgba(255,255,255,0.18);
+		border-color: rgba(255,255,255,0.3);
+		color: #fff;
+	}
+
+	/* Stats grid */
+	.av-stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 16px;
+		margin-bottom: 24px;
+	}
+
+	.av-stat {
+		background: var(--white);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 20px;
+		text-align: center;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.av-stat::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		background: var(--green);
+	}
+
+	.av-stat-number {
+		font-size: 2.5rem;
+		font-weight: 800;
+		color: var(--dark);
+		margin-bottom: 6px;
+		font-family: 'DM Mono', monospace;
+	}
+
+	.av-stat-label {
+		font-size: 13px;
+		color: var(--dark-60);
+		font-weight: 600;
+	}
+
+	.av-stat.stat-active::before {
+		background: var(--green);
+	}
+
+	.av-stat.stat-completed::before {
+		background: var(--warn);
+	}
+
+	.av-stat.stat-year::before {
+		background: var(--navy);
+	}
+
+	/* Search & filter bar */
+	.av-controls {
+		background: var(--white);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 20px;
+		margin-bottom: 24px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	}
+
+	.av-controls .row {
+		align-items: center;
+	}
+
+	.av-search-input {
+		height: 46px;
+		border: 1.5px solid var(--border);
+		border-radius: 10px;
+		padding: 0 16px 0 44px;
+		font-size: 14px;
+		transition: all 0.2s;
+	}
+
+	.av-search-input:focus {
+		outline: none;
+		border-color: var(--green);
+		box-shadow: 0 0 0 4px rgba(0,102,76,0.08);
+	}
+
+	.av-search-icon {
+		position: absolute;
+		left: 16px;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--dark-35);
+		font-size: 16px;
+	}
+
+	.av-select {
+		height: 46px;
+		border: 1.5px solid var(--border);
+		border-radius: 10px;
+		padding: 0 16px;
+		font-size: 14px;
+		transition: all 0.2s;
+	}
+
+	.av-select:focus {
+		outline: none;
+		border-color: var(--green);
+		box-shadow: 0 0 0 4px rgba(0,102,76,0.08);
+	}
+
+	.av-view-toggle {
+		display: flex;
+		border: 1.5px solid var(--border);
+		border-radius: 10px;
+		overflow: hidden;
+	}
+
+	.av-view-btn {
+		flex: 1;
+		height: 46px;
+		background: var(--white);
+		border: none;
+		color: var(--dark-60);
+		font-size: 16px;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.av-view-btn.active {
+		background: var(--green);
+		color: #fff;
+	}
+
+	/* Vehicle cards */
+	.vehicles-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		gap: 20px;
+	}
+
+	.vehicle-card {
+		background: var(--white);
+		border: 1px solid var(--border);
+		border-radius: 14px;
+		overflow: hidden;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+		transition: all 0.2s;
+	}
+
+	.vehicle-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+	}
+
+	.vehicle-header {
+		background: var(--navy);
+		color: #fff;
+		padding: 18px 20px;
+		position: relative;
+	}
+
+	.vehicle-title {
+		font-size: 16px;
+		font-weight: 700;
+		margin-bottom: 4px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.vehicle-title i {
+		color: var(--green-pale);
+		font-size: 18px;
+	}
+
+	.vehicle-plate {
+		font-size: 13px;
+		opacity: 0.75;
+	}
+
+	.vehicle-status-badge {
+		position: absolute;
+		top: 14px;
+		right: 14px;
+		padding: 6px 12px;
+		border-radius: 99px;
+		font-size: 11px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.3px;
+	}
+
+	.badge-active {
+		background: var(--green);
+		color: #fff;
+	}
+
+	.badge-completed {
+		background: rgba(255,255,255,0.2);
+		color: #fff;
+	}
+
+	.vehicle-body {
+		padding: 20px;
+	}
+
+	.vehicle-info-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 12px;
+		margin-bottom: 16px;
+	}
+
+	.info-row {
+		display: flex;
+		align-items: center;
+		font-size: 13px;
+		color: var(--dark-60);
+	}
+
+	.info-row i {
+		width: 18px;
+		margin-right: 8px;
+		color: var(--dark-35);
+	}
+
+	.assignment-timeline {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-left: 3px solid var(--green);
+		border-radius: 10px;
+		padding: 14px;
+		margin-bottom: 16px;
+	}
+
+	.timeline-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: 12px;
+	}
+
+	.timeline-date {
+		color: var(--dark-60);
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.timeline-date i {
+		font-size: 10px;
+	}
+
+	.badge-ongoing {
+		background: var(--green);
+		color: #fff;
+		padding: 4px 10px;
+		border-radius: 99px;
+		font-size: 11px;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.badge-ongoing i {
+		font-size: 8px;
+	}
+
+	.btn-view-details {
+		width: 100%;
+		height: 46px;
+		background: var(--green);
+		border: none;
+		color: #fff;
+		border-radius: 10px;
+		font-size: 14px;
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		transition: all 0.2s;
+		text-decoration: none;
+	}
+
+	.btn-view-details:hover {
+		background: var(--green-light);
+		color: #fff;
+		transform: translateY(-1px);
+	}
+
+	/* Empty state */
+	.empty-state {
+		text-align: center;
+		padding: 80px 20px;
+		color: var(--dark-35);
+	}
+
+	.empty-state i {
+		font-size: 4rem;
+		margin-bottom: 20px;
+		opacity: 0.2;
+	}
+
+	.empty-state h4 {
+		font-size: 20px;
+		font-weight: 700;
+		color: var(--dark);
+		margin-bottom: 8px;
+	}
+
+	.empty-state p {
+		font-size: 14px;
+		color: var(--dark-60);
+		margin-bottom: 24px;
+	}
+
+	/* Responsive */
+	@@media (max-width: 768px) {
+		.av-header-content {
+			flex-direction: column;
+			gap: 16px;
+			align-items: flex-start;
+		}
+		.vehicles-grid {
+			grid-template-columns: 1fr;
+		}
+		.av-stats {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
+
+<div class="content">
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="row">
+			<div class="col-sm-12">
+				<ul class="breadcrumb">
+					<li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+					<li class="breadcrumb-item"><i class="feather-chevron-right"></i></li>
+					<li class="breadcrumb-item active">Assigned Vehicles</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<!-- Header Section -->
+	<div class="av-header">
+		<div class="av-header-content">
+			<div class="av-header-left">
+				<h2><i class="fe fe-truck"></i>@ViewData["Title"]</h2>
+				<p>Manage and view your assigned fleet vehicles</p>
+			</div>
+			<div>
+				<button class="btn btn-refresh" onclick="refreshVehicles()">
+					<i class="fe fe-refresh-cw me-2"></i>Refresh
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Statistics Cards -->
+	@if (Model.AssignedVehicles != null && Model.AssignedVehicles.Any())
+	{
+		<div class="av-stats">
+			<div class="av-stat">
+				<div class="av-stat-number">@Model.AssignedVehicles.Count()</div>
+				<div class="av-stat-label">Total Assigned</div>
+			</div>
+			<div class="av-stat stat-active">
+				<div class="av-stat-number">@Model.AssignedVehicles.Count(v => !v.EndDate.HasValue)</div>
+				<div class="av-stat-label">Currently Active</div>
+			</div>
+			<div class="av-stat stat-completed">
+				<div class="av-stat-number">@Model.AssignedVehicles.Count(v => v.EndDate.HasValue)</div>
+				<div class="av-stat-label">Completed</div>
+			</div>
+			<div class="av-stat stat-year">
+				<div class="av-stat-number">@DateTime.Now.Year</div>
+				<div class="av-stat-label">Current Year</div>
+			</div>
+		</div>
+	}
+
+	<!-- Search and Filter Bar -->
+	<div class="av-controls">
+		<div class="row g-3">
+			<div class="col-md-4">
+				<div class="position-relative">
+					<i class="fe fe-search av-search-icon"></i>
+					<input type="text" class="form-control av-search-input" id="searchInput" placeholder="Search by make, model, or plate...">
+				</div>
+			</div>
+			<div class="col-md-3">
+				<select class="form-select av-select" id="statusFilter">
+					<option value="">All Status</option>
+					<option value="active">Active</option>
+					<option value="completed">Completed</option>
+				</select>
+			</div>
+			<div class="col-md-2">
+				<select class="form-select av-select" id="sortOrder">
+					<option value="newest">Newest First</option>
+					<option value="oldest">Oldest First</option>
+					<option value="make">By Make</option>
+				</select>
+			</div>
+			<div class="col-md-3">
+				<div class="av-view-toggle">
+					<button type="button" class="av-view-btn active" id="cardView">
+						<i class="fe fe-grid"></i>
+					</button>
+					<button type="button" class="av-view-btn" id="listView">
+						<i class="fe fe-list"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Vehicles Grid -->
+	<div id="vehiclesContainer">
+		@if (Model.AssignedVehicles != null && Model.AssignedVehicles.Any())
+		{
+			<div class="vehicles-grid" id="vehiclesGrid">
+				@foreach (var assignment in Model.AssignedVehicles)
+				{
+					<div class="vehicle-item"
+						 data-make="@assignment.VehicleMakeModel"
+						 data-plate="@assignment.PlateNo"
+						 data-status="@(assignment.EndDate.HasValue ? "completed" : "active")"
+						 data-date="@assignment.StartDate.Ticks">
+						<div class="vehicle-card">
+							<div class="vehicle-header">
+								<h5 class="vehicle-title">
+									<i class="fe fe-truck"></i>
+									@assignment.VehicleMakeModel
+								</h5>
+								<small class="vehicle-plate">Plate: @assignment.PlateNo</small>
+								<span class="vehicle-status-badge @(assignment.EndDate.HasValue ? "badge-completed" : "badge-active")">
+									@(assignment.EndDate.HasValue ? "Completed" : "Active")
+								</span>
+							</div>
+
+							<div class="vehicle-body">
+								<div class="vehicle-info-grid">
+									<div class="info-row">
+										<i class="fe fe-calendar"></i>
+										<span>Started: @assignment.StartDate.ToString("dd MMM yyyy")</span>
+									</div>
+									@if (assignment.EndDate.HasValue)
+									{
+										<div class="info-row">
+											<i class="fe fe-check-circle"></i>
+											<span>Ended: @assignment.EndDate.Value.ToString("dd MMM yyyy")</span>
+										</div>
+									}
+									else
+									{
+										<div class="info-row">
+											<i class="fe fe-clock"></i>
+											<span>Duration: @((DateTime.Now - assignment.StartDate).Days) days</span>
+										</div>
+									}
+								</div>
+
+								<div class="assignment-timeline">
+									<div class="timeline-content">
+										<span class="timeline-date">
+											<i class="fe fe-play-circle"></i>
+											@assignment.StartDate.ToString("dd MMM yyyy")
+										</span>
+										@if (!assignment.EndDate.HasValue)
+										{
+											<span class="badge-ongoing">
+												<i class="fe fe-circle"></i>Ongoing
+											</span>
+										}
+										else
+										{
+											<span class="timeline-date">
+												<i class="fe fe-stop-circle"></i>
+												@assignment.EndDate.Value.ToString("dd MMM yyyy")
+											</span>
+										}
+									</div>
+								</div>
+
+								<a asp-controller="AssignedVehicle"
+								   asp-action="Details"
+								   asp-protect-route-id="@assignment.EncodedVehicleId"
+								   class="btn-view-details"
+								   role="button"
+								   aria-label="View details for vehicle">
+									<i class="fe fe-eye"></i>
+									<span>View Details</span>
+								</a>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		}
+		else
+		{
+			<div class="empty-state">
+				<i class="fe fe-truck"></i>
+				<h4>No Assigned Vehicles</h4>
+				<p>You don't have any vehicles assigned to you at the moment.</p>
+				<button class="btn btn-refresh" onclick="refreshVehicles()">
+					<i class="fe fe-refresh-cw me-2"></i>Check Again
+				</button>
+			</div>
+		}
+	</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+	$(document).ready(function() {
+		// Search functionality 
+		$('#searchInput').on('keyup', function() {
+			filterVehicles();
+		});
+
+		// Filter functionality
+		$('#statusFilter, #sortOrder').on('change', function() {
+			filterVehicles();
+		});
+
+		// View toggle functionality
+		$('#cardView, #listView').on('click', function() {
+			$('#cardView, #listView').removeClass('active');
+			$(this).addClass('active');
+
+			if ($(this).attr('id') === 'listView') {
+				switchToListView();
+			} else {
+				switchToCardView();
+			}
+		});
+
+		function filterVehicles() {
+			var searchTerm = $('#searchInput').val().toLowerCase();
+			var statusFilter = $('#statusFilter').val();
+			var sortOrder = $('#sortOrder').val();
+
+			var $vehicles = $('.vehicle-item');
+			var visibleVehicles = [];
+
+			// Filter vehicles
+			$vehicles.each(function() {
+				var $vehicle = $(this);
+				var make = $vehicle.data('make').toLowerCase();
+				var plate = $vehicle.data('plate').toLowerCase();
+				var status = $vehicle.data('status');
+
+				var matchesSearch = make.includes(searchTerm) || plate.includes(searchTerm);
+				var matchesStatus = !statusFilter || status === statusFilter;
+
+				if (matchesSearch && matchesStatus) {
+					$vehicle.show();
+					visibleVehicles.push($vehicle);
+				} else {
+					$vehicle.hide();
+				}
+			});
+
+			// Sort vehicles
+			if (sortOrder && visibleVehicles.length > 0) {
+				var $container = $('#vehiclesGrid');
+				var sortedVehicles = visibleVehicles.sort(function(a, b) {
+					switch (sortOrder) {
+						case 'newest':
+							return $(b).data('date') - $(a).data('date');
+						case 'oldest':
+							return $(a).data('date') - $(b).data('date');
+						case 'make':
+							return $(a).data('make').localeCompare($(b).data('make'));
+						default:
+							return 0;
+					}
+				});
+
+				// Reorder DOM elements
+				sortedVehicles.forEach(function($vehicle) {
+					$container.append($vehicle);
+				});
+			}
+		}
+
+		function switchToListView() {
+			$('#vehiclesGrid').css('grid-template-columns', '1fr');
+			$('.vehicle-info-grid').hide();
+		}
+
+		function switchToCardView() {
+			$('#vehiclesGrid').css('grid-template-columns', '');
+			$('.vehicle-info-grid').show();
+		}
+	});
+
+	function refreshVehicles() {
+		location.reload();
+	}
+</script>
